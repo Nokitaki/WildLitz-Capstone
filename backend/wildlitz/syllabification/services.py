@@ -1,6 +1,9 @@
 # backend/wildlitz/syllabification/services.py
 from openai import OpenAI
 from django.conf import settings
+import os
+import uuid
+import base64
 
 class ChatGPTService:
     """Service for interacting with ChatGPT API for syllabification features"""
@@ -35,7 +38,6 @@ class ChatGPTService:
                 {"word": "banana", "syllables": "ba-na-na", "count": 3},
                 {"word": "elephant", "syllables": "el-e-phant", "count": 3}
             ]
-
     
     def _create_syllabification_prompt(self, difficulty_level, count):
         """Create the prompt for syllabification word generation"""
@@ -187,3 +189,152 @@ class ChatGPTService:
                 "full_pronunciation_tip": f"Say the word '{word}' by pronouncing each syllable clearly."
             }
             return fallback_data
+    
+    def text_to_speech(self, text, voice="alloy"):
+        """
+        Convert text to speech using OpenAI's TTS API
+        
+        Parameters:
+        - text: The text to convert to speech
+        - voice: The voice to use (default: "alloy")
+                 Options: "alloy", "echo", "fable", "onyx", "nova", "shimmer"
+        
+        Returns:
+        - Dictionary with audio data (base64 encoded) and format
+        """
+        try:
+            # Ensure media directory exists
+            media_dir = os.path.join(settings.MEDIA_ROOT, 'tts')
+            os.makedirs(media_dir, exist_ok=True)
+            
+            # Generate a unique filename
+            filename = f"{uuid.uuid4()}.mp3"
+            filepath = os.path.join(media_dir, filename)
+            
+            # Call OpenAI TTS API
+            response = self.client.audio.speech.create(
+                model="tts-1", 
+                voice=voice,
+                input=text
+            )
+            
+            # Save the audio file
+            response.stream_to_file(filepath)
+            
+            # For API response, read the file and encode as base64
+            with open(filepath, "rb") as audio_file:
+                encoded_audio = base64.b64encode(audio_file.read()).decode('utf-8')
+            
+            # Return audio data with relative URL
+            relative_path = f"/media/tts/{filename}"
+            
+            return {
+                'success': True,
+                'audio_url': relative_path,
+                'audio_data': encoded_audio,
+                'format': 'mp3',
+                'word': text
+            }
+            
+        except Exception as e:
+            print(f"Error generating text-to-speech: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    def pronounce_syllables(self, word, syllable_breakdown):
+        """
+        Generate audio for each syllable in a word and the complete word
+        
+        Parameters:
+        - word: The complete word
+        - syllable_breakdown: The word broken down into syllables (separated by hyphens)
+        
+        Returns:
+        - Dictionary with audio data for each syllable and the complete word
+        """
+        try:
+            result = {
+                'word': word,
+                'syllable_breakdown': syllable_breakdown,
+                'complete_word_audio': {},
+                'syllables': []
+            }
+            
+            # Generate audio for the complete word
+            complete_word_audio = self.text_to_speech(word, voice="nova")
+            result['complete_word_audio'] = complete_word_audio
+            
+            # Generate audio for each syllable
+            syllables = syllable_breakdown.split('-')
+            for syllable in syllables:
+                syllable_audio = self.text_to_speech(syllable, voice="nova")
+                result['syllables'].append({
+                    'syllable': syllable,
+                    'audio': syllable_audio
+                })
+            
+            return result
+            
+        except Exception as e:
+            print(f"Error pronouncing syllables: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+        
+
+def text_to_speech_fallback(self, text, voice="en"):
+    """
+    Fallback text-to-speech using gTTS (Google Text-to-Speech)
+    This doesn't require an OpenAI API key and works as a reliable backup
+    
+    Parameters:
+    - text: The text to convert to speech
+    - voice: The language code (default: "en" for English)
+    
+    Returns:
+    - Dictionary with audio data (base64 encoded) and format
+    """
+    try:
+        # Import gTTS (make sure to install with pip install gTTS)
+        from gtts import gTTS
+        import os
+        import uuid
+        import base64
+        from django.conf import settings
+        
+        # Ensure media directory exists
+        media_dir = os.path.join(settings.MEDIA_ROOT, 'tts')
+        os.makedirs(media_dir, exist_ok=True)
+        
+        # Generate a unique filename
+        filename = f"{uuid.uuid4()}.mp3"
+        filepath = os.path.join(media_dir, filename)
+        
+        # Generate speech using gTTS
+        tts = gTTS(text=text, lang=voice, slow=False)
+        tts.save(filepath)
+        
+        # For API response, read the file and encode as base64
+        with open(filepath, "rb") as audio_file:
+            encoded_audio = base64.b64encode(audio_file.read()).decode('utf-8')
+        
+        # Return audio data with relative URL
+        relative_path = f"/media/tts/{filename}"
+        
+        return {
+            'success': True,
+            'audio_url': relative_path,
+            'audio_data': encoded_audio,
+            'format': 'mp3',
+            'word': text
+        }
+        
+    except Exception as e:
+        print(f"Error generating text-to-speech with gTTS: {e}")
+        return {
+            'success': False,
+            'error': str(e)
+        }
