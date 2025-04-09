@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import for navigation
+import { useNavigate } from 'react-router-dom';
 import '../../styles/homepage.css';
 import wildLitzLogo from '../../assets/img/wildlitz-logo.png';
 import syllableClappingImg from '../../assets/img/syllable-clapping-game.jpg';
@@ -7,10 +7,10 @@ import soundSafariImg from '../../assets/img/sound-safari-game.jpg';
 import vanishingGameImg from '../../assets/img/vanishing-game.jpg';
 import crosswordGameImg from '../../assets/img/crossword-game.png';
 import { motion } from 'framer-motion';
-import GameTipsModal from '../../components/modals/GameTipsModal'; // Importing the modal component
+import GameTipsModal from '../../components/modals/GameTipsModal';
 
 function HomePage() {
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
   
   // State for managing modal visibility
   const [modalOpen, setModalOpen] = useState(false);
@@ -88,8 +88,8 @@ function HomePage() {
             <motion.div 
               className="game-card"
               whileHover={{ 
-                scale: 1.03,
-                boxShadow: "0 10px 20px rgba(0,0,0,0.2)"
+                scale: 1.05,
+                boxShadow: "0 15px 30px rgba(0,0,0,0.3)"
               }}
               onClick={() => handleGameSelect('syllable-clapping')}
             >
@@ -99,14 +99,17 @@ function HomePage() {
                 <p>Syllabification</p>
                 <motion.button 
                   className="play-button"
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ 
+                    scale: 1.08,
+                    boxShadow: "0 8px 16px rgba(0,0,0,0.4)" 
+                  }}
                   whileTap={{ scale: 0.95 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleGameSelect('syllable-clapping');
                   }}
                 >
-                  Play
+                  Play Now
                 </motion.button>
               </div>
             </motion.div>
@@ -114,8 +117,8 @@ function HomePage() {
             <motion.div 
               className="game-card"
               whileHover={{ 
-                scale: 1.03,
-                boxShadow: "0 10px 20px rgba(0,0,0,0.2)"
+                scale: 1.05,
+                boxShadow: "0 15px 30px rgba(0,0,0,0.3)"
               }}
               onClick={() => handleGameSelect('sound-safari')}
             >
@@ -125,14 +128,17 @@ function HomePage() {
                 <p>Phonemics</p>
                 <motion.button 
                   className="play-button"
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ 
+                    scale: 1.08,
+                    boxShadow: "0 8px 16px rgba(0,0,0,0.4)" 
+                  }}
                   whileTap={{ scale: 0.95 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleGameSelect('sound-safari');
                   }}
                 >
-                  Play
+                  Play Now
                 </motion.button>
               </div>
             </motion.div>
@@ -140,8 +146,8 @@ function HomePage() {
             <motion.div 
               className="game-card"
               whileHover={{ 
-                scale: 1.03,
-                boxShadow: "0 10px 20px rgba(0,0,0,0.2)"
+                scale: 1.05,
+                boxShadow: "0 15px 30px rgba(0,0,0,0.3)"
               }}
               onClick={() => handleGameSelect('vanishing-game')}
             >
@@ -151,14 +157,17 @@ function HomePage() {
                 <p>Phonics</p>
                 <motion.button 
                   className="play-button"
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ 
+                    scale: 1.08,
+                    boxShadow: "0 8px 16px rgba(0,0,0,0.4)" 
+                  }}
                   whileTap={{ scale: 0.95 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleGameSelect('vanishing-game');
                   }}
                 >
-                  Play
+                  Play Now
                 </motion.button>
               </div>
             </motion.div>
@@ -166,8 +175,8 @@ function HomePage() {
             <motion.div 
               className="game-card"
               whileHover={{ 
-                scale: 1.03,
-                boxShadow: "0 10px 20px rgba(0,0,0,0.2)"
+                scale: 1.05,
+                boxShadow: "0 15px 30px rgba(0,0,0,0.3)"
               }}
               onClick={() => handleGameSelect('crossword-puzzle')}
             >
@@ -177,14 +186,17 @@ function HomePage() {
                 <p>Sentence Formation</p>
                 <motion.button 
                   className="play-button"
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ 
+                    scale: 1.08,
+                    boxShadow: "0 8px 16px rgba(0,0,0,0.4)" 
+                  }}
                   whileTap={{ scale: 0.95 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleGameSelect('crossword-puzzle');
                   }}
                 >
-                  Play
+                  Play Now
                 </motion.button>
               </div>
             </motion.div>
