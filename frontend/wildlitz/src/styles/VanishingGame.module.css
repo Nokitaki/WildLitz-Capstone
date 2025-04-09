@@ -1,0 +1,248 @@
+/* Main container */
+.container {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #3e2723; /* Dark brown background */
+    display: flex;
+    flex-direction: column;
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+    padding: 20px;
+  }
+  
+  /* Header */
+  .header {
+    background-color: #6aa84f; /* Green header */
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px 10px 0 0;
+    text-align: center;
+  }
+  
+  .header h1 {
+    font-size: 1.8rem;
+    margin: 0;
+    font-weight: 600;
+  }
+  
+  .header p {
+    margin: 5px 0 0;
+    font-size: 1rem;
+    opacity: 0.9;
+  }
+  
+  /* Config content */
+  .configContent {
+    background-color: #dddddd; /* Light gray background */
+    border-radius: 0 0 10px 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  /* Quick start button */
+  .quickStartButton {
+    background-color: #6aa84f; /* Green button */
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-weight: 600;
+    cursor: pointer;
+    width: fit-content;
+    margin: 0 auto 10px;
+    transition: all 0.2s ease;
+  }
+  
+  .quickStartButton:hover {
+    background-color: #5b9343;
+    transform: translateY(-2px);
+  }
+  
+  /* Config steps */
+  .configStep {
+    margin-bottom: 15px;
+  }
+  
+  .configStep h2 {
+    font-size: 1.1rem;
+    margin: 0 0 10px;
+    color: #333;
+    font-weight: 600;
+  }
+  
+  /* Button groups */
+  .buttonGroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  /* Option buttons */
+  .optionButton {
+    background-color: #b6d7a8; /* Light green */
+    color: #333;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 15px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .optionButton:hover {
+    background-color: #a1c589;
+  }
+  
+  .optionButton.selected {
+    background-color: #6aa84f; /* Darker green */
+    color: white;
+    font-weight: 500;
+  }
+  
+  /* Difficulty buttons */
+  .difficultyButton {
+    background-color: #b6d7a8; /* Light green */
+    color: #333;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 25px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .difficultyButton:hover {
+    background-color: #a1c589;
+  }
+  
+  .difficultyButton.selected {
+    background-color: #6aa84f; /* Darker green */
+    color: white;
+    font-weight: 500;
+  }
+  
+  /* Advanced options button */
+  .advancedButton {
+    background-color: #b6d7a8; /* Light green */
+    color: #333;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .advancedButton:hover {
+    background-color: #a1c589;
+  }
+  
+  .advancedButton.active {
+    background-color: #6aa84f; /* Darker green */
+    color: white;
+  }
+  
+  /* Advanced options container */
+  .advancedOptions {
+    background-color: #f1f1f1;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 10px;
+  }
+  
+  .optionRow {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .optionRow label {
+    flex: 1;
+    font-size: 0.9rem;
+  }
+  
+  .optionRow select,
+  .optionRow input[type="number"] {
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+  }
+  
+  /* Examples box */
+  .examplesBox {
+    background-color: #ffffff;
+    border: 1px solid #6aa84f;
+    border-radius: 5px;
+    padding: 10px 15px;
+    margin-top: 15px;
+    font-size: 0.9rem;
+  }
+  
+  .highlight {
+    color: #6aa84f;
+    font-style: italic;
+  }
+  
+  /* Action buttons */
+  .actionButtons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .backButton {
+    background-color: #999999; /* Gray */
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 30px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .backButton:hover {
+    background-color: #777777;
+  }
+  
+  .beginButton {
+    background-color: #6aa84f; /* Green */
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 30px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .beginButton:hover {
+    background-color: #5b9343;
+    transform: translateY(-2px);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .buttonGroup {
+      flex-direction: column;
+    }
+    
+    .optionButton,
+    .difficultyButton {
+      width: 100%;
+    }
+    
+    .actionButtons {
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .backButton,
+    .beginButton {
+      width: 100%;
+    }
+  }
