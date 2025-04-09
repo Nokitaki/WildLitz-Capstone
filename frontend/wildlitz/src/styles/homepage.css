@@ -1,0 +1,133 @@
+.home-container {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #3e2723; /* Dark brown background from your design */
+    color: white;
+    padding: 20px;
+  }
+  
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 20px;
+  }
+  
+  .logo-container {
+    display: flex;
+    align-items: center;
+    margin-left: 3%;
+  }
+  
+  .logo {
+    width: 60px;
+    height: 60px;
+    margin-right: 10px;
+  }
+  
+  .logo-text {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  .navigation {
+    display: flex;
+    gap: 20px;
+    margin-right: 5%;
+  }
+  
+  .nav-item {
+    color: white;
+    text-decoration: none;
+    font-size: 1.1rem;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+  }
+  
+  .nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .nav-item.active {
+    background-color: #ffc107; /* Yellow color */
+    color: #3e2723; /* Dark brown for contrast */
+    font-weight: bold;
+  }
+  
+  .section-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  
+  .content-card {
+    width: 100%;
+    height: 200px; /* Adjust height as needed */
+    background-color: #5d4037; /* Lighter brown for the content area */
+    border-radius: 15px;
+    padding: 20px;
+    margin: 0 auto; /* Additional centering for the card */
+  }
+  
+  /* Media queries for responsiveness */
+  @media (max-width: 768px) {
+    .navbar {
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .navigation {
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .logo {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .logo-text {
+      font-size: 1.5rem;
+    }
+    
+    .nav-item {
+      font-size: 0.9rem;
+      padding: 6px 12px;
+    }
+  }
+  
+  /* For even smaller screens */
+  @media (max-width: 480px) {
+    .navigation {
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .nav-item {
+      width: 100%;
+      text-align: center;
+    }
+  }
+
+  .main-content {
+    width: 85%; /* Decrease from 100% to your desired width */
+    max-width: 1000px; /* Set a maximum width if needed */
+    margin: 0 auto; /* This centers the content horizontally */
+    padding: 20px 0;
+  }
+  
+  @media (max-width: 1200px) {
+    .main-content {
+      width: 90%;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .main-content {
+      width: 95%;
+    }
+  }
