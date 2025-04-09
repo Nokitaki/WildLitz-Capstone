@@ -6,12 +6,14 @@ class ChatGPTService:
     """Service for interacting with ChatGPT API for syllabification features"""
     
     def __init__(self):
+        print(f"API KEY: {settings.OPENAI_API_KEY[:5]}...")
         self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
     
     def generate_syllabification_words(self, difficulty_level, count=10):
         """Generate words for syllabification practice based on difficulty level"""
         prompt = self._create_syllabification_prompt(difficulty_level, count)
-        
+        print(f"API Key first 5 chars: {settings.OPENAI_API_KEY[:5]}...")  # Debug print
+        print(f"Attempting to call OpenAI API with model: gpt-3.5-turbo")  # Debug print
         try:
             response = self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
@@ -22,7 +24,7 @@ class ChatGPTService:
                 temperature=0.7,
                 max_tokens=1000
             )
-            
+            print("OpenAI API call successful!")
             # Parse the response to extract words and their syllable breakdowns
             return self._parse_syllabification_response(response.choices[0].message.content)
         except Exception as e:
