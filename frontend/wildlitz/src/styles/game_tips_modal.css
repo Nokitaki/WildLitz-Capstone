@@ -1,0 +1,147 @@
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  
+  .modal-container {
+    background-color: #5d4037; /* Matching app's brown theme */
+    width: 90%;
+    max-width: 600px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+  }
+  
+  .close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #ffc107; /* Yellow like your buttons */
+    color: #3e2723; /* Dark brown */
+    border: none;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+  }
+  
+  .modal-content {
+    padding: 30px;
+    color: white;
+  }
+  
+  .modal-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .modal-header h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #ffc107; /* Yellow */
+  }
+  
+  .game-description {
+    font-size: 1.1rem;
+    opacity: 0.9;
+  }
+  
+  .modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin-bottom: 30px;
+  }
+  
+  @media (min-width: 768px) {
+    .modal-body {
+      flex-direction: row;
+    }
+  }
+  
+  .image-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .image-container img {
+    max-width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    border: 2px solid #8d6e63; /* Lighter brown */
+  }
+  
+  .tips-container {
+    flex: 1;
+  }
+  
+  .tips-container h3 {
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+    color: #ffc107; /* Yellow */
+    position: relative;
+    display: inline-block;
+  }
+  
+  .tips-container h3:after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #ffc107;
+  }
+  
+  .tips-container ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .tips-container li {
+    margin-bottom: 12px;
+    padding-left: 25px;
+    position: relative;
+  }
+  
+  .tips-container li:before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #ffc107; /* Yellow */
+    font-size: 1.2rem;
+  }
+  
+  .modal-footer {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .start-game-button {
+    background-color: #ffc107; /* Yellow */
+    color: #3e2723; /* Dark brown */
+    border: none;
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }

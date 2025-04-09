@@ -1,0 +1,360 @@
+.syllable-game-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Poppins', sans-serif;
+}
+
+.game-header {
+  background-color: #4a90e2;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.game-header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.progress-bar-container {
+  width: 30%;
+  height: 20px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #8bc34a;
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.game-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.syllable-game-card {
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  width: 90%;
+  max-width: 700px;
+  min-height: 400px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.level-indicator {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  background-color: #4a90e2;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.game-card h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.word-display {
+  background-color: #f0f8ff;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.category-label {
+  background-color: #4a90e2;
+  color: white;
+  font-size: 0.9rem;
+  padding: 5px 15px;
+  border-radius: 15px;
+  position: absolute;
+  top: -10px;
+}
+
+.word-text {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 15px 0;
+  color: #333;
+}
+
+.sound-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  margin-top: 10px;
+  transition: all 0.2s ease;
+}
+
+.sound-button:hover {
+  transform: scale(1.1);
+  background-color: #45a049;
+}
+
+.clap-instruction {
+  background-color: #f5f5f5;
+  border-radius: 20px;
+  padding: 10px 20px;
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: bold;
+  color: #555;
+}
+
+.answer-input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.answer-input-container label {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.syllable-input {
+  width: 150px;
+  padding: 10px;
+  font-size: 1.2rem;
+  text-align: center;
+  border: 2px solid #4a90e2;
+  border-radius: 10px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.syllable-input:focus {
+  border-color: #8bc34a;
+  box-shadow: 0 0 0 2px rgba(139, 195, 74, 0.2);
+}
+
+.timer-display {
+  text-align: center;
+  font-size: 1rem;
+  color: #777;
+  margin-bottom: 20px;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.hint-button, .replay-button {
+  background-color: #f5f5f5;
+  color: #555;
+  border: 1px solid #ddd;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.hint-button:hover, .replay-button:hover {
+  background-color: #e0e0e0;
+}
+
+.continue-button, .next-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 30px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.continue-button:hover, .next-button:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Feedback styles */
+.game-card.feedback {
+  text-align: center;
+}
+
+.feedback-message {
+  font-size: 1.2rem;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.feedback-message.correct {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.feedback-message.incorrect {
+  background-color: #fff8e1;
+  color: #f57f17;
+  border: 1px solid #ffecb3;
+}
+
+.syllable-breakdown {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.syllable-part {
+  background-color: #f0f8ff;
+  padding: 15px 20px;
+  border-radius: 10px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.syllable-part:nth-child(3n+1) {
+  background-color: #ffebee;
+}
+
+.syllable-part:nth-child(3n+2) {
+  background-color: #e3f2fd;
+}
+
+.syllable-part:nth-child(3n+3) {
+  background-color: #e8f5e9;
+}
+
+.sound-indicator {
+  position: absolute;
+  bottom: -15px;
+  font-size: 1.2rem;
+}
+
+.syllable-rule {
+  background-color: #e8f5e9;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.syllable-rule h3 {
+  color: #2e7d32;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.syllable-rule p {
+  margin: 5px 0;
+  color: #333;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.word-text {
+  animation: pulse 2s infinite;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .game-header h1 {
+    font-size: 1.2rem;
+  }
+  
+  .progress-bar-container {
+    width: 40%;
+  }
+  
+  .game-card {
+    padding: 20px;
+  }
+  
+  .word-text {
+    font-size: 2rem;
+  }
+  
+  .syllable-breakdown {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .progress-bar-container {
+    width: 80%;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .hint-button, .replay-button, .continue-button, .next-button {
+    width: 100%;
+  }
+}
