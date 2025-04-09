@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     # Third-party apps
     'rest_framework',  # For API functionality
     'corsheaders',     # To allow requests from your React frontend
-    
+   
     # Your module apps
     'syllabification',
     'phonemics',
@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'sentence_formation',
     'api',
 ]
+
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React's default development server
