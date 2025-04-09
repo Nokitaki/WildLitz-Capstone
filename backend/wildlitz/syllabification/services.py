@@ -6,17 +6,17 @@ class ChatGPTService:
     """Service for interacting with ChatGPT API for syllabification features"""
     
     def __init__(self):
-        print(f"API KEY: {settings.OPENAI_API_KEY[:5]}...")
+        print(f"API KEY: {settings.OPENAI_API_KEY[:5]}...")  # Debug: showing part of the API key
         self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
     
     def generate_syllabification_words(self, difficulty_level, count=10):
         """Generate words for syllabification practice based on difficulty level"""
         prompt = self._create_syllabification_prompt(difficulty_level, count)
         print(f"API Key first 5 chars: {settings.OPENAI_API_KEY[:5]}...")  # Debug print
-        print(f"Attempting to call OpenAI API with model: gpt-3.5-turbo")  # Debug print
+        print(f"Attempting to call OpenAI API with model: gpt-4o")  # Debug print
         try:
             response = self.client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4o",  # Update to use the GPT-4o model
                 messages=[
                     {"role": "system", "content": "You are an educational assistant that generates age-appropriate content for Grade 3 Filipino students learning English syllabification."},
                     {"role": "user", "content": prompt}
@@ -35,6 +35,7 @@ class ChatGPTService:
                 {"word": "banana", "syllables": "ba-na-na", "count": 3},
                 {"word": "elephant", "syllables": "el-e-phant", "count": 3}
             ]
+
     
     def _create_syllabification_prompt(self, difficulty_level, count):
         """Create the prompt for syllabification word generation"""
