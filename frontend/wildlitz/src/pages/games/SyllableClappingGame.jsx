@@ -1,79 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '../../styles/syllable_clapping_game.css';
 import SyllableConfigScreen from '../../configs/SyllableConfigScreen';
 import SyllableLoadingScreen from '../../components/loading/SyllableLoadingScreen';
 import SyllableDemoScreen from './SyllableDemoScreen';
 import wildLitzCharacter from '../../assets/img/wildlitz-idle.png';
-
-// Mock data for words categorized by difficulty
-const mockData = {
-  easy: [
-    { word: 'cat', syllables: 1, category: 'Animals' },
-    { word: 'dog', syllables: 1, category: 'Animals' },
-    { word: 'apple', syllables: 2, category: 'Food' },
-    { word: 'tiger', syllables: 2, category: 'Animals' },
-    { word: 'rabbit', syllables: 2, category: 'Animals' }
-  ],
-  medium: [
-    { word: 'elephant', syllables: 3, category: 'Animals' },
-    { word: 'dinosaur', syllables: 3, category: 'Animals' },
-    { word: 'computer', syllables: 3, category: 'Technology' },
-    { word: 'banana', syllables: 3, category: 'Food' },
-    { word: 'wonderful', syllables: 3, category: 'Adjectives' }
-  ],
-  hard: [
-    { word: 'alligator', syllables: 4, category: 'Animals' },
-    { word: 'vocabulary', syllables: 5, category: 'Education' },
-    { word: 'refrigerator', syllables: 5, category: 'Home' },
-    { word: 'necessary', syllables: 4, category: 'Adjectives' },
-    { word: 'calculator', syllables: 4, category: 'Technology' }
-  ]
-};
-
-// Helper function to break down words into syllables
-const breakIntoSyllables = (word) => {
-  // This is a simplified approximation
-  const specialCases = {
-    'elephant': ['el', 'e', 'phant'],
-    'dinosaur': ['di', 'no', 'saur'],
-    'computer': ['com', 'pu', 'ter'],
-    'banana': ['ba', 'na', 'na'],
-    'wonderful': ['won', 'der', 'ful'],
-    'alligator': ['al', 'li', 'ga', 'tor'],
-    'vocabulary': ['vo', 'cab', 'u', 'la', 'ry'],
-    'refrigerator': ['re', 'frig', 'er', 'a', 'tor'],
-    'necessary': ['nec', 'es', 'sa', 'ry'],
-    'calculator': ['cal', 'cu', 'la', 'tor'],
-    'apple': ['ap', 'ple'],
-    'tiger': ['ti', 'ger'],
-    'rabbit': ['rab', 'bit'],
-    'cat': ['cat'],
-    'dog': ['dog']
-  };
-
-  return specialCases[word.toLowerCase()] || [word];
-};
-
-// Helper function to get syllable rule for a word
-const getSyllableRule = (word) => {
-  // Simplified rules for demonstration
-  const rules = {
-    'elephant': 'When a word has a vowel sound, it creates a syllable.',
-    'dinosaur': 'Each syllable typically contains one vowel sound.',
-    'computer': 'Compound words often break at the boundary between the original words.',
-    'banana': 'Words with double letters often break between them.',
-    'wonderful': 'Prefixes and suffixes often form their own syllables.',
-    'alligator': 'Look for consonant blends that might separate syllables.',
-    'vocabulary': 'Words with many vowels typically have many syllables.',
-    'refrigerator': 'Long words often have multiple syllables based on pronunciation patterns.',
-    'necessary': 'The letter "y" can sometimes function as a vowel to create a syllable.',
-    'calculator': 'Words ending in "-or" often have that as a separate syllable.'
-  };
-
-  return rules[word.toLowerCase()] || 'Each syllable contains at least one vowel sound (a, e, i, o, u).';
-};
 
 function SyllableClappingGame() {
   const navigate = useNavigate();
@@ -81,79 +14,158 @@ function SyllableClappingGame() {
   // Game state management
   const [gameState, setGameState] = useState('config'); // config, loading, playing, feedback, demo
   const [gameConfig, setGameConfig] = useState(null);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentWord, setCurrentWord] = useState(null);
-  const [gameProgress, setGameProgress] = useState(0); // 0-10 for 10 words
+  const [gameWords, setGameWords] = useState([]);
   const [userAnswer, setUserAnswer] = useState('');
-  const [timeRemaining, setTimeRemaining] = useState(10);
-  const [timerActive, setTimerActive] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   
   const audioRef = useRef(null);
   
   // Handle starting the game after configuration
   const handleStartGame = (config) => {
     setGameConfig(config);
-    setGameProgress(0);
+    setGameWords(config.words || []);
+    setCurrentWordIndex(0);
     setGameState('loading');
     
     // Simulate loading AI-generated word
     setTimeout(() => {
-      selectWordForDifficulty(config.difficulty);
+      if (config.words && config.words.length > 0) {
+        setCurrentWord(config.words[0]);
+        setUserAnswer('');
+        setShowFeedback(false);
+        setGameState('playing');
+      } else {
+        setError("No words available. Please try again.");
+        setGameState('config');
+      }
     }, 2000);
-  };
-  
-  // Select a word based on the current difficulty
-  const selectWordForDifficulty = (difficulty) => {
-    const words = mockData[difficulty] || mockData.easy;
-    const randomIndex = Math.floor(Math.random() * words.length);
-    const word = words[randomIndex];
-    
-    setCurrentWord(word);
-    setUserAnswer('');
-    setShowFeedback(false);
-    setGameState('playing');
-    
-    // Reset timer
-    setTimeRemaining(gameConfig?.timePerWord || 10);
-    
-    // Start timer
-    setTimerActive(true);
   };
   
   // Handle the continue button in playing state
   const handleContinue = () => {
-    setTimerActive(false);
     setShowFeedback(true);
     setGameState('feedback');
   };
   
+  // Play word pronunciation
+  // Play word pronunciation using browser's speech synthesis without storing files
+  const handlePlayWordSound = () => {
+    if (!currentWord) return;
+    
+    // Start with browser's speech synthesis as fallback
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(currentWord.word);
+      utterance.rate = 0.8;
+      window.speechSynthesis.speak(utterance);
+    }
+    
+    // Try the API as well for better quality
+    axios.post('/api/syllabification/text-to-speech/', {
+      text: currentWord.word,
+      voice: 'nova'
+    })
+    .then(response => {
+      if (response.data && response.data.success && response.data.audio_data) {
+        // Play the audio directly from base64 data without saving files
+        const audio = new Audio(`data:audio/mp3;base64,${response.data.audio_data}`);
+        audio.play();
+      }
+    })
+    .catch(err => {
+      console.error("Error calling TTS API:", err);
+      // Browser's speech synthesis already used as fallback
+    });
+  };
+  
   // Handle the next word button in feedback state
   const handleNextWord = () => {
-    // Increment progress
-    setGameProgress(prev => Math.min(prev + 1, 10));
+    const nextIndex = currentWordIndex + 1;
     
-    // Check if we've completed 10 words
-    if (gameProgress === 9) {
+    // Check if we've completed all words
+    if (nextIndex >= gameWords.length) {
       // Game complete
-      alert("Congratulations! You've completed all 10 words!");
-      // In a real game, you might navigate to a results screen here
+      alert("Congratulations! You've completed all the words!");
       setGameState('config');
       return;
     }
     
     // Go to loading screen
     setGameState('loading');
+    setCurrentWordIndex(nextIndex);
     
     // Simulate loading next word
     setTimeout(() => {
-      selectWordForDifficulty(gameConfig.difficulty);
+      setCurrentWord(gameWords[nextIndex]);
+      setUserAnswer('');
+      setShowFeedback(false);
+      setGameState('playing');
     }, 2000);
   };
   
-  // Handle the replay button (play word audio again)
-  const handleReplay = () => {
-    // In a real implementation, this would play the word audio
-    console.log(`Playing audio for: ${currentWord.word}`);
+  // Handle checking syllable claps
+  const handleCheckClaps = () => {
+    if (!currentWord || !userAnswer) return;
+    
+    setIsLoading(true);
+    
+    // Get the correct syllable count from the current word (local check first)
+    const correctCount = currentWord.count || 
+                        (currentWord.syllables ? 
+                          (currentWord.syllables.match(/-/g) || []).length + 1 : 
+                          1);
+    
+    // Check if the user's answer is correct
+    const userCount = parseInt(userAnswer, 10);
+    const isCorrect = userCount === correctCount;
+    
+    // Create feedback data
+    const localFeedback = {
+      is_correct: isCorrect,
+      correct_count: correctCount,
+      user_count: userCount,
+      word: currentWord.word,
+      syllable_breakdown: currentWord.syllables || currentWord.word,
+      feedback: isCorrect ? 
+        `Great job! "${currentWord.word}" has ${correctCount} syllable${correctCount !== 1 ? 's' : ''}.` :
+        `Nice try! "${currentWord.word}" actually has ${correctCount} syllable${correctCount !== 1 ? 's' : ''}.`
+    };
+    
+    // Update with local feedback immediately
+    setCurrentWord({
+      ...currentWord,
+      feedback: localFeedback,
+      isCorrect: isCorrect
+    });
+    
+    // Show feedback
+    handleContinue();
+    
+    // Also try to get feedback from API without awaiting
+    axios.post('/api/syllabification/check-clapping/', {
+      word: currentWord.word,
+      clap_count: parseInt(userAnswer, 10)
+    })
+    .then(response => {
+      if (response.data) {
+        // Update the current word with API feedback data if available
+        setCurrentWord(prevWord => ({
+          ...prevWord,
+          feedback: response.data,
+          isCorrect: response.data.is_correct
+        }));
+      }
+    })
+    .catch(err => {
+      console.error("Error checking claps with API:", err);
+    })
+    .finally(() => {
+      setIsLoading(false);
+    });
   };
   
   // Handle changing the answer value
@@ -165,7 +177,25 @@ function SyllableClappingGame() {
   
   // Handle showing the demonstration
   const handleShowDemo = () => {
-    setGameState('demo');
+    if (!currentWord) return;
+    
+    // Get syllable sounds explanation from backend
+    axios.get(`/api/syllabification/syllable-sounds/?word=${currentWord.word}`)
+    .then(response => {
+      if (response.data) {
+        // Update current word with syllable explanation
+        setCurrentWord({
+          ...currentWord,
+          syllableExplanation: response.data
+        });
+      }
+      setGameState('demo');
+    })
+    .catch(err => {
+      console.error("Error getting syllable sounds:", err);
+      // Go to demo anyway, but with limited data
+      setGameState('demo');
+    });
   };
   
   // Handle returning from demonstration to feedback
@@ -177,18 +207,37 @@ function SyllableClappingGame() {
   const handleContinueFromLoading = () => {
     setGameState('playing');
   };
+
+  // Break word into syllables (using the syllable breakdown from backend)
+  const breakIntoSyllables = (word, syllableBreakdown) => {
+    if (!syllableBreakdown) return [word];
+    return syllableBreakdown.split('-');
+  };
   
-  // Handle timer countdown
-  useEffect(() => {
-    let timer;
-    if (timerActive && timeRemaining > 0) {
-      timer = setTimeout(() => {
-        setTimeRemaining(prev => prev - 1);
-      }, 1000);
+  // Helper function to get syllable count
+  const getSyllableCount = (word) => {
+    if (!word) return 0;
+    if (word.feedback && word.feedback.correct_count) return word.feedback.correct_count;
+    if (word.count) return word.count;
+    if (word.syllables) {
+      // Count the hyphens and add 1
+      return (word.syllables.match(/-/g) || []).length + 1;
+    }
+    return 0;
+  };
+
+  // Helper function to get word category
+  const getWordCategory = (word) => {
+    if (!word) return 'Words';
+    if (word.category) return word.category;
+    
+    // If no category is available, try to determine it from game config
+    if (gameConfig && gameConfig.categories && gameConfig.categories.length > 0) {
+      return gameConfig.categories[0].charAt(0).toUpperCase() + gameConfig.categories[0].slice(1);
     }
     
-    return () => clearTimeout(timer);
-  }, [timerActive, timeRemaining]);
+    return 'Words';
+  };
   
   // Render the appropriate screen based on game state
   const renderGameContent = () => {
@@ -199,9 +248,11 @@ function SyllableClappingGame() {
       case 'loading':
         return (
           <SyllableLoadingScreen 
-            category={currentWord?.category || 'Animals'} 
+            category={getWordCategory(currentWord)} 
             difficulty={gameConfig?.difficulty || 'easy'} 
             onContinue={handleContinueFromLoading}
+            wordIndex={currentWordIndex}
+            totalWords={gameWords.length}
           />
         );
         
@@ -221,22 +272,22 @@ function SyllableClappingGame() {
                   <div className="progress-container">
                     <div 
                       className="progress-bar" 
-                      style={{ width: `${(gameProgress * 10)}%` }}
+                      style={{ width: `${((currentWordIndex) / gameWords.length * 100)}%` }}
                     ></div>
-                    <span className="progress-text">{gameProgress}/10</span>
+                    <span className="progress-text">{currentWordIndex}/{gameWords.length}</span>
                   </div>
                 </div>
               
                 <div className="level-indicator">
-                  <span>{currentWord?.syllables || 3}</span>
+                  <span>{getSyllableCount(currentWord)}</span>
                 </div>
                 
                 <h2>Listen to the word and count the syllables!</h2>
                 
                 <div className="word-display">
-                  <div className="category-label">{currentWord?.category || 'Animals'}</div>
-                  <div className="word-text">{currentWord?.word || 'elephant'}</div>
-                  <button className="sound-button" onClick={handleReplay}>
+                  <div className="category-label">{getWordCategory(currentWord)}</div>
+                  <div className="word-text">{currentWord?.word || ''}</div>
+                  <button className="sound-button" onClick={handlePlayWordSound}>
                     <span role="img" aria-label="Play sound">🔊</span>
                   </button>
                 </div>
@@ -257,19 +308,23 @@ function SyllableClappingGame() {
                   />
                 </div>
                 
-                <div className="timer-display">
-                  Time left: {timeRemaining}s
-                </div>
+                {error && <div className="error-message">{error}</div>}
                 
                 <div className="action-buttons">
-                  <button className="hint-button">Hint</button>
-                  <button className="replay-button" onClick={handleReplay}>Replay</button>
+                  <button className="hint-button" disabled={isLoading}>Hint</button>
+                  <button 
+                    className="replay-button" 
+                    onClick={handlePlayWordSound}
+                    disabled={isLoading}
+                  >
+                    Replay
+                  </button>
                   <button 
                     className="continue-button" 
-                    onClick={handleContinue}
-                    disabled={!userAnswer}
+                    onClick={handleCheckClaps}
+                    disabled={!userAnswer || isLoading}
                   >
-                    Continue
+                    {isLoading ? 'Checking...' : 'Continue'}
                   </button>
                 </div>
               </div>
@@ -293,22 +348,27 @@ function SyllableClappingGame() {
                   <div className="progress-container">
                     <div 
                       className="progress-bar" 
-                      style={{ width: `${(gameProgress * 10)}%` }}
+                      style={{ width: `${((currentWordIndex) / gameWords.length * 100)}%` }}
                     ></div>
-                    <span className="progress-text">{gameProgress}/10</span>
+                    <span className="progress-text">{currentWordIndex}/{gameWords.length}</span>
                   </div>
                 </div>
                 
-                <div className={`feedback-message ${parseInt(userAnswer) === currentWord?.syllables ? 'correct' : 'incorrect'}`}>
-                  {parseInt(userAnswer) === currentWord?.syllables ? 
-                    `Great job! This word has ${currentWord?.syllables} syllables.` :
-                    `Nice try! This word has ${currentWord?.syllables} syllables.`
+                <div className={`feedback-message ${currentWord?.isCorrect ? 'correct' : 'incorrect'}`}>
+                  {currentWord?.feedback?.feedback || 
+                    (currentWord?.isCorrect ? 
+                      `Great job! This word has ${getSyllableCount(currentWord)} syllables.` :
+                      `Nice try! This word has ${getSyllableCount(currentWord)} syllables.`
+                    )
                   }
                   {userAnswer && <div>Your answer: {userAnswer}</div>}
                 </div>
                 
                 <div className="syllable-breakdown">
-                  {breakIntoSyllables(currentWord?.word || 'elephant').map((syllable, index) => (
+                  {breakIntoSyllables(
+                    currentWord?.word || '', 
+                    currentWord?.feedback?.syllable_breakdown || currentWord?.syllables
+                  ).map((syllable, index) => (
                     <motion.div 
                       key={index}
                       className="syllable-part"
@@ -331,16 +391,39 @@ function SyllableClappingGame() {
                 
                 <div className="syllable-rule">
                   <h3>Syllable Rule:</h3>
-                  <p>{getSyllableRule(currentWord?.word || 'elephant')}</p>
+                  <p>Each syllable typically contains at least one vowel sound.</p>
                   <p>
-                    In "{currentWord?.word || 'elephant'}", we hear the sounds: {breakIntoSyllables(currentWord?.word || 'elephant').join(' - ')}
+                    In "{currentWord?.word || ''}", we hear the sounds: {
+                      breakIntoSyllables(
+                        currentWord?.word || '', 
+                        currentWord?.feedback?.syllable_breakdown || currentWord?.syllables
+                      ).join(' - ')
+                    }
                   </p>
                 </div>
                 
                 <div className="action-buttons">
-                  <button className="hint-button" onClick={handleShowDemo}>Demonstration</button>
-                  <button className="replay-button" onClick={handleReplay}>Replay</button>
-                  <button className="next-button" onClick={handleNextWord}>Next Word</button>
+                  <button 
+                    className="hint-button" 
+                    onClick={handleShowDemo}
+                    disabled={isLoading}
+                  >
+                    Demonstration
+                  </button>
+                  <button 
+                    className="replay-button" 
+                    onClick={handlePlayWordSound}
+                    disabled={isLoading}
+                  >
+                    Replay
+                  </button>
+                  <button 
+                    className="next-button" 
+                    onClick={handleNextWord}
+                    disabled={isLoading}
+                  >
+                    Next Word
+                  </button>
                 </div>
               </div>
             </div>
@@ -350,9 +433,14 @@ function SyllableClappingGame() {
       case 'demo':
         return (
           <SyllableDemoScreen 
-            word={currentWord?.word || 'elephant'}
-            syllables={breakIntoSyllables(currentWord?.word || 'elephant')}
+            word={currentWord?.word || ''}
+            syllables={breakIntoSyllables(
+              currentWord?.word || '', 
+              currentWord?.feedback?.syllable_breakdown || currentWord?.syllables
+            )}
+            explanation={currentWord?.syllableExplanation}
             onBack={handleBackFromDemo}
+            onPlaySound={handlePlayWordSound}
           />
         );
         

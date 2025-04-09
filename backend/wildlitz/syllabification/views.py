@@ -185,7 +185,7 @@ def get_syllable_sounds(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def text_to_speech(request):
-    """Convert text to speech and return audio data"""
+    """Convert text to speech and return audio data without storing files"""
     try:
         data = json.loads(request.body)
         text = data.get('text')
@@ -202,24 +202,15 @@ def text_to_speech(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
+
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
 def pronounce_word(request):
-    """Get pronunciation audio for a word"""
+    """Get pronunciation audio for a word without storing files"""
     if request.method == 'GET':
         word = request.GET.get('word')
         if not word:
             return JsonResponse({'error': 'Word parameter is required'}, status=400)
-        
-        try:
-            # Find the word in the database
-            word_obj = SyllabificationWord.objects.get(word=word)
-            syllable_breakdown = word_obj.syllable_breakdown
-        except SyllabificationWord.DoesNotExist:
-            # Default syllabification if word not found
-            import pyphen
-            dic = pyphen.Pyphen(lang='en_US')
-            syllable_breakdown = dic.inserted(word)
         
         # Generate audio using TTS
         tts_response = chatgpt_service.text_to_speech(word)
@@ -237,7 +228,7 @@ def pronounce_word(request):
             if not word:
                 return JsonResponse({'error': 'Word parameter is required'}, status=400)
             
-            # Find the word and its syllable breakdown
+            # Find the word's syllable breakdown
             try:
                 word_obj = SyllabificationWord.objects.get(word=word)
                 syllable_breakdown = word_obj.syllable_breakdown
@@ -247,8 +238,21 @@ def pronounce_word(request):
                 dic = pyphen.Pyphen(lang='en_US')
                 syllable_breakdown = dic.inserted(word)
             
-            # Generate audio for the word and its syllables
-            result = chatgpt_service.pronounce_syllables(word, syllable_breakdown)
+            # Create audio for each syllable
+            syllables = syllable_breakdown.split('-')
+            result = {
+                'word': word,
+                'syllable_breakdown': syllable_breakdown,
+                'complete_word_audio': chatgpt_service.text_to_speech(word),
+                'syllables': []
+            }
+            
+            for syllable in syllables:
+                syllable_audio = chatgpt_service.text_to_speech(syllable)
+                result['syllables'].append({
+                    'syllable': syllable,
+                    'audio': syllable_audio
+                })
             
             return JsonResponse(result)
         
