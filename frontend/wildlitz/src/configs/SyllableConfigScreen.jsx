@@ -75,25 +75,33 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     }
     
     // Prepare the data to send to the API
-    const selectedCategories = Object.keys(categories).filter(key => categories[key]);
-    
-    if (selectedCategories.length === 0) {
-      setError("Please select at least one word category");
-      setIsLoading(false);
-      return;
-    }
-    
-    // Log the request for debugging
-    console.log("Sending request to generate words:", {
-      difficulty,
-      count: 10,
-      categories: selectedCategories
+    const selectedCategories = Object.keys(categories)
+    .filter(key => categories[key])
+    .map(key => {
+      // Convert camelCase to Title Case with spaces for API
+      return key
+        .replace(/([A-Z])/g, ' $1') // Insert a space before all capital letters
+        .replace(/^./, function(str) { return str.toUpperCase(); }) // Capitalize the first character
+        .trim(); // Remove potential leading space
     });
+  
+  if (selectedCategories.length === 0) {
+    setError("Please select at least one word category");
+    setIsLoading(false);
+    return;
+  }
+  
+  // Log the request for debugging
+  console.log("Sending request to generate words:", {
+    difficulty,
+    count: 10,
+    categories: selectedCategories
+  });
     
     // Configuration to pass to the game
     const gameConfig = {
       difficulty,
-      categories: selectedCategories,
+      categories: selectedCategories, // Pass as array of strings
       showAnimations,
       playSounds
     };
@@ -102,10 +110,10 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     axios.post('/api/syllabification/generate-words/', {
       difficulty: difficulty,
       count: 10,
-      categories: selectedCategories
+      categories: selectedCategories // Send categories as array
     })
     .then(response => {
-      console.log("API response:", response.data); // Log the full response for debugging
+      console.log("API response:", response.data);
       
       if (response.data && response.data.words && response.data.words.length > 0) {
         // Add the AI-generated words to the gameConfig

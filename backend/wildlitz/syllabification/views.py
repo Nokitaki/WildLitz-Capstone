@@ -11,32 +11,47 @@ from django.http import HttpResponse
 # Service initialization
 chatgpt_service = ChatGPTService()
 
-@csrf_exempt
-def generate_syllabification_words(request):
-    """API endpoint to generate new syllabification words using ChatGPT"""
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            difficulty = data.get('difficulty', 'medium')
-            count = data.get('count', 10)
-            
-            # Get words from ChatGPT
-            generated_words = chatgpt_service.generate_syllabification_words(difficulty, count)
-            
-            # Save to database for future use
-            for word_data in generated_words:
-                SyllabificationWord.objects.create(
-                    word=word_data['word'],
-                    syllable_breakdown=word_data['syllables'],
-                    syllable_count=word_data['count'],
-                    difficulty_level=difficulty
-                )
-            
-            return JsonResponse({'words': generated_words})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+def get_syllabification_word(request):
+    """Get a random word for syllabification practice"""
+    difficulty = request.GET.get('difficulty', 'medium')
+    categories = request.GET.getlist('categories[]', [])  # Get categories as list
     
-    return JsonResponse({'error': 'Only POST method is allowed'}, status=405)
+    # Base query
+    words_query = SyllabificationWord.objects.filter(difficulty_level=difficulty)
+    
+    # Apply category filter if provided
+    if categories:
+        words_query = words_query.filter(category__in=categories)
+    
+    if words_query.exists():
+        # Get a random word
+        word = random.choice(words_query)
+        return JsonResponse({
+            'word': word.word,
+            'syllables': word.syllable_breakdown,
+            'count': word.syllable_count,
+            'category': word.category  # Include category in the response
+        })
+    else:
+        # Generate new word if none exist
+        generated_words = chatgpt_service.generate_syllabification_words(
+            difficulty, 
+            1, 
+            categories=categories  # Pass categories to the generation service
+        )
+        if generated_words:
+            word_data = generated_words[0]
+            # Save to database with category
+            SyllabificationWord.objects.create(
+                word=word_data['word'],
+                syllable_breakdown=word_data['syllables'],
+                syllable_count=word_data['count'],
+                difficulty_level=difficulty,
+                category=word_data.get('category', categories[0] if categories else 'General')
+            )
+            return JsonResponse(word_data)
+        
+        return JsonResponse({'error': 'Failed to generate word'}, status=500)
 
 def get_syllabification_word(request):
     """Get a random word for syllabification practice"""
@@ -111,30 +126,43 @@ def generate_new_challenge(request):
             data = json.loads(request.body)
             difficulty = data.get('difficulty', 'medium')
             previous_words = data.get('previous_words', [])
+            categories = data.get('categories', [])  # Get categories from request
             
-            # Try to get a word that wasn't used before
-            words = SyllabificationWord.objects.filter(
+            # Try to get a word that wasn't used before and matches the categories
+            words_query = SyllabificationWord.objects.filter(
                 difficulty_level=difficulty
             ).exclude(word__in=previous_words)
             
-            if words.exists():
-                word = random.choice(words)
+            # Apply category filter if provided
+            if categories:
+                words_query = words_query.filter(category__in=categories)
+            
+            if words_query.exists():
+                word = random.choice(words_query)
                 challenge = {
                     'word': word.word,
                     'syllables': word.syllable_breakdown,
                     'count': word.syllable_count,
+                    'category': word.category,  # Include category in the response
                     'hint': f"This word has {word.syllable_count} syllables"
                 }
             else:
                 # Generate new words if we've used all available ones
-                generated_words = chatgpt_service.generate_syllabification_words(difficulty, 5)
+                generated_words = chatgpt_service.generate_syllabification_words(
+                    difficulty, 
+                    5, 
+                    categories=categories  # Pass categories to the generation service
+                )
                 if generated_words:
                     for word_data in generated_words:
+                        # Extract category from word data or use first selected category
+                        category = word_data.get('category', categories[0] if categories else 'General')
                         SyllabificationWord.objects.create(
                             word=word_data['word'],
                             syllable_breakdown=word_data['syllables'],
                             syllable_count=word_data['count'],
-                            difficulty_level=difficulty
+                            difficulty_level=difficulty,
+                            category=category
                         )
                     
                     word_data = generated_words[0]
@@ -142,6 +170,7 @@ def generate_new_challenge(request):
                         'word': word_data['word'],
                         'syllables': word_data['syllables'],
                         'count': word_data['count'],
+                        'category': word_data.get('category', categories[0] if categories else 'General'),
                         'hint': f"This word has {word_data['count']} syllables"
                     }
                 else:
@@ -493,3 +522,49 @@ def test_tts(request):
     """
     
     return HttpResponse(html_content)
+
+
+@csrf_exempt
+def generate_syllabification_words(request):
+    """API endpoint to generate new syllabification words using ChatGPT"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            difficulty = data.get('difficulty', 'medium')
+            count = data.get('count', 10)
+            categories = data.get('categories', [])  # Get categories from request
+            previous_words = data.get('previous_words', [])  # Get previously used words to avoid duplicates
+            
+            # Get words from ChatGPT with category filtering
+            generated_words = chatgpt_service.generate_syllabification_words(
+                difficulty, 
+                count,
+                categories=categories  # Pass categories to the service
+            )
+            
+            # Filter out any words that were already used
+            if previous_words:
+                generated_words = [word for word in generated_words if word['word'] not in previous_words]
+            
+            # Save to database for future use
+            for word_data in generated_words:
+                # Determine the category for the word
+                category = word_data.get('category')
+                if not category and categories:
+                    # If word doesn't have a category but categories were specified,
+                    # assign the first category from the request
+                    category = categories[0]
+                
+                SyllabificationWord.objects.create(
+                    word=word_data['word'],
+                    syllable_breakdown=word_data['syllables'],
+                    syllable_count=word_data['count'],
+                    difficulty_level=difficulty,
+                    category=category or 'General'  # Default to General if no category
+                )
+            
+            return JsonResponse({'words': generated_words})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    
+    return JsonResponse({'error': 'Only POST method is allowed'}, status=405)

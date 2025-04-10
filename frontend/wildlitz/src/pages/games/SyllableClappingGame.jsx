@@ -107,6 +107,7 @@ function SyllableClappingGame() {
     }, 2000);
   };
   
+  
   // Handle checking syllable claps
   const handleCheckClaps = () => {
     if (!currentWord || !userAnswer) return;
@@ -238,6 +239,54 @@ function SyllableClappingGame() {
     
     return 'Words';
   };
+
+
+
+
+  const handleGenerateMoreWords = () => {
+    // Only needed if we run out of words from the initial set
+    if (!gameConfig || !gameConfig.categories || gameConfig.categories.length === 0) {
+      console.error("Missing game configuration for generating more words");
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    // Call API to generate more words in the same categories
+    axios.post('/api/syllabification/generate-words/', {
+      difficulty: gameConfig.difficulty,
+      count: 10,
+      categories: gameConfig.categories,
+      previous_words: gameWords.map(word => word.word) // Exclude words we've already used
+    })
+    .then(response => {
+      if (response.data && response.data.words && response.data.words.length > 0) {
+        // Add new words to the game words
+        const newWords = response.data.words;
+        setGameWords(prevWords => [...prevWords, ...newWords]);
+        
+        // Update the current word to the first new word
+        setCurrentWord(newWords[0]);
+        setCurrentWordIndex(gameWords.length); // Set index to the first new word
+        setUserAnswer('');
+        setShowFeedback(false);
+        setGameState('playing');
+      } else {
+        throw new Error("API returned empty or invalid words data");
+      }
+    })
+    .catch(err => {
+      console.error("Error generating more words:", err);
+      setError("Failed to generate more words. Please try again.");
+    })
+    .finally(() => {
+      setIsLoading(false);
+    });
+  };
+
+
+
+  
   
   // Render the appropriate screen based on game state
   const renderGameContent = () => {

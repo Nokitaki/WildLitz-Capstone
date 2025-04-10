@@ -12,55 +12,64 @@ class ChatGPTService:
         print(f"API KEY: {settings.OPENAI_API_KEY[:5]}...")  # Debug: showing part of the API key
         self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
     
-    def generate_syllabification_words(self, difficulty_level, count=10):
-        """Generate words for syllabification practice based on difficulty level"""
-        prompt = self._create_syllabification_prompt(difficulty_level, count)
+    def generate_syllabification_words(self, difficulty_level, count=10, categories=None):
+        """Generate words for syllabification practice based on difficulty level and categories"""
+        prompt = self._create_syllabification_prompt(difficulty_level, count, categories)
         print(f"API Key first 5 chars: {settings.OPENAI_API_KEY[:5]}...")  # Debug print
         print(f"Attempting to call OpenAI API with model: gpt-4o")  # Debug print
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",  # Update to use the GPT-4o model
-                messages=[
-                    {"role": "system", "content": "You are an educational assistant that generates age-appropriate content for Grade 3 Filipino students learning English syllabification."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7,
-                max_tokens=1000
+            model="gpt-4o",  # Using GPT-4o model
+            messages=[
+                {"role": "system", "content": "You are an educational assistant that generates age-appropriate content for Grade 3 Filipino students learning English syllabification."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1000
             )
             print("OpenAI API call successful!")
             # Parse the response to extract words and their syllable breakdowns
             return self._parse_syllabification_response(response.choices[0].message.content)
         except Exception as e:
             print(f"Error calling OpenAI API: {e}")
-            # Fallback words if API fails
+            # Fallback words if API fails - include category
+            default_category = categories[0] if categories and len(categories) > 0 else "General"
             return [
-                {"word": "apple", "syllables": "ap-ple", "count": 2},
-                {"word": "banana", "syllables": "ba-na-na", "count": 3},
-                {"word": "elephant", "syllables": "el-e-phant", "count": 3}
-            ]
+            {"word": "apple", "syllables": "ap-ple", "count": 2, "category": "Food Items" if "foodItems" in categories else default_category},
+            {"word": "banana", "syllables": "ba-na-na", "count": 3, "category": "Food Items" if "foodItems" in categories else default_category},
+            {"word": "elephant", "syllables": "el-e-phant", "count": 3, "category": "Animals" if "animals" in categories else default_category}
+        ]
     
-    def _create_syllabification_prompt(self, difficulty_level, count):
-        """Create the prompt for syllabification word generation"""
+    def _create_syllabification_prompt(self, difficulty_level, count, categories=None):
+        """Create the prompt for syllabification word generation with category support"""
         difficulty_descriptions = {
             'easy': "1-2 syllables, simple consonant-vowel patterns",
             'medium': "2-3 syllables, common English words",
             'hard': "3-4 syllables, more complex words with consonant blends"
         }
         
+        # Add category guidance to the prompt
+        category_guidance = ""
+        if categories and len(categories) > 0:
+            category_list = ", ".join(categories)
+            category_guidance = f"Only generate words from the following categories: {category_list}. Each word must belong to one of these categories."
+        
         return f"""
         Generate {count} age-appropriate English words for Grade 3 Filipino students (8-9 years old) to practice syllabification.
         Difficulty level: {difficulty_level} ({difficulty_descriptions.get(difficulty_level, "common words")})
+        {category_guidance}
         
         For each word, provide:
         1. The word itself
         2. The syllable breakdown (separated by hyphens)
         3. The number of syllables
+        4. The category the word belongs to
         
-        Format your response as a JSON array of objects with 'word', 'syllables', and 'count' keys.
+        Format your response as a JSON array of objects with 'word', 'syllables', 'count', and 'category' keys.
         Example:
         [
-            {{"word": "apple", "syllables": "ap-ple", "count": 2}},
-            {{"word": "banana", "syllables": "ba-na-na", "count": 3}}
+            {{"word": "apple", "syllables": "ap-ple", "count": 2, "category": "Food Items"}},
+            {{"word": "tiger", "syllables": "ti-ger", "count": 2, "category": "Animals"}}
         ]
         """
     

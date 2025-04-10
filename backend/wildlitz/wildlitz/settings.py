@@ -13,17 +13,16 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 import environ
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-
+# Initialize environ
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
-
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-feh^l6f%+6kvf(^d)tq@2+%i-fm2ao5tdz3-gm^j$2-ocowvc1'
@@ -31,14 +30,13 @@ SECRET_KEY = 'django-insecure-feh^l6f%+6kvf(^d)tq@2+%i-fm2ao5tdz3-gm^j$2-ocowvc1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# Get OpenAI API key from .env file
 OPENAI_API_KEY = env('OPENAI_API_KEY')
-
+print(f"API Key loaded: {'Key found' if OPENAI_API_KEY else 'No key found'}")
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -59,15 +57,26 @@ INSTALLED_APPS = [
     'api',
 ]
 
-
-
-
+# CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React's default development server
 ]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True  # For development only! Remove in production
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+# CSRF Trusted Origins (for development)
+CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # This must be before CommonMiddleware
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -96,10 +105,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'wildlitz.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -107,10 +114,8 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -126,23 +131,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-# Configure static files for your game content
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
@@ -163,12 +160,6 @@ REST_FRAMEWORK = {
     ],
 }
 
-# Add settings for OpenAI integration (if you plan to use it)
-# Remember to use environment variables for sensitive keys in production
-OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
-
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
