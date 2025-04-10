@@ -312,3 +312,117 @@
     color: white;
     border-color: #ff9800;
   }
+
+  /* Add these styles to the custom_word_modal.css file */
+
+.recording-info-tooltip {
+  position: relative;
+  display: inline-block;
+  margin-left: 8px;
+  cursor: help;
+}
+
+.info-icon {
+  font-size: 1rem;
+}
+
+.recording-info-tooltip:hover .tooltip-content {
+  display: block;
+}
+
+.tooltip-content {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #3e2723;
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  width: 250px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+}
+
+.tooltip-content h5 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #ffc107;
+}
+
+.tooltip-content ul {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.tooltip-content li {
+  margin-bottom: 5px;
+  font-size: 0.85rem;
+}
+
+/* Style for the audio info badge in word list */
+.word-audio-badge {
+  background-color: #2196f3; /* Blue */
+  color: white;
+  padding: 3px 8px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+}
+
+.word-audio-badge::before {
+  content: '🎙️';
+  font-size: 0.9rem;
+}
+
+/* Improve the option selectors */
+.option-selector {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  gap: 8px;
+}
+
+.option-button {
+  flex: 1;
+  background-color: #795548; /* Medium brown */
+  color: white;
+  border: 1px solid #5d4037;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.option-button.selected {
+  background-color: #ffc107; /* Yellow */
+  color: #3e2723; /* Dark brown */
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.option-button:hover {
+  background-color: #8d6e63; /* Lighter brown */
+  transform: translateY(-2px);
+}
+
+/* Enhance the recording section */
+.recording-section {
+  background-color: #5d4037;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+  border: 1px solid #4e342e;
+}
+
+.recording-section h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #ffc107;
+  font-size: 1rem;
+  text-align: center;
+}

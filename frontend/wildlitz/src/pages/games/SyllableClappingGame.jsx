@@ -7,6 +7,7 @@ import SyllableConfigScreen from '../../configs/SyllableConfigScreen';
 import SyllableLoadingScreen from '../../components/loading/SyllableLoadingScreen';
 import SyllableDemoScreen from './SyllableDemoScreen';
 import wildLitzCharacter from '../../assets/img/wildlitz-idle.png';
+import AudioLoadingIndicator from '../../components/audio/AudioLoadingIndicator';
 
 function SyllableClappingGame() {
   const navigate = useNavigate();
@@ -21,20 +22,78 @@ function SyllableClappingGame() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   
   const audioRef = useRef(null);
   
+  // Log when the component mounts for debugging
+  useEffect(() => {
+    console.log("SyllableClappingGame component mounted");
+    
+    // Cleanup function for when component unmounts
+    return () => {
+      // Cancel any speech synthesis
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      
+      // Stop any audio playing
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
+    };
+  }, []);
+  
   // Handle starting the game after configuration
   const handleStartGame = (config) => {
+    console.log("Starting game with config:", {
+      ...config,
+      customWords: config.customWords ? `${config.customWords.length} custom words` : 'none',
+      words: config.words ? `${config.words.length} words` : 'none'
+    });
+    
     setGameConfig(config);
-    setGameWords(config.words || []);
+    
+    // Process words - make sure custom words are properly marked
+    let processedWords = [];
+    
+    // If config has custom words
+    if (config.customWords && config.customWords.length > 0) {
+      processedWords = config.customWords.map(word => ({
+        ...word,
+        isCustomWord: true, // Mark as custom word
+        // Make sure audio flags are properly set
+        usesCustomAudio: word.usesCustomAudio === true || (word.customAudio ? true : false)
+      }));
+      console.log(`Processed ${processedWords.length} custom words`);
+    }
+    
+    // If config has AI-generated words, add those too
+    if (config.words && config.words.length > 0) {
+      // If we're combining custom words with AI words
+      if (processedWords.length > 0) {
+        processedWords = [...processedWords, ...config.words];
+      } else {
+        processedWords = config.words;
+      }
+      console.log(`Total words: ${processedWords.length}`);
+    }
+    
+    // Update game state
+    setGameWords(processedWords);
     setCurrentWordIndex(0);
     setGameState('loading');
     
+    // Log the first few words for debugging
+    processedWords.slice(0, 3).forEach((word, idx) => {
+      console.log(`Word ${idx}: ${word.word}, isCustom: ${!!word.isCustomWord}, hasCustomAudio: ${!!word.usesCustomAudio}`);
+    });
+    
     // Simulate loading AI-generated word
     setTimeout(() => {
-      if (config.words && config.words.length > 0) {
-        setCurrentWord(config.words[0]);
+      if (processedWords.length > 0) {
+        setCurrentWord(processedWords[0]);
         setUserAnswer('');
         setShowFeedback(false);
         setGameState('playing');
@@ -51,52 +110,126 @@ function SyllableClappingGame() {
     setGameState('feedback');
   };
   
-  // Play word pronunciation
-  // Play word pronunciation using browser's speech synthesis without storing files
+  // Play word pronunciation with improved error handling
   const handlePlayWordSound = () => {
     if (!currentWord) return;
+    
+    // Prevent multiple audio playbacks
+    if (isPlayingAudio) {
+      console.log("Already playing audio, ignoring request");
+      return;
+    }
+    
+    setIsPlayingAudio(true);
+    console.log(`Attempting to play word: "${currentWord.word}", custom audio: ${currentWord.usesCustomAudio}`);
+    
+    // Create audio element for better control
+    const audio = audioRef.current || new Audio();
+    if (!audioRef.current) {
+      audioRef.current = audio;
+    }
+    
+    // Set up audio event handlers
+    audio.onended = () => {
+      console.log("Audio playback ended");
+      setIsPlayingAudio(false);
+    };
+    
+    audio.onerror = (e) => {
+      console.error("Audio playback error:", e);
+      setIsPlayingAudio(false);
+      fallbackToNextMethod();
+    };
     
     // Check if we have a custom audio recording for this word
     if (currentWord.usesCustomAudio && currentWord.customAudio) {
       try {
-        // Play the custom recording
-        const audio = new Audio(currentWord.customAudio);
-        audio.play();
-        return; // Exit early since we played the custom audio
+        console.log("Using custom audio recording");
+        
+        // Set the source and play
+        audio.src = currentWord.customAudio;
+        
+        // Try to play
+        audio.play()
+          .then(() => console.log("Custom audio playing successfully"))
+          .catch(error => {
+            console.error("Failed to play custom audio:", error);
+            fallbackToNextMethod();
+          });
+          
+        return; // Exit early since we're trying to play the custom audio
       } catch (error) {
-        console.error("Error playing custom audio:", error);
-        // Continue to fallback methods if custom audio fails
+        console.error("Error setting up custom audio:", error);
+        fallbackToNextMethod();
       }
+    } else {
+      console.log("No custom audio, trying API");
+      fallbackToNextMethod();
     }
     
-    // Try the API for better quality pronunciation
-    axios.post('/api/syllabification/text-to-speech/', {
-      text: currentWord.word,
-      voice: 'nova'
-    })
-    .then(response => {
-      if (response.data && response.data.success && response.data.audio_data) {
-        // Play the audio directly from base64 data without saving files
-        const audio = new Audio(`data:audio/mp3;base64,${response.data.audio_data}`);
-        audio.play();
-      } else {
-        // Fallback to browser's speech synthesis if API fails
-        useBrowserSpeechSynthesis();
-      }
-    })
-    .catch(err => {
-      console.error("Error calling TTS API:", err);
-      // Fallback to browser's speech synthesis
-      useBrowserSpeechSynthesis();
-    });
+    // Function to try the next audio method
+    function fallbackToNextMethod() {
+      // Try the API for better quality
+      tryApiAudio();
+    }
     
-    // Helper function for browser speech synthesis
-    function useBrowserSpeechSynthesis() {
+    // Function to use the TTS API
+    function tryApiAudio() {
+      console.log("Trying API audio");
+      
+      axios.post('/api/syllabification/text-to-speech/', {
+        text: currentWord.word,
+        voice: 'nova'
+      })
+      .then(response => {
+        if (response.data && response.data.success && response.data.audio_data) {
+          console.log("API audio received, playing");
+          
+          // Play the audio directly from base64 data
+          audio.src = `data:audio/mp3;base64,${response.data.audio_data}`;
+          
+          audio.play()
+            .then(() => console.log("API audio playing successfully"))
+            .catch(error => {
+              console.error("Failed to play API audio:", error);
+              fallbackToBrowser();
+            });
+        } else {
+          console.log("Invalid API response, falling back to browser speech");
+          fallbackToBrowser();
+        }
+      })
+      .catch(err => {
+        console.error("Error calling TTS API:", err);
+        fallbackToBrowser();
+      });
+    }
+    
+    // Function to use browser's speech synthesis
+    function fallbackToBrowser() {
+      console.log("Falling back to browser speech synthesis");
+      
       if ('speechSynthesis' in window) {
+        // Cancel any ongoing speech
         window.speechSynthesis.cancel();
+        
         const utterance = new SpeechSynthesisUtterance(currentWord.word);
         utterance.rate = 0.8;
+        
+        utterance.onend = () => {
+          console.log("Browser speech ended");
+          setIsPlayingAudio(false);
+        };
+        
+        utterance.onerror = (e) => {
+          console.error("Browser speech error:", e);
+          setIsPlayingAudio(false);
+        };
+        
         window.speechSynthesis.speak(utterance);
+      } else {
+        console.error("Speech synthesis not available in this browser");
+        setIsPlayingAudio(false);
       }
     }
   };
@@ -125,7 +258,6 @@ function SyllableClappingGame() {
       setGameState('playing');
     }, 2000);
   };
-  
   
   // Handle checking syllable claps
   const handleCheckClaps = () => {
@@ -209,6 +341,11 @@ function SyllableClappingGame() {
     }
   };
   
+  // Get hint for incorrect answers
+  const getHintForIncorrectAnswer = (word, syllableBreakdown) => {
+    return "Try saying the word slowly, focusing on each vowel sound.";
+  };
+  
   // Handle changing the answer value
   const handleAnswerChange = (e) => {
     // Only allow numeric input
@@ -263,7 +400,7 @@ function SyllableClappingGame() {
     return [word];
   };
   
-  // Update the getSyllableCount function to properly respect custom word data
+  // Get syllable count from word data
   const getSyllableCount = (word) => {
     if (!word) return 0;
     
@@ -308,9 +445,7 @@ function SyllableClappingGame() {
     return 'Words';
   };
 
-
-
-
+  // Handle generating more words if we run out
   const handleGenerateMoreWords = () => {
     // Only needed if we run out of words from the initial set
     if (!gameConfig || !gameConfig.categories || gameConfig.categories.length === 0) {
@@ -351,10 +486,6 @@ function SyllableClappingGame() {
       setIsLoading(false);
     });
   };
-
-
-
-  
   
   // Render the appropriate screen based on game state
   const renderGameContent = () => {
@@ -404,9 +535,19 @@ function SyllableClappingGame() {
                 <div className="word-display">
                   <div className="category-label">{getWordCategory(currentWord)}</div>
                   <div className="word-text">{currentWord?.word || ''}</div>
-                  <button className="sound-button" onClick={handlePlayWordSound}>
+                  <button 
+                    className={`sound-button ${isPlayingAudio ? 'playing' : ''}`} 
+                    onClick={handlePlayWordSound}
+                    disabled={isPlayingAudio}
+                  >
                     <span role="img" aria-label="Play sound">🔊</span>
                   </button>
+                  
+                  {/* Audio playing indicator */}
+                  <AudioLoadingIndicator isPlaying={isPlayingAudio} />
+                  
+                  {/* Audio element for better control */}
+                  <audio ref={audioRef} style={{ display: 'none' }} />
                 </div>
                 
                 <div className="clap-instruction">Clap for each syllable!</div>
@@ -432,9 +573,9 @@ function SyllableClappingGame() {
                   <button 
                     className="replay-button" 
                     onClick={handlePlayWordSound}
-                    disabled={isLoading}
+                    disabled={isLoading || isPlayingAudio}
                   >
-                    Replay
+                    {isPlayingAudio ? 'Playing...' : 'Replay'}
                   </button>
                   <button 
                     className="continue-button" 
@@ -530,9 +671,9 @@ function SyllableClappingGame() {
                   <button 
                     className="replay-button" 
                     onClick={handlePlayWordSound}
-                    disabled={isLoading}
+                    disabled={isLoading || isPlayingAudio}
                   >
-                    Replay
+                    {isPlayingAudio ? 'Playing...' : 'Replay'}
                   </button>
                   <button 
                     className="next-button" 

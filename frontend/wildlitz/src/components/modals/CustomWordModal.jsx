@@ -1,5 +1,3 @@
-// Update CustomWordModal.jsx with these changes
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WordRecorder from '../audio/WordRecorder';
@@ -49,15 +47,30 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
       count = syllableBreakdown.split('-').length;
     }
     
-    // Add word to list
+    // Check if we actually have custom audio
+    const hasCustomAudio = pronunciationSource === 'custom' && currentAudio !== null;
+    
+    // Add word to list with debugging info
+    console.log(`Adding word with custom audio: ${hasCustomAudio}`);
+    if (hasCustomAudio) {
+      console.log(`Audio data length: ${currentAudio.length}`);
+    }
+    
     const newWord = {
       word: currentWord.trim(),
       syllableBreakdown: syllableBreakdown.trim(),
       syllableCount: count || null,
       category: selectedCategory,
       customAudio: currentAudio,
-      usesCustomAudio: pronunciationSource === 'custom' && currentAudio !== null
+      usesCustomAudio: hasCustomAudio
     };
+
+    // Log the new word for debugging (excluding the full audio data)
+    const debugWord = {...newWord};
+    if (debugWord.customAudio) {
+      debugWord.customAudio = `[Audio data: ${debugWord.customAudio.substring(0, 20)}...]`;
+    }
+    console.log("Adding new word:", debugWord);
 
     setWords([...words, newWord]);
     
@@ -121,8 +134,12 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
 
   // Handle recording completion
   const handleRecordingComplete = (audioData, audioBlob) => {
+    console.log("Recording completed. Audio data received:", audioData.substring(0, 50) + "...");
     setCurrentAudio(audioData);
     setPronunciationSource('custom');
+    
+    // Log successful recording
+    console.log("Custom recording saved for word:", currentWord);
   };
 
   // Handle toggling pronunciation source
@@ -133,6 +150,15 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
     } else {
       setShowRecorder(false);
     }
+  };
+
+  // Add a function to validate the audio before saving
+  const validateCustomAudio = () => {
+    if (pronunciationSource === 'custom' && !currentAudio) {
+      setError('You selected custom recording but haven\'t recorded any audio. Please record or switch to AI voice.');
+      return false;
+    }
+    return true;
   };
 
   // Animation variants
@@ -259,7 +285,22 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
               {/* Pronunciation Options */}
               <div className="form-row">
                 <div className="form-group">
-                  <label>Pronunciation Source:</label>
+                  <label>
+                    Pronunciation Source:
+                    <div className="recording-info-tooltip">
+                      <span className="info-icon">ℹ️</span>
+                      <div className="tooltip-content">
+                        <h5>Voice Recording Tips:</h5>
+                        <ul>
+                          <li>Speak clearly and at a normal pace</li>
+                          <li>Record in a quiet environment</li>
+                          <li>Pronounce each syllable distinctly</li>
+                          <li>Custom recordings will be used instead of AI voice</li>
+                          <li>Recordings are stored locally and not sent to servers</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </label>
                   <div className="option-selector">
                     <button 
                       className={`option-button ${pronunciationSource === 'ai' ? 'selected' : ''}`}
@@ -279,17 +320,24 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
 
               {/* Voice Recording Component */}
               {showRecorder && (
-                <WordRecorder 
-                  word={currentWord || 'this word'} 
-                  onRecordingComplete={handleRecordingComplete}
-                />
+                <div className="recording-section">
+                  <h4>Record Pronunciation</h4>
+                  <WordRecorder 
+                    word={currentWord || 'this word'} 
+                    onRecordingComplete={handleRecordingComplete}
+                  />
+                </div>
               )}
 
               {error && <div className="form-error">{error}</div>}
 
               <button 
                 className="add-word-button"
-                onClick={handleAddWord}
+                onClick={() => {
+                  if (validateCustomAudio()) {
+                    handleAddWord();
+                  }
+                }}
               >
                 Add Word
               </button>

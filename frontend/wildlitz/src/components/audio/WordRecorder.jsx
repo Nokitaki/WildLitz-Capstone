@@ -1,5 +1,3 @@
-// Create a new file: src/components/audio/WordRecorder.jsx
-
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import '../../styles/word_recorder.css';

@@ -1,6 +1,3 @@
-// First, update the SyllableConfigScreen.jsx to replace Save Settings with Add Custom Words
-// and remove the Custom Words category
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
@@ -8,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/syllable_clapping_game.css';
 // Import a new modal component for custom words
 import CustomWordModal from '../components/modals/CustomWordModal';
+import { logAudioDebug } from '../utils/debugUtils'; // Import debug utilities if available
 
 const SyllableConfigScreen = ({ onStartGame }) => {
   const navigate = useNavigate();
@@ -29,16 +27,30 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     feelings: false,
     commonObjects: true,
     numbers: true,
-    // Removed customWords from here
   });
   
   const [showAnimations, setShowAnimations] = useState(true);
   const [playSounds, setPlaySounds] = useState(true);
   const [error, setError] = useState(null);
   
-  // Check server availability when component mounts
+  // Check server availability and load custom words when component mounts
   useEffect(() => {
+    // Check server availability
     checkServerAvailability();
+    
+    // Load custom words from localStorage if available
+    const savedWords = localStorage.getItem('wildlitz_custom_words');
+    if (savedWords) {
+      try {
+        const parsedWords = JSON.parse(savedWords);
+        setCustomWords(parsedWords);
+        console.log(`Loaded ${parsedWords.length} custom words from localStorage`);
+      } catch (error) {
+        console.error("Error loading saved custom words:", error);
+        // If there's an error parsing, clear the localStorage
+        localStorage.removeItem('wildlitz_custom_words');
+      }
+    }
   }, []);
   
   // Function to check if the backend server is available
@@ -68,10 +80,62 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     setIsCustomWordModalOpen(true);
   };
   
+  // Function to play a custom recording
+  const handlePlayCustomRecording = (word) => {
+    if (word.customAudio) {
+      try {
+        // Log for debugging
+        console.log(`Playing custom recording for "${word.word}"`);
+        
+        const audio = new Audio(word.customAudio);
+        
+        // Add error handling
+        audio.onerror = (e) => {
+          console.error("Error playing custom audio:", e);
+          alert(`Could not play the recording for "${word.word}". The audio format may not be supported.`);
+        };
+        
+        // Play the audio
+        audio.play()
+          .then(() => console.log("Custom audio playing successfully"))
+          .catch(error => {
+            console.error("Failed to play custom audio:", error);
+            alert(`Failed to play the recording for "${word.word}". Error: ${error.message}`);
+          });
+      } catch (error) {
+        console.error("Error playing custom recording:", error);
+        alert("Could not play the recording. The audio may be corrupted.");
+      }
+    } else {
+      console.warn(`No custom audio found for word "${word.word}"`);
+      alert(`This word doesn't have a custom recording.`);
+    }
+  };
+  
+  // Function to clear all custom words
+  const handleClearCustomWords = () => {
+    if (window.confirm("Are you sure you want to clear all custom words?")) {
+      setCustomWords([]);
+      // Also clear from localStorage
+      localStorage.removeItem('wildlitz_custom_words');
+      console.log("All custom words cleared");
+    }
+  };
+  
   // Handle saving custom words from the modal
   const handleSaveCustomWords = (words) => {
     setCustomWords(words);
     setIsCustomWordModalOpen(false);
+    
+    // Save to localStorage
+    try {
+      localStorage.setItem('wildlitz_custom_words', JSON.stringify(words));
+      console.log(`Saved ${words.length} custom words to localStorage`);
+    } catch (error) {
+      console.error("Error saving custom words to localStorage:", error);
+      // Show a warning to the user
+      alert("Warning: Your custom words couldn't be saved for future sessions. This could be due to browser storage restrictions or privacy settings.");
+    }
   };
   
   // Handle start game with improved error handling
@@ -111,7 +175,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
       difficulty,
       count: 10,
       categories: selectedCategories,
-      customWords: customWords
+      customWords: customWords.length
     });
     
     // Configuration to pass to the game
@@ -125,6 +189,13 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     
     // If custom words are provided, use those first
     if (customWords.length > 0) {
+      // Log custom words for debugging (without full audio data)
+      customWords.forEach((word, index) => {
+        logAudioDebug ? 
+          logAudioDebug(`Custom word ${index}`, word) :
+          console.log(`Custom word ${index}: ${word.word}, Uses custom audio: ${word.usesCustomAudio}`);
+      });
+      
       // Format custom words for the game - converting them to the expected format
       const formattedCustomWords = customWords.map(word => {
         // Split the word into syllables (simplified - in a real app you'd use a proper syllabifier)
@@ -135,7 +206,10 @@ const SyllableConfigScreen = ({ onStartGame }) => {
           word: word.word,
           syllables: syllables,
           count: count,
-          category: word.category || "Custom"
+          category: word.category || "Custom",
+          isCustomWord: true,
+          usesCustomAudio: word.usesCustomAudio,
+          customAudio: word.customAudio
         };
       });
       
@@ -167,7 +241,10 @@ const SyllableConfigScreen = ({ onStartGame }) => {
             word: word.word,
             syllables: word.syllableBreakdown || word.word,
             count: word.syllableCount || (word.syllableBreakdown ? word.syllableBreakdown.split('-').length : 1),
-            category: word.category || "Custom"
+            category: word.category || "Custom",
+            isCustomWord: true,
+            usesCustomAudio: word.usesCustomAudio,
+            customAudio: word.customAudio
           }));
           
           // Add the AI-generated words to the gameConfig, combined with custom words
@@ -262,8 +339,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
               >
                 Hard
               </button>
-              
-              
             </div>
           </div>
           
@@ -379,16 +454,47 @@ const SyllableConfigScreen = ({ onStartGame }) => {
             </div>
           )}
           
-          {/* Show custom words if any are added */}
+          {/* Show custom words if any are added - Enhanced display */}
           {customWords.length > 0 && (
             <div className="custom-words-summary">
               <h3>Custom Words Added: {customWords.length}</h3>
               <div className="custom-words-list">
                 {customWords.map((word, index) => (
-                  <span key={index} className="custom-word-pill">
-                    {word.word}
-                  </span>
+                  <div key={index} className="custom-word-card">
+                    <div className="custom-word-info">
+                      <span className="custom-word-text">{word.word}</span>
+                      <div className="custom-word-details">
+                        <span className="custom-word-category">{word.category}</span>
+                        {word.syllableBreakdown && (
+                          <span className="custom-word-syllables">{word.syllableBreakdown}</span>
+                        )}
+                        {word.usesCustomAudio && (
+                          <button 
+                            className="play-recording-button"
+                            onClick={() => handlePlayCustomRecording(word)}
+                          >
+                            <span role="img" aria-label="Play Recording">🔊</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 ))}
+              </div>
+              
+              <div className="custom-words-actions">
+                <button 
+                  className="clear-words-button"
+                  onClick={handleClearCustomWords}
+                >
+                  Clear All Words
+                </button>
+                <button 
+                  className="edit-words-button"
+                  onClick={() => setIsCustomWordModalOpen(true)}
+                >
+                  Edit Words
+                </button>
               </div>
             </div>
           )}
