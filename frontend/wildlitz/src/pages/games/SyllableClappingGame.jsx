@@ -56,15 +56,20 @@ function SyllableClappingGame() {
   const handlePlayWordSound = () => {
     if (!currentWord) return;
     
-    // Start with browser's speech synthesis as fallback
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(currentWord.word);
-      utterance.rate = 0.8;
-      window.speechSynthesis.speak(utterance);
+    // Check if we have a custom audio recording for this word
+    if (currentWord.usesCustomAudio && currentWord.customAudio) {
+      try {
+        // Play the custom recording
+        const audio = new Audio(currentWord.customAudio);
+        audio.play();
+        return; // Exit early since we played the custom audio
+      } catch (error) {
+        console.error("Error playing custom audio:", error);
+        // Continue to fallback methods if custom audio fails
+      }
     }
     
-    // Try the API as well for better quality
+    // Try the API for better quality pronunciation
     axios.post('/api/syllabification/text-to-speech/', {
       text: currentWord.word,
       voice: 'nova'
@@ -74,12 +79,26 @@ function SyllableClappingGame() {
         // Play the audio directly from base64 data without saving files
         const audio = new Audio(`data:audio/mp3;base64,${response.data.audio_data}`);
         audio.play();
+      } else {
+        // Fallback to browser's speech synthesis if API fails
+        useBrowserSpeechSynthesis();
       }
     })
     .catch(err => {
       console.error("Error calling TTS API:", err);
-      // Browser's speech synthesis already used as fallback
+      // Fallback to browser's speech synthesis
+      useBrowserSpeechSynthesis();
     });
+    
+    // Helper function for browser speech synthesis
+    function useBrowserSpeechSynthesis() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(currentWord.word);
+        utterance.rate = 0.8;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
   };
   
   // Handle the next word button in feedback state

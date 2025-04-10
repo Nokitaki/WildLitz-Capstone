@@ -262,12 +262,8 @@ const SyllableConfigScreen = ({ onStartGame }) => {
               >
                 Hard
               </button>
-              <button 
-                className={`config-button ${difficulty === 'custom' ? 'selected' : ''}`}
-                onClick={() => setDifficulty('custom')}
-              >
-                Custom
-              </button>
+              
+              
             </div>
           </div>
           

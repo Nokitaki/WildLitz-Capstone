@@ -1,0 +1,188 @@
+/* src/styles/word_recorder.css */
+
+.word-recorder {
+    background-color: #6d4c41; /* Lighter brown to match modal theme */
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .recorder-header h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #ffc107; /* Yellow */
+    font-size: 1rem;
+  }
+  
+  .recorder-controls {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+  
+  .recorder-button {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: none;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .recorder-button.record {
+    background-color: #4caf50; /* Green */
+    color: white;
+  }
+  
+  .recorder-button.stop {
+    background-color: #f44336; /* Red */
+    color: white;
+    animation: pulse 1.5s infinite;
+  }
+  
+  .recorder-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .recorder-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .recorder-status {
+    text-align: center;
+    margin-top: 10px;
+  }
+  
+  .recording-badge {
+    background-color: #f44336; /* Red */
+    color: white;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    animation: pulse 1.5s infinite;
+  }
+  
+  .success-badge {
+    background-color: #4caf50; /* Green */
+    color: white;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+  }
+  
+  .info-badge {
+    background-color: #9e9e9e; /* Gray */
+    color: white;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+  }
+  
+  .playback-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .playback-button {
+    background-color: #2196f3; /* Blue */
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .playback-button:hover {
+    background-color: #1976d2;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .option-selector {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  
+  .option-button {
+    background-color: #795548; /* Medium brown */
+    color: white;
+    border: 1px solid #5d4037;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .option-button.selected {
+    background-color: #ffc107; /* Yellow */
+    color: #3e2723; /* Dark brown */
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.8; }
+    100% { opacity: 1; }
+  }
+
+  /* Add these styles to custom_word_modal.css */
+
+.option-selector {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    gap: 10px;
+  }
+  
+  .option-button {
+    flex: 1;
+    background-color: #795548; /* Medium brown */
+    color: white;
+    border: 1px solid #5d4037;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+  }
+  
+  .option-button.selected {
+    background-color: #ffc107; /* Yellow */
+    color: #3e2723; /* Dark brown */
+    font-weight: bold;
+  }
+  
+  .option-button:hover {
+    background-color: #8d6e63; /* Lighter brown */
+  }
+  
+  .word-audio-badge {
+    background-color: #2196f3; /* Blue */
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .word-audio-badge::before {
+    content: '🎙️';
+    font-size: 0.9rem;
+  }

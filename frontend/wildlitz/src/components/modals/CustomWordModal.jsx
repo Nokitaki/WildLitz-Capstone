@@ -1,7 +1,8 @@
-// Create a new file: src/components/modals/CustomWordModal.jsx
+// Update CustomWordModal.jsx with these changes
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import WordRecorder from '../audio/WordRecorder';
 import '../../styles/custom_word_modal.css';
 
 const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
@@ -11,6 +12,9 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
   const [syllableCount, setSyllableCount] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Animals');
   const [error, setError] = useState('');
+  const [currentAudio, setCurrentAudio] = useState(null);
+  const [pronunciationSource, setPronunciationSource] = useState('ai'); // 'ai' or 'custom'
+  const [showRecorder, setShowRecorder] = useState(false);
 
   // Initialize words from existing words if provided
   useEffect(() => {
@@ -50,7 +54,9 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
       word: currentWord.trim(),
       syllableBreakdown: syllableBreakdown.trim(),
       syllableCount: count || null,
-      category: selectedCategory
+      category: selectedCategory,
+      customAudio: currentAudio,
+      usesCustomAudio: pronunciationSource === 'custom' && currentAudio !== null
     };
 
     setWords([...words, newWord]);
@@ -59,6 +65,9 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
     setCurrentWord('');
     setSyllableBreakdown('');
     setSyllableCount('');
+    setCurrentAudio(null);
+    setShowRecorder(false);
+    setPronunciationSource('ai');
     setError('');
   };
 
@@ -108,6 +117,22 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
     // Estimate syllable count - count '-' plus 1
     const count = (breakdown.match(/-/g) || []).length + 1;
     setSyllableCount(count.toString());
+  };
+
+  // Handle recording completion
+  const handleRecordingComplete = (audioData, audioBlob) => {
+    setCurrentAudio(audioData);
+    setPronunciationSource('custom');
+  };
+
+  // Handle toggling pronunciation source
+  const handleTogglePronunciation = (source) => {
+    setPronunciationSource(source);
+    if (source === 'custom') {
+      setShowRecorder(true);
+    } else {
+      setShowRecorder(false);
+    }
   };
 
   // Animation variants
@@ -164,7 +189,7 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
 
             <h2>Add Custom Words</h2>
             <p className="modal-description">
-              Add your own words for the syllable clapping game. Optionally provide syllable breakdown.
+              Add your own words for the syllable clapping game. Optionally provide syllable breakdown and record pronunciations.
             </p>
 
             <div className="custom-word-form">
@@ -231,6 +256,35 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
                 </div>
               </div>
 
+              {/* Pronunciation Options */}
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Pronunciation Source:</label>
+                  <div className="option-selector">
+                    <button 
+                      className={`option-button ${pronunciationSource === 'ai' ? 'selected' : ''}`}
+                      onClick={() => handleTogglePronunciation('ai')}
+                    >
+                      Use AI Voice
+                    </button>
+                    <button 
+                      className={`option-button ${pronunciationSource === 'custom' ? 'selected' : ''}`}
+                      onClick={() => handleTogglePronunciation('custom')}
+                    >
+                      Record My Voice
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Voice Recording Component */}
+              {showRecorder && (
+                <WordRecorder 
+                  word={currentWord || 'this word'} 
+                  onRecordingComplete={handleRecordingComplete}
+                />
+              )}
+
               {error && <div className="form-error">{error}</div>}
 
               <button 
@@ -258,6 +312,9 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
                           )}
                           {word.syllableCount && (
                             <span className="word-count">{word.syllableCount} syllables</span>
+                          )}
+                          {word.usesCustomAudio && (
+                            <span className="word-audio-badge">Custom Audio</span>
                           )}
                         </div>
                       </div>
