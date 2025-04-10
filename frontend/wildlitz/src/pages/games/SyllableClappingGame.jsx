@@ -114,11 +114,24 @@ function SyllableClappingGame() {
     
     setIsLoading(true);
     
-    // Get the correct syllable count from the current word (local check first)
-    const correctCount = currentWord.count || 
-                        (currentWord.syllables ? 
-                          (currentWord.syllables.match(/-/g) || []).length + 1 : 
-                          1);
+    // Determine the correct syllable count based on the word data
+    let correctCount;
+    let syllableBreakdown;
+    
+    // For custom words, use the syllable data provided by the user
+    if (currentWord.isCustomWord) {
+      // Use the syllable count from the custom word data
+      correctCount = currentWord.syllableCount || 
+                     (currentWord.syllableBreakdown ? currentWord.syllableBreakdown.split('-').length : 1);
+      syllableBreakdown = currentWord.syllableBreakdown || currentWord.word;
+    } else {
+      // For AI-generated words, use the count from the API or fallback to syllables
+      correctCount = currentWord.count || 
+                    (currentWord.syllables ? 
+                      (currentWord.syllables.match(/-/g) || []).length + 1 : 
+                      1);
+      syllableBreakdown = currentWord.syllables || currentWord.word;
+    }
     
     // Check if the user's answer is correct
     const userCount = parseInt(userAnswer, 10);
@@ -130,10 +143,10 @@ function SyllableClappingGame() {
       correct_count: correctCount,
       user_count: userCount,
       word: currentWord.word,
-      syllable_breakdown: currentWord.syllables || currentWord.word,
+      syllable_breakdown: syllableBreakdown,
       feedback: isCorrect ? 
-        `Great job! "${currentWord.word}" has ${correctCount} syllable${correctCount !== 1 ? 's' : ''}.` :
-        `Nice try! "${currentWord.word}" actually has ${correctCount} syllable${correctCount !== 1 ? 's' : ''}.`
+        `Great job! "${currentWord.word}" has ${correctCount} syllable${correctCount !== 1 ? 's' : ''}: ${syllableBreakdown}.` :
+        `Nice try! "${currentWord.word}" actually has ${correctCount} syllable${correctCount !== 1 ? 's' : ''}: ${syllableBreakdown}. ${getHintForIncorrectAnswer(currentWord.word, syllableBreakdown)}`
     };
     
     // Update with local feedback immediately
@@ -146,27 +159,35 @@ function SyllableClappingGame() {
     // Show feedback
     handleContinue();
     
-    // Also try to get feedback from API without awaiting
-    axios.post('/api/syllabification/check-clapping/', {
-      word: currentWord.word,
-      clap_count: parseInt(userAnswer, 10)
-    })
-    .then(response => {
-      if (response.data) {
-        // Update the current word with API feedback data if available
-        setCurrentWord(prevWord => ({
-          ...prevWord,
-          feedback: response.data,
-          isCorrect: response.data.is_correct
-        }));
-      }
-    })
-    .catch(err => {
-      console.error("Error checking claps with API:", err);
-    })
-    .finally(() => {
+    // Only call the API for non-custom words
+    if (!currentWord.isCustomWord) {
+      // Try to get feedback from API without awaiting
+      axios.post('/api/syllabification/check-clapping/', {
+        word: currentWord.word,
+        clap_count: parseInt(userAnswer, 10),
+        syllable_breakdown: syllableBreakdown, // Send the correct breakdown to ensure API knows it
+        is_custom: false
+      })
+      .then(response => {
+        if (response.data) {
+          // Update the current word with API feedback data if available
+          setCurrentWord(prevWord => ({
+            ...prevWord,
+            feedback: response.data,
+            isCorrect: response.data.is_correct
+          }));
+        }
+      })
+      .catch(err => {
+        console.error("Error checking claps with API:", err);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+    } else {
+      // For custom words, just use our local feedback
       setIsLoading(false);
-    });
+    }
   };
   
   // Handle changing the answer value
@@ -211,20 +232,48 @@ function SyllableClappingGame() {
 
   // Break word into syllables (using the syllable breakdown from backend)
   const breakIntoSyllables = (word, syllableBreakdown) => {
+    if (!word) return [];
     if (!syllableBreakdown) return [word];
-    return syllableBreakdown.split('-');
+    
+    // If the syllable breakdown contains hyphens, split by those
+    if (syllableBreakdown.includes('-')) {
+      return syllableBreakdown.split('-');
+    } 
+    
+    // If no hyphens but we have the word, return the whole word
+    return [word];
   };
   
-  // Helper function to get syllable count
+  // Update the getSyllableCount function to properly respect custom word data
   const getSyllableCount = (word) => {
     if (!word) return 0;
-    if (word.feedback && word.feedback.correct_count) return word.feedback.correct_count;
-    if (word.count) return word.count;
-    if (word.syllables) {
-      // Count the hyphens and add 1
+    
+    // First check if the feedback contains the correct count
+    if (word.feedback && word.feedback.correct_count) {
+      return word.feedback.correct_count;
+    }
+    
+    // For custom words, use the syllable count provided by the user
+    if (word.isCustomWord && word.syllableCount) {
+      return word.syllableCount;
+    }
+    
+    // For other cases, check if count is directly available
+    if (word.count) {
+      return word.count;
+    }
+    
+    // If we have syllable breakdown, count the hyphens and add 1
+    if (word.syllableBreakdown && word.syllableBreakdown.includes('-')) {
+      return (word.syllableBreakdown.match(/-/g) || []).length + 1;
+    }
+    
+    if (word.syllables && word.syllables.includes('-')) {
       return (word.syllables.match(/-/g) || []).length + 1;
     }
-    return 0;
+    
+    // If no information is available, default to 1
+    return 1;
   };
 
   // Helper function to get word category

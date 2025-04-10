@@ -92,21 +92,33 @@ def check_syllable_clapping(request):
         data = json.loads(request.body)
         word = data.get('word')
         user_clap_count = data.get('clap_count')
+        is_custom = data.get('is_custom', False)
+        provided_syllable_breakdown = data.get('syllable_breakdown')
         
-        # Find the word in the database - MODIFIED to handle duplicates
-        try:
-            # Get the first matching word instead of assuming there's only one
-            word_obj = SyllabificationWord.objects.filter(word=word).first()
-            
-            if word_obj:
-                syllable_breakdown = word_obj.syllable_breakdown
-            else:
-                # Fallback syllabification if word not found
-                syllable_breakdown = '-'.join(word)
-        except Exception as e:
-            # Fallback syllabification if any error occurs
-            print(f"Error finding word: {e}")
-            syllable_breakdown = '-'.join(word)
+        # If this is a custom word with provided syllable breakdown, use that directly
+        if is_custom and provided_syllable_breakdown:
+            syllable_breakdown = provided_syllable_breakdown
+        else:
+            # Find the word in the database - handle duplicates
+            try:
+                # Get the first matching word instead of assuming there's only one
+                word_obj = SyllabificationWord.objects.filter(word=word).first()
+                
+                if word_obj:
+                    syllable_breakdown = word_obj.syllable_breakdown
+                elif provided_syllable_breakdown:
+                    # Use the provided breakdown if word not found
+                    syllable_breakdown = provided_syllable_breakdown
+                else:
+                    # Fallback syllabification if word not found and no breakdown provided
+                    syllable_breakdown = '-'.join(word)
+            except Exception as e:
+                # Fallback syllabification if any error occurs
+                print(f"Error finding word: {e}")
+                if provided_syllable_breakdown:
+                    syllable_breakdown = provided_syllable_breakdown
+                else:
+                    syllable_breakdown = '-'.join(word)
         
         # Get feedback from ChatGPT service
         feedback = chatgpt_service.generate_syllable_clapping_feedback(
