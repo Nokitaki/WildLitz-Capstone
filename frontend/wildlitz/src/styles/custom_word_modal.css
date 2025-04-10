@@ -1,0 +1,314 @@
+/* src/styles/custom_word_modal.css */
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  
+  .custom-word-modal {
+    background-color: #5d4037; /* Match app's brown theme */
+    width: 90%;
+    max-width: 700px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    padding: 25px;
+    color: white;
+  }
+  
+  .close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #ffc107; /* Yellow like other buttons */
+    color: #3e2723; /* Dark brown */
+    border: none;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+  }
+  
+  h2 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    color: #ffc107; /* Yellow */
+  }
+  
+  .modal-description {
+    text-align: center;
+    margin-bottom: 20px;
+    opacity: 0.9;
+  }
+  
+  .custom-word-form {
+    background-color: #6d4c41; /* Lighter brown */
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 15px;
+  }
+  
+  @media (min-width: 768px) {
+    .form-row {
+      flex-direction: row;
+    }
+  }
+  
+  .form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .form-group label {
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .form-group input,
+  .form-group select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #8d6e63; /* Light brown border */
+    background-color: white;
+    color: #333;
+    font-size: 1rem;
+  }
+  
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: #ffc107; /* Yellow focus */
+    box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.2);
+  }
+  
+  .auto-breakdown-button {
+    font-size: 0.8rem;
+    padding: 3px 8px;
+    background-color: #8d6e63; /* Lighter brown */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .auto-breakdown-button:hover {
+    background-color: #795548;
+  }
+  
+  .form-error {
+    color: #ffcdd2; /* Light red */
+    background-color: rgba(244, 67, 54, 0.2);
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+  }
+  
+  .add-word-button {
+    background-color: #4caf50; /* Green */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+    margin-top: 10px;
+    transition: background-color 0.2s;
+  }
+  
+  .add-word-button:hover {
+    background-color: #3e8e41;
+  }
+  
+  .custom-words-list {
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: #6d4c41; /* Lighter brown */
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .custom-words-list h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #ffc107; /* Yellow */
+  }
+  
+  .no-words-message {
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    font-style: italic;
+  }
+  
+  .word-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #795548; /* Medium brown */
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+  }
+  
+  .word-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .word-text {
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+  
+  .word-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.85rem;
+  }
+  
+  .word-category {
+    background-color: #ffc107; /* Yellow */
+    color: #3e2723; /* Dark brown */
+    padding: 3px 8px;
+    border-radius: 12px;
+  }
+  
+  .word-breakdown {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 3px 8px;
+    border-radius: 12px;
+  }
+  
+  .word-count {
+    color: rgba(255, 255, 255, 0.8);
+  }
+  
+  .remove-word-button {
+    background-color: #f44336; /* Red */
+    color: white;
+    border: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+  }
+  
+  .remove-word-button:hover {
+    background-color: #d32f2f;
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+  }
+  
+  .cancel-button {
+    flex: 1;
+    background-color: #757575; /* Gray */
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+  }
+  
+  .cancel-button:hover {
+    background-color: #616161;
+  }
+  
+  .save-button {
+    flex: 2;
+    background-color: #ffc107; /* Yellow */
+    color: #3e2723; /* Dark brown */
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+  }
+  
+  .save-button:hover {
+    background-color: #ffb300;
+  }
+  
+  .save-button:disabled {
+    background-color: #ffecb3; /* Light yellow */
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  /* Additional styling for the main config screen */
+  .custom-words-summary {
+    background-color: #6d4c41; /* Lighter brown */
+    border-radius: 12px;
+    padding: 15px;
+    margin: 15px 0;
+  }
+  
+  .custom-words-summary h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #ffc107; /* Yellow */
+  }
+  
+  .custom-words-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .custom-word-pill {
+    background-color: #8d6e63; /* Light brown */
+    border-radius: 15px;
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    display: inline-block;
+  }
+  
+  /* Style the Add Custom Words button */
+  .config-button.custom-words {
+    background-color: #ff9800; /* Orange */
+    color: white;
+    border-color: #ff9800;
+  }

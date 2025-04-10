@@ -1,13 +1,22 @@
+// First, update the SyllableConfigScreen.jsx to replace Save Settings with Add Custom Words
+// and remove the Custom Words category
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../styles/syllable_clapping_game.css';
+// Import a new modal component for custom words
+import CustomWordModal from '../components/modals/CustomWordModal';
 
 const SyllableConfigScreen = ({ onStartGame }) => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isServerAvailable, setIsServerAvailable] = useState(true);
+  
+  // Add state for custom words modal
+  const [isCustomWordModalOpen, setIsCustomWordModalOpen] = useState(false);
+  const [customWords, setCustomWords] = useState([]);
   
   // Game configuration state
   const [difficulty, setDifficulty] = useState('easy');
@@ -20,7 +29,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     feelings: false,
     commonObjects: true,
     numbers: true,
-    customWords: false
+    // Removed customWords from here
   });
   
   const [showAnimations, setShowAnimations] = useState(true);
@@ -54,9 +63,15 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     }));
   };
   
-  // Handle save settings - a simplified version that just shows confirmation
-  const handleSaveSettings = () => {
-    alert("Settings saved!");
+  // Handle opening the custom words modal
+  const handleAddCustomWords = () => {
+    setIsCustomWordModalOpen(true);
+  };
+  
+  // Handle saving custom words from the modal
+  const handleSaveCustomWords = (words) => {
+    setCustomWords(words);
+    setIsCustomWordModalOpen(false);
   };
   
   // Handle start game with improved error handling
@@ -74,50 +89,94 @@ const SyllableConfigScreen = ({ onStartGame }) => {
       }
     }
     
-    // Prepare the data to send to the API
+    // Prepare the data to send to the API - convert the categories object to an array of selected categories
     const selectedCategories = Object.keys(categories)
-    .filter(key => categories[key])
-    .map(key => {
-      // Convert camelCase to Title Case with spaces for API
-      return key
-        .replace(/([A-Z])/g, ' $1') // Insert a space before all capital letters
-        .replace(/^./, function(str) { return str.toUpperCase(); }) // Capitalize the first character
-        .trim(); // Remove potential leading space
+      .filter(key => categories[key])
+      .map(key => {
+        // Convert camelCase to Title Case with spaces for API
+        return key
+          .replace(/([A-Z])/g, ' $1') // Insert a space before all capital letters
+          .replace(/^./, function(str) { return str.toUpperCase(); }) // Capitalize the first character
+          .trim(); // Remove potential leading space
+      });
+    
+    if (selectedCategories.length === 0 && customWords.length === 0) {
+      setError("Please select at least one word category or add custom words");
+      setIsLoading(false);
+      return;
+    }
+    
+    // Log the request for debugging
+    console.log("Sending request to generate words:", {
+      difficulty,
+      count: 10,
+      categories: selectedCategories,
+      customWords: customWords
     });
-  
-  if (selectedCategories.length === 0) {
-    setError("Please select at least one word category");
-    setIsLoading(false);
-    return;
-  }
-  
-  // Log the request for debugging
-  console.log("Sending request to generate words:", {
-    difficulty,
-    count: 10,
-    categories: selectedCategories
-  });
     
     // Configuration to pass to the game
     const gameConfig = {
       difficulty,
       categories: selectedCategories, // Pass as array of strings
       showAnimations,
-      playSounds
+      playSounds,
+      customWords: customWords
     };
+    
+    // If custom words are provided, use those first
+    if (customWords.length > 0) {
+      // Format custom words for the game - converting them to the expected format
+      const formattedCustomWords = customWords.map(word => {
+        // Split the word into syllables (simplified - in a real app you'd use a proper syllabifier)
+        const syllables = word.syllableBreakdown || word.word; // Use provided breakdown or simple word
+        const count = word.syllableCount || (syllables.split('-').length);
+        
+        return {
+          word: word.word,
+          syllables: syllables,
+          count: count,
+          category: word.category || "Custom"
+        };
+      });
+      
+      // If we have enough custom words, just use those
+      if (formattedCustomWords.length >= 5) {
+        gameConfig.words = formattedCustomWords;
+        onStartGame(gameConfig);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Otherwise include some from the API too
+      gameConfig.customWords = formattedCustomWords;
+    }
     
     // Call the backend API to generate words with detailed error handling
     axios.post('/api/syllabification/generate-words/', {
       difficulty: difficulty,
-      count: 10,
+      count: 10 - customWords.length, // Fewer words needed if we have custom ones
       categories: selectedCategories // Send categories as array
     })
     .then(response => {
       console.log("API response:", response.data);
       
       if (response.data && response.data.words && response.data.words.length > 0) {
-        // Add the AI-generated words to the gameConfig
-        gameConfig.words = response.data.words;
+        // Combine custom words with API-generated words
+        if (customWords.length > 0) {
+          const formattedCustomWords = customWords.map(word => ({
+            word: word.word,
+            syllables: word.syllableBreakdown || word.word,
+            count: word.syllableCount || (word.syllableBreakdown ? word.syllableBreakdown.split('-').length : 1),
+            category: word.category || "Custom"
+          }));
+          
+          // Add the AI-generated words to the gameConfig, combined with custom words
+          gameConfig.words = [...formattedCustomWords, ...response.data.words];
+        } else {
+          // Just use the AI-generated words
+          gameConfig.words = response.data.words;
+        }
+        
         onStartGame(gameConfig);
       } else {
         throw new Error("API returned empty or invalid words data");
@@ -287,15 +346,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                 />
                 <label htmlFor="numbers">Numbers</label>
               </div>
-              <div className="category-option">
-                <input 
-                  type="checkbox" 
-                  id="customWords" 
-                  checked={categories.customWords}
-                  onChange={() => handleCategoryToggle('customWords')}
-                />
-                <label htmlFor="customWords">Custom Words</label>
-              </div>
             </div>
           </div>
           
@@ -333,6 +383,20 @@ const SyllableConfigScreen = ({ onStartGame }) => {
             </div>
           )}
           
+          {/* Show custom words if any are added */}
+          {customWords.length > 0 && (
+            <div className="custom-words-summary">
+              <h3>Custom Words Added: {customWords.length}</h3>
+              <div className="custom-words-list">
+                {customWords.map((word, index) => (
+                  <span key={index} className="custom-word-pill">
+                    {word.word}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          
           <div className="ai-badge">
             <span role="img" aria-label="AI">🤖</span> AI-Powered Word Generation
           </div>
@@ -346,11 +410,11 @@ const SyllableConfigScreen = ({ onStartGame }) => {
               Cancel
             </button>
             <button 
-              className="config-button save"
-              onClick={handleSaveSettings}
+              className="config-button custom-words"
+              onClick={handleAddCustomWords}
               disabled={isLoading}
             >
-              Save Settings
+              Add Custom Words
             </button>
             <button 
               className="config-button begin"
@@ -362,6 +426,14 @@ const SyllableConfigScreen = ({ onStartGame }) => {
           </div>
         </div>
       </div>
+      
+      {/* Custom Word Modal */}
+      <CustomWordModal
+        isOpen={isCustomWordModalOpen}
+        onClose={() => setIsCustomWordModalOpen(false)}
+        onSave={handleSaveCustomWords}
+        existingWords={customWords}
+      />
     </div>
   );
 };
