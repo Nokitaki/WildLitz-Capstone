@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import WordRecorder from '../audio/WordRecorder';
+import VoiceInputRecorder from '../audio/VoiceInputRecorder';
+import axios from 'axios';
 import '../../styles/custom_word_modal.css';
 
 const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
   const [words, setWords] = useState([]);
   const [currentWord, setCurrentWord] = useState('');
-  const [syllableBreakdown, setSyllableBreakdown] = useState('');
-  const [syllableCount, setSyllableCount] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Animals');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');
-  const [currentAudio, setCurrentAudio] = useState(null);
-  const [pronunciationSource, setPronunciationSource] = useState('ai'); // 'ai' or 'custom'
-  const [showRecorder, setShowRecorder] = useState(false);
-
+  const [addMethod, setAddMethod] = useState('type'); // 'type' or 'voice'
+  
   // Initialize words from existing words if provided
   useEffect(() => {
     if (existingWords.length > 0) {
@@ -21,67 +18,57 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
     }
   }, [existingWords]);
 
-  const categories = [
-    'Animals',
-    'Colors',
-    'Food Items',
-    'Action Words',
-    'Places',
-    'Feelings',
-    'Common Objects',
-    'Numbers',
-    'Other'
-  ];
-
-  // Function to add a new word
-  const handleAddWord = () => {
+  // Function to add a new typed word - will automatically analyze with AI
+  const handleAddTypedWord = async () => {
     // Validate input
     if (!currentWord.trim()) {
       setError('Please enter a word');
       return;
     }
-
-    // Calculate syllable count if not provided but breakdown is
-    let count = syllableCount ? parseInt(syllableCount, 10) : 0;
-    if (!count && syllableBreakdown) {
-      count = syllableBreakdown.split('-').length;
-    }
     
-    // Check if we actually have custom audio
-    const hasCustomAudio = pronunciationSource === 'custom' && currentAudio !== null;
-    
-    // Add word to list with debugging info
-    console.log(`Adding word with custom audio: ${hasCustomAudio}`);
-    if (hasCustomAudio) {
-      console.log(`Audio data length: ${currentAudio.length}`);
-    }
-    
-    const newWord = {
-      word: currentWord.trim(),
-      syllableBreakdown: syllableBreakdown.trim(),
-      syllableCount: count || null,
-      category: selectedCategory,
-      customAudio: currentAudio,
-      usesCustomAudio: hasCustomAudio
-    };
-
-    // Log the new word for debugging (excluding the full audio data)
-    const debugWord = {...newWord};
-    if (debugWord.customAudio) {
-      debugWord.customAudio = `[Audio data: ${debugWord.customAudio.substring(0, 20)}...]`;
-    }
-    console.log("Adding new word:", debugWord);
-
-    setWords([...words, newWord]);
-    
-    // Reset form
-    setCurrentWord('');
-    setSyllableBreakdown('');
-    setSyllableCount('');
-    setCurrentAudio(null);
-    setShowRecorder(false);
-    setPronunciationSource('ai');
+    setIsAnalyzing(true);
     setError('');
+    
+    try {
+      // Call API to analyze the word (without audio)
+      const response = await axios.post('/api/syllabification/analyze-word/', {
+        word: currentWord.trim()
+      });
+      
+      if (response.data) {
+        // Add word with AI analysis
+        const newWord = {
+          word: response.data.word || currentWord.trim(),
+          syllableBreakdown: response.data.syllable_breakdown || currentWord.trim(),
+          syllableCount: response.data.syllable_count || 1,
+          category: response.data.category || 'General',
+          usesCustomAudio: false // This will use AI voice
+        };
+        
+        setWords(prevWords => [...prevWords, newWord]);
+        setCurrentWord(''); // Reset input field
+      }
+    } catch (error) {
+      console.error('Error analyzing word:', error);
+      setError('Error analyzing the word. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Handle word recognized from voice input
+  const handleWordRecognized = (wordData) => {
+    // Add the recognized word to the list
+    const newWord = {
+      word: wordData.word,
+      syllableBreakdown: wordData.syllableBreakdown,
+      syllableCount: wordData.syllableCount,
+      category: wordData.category,
+      customAudio: wordData.customAudio,
+      usesCustomAudio: true // This will use teacher's voice
+    };
+    
+    setWords(prevWords => [...prevWords, newWord]);
   };
 
   // Function to remove a word
@@ -96,69 +83,11 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
     onSave(words);
   };
 
-  // Function to auto-generate syllable breakdown (very basic implementation)
-  const handleAutoBreakdown = () => {
-    if (!currentWord.trim()) {
-      setError('Please enter a word first');
-      return;
-    }
-
-    // A very simple syllable separator - in a real app you would use a proper library
-    // or call to your backend service
-    const vowels = ['a', 'e', 'i', 'o', 'u', 'y'];
-    const word = currentWord.toLowerCase();
-    let breakdown = '';
-    let inVowelGroup = false;
-
-    for (let i = 0; i < word.length; i++) {
-      const isVowel = vowels.includes(word[i]);
-      
-      if (i > 0 && isVowel && !inVowelGroup) {
-        // Start of a new syllable
-        if (i < word.length - 1 && breakdown.length > 0) {
-          breakdown += '-';
-        }
-      }
-      
-      breakdown += word[i];
-      inVowelGroup = isVowel;
-    }
-
-    // This is a very basic implementation and won't be accurate for many words
-    setSyllableBreakdown(breakdown);
-    
-    // Estimate syllable count - count '-' plus 1
-    const count = (breakdown.match(/-/g) || []).length + 1;
-    setSyllableCount(count.toString());
-  };
-
-  // Handle recording completion
-  const handleRecordingComplete = (audioData, audioBlob) => {
-    console.log("Recording completed. Audio data received:", audioData.substring(0, 50) + "...");
-    setCurrentAudio(audioData);
-    setPronunciationSource('custom');
-    
-    // Log successful recording
-    console.log("Custom recording saved for word:", currentWord);
-  };
-
-  // Handle toggling pronunciation source
-  const handleTogglePronunciation = (source) => {
-    setPronunciationSource(source);
-    if (source === 'custom') {
-      setShowRecorder(true);
-    } else {
-      setShowRecorder(false);
-    }
-  };
-
-  // Add a function to validate the audio before saving
-  const validateCustomAudio = () => {
-    if (pronunciationSource === 'custom' && !currentAudio) {
-      setError('You selected custom recording but haven\'t recorded any audio. Please record or switch to AI voice.');
-      return false;
-    }
-    return true;
+  // Handle switching between typing and voice input methods
+  const handleSwitchAddMethod = (method) => {
+    setAddMethod(method);
+    setCurrentWord('');
+    setError('');
   };
 
   // Animation variants
@@ -215,11 +144,28 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
 
             <h2>Add Custom Words</h2>
             <p className="modal-description">
-              Add your own words for the syllable clapping game. Optionally provide syllable breakdown and record pronunciations.
+              Add words by typing or speaking for the syllable clapping game.
             </p>
 
-            <div className="custom-word-form">
-              <div className="form-row">
+            <div className="add-method-selector">
+              <button 
+                className={`add-method-button ${addMethod === 'type' ? 'selected' : ''}`}
+                onClick={() => handleSwitchAddMethod('type')}
+              >
+                <span role="img" aria-label="Type">⌨️</span> Type Words
+              </button>
+              <button 
+                className={`add-method-button ${addMethod === 'voice' ? 'selected' : ''}`}
+                onClick={() => handleSwitchAddMethod('voice')}
+              >
+                <span role="img" aria-label="Speak">🎤</span> Speak Words
+              </button>
+            </div>
+
+            {addMethod === 'voice' ? (
+              <VoiceInputRecorder onWordRecognized={handleWordRecognized} />
+            ) : (
+              <div className="custom-word-form simplified">
                 <div className="form-group">
                   <label htmlFor="word-input">Word:</label>
                   <input 
@@ -231,117 +177,36 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
                   />
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="category-select">Category:</label>
-                  <select
-                    id="category-select"
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                  >
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+                {error && <div className="form-error">{error}</div>}
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="syllable-breakdown">
-                    Syllable Breakdown:
-                    <button 
-                      className="auto-breakdown-button" 
-                      onClick={handleAutoBreakdown}
-                      type="button"
-                    >
-                      Auto
-                    </button>
-                  </label>
-                  <input 
-                    id="syllable-breakdown"
-                    type="text" 
-                    value={syllableBreakdown}
-                    onChange={(e) => setSyllableBreakdown(e.target.value)}
-                    placeholder="e.g., el-e-phant"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="syllable-count">Syllable Count:</label>
-                  <input 
-                    id="syllable-count"
-                    type="number" 
-                    value={syllableCount}
-                    onChange={(e) => setSyllableCount(e.target.value)}
-                    placeholder="e.g., 3"
-                    min="1"
-                    max="10"
-                  />
-                </div>
-              </div>
-
-              {/* Pronunciation Options */}
-              <div className="form-row">
-                <div className="form-group">
-                  <label>
-                    Pronunciation Source:
-                    <div className="recording-info-tooltip">
-                      <span className="info-icon">ℹ️</span>
-                      <div className="tooltip-content">
-                        <h5>Voice Recording Tips:</h5>
-                        <ul>
-                          <li>Speak clearly and at a normal pace</li>
-                          <li>Record in a quiet environment</li>
-                          <li>Pronounce each syllable distinctly</li>
-                          <li>Custom recordings will be used instead of AI voice</li>
-                          <li>Recordings are stored locally and not sent to servers</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </label>
-                  <div className="option-selector">
-                    <button 
-                      className={`option-button ${pronunciationSource === 'ai' ? 'selected' : ''}`}
-                      onClick={() => handleTogglePronunciation('ai')}
-                    >
-                      Use AI Voice
-                    </button>
-                    <button 
-                      className={`option-button ${pronunciationSource === 'custom' ? 'selected' : ''}`}
-                      onClick={() => handleTogglePronunciation('custom')}
-                    >
-                      Record My Voice
-                    </button>
+                <button 
+                  className="add-word-button"
+                  onClick={handleAddTypedWord}
+                  disabled={isAnalyzing || !currentWord.trim()}
+                >
+                  {isAnalyzing ? 'Analyzing...' : 'Add Word'}
+                </button>
+                
+                {isAnalyzing && (
+                  <div className="analyzing-indicator">
+                    <p>AI is analyzing the word...</p>
+                    <div className="analyzing-spinner"></div>
                   </div>
+                )}
+                
+                <div className="auto-analysis-note">
+                  <p>
+                    <span role="img" aria-label="AI">🤖</span> The AI will automatically:
+                  </p>
+                  <ul>
+                    <li>Determine the appropriate category</li>
+                    <li>Break the word into syllables</li>
+                    <li>Count the syllables</li>
+                    <li>Use AI voice for pronunciation</li>
+                  </ul>
                 </div>
               </div>
-
-              {/* Voice Recording Component */}
-              {showRecorder && (
-                <div className="recording-section">
-                  <h4>Record Pronunciation</h4>
-                  <WordRecorder 
-                    word={currentWord || 'this word'} 
-                    onRecordingComplete={handleRecordingComplete}
-                  />
-                </div>
-              )}
-
-              {error && <div className="form-error">{error}</div>}
-
-              <button 
-                className="add-word-button"
-                onClick={() => {
-                  if (validateCustomAudio()) {
-                    handleAddWord();
-                  }
-                }}
-              >
-                Add Word
-              </button>
-            </div>
+            )}
 
             <div className="custom-words-list">
               <h3>Words Added ({words.length})</h3>
@@ -361,8 +226,10 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
                           {word.syllableCount && (
                             <span className="word-count">{word.syllableCount} syllables</span>
                           )}
-                          {word.usesCustomAudio && (
-                            <span className="word-audio-badge">Custom Audio</span>
+                          {word.usesCustomAudio ? (
+                            <span className="word-audio-badge teacher">Teacher Audio</span>
+                          ) : (
+                            <span className="word-audio-badge ai">AI Voice</span>
                           )}
                         </div>
                       </div>

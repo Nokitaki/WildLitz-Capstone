@@ -3,9 +3,7 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../styles/syllable_clapping_game.css';
-// Import a new modal component for custom words
 import CustomWordModal from '../components/modals/CustomWordModal';
-import { logAudioDebug } from '../utils/debugUtils'; // Import debug utilities if available
 
 const SyllableConfigScreen = ({ onStartGame }) => {
   const navigate = useNavigate();
@@ -15,6 +13,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   // Add state for custom words modal
   const [isCustomWordModalOpen, setIsCustomWordModalOpen] = useState(false);
   const [customWords, setCustomWords] = useState([]);
+  const [selectedCustomWords, setSelectedCustomWords] = useState({});
   
   // Game configuration state
   const [difficulty, setDifficulty] = useState('easy');
@@ -29,8 +28,9 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     numbers: true,
   });
   
-  const [showAnimations, setShowAnimations] = useState(true);
-  const [playSounds, setPlaySounds] = useState(true);
+  // Question count state (replaces game settings)
+  const [questionCount, setQuestionCount] = useState(10);
+  
   const [error, setError] = useState(null);
   
   // Check server availability and load custom words when component mounts
@@ -45,6 +45,13 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         const parsedWords = JSON.parse(savedWords);
         setCustomWords(parsedWords);
         console.log(`Loaded ${parsedWords.length} custom words from localStorage`);
+        
+        // Initialize selected state for all words (default to not selected)
+        const initialSelection = {};
+        parsedWords.forEach(word => {
+          initialSelection[word.word] = false;
+        });
+        setSelectedCustomWords(initialSelection);
       } catch (error) {
         console.error("Error loading saved custom words:", error);
         // If there's an error parsing, clear the localStorage
@@ -78,6 +85,14 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   // Handle opening the custom words modal
   const handleAddCustomWords = () => {
     setIsCustomWordModalOpen(true);
+  };
+  
+  // Handle custom word selection/deselection
+  const handleCustomWordSelection = (word) => {
+    setSelectedCustomWords(prev => ({
+      ...prev,
+      [word]: !prev[word]
+    }));
   };
   
   // Function to play a custom recording
@@ -116,6 +131,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   const handleClearCustomWords = () => {
     if (window.confirm("Are you sure you want to clear all custom words?")) {
       setCustomWords([]);
+      setSelectedCustomWords({});
       // Also clear from localStorage
       localStorage.removeItem('wildlitz_custom_words');
       console.log("All custom words cleared");
@@ -125,6 +141,15 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   // Handle saving custom words from the modal
   const handleSaveCustomWords = (words) => {
     setCustomWords(words);
+    
+    // Initialize selected state for all words (default to not selected)
+    const initialSelection = {};
+    words.forEach(word => {
+      // Keep existing selections if any
+      initialSelection[word.word] = selectedCustomWords[word.word] || false;
+    });
+    setSelectedCustomWords(initialSelection);
+    
     setIsCustomWordModalOpen(false);
     
     // Save to localStorage
@@ -164,41 +189,42 @@ const SyllableConfigScreen = ({ onStartGame }) => {
           .trim(); // Remove potential leading space
       });
     
-    if (selectedCategories.length === 0 && customWords.length === 0) {
-      setError("Please select at least one word category or add custom words");
+    if (selectedCategories.length === 0 && 
+        Object.values(selectedCustomWords).filter(selected => selected).length === 0) {
+      setError("Please select at least one word category or select some custom words");
       setIsLoading(false);
       return;
     }
     
+    // Filter the custom words to only include selected ones
+    const selectedWords = customWords.filter(word => 
+      selectedCustomWords[word.word]
+    );
+    
+    // Determine how many AI words we need
+    const aiWordCount = Math.max(0, questionCount - selectedWords.length);
+    
     // Log the request for debugging
-    console.log("Sending request to generate words:", {
+    console.log("Game configuration:", {
       difficulty,
-      count: 10,
+      questionCount,
       categories: selectedCategories,
-      customWords: customWords.length
+      selectedCustomWords: selectedWords.length
     });
     
     // Configuration to pass to the game
     const gameConfig = {
       difficulty,
-      categories: selectedCategories, // Pass as array of strings
-      showAnimations,
-      playSounds,
-      customWords: customWords
+      categories: selectedCategories,
+      questionCount: questionCount,
+      customWords: selectedWords
     };
     
-    // If custom words are provided, use those first
-    if (customWords.length > 0) {
-      // Log custom words for debugging (without full audio data)
-      customWords.forEach((word, index) => {
-        logAudioDebug ? 
-          logAudioDebug(`Custom word ${index}`, word) :
-          console.log(`Custom word ${index}: ${word.word}, Uses custom audio: ${word.usesCustomAudio}`);
-      });
-      
+    // If selected custom words are provided, use those first
+    if (selectedWords.length > 0) {
       // Format custom words for the game - converting them to the expected format
-      const formattedCustomWords = customWords.map(word => {
-        // Split the word into syllables (simplified - in a real app you'd use a proper syllabifier)
+      const formattedCustomWords = selectedWords.map(word => {
+        // Split the word into syllables
         const syllables = word.syllableBreakdown || word.word; // Use provided breakdown or simple word
         const count = word.syllableCount || (syllables.split('-').length);
         
@@ -213,9 +239,10 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         };
       });
       
-      // If we have enough custom words, just use those
-      if (formattedCustomWords.length >= 5) {
-        gameConfig.words = formattedCustomWords;
+      // If we have enough custom words for all questions
+      if (formattedCustomWords.length >= questionCount) {
+        // Just use the first questionCount custom words
+        gameConfig.words = formattedCustomWords.slice(0, questionCount);
         onStartGame(gameConfig);
         setIsLoading(false);
         return;
@@ -225,76 +252,69 @@ const SyllableConfigScreen = ({ onStartGame }) => {
       gameConfig.customWords = formattedCustomWords;
     }
     
-    // Call the backend API to generate words with detailed error handling
-    axios.post('/api/syllabification/generate-words/', {
-      difficulty: difficulty,
-      count: 10 - customWords.length, // Fewer words needed if we have custom ones
-      categories: selectedCategories // Send categories as array
-    })
-    .then(response => {
-      console.log("API response:", response.data);
-      
-      if (response.data && response.data.words && response.data.words.length > 0) {
-        // Combine custom words with API-generated words
-        if (customWords.length > 0) {
-          const formattedCustomWords = customWords.map(word => ({
-            word: word.word,
-            syllables: word.syllableBreakdown || word.word,
-            count: word.syllableCount || (word.syllableBreakdown ? word.syllableBreakdown.split('-').length : 1),
-            category: word.category || "Custom",
-            isCustomWord: true,
-            usesCustomAudio: word.usesCustomAudio,
-            customAudio: word.customAudio
-          }));
+    // Call the backend API for additional words if needed
+    if (aiWordCount > 0) {
+      axios.post('/api/syllabification/generate-words/', {
+        difficulty: difficulty,
+        count: aiWordCount,
+        categories: selectedCategories
+      })
+      .then(response => {
+        if (response.data && response.data.words && response.data.words.length > 0) {
+          // Combine custom words with API-generated words
+          if (gameConfig.customWords && gameConfig.customWords.length > 0) {
+            gameConfig.words = [...gameConfig.customWords, ...response.data.words];
+          } else {
+            gameConfig.words = response.data.words;
+          }
           
-          // Add the AI-generated words to the gameConfig, combined with custom words
-          gameConfig.words = [...formattedCustomWords, ...response.data.words];
+          onStartGame(gameConfig);
         } else {
-          // Just use the AI-generated words
-          gameConfig.words = response.data.words;
+          throw new Error("API returned empty or invalid words data");
         }
+      })
+      .catch(err => {
+        console.error("Word generation error details:", err);
         
-        onStartGame(gameConfig);
-      } else {
-        throw new Error("API returned empty or invalid words data");
-      }
-    })
-    .catch(err => {
-      console.error("Word generation error details:", err);
-      
-      if (err.response) {
-        // The request was made and the server responded with an error status code
-        const statusCode = err.response.status;
-        let errorMsg = "";
-        
-        if (statusCode === 400) {
-          errorMsg = "The request format was invalid. Check category names and difficulty level.";
-        } else if (statusCode === 401 || statusCode === 403) {
-          errorMsg = "Authentication error with the AI service. Please check API keys.";
-        } else if (statusCode === 404) {
-          errorMsg = "The API endpoint could not be found. Check backend routes.";
-        } else if (statusCode === 500) {
-          errorMsg = "Server error while generating words. The AI service might be experiencing issues.";
+        if (err.response) {
+          // The request was made and the server responded with an error status code
+          const statusCode = err.response.status;
+          let errorMsg = "";
+          
+          if (statusCode === 400) {
+            errorMsg = "The request format was invalid. Check category names and difficulty level.";
+          } else if (statusCode === 401 || statusCode === 403) {
+            errorMsg = "Authentication error with the AI service. Please check API keys.";
+          } else if (statusCode === 404) {
+            errorMsg = "The API endpoint could not be found. Check backend routes.";
+          } else if (statusCode === 500) {
+            errorMsg = "Server error while generating words. The AI service might be experiencing issues.";
+          } else {
+            errorMsg = `Server error: ${statusCode}`;
+          }
+          
+          if (err.response.data && err.response.data.error) {
+            errorMsg += ` - ${err.response.data.error}`;
+          }
+          
+          setError(errorMsg);
+        } else if (err.request) {
+          // The request was made but no response was received
+          setError("No response received from the server. The API might be down or network issues.");
         } else {
-          errorMsg = `Server error: ${statusCode}`;
+          // Something happened in setting up the request
+          setError(`Error: ${err.message}`);
         }
-        
-        if (err.response.data && err.response.data.error) {
-          errorMsg += ` - ${err.response.data.error}`;
-        }
-        
-        setError(errorMsg);
-      } else if (err.request) {
-        // The request was made but no response was received
-        setError("No response received from the server. The API might be down or network issues.");
-      } else {
-        // Something happened in setting up the request
-        setError(`Error: ${err.message}`);
-      }
-    })
-    .finally(() => {
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+    } else if (gameConfig.customWords && gameConfig.customWords.length > 0) {
+      // If we don't need AI words but have custom words
+      gameConfig.words = gameConfig.customWords;
+      onStartGame(gameConfig);
       setIsLoading(false);
-    });
+    }
   };
   
   return (
@@ -420,28 +440,19 @@ const SyllableConfigScreen = ({ onStartGame }) => {
             </div>
           </div>
           
+          {/* Number of Questions section (replaces Game Settings) */}
           <div className="config-section">
-            <h2>Game Settings:</h2>
-            <div className="settings-options">
-              <div className="setting-option">
-                <input 
-                  type="checkbox" 
-                  id="showAnimations" 
-                  checked={showAnimations}
-                  onChange={() => setShowAnimations(!showAnimations)}
-                />
-                <label htmlFor="showAnimations">Show animations</label>
-              </div>
-              
-              <div className="setting-option">
-                <input 
-                  type="checkbox" 
-                  id="playSounds" 
-                  checked={playSounds}
-                  onChange={() => setPlaySounds(!playSounds)}
-                />
-                <label htmlFor="playSounds">Play sounds</label>
-              </div>
+            <h2>Number of Questions:</h2>
+            <div className="question-count-slider">
+              <input
+                type="range"
+                min="5"
+                max="20"
+                step="1"
+                value={questionCount}
+                onChange={(e) => setQuestionCount(parseInt(e.target.value, 10))}
+              />
+              <span className="question-count-display">{questionCount}</span>
             </div>
           </div>
           
@@ -454,13 +465,22 @@ const SyllableConfigScreen = ({ onStartGame }) => {
             </div>
           )}
           
-          {/* Show custom words if any are added - Enhanced display */}
+          {/* Show custom words if any are added */}
           {customWords.length > 0 && (
             <div className="custom-words-summary">
-              <h3>Custom Words Added: {customWords.length}</h3>
+              <h3>Custom Words Available: {customWords.length}</h3>
               <div className="custom-words-list">
                 {customWords.map((word, index) => (
                   <div key={index} className="custom-word-card">
+                    <div className="custom-word-checkbox">
+                      <input
+                        type="checkbox"
+                        id={`word-${index}`}
+                        checked={selectedCustomWords[word.word] || false}
+                        onChange={() => handleCustomWordSelection(word.word)}
+                      />
+                      <label htmlFor={`word-${index}`}></label>
+                    </div>
                     <div className="custom-word-info">
                       <span className="custom-word-text">{word.word}</span>
                       <div className="custom-word-details">

@@ -7,6 +7,8 @@ from .services import ChatGPTService
 from .models import SyllabificationWord
 from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse
+import re
+
 
 # Service initialization
 chatgpt_service = ChatGPTService()
@@ -580,3 +582,240 @@ def generate_syllabification_words(request):
             return JsonResponse({'error': str(e)}, status=400)
     
     return JsonResponse({'error': 'Only POST method is allowed'}, status=405)
+
+
+
+
+
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def analyze_word(request):
+    """Analyze a word and return its category, syllable breakdown, and count"""
+    try:
+        data = json.loads(request.body)
+        word = data.get('word')
+        audio_data = data.get('audioData')  # This could be None for typed words
+        
+        if not word:
+            return JsonResponse({'error': 'Word parameter is required'}, status=400)
+        
+        # Clean the word - remove any punctuation and extra spaces
+        word = re.sub(r'[^\w\s]', '', word).strip().lower()
+        
+        # First try to get word information from the database
+        try:
+            word_obj = SyllabificationWord.objects.filter(word__iexact=word).first()
+            if word_obj:
+                # Return the existing word data
+                return JsonResponse({
+                    'word': word_obj.word,
+                    'category': word_obj.category,
+                    'syllable_breakdown': word_obj.syllable_breakdown,
+                    'syllable_count': word_obj.syllable_count
+                })
+        except Exception as e:
+            print(f"Error querying database: {e}")
+        
+        # If word not found in database, use ChatGPT to analyze it
+        try:
+            # Set up the prompt for ChatGPT
+            prompt = f"""
+            Analyze the English word "{word}" and provide the following information:
+            1. The correct spelling (if the word appears to be misspelled)
+            2. The most appropriate category from this list: Animals, Colors, Food Items, Action Words, Places, Feelings, Common Objects, Numbers, General
+            3. The syllable breakdown with hyphens (e.g., "el-e-phant")
+            4. The number of syllables
+            
+            Format your response as a JSON object with the keys: word, category, syllable_breakdown, syllable_count
+            """
+            
+            response = chatgpt_service.client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are an educational assistant for syllabification analysis."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.2
+            )
+            
+            # Try to extract JSON from the response
+            response_text = response.choices[0].message.content
+            
+            # Extract JSON
+            start_idx = response_text.find('{')
+            end_idx = response_text.rfind('}') + 1
+            if start_idx >= 0 and end_idx > 0:
+                json_str = response_text[start_idx:end_idx]
+                result = json.loads(json_str)
+            else:
+                # If JSON extraction fails, use a simpler approach
+                result = {
+                    'word': word,
+                    'category': _determine_category(word),
+                    'syllable_breakdown': _generate_syllable_breakdown(word),
+                    'syllable_count': _count_syllables(word)
+                }
+            
+            # Store the analyzed word in the database for future use
+            try:
+                SyllabificationWord.objects.create(
+                    word=result['word'],
+                    syllable_breakdown=result['syllable_breakdown'],
+                    syllable_count=result['syllable_count'],
+                    category=result['category'],
+                    is_ai_generated=True
+                )
+            except Exception as e:
+                print(f"Error saving word to database: {e}")
+            
+            # Return the result
+            return JsonResponse(result)
+        
+        except Exception as e:
+            print(f"Error analyzing word with ChatGPT: {e}")
+            # Fall back to basic analysis if ChatGPT fails
+            result = {
+                'word': word,
+                'category': _determine_category(word),
+                'syllable_breakdown': _generate_syllable_breakdown(word),
+                'syllable_count': _count_syllables(word)
+            }
+            return JsonResponse(result)
+    
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+# Helper functions for fallback word analysis
+
+def _determine_category(word):
+    """Simple category determination based on common word lists"""
+    word = word.lower()
+    
+    # These are just example lists - you would expand these in a real implementation
+    animal_words = ['cat', 'dog', 'bird', 'fish', 'lion', 'tiger', 'bear', 'elephant', 'zebra', 
+                    'giraffe', 'monkey', 'turtle', 'snake', 'frog', 'mouse', 'rabbit']
+    
+    color_words = ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'black', 'white', 
+                   'pink', 'brown', 'gray', 'gold', 'silver', 'violet', 'indigo']
+    
+    food_words = ['apple', 'banana', 'orange', 'pizza', 'burger', 'rice', 'bread', 'cheese',
+                  'pasta', 'soup', 'cake', 'candy', 'cookie', 'milk', 'water', 'juice']
+    
+    action_words = ['run', 'jump', 'walk', 'eat', 'sleep', 'play', 'write', 'read', 'dance',
+                    'sing', 'swim', 'climb', 'talk', 'laugh', 'cry', 'smile']
+    
+    place_words = ['house', 'school', 'park', 'store', 'beach', 'mountain', 'city', 'country',
+                  'room', 'building', 'garden', 'forest', 'river', 'lake', 'ocean']
+    
+    feeling_words = ['happy', 'sad', 'angry', 'scared', 'excited', 'tired', 'bored', 'surprised',
+                     'calm', 'worried', 'proud', 'silly', 'shy', 'lonely']
+    
+    object_words = ['chair', 'table', 'desk', 'bed', 'door', 'window', 'book', 'pen', 'pencil',
+                   'phone', 'computer', 'car', 'ball', 'toy', 'clock']
+    
+    number_words = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
+                    'eleven', 'twelve', 'hundred', 'thousand', 'million', 'first', 'second']
+    
+    if word in animal_words:
+        return 'Animals'
+    elif word in color_words:
+        return 'Colors'
+    elif word in food_words:
+        return 'Food Items'
+    elif word in action_words:
+        return 'Action Words'
+    elif word in place_words:
+        return 'Places'
+    elif word in feeling_words:
+        return 'Feelings'
+    elif word in object_words:
+        return 'Common Objects'
+    elif word in number_words:
+        return 'Numbers'
+    
+    # Default category
+    return 'General'
+
+def _count_syllables(word):
+    """Improved syllable counting with special cases"""
+    # Special cases dictionary
+    special_cases = {
+        "yellow": 2,
+        "orange": 2,
+        # Add other problematic words here
+    }
+    
+    # Check if word is in special cases
+    word = word.lower()
+    if word in special_cases:
+        return special_cases[word]
+    
+    # Regular syllable counting logic 
+    vowels = 'aeiouy'
+    count = 0
+    prev_is_vowel = False
+    
+    for char in word:
+        is_vowel = char in vowels
+        if is_vowel and not prev_is_vowel:
+            count += 1
+        prev_is_vowel = is_vowel
+    
+    # Handle special cases
+    if count == 0:
+        count = 1  # Every word has at least one syllable
+    
+    # Handle silent e at the end
+    if word.endswith('e') and len(word) > 2 and word[-2] not in vowels:
+        count = max(1, count - 1)
+    
+    return count
+
+def _generate_syllable_breakdown(word):
+    """Generate a simple syllable breakdown"""
+    syllable_count = _count_syllables(word)
+    
+    if syllable_count == 1 or len(word) <= 3:
+        return word
+    
+    # Simple approach: try to break at vowel-consonant boundaries
+    vowels = 'aeiouy'
+    word = word.lower()
+    result = []
+    current = ""
+    
+    for i, char in enumerate(word):
+        current += char
+        
+        # Try to break after vowel + consonant patterns
+        if (i > 0 and 
+            i < len(word) - 1 and 
+            word[i-1] in vowels and 
+            char not in vowels):
+            
+            # Don't break if the next char is also a consonant (unless it's the last character)
+            if i < len(word) - 2 and word[i+1] not in vowels:
+                continue
+                
+            result.append(current)
+            current = ""
+    
+    # Add any remaining characters
+    if current:
+        result.append(current)
+    
+    # If we didn't get enough syllables, try a simpler approach
+    if len(result) != syllable_count:
+        # Divide word evenly by syllable count
+        chars_per_syllable = len(word) // syllable_count
+        result = []
+        
+        for i in range(syllable_count):
+            start = i * chars_per_syllable
+            end = start + chars_per_syllable if i < syllable_count - 1 else len(word)
+            result.append(word[start:end])
+    
+    return "-".join(result)

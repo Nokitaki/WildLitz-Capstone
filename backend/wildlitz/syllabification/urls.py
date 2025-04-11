@@ -13,7 +13,8 @@ urlpatterns = [
      path('text-to-speech/', views.text_to_speech, name='text_to_speech'),
     path('pronounce-word/', views.pronounce_word, name='pronounce_word'),
      path('test-tts/', views.test_tts, name='test_tts'),
-     
+      path('analyze-word/', views.analyze_word, name='analyze_word'),
+      
 ]
 
 if settings.DEBUG:

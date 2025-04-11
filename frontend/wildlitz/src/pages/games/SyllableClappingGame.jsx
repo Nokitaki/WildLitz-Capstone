@@ -46,44 +46,35 @@ function SyllableClappingGame() {
   }, []);
   
   // Handle starting the game after configuration
-  const handleStartGame = (config) => {
-    console.log("Starting game with config:", {
-      ...config,
-      customWords: config.customWords ? `${config.customWords.length} custom words` : 'none',
-      words: config.words ? `${config.words.length} words` : 'none'
-    });
-    
-    setGameConfig(config);
-    
-    // Process words - make sure custom words are properly marked
-    let processedWords = [];
-    
-    // If config has custom words
-    if (config.customWords && config.customWords.length > 0) {
-      processedWords = config.customWords.map(word => ({
-        ...word,
-        isCustomWord: true, // Mark as custom word
-        // Make sure audio flags are properly set
-        usesCustomAudio: word.usesCustomAudio === true || (word.customAudio ? true : false)
-      }));
-      console.log(`Processed ${processedWords.length} custom words`);
-    }
-    
-    // If config has AI-generated words, add those too
-    if (config.words && config.words.length > 0) {
-      // If we're combining custom words with AI words
-      if (processedWords.length > 0) {
-        processedWords = [...processedWords, ...config.words];
-      } else {
-        processedWords = config.words;
-      }
-      console.log(`Total words: ${processedWords.length}`);
-    }
-    
-    // Update game state
-    setGameWords(processedWords);
-    setCurrentWordIndex(0);
-    setGameState('loading');
+  // In SyllableConfigScreen.jsx, modify the handleStartGame function:
+
+const handleStartGame = (config) => {
+  // Process words - make sure custom words are properly marked and not duplicated
+  let processedWords = [];
+  
+  // If config has custom words that were selected
+  if (config.customWords && config.customWords.length > 0) {
+    processedWords = config.customWords.map(word => ({
+      ...word,
+      isCustomWord: true, // Mark as custom word
+      // Make sure audio flags are properly set
+      usesCustomAudio: word.usesCustomAudio === true || (word.customAudio ? true : false)
+    }));
+    console.log(`Processed ${processedWords.length} custom words`);
+  }
+  
+  // If config has AI-generated words, add those too
+  if (config.words && config.words.length > 0) {
+    // Combine with AI words WITHOUT adding custom words again
+    processedWords = [...processedWords, ...config.words];
+    console.log(`Total words: ${processedWords.length}`);
+  }
+  
+  // Update game state
+  setGameWords(processedWords);
+  setCurrentWordIndex(0);
+  setGameState('loading');
+
     
     // Log the first few words for debugging
     processedWords.slice(0, 3).forEach((word, idx) => {
@@ -123,11 +114,9 @@ function SyllableClappingGame() {
     setIsPlayingAudio(true);
     console.log(`Attempting to play word: "${currentWord.word}", custom audio: ${currentWord.usesCustomAudio}`);
     
-    // Create audio element for better control
-    const audio = audioRef.current || new Audio();
-    if (!audioRef.current) {
-      audioRef.current = audio;
-    }
+    // Create a new audio element for better control
+    const audio = new Audio();
+    audioRef.current = audio;
     
     // Set up audio event handlers
     audio.onended = () => {
@@ -138,38 +127,29 @@ function SyllableClappingGame() {
     audio.onerror = (e) => {
       console.error("Audio playback error:", e);
       setIsPlayingAudio(false);
-      fallbackToNextMethod();
+      tryApiAudio();
     };
     
     // Check if we have a custom audio recording for this word
     if (currentWord.usesCustomAudio && currentWord.customAudio) {
       try {
         console.log("Using custom audio recording");
-        
-        // Set the source and play
         audio.src = currentWord.customAudio;
         
-        // Try to play
         audio.play()
           .then(() => console.log("Custom audio playing successfully"))
           .catch(error => {
             console.error("Failed to play custom audio:", error);
-            fallbackToNextMethod();
+            tryApiAudio();
           });
-          
-        return; // Exit early since we're trying to play the custom audio
+        
+        return;
       } catch (error) {
         console.error("Error setting up custom audio:", error);
-        fallbackToNextMethod();
+        tryApiAudio();
       }
     } else {
       console.log("No custom audio, trying API");
-      fallbackToNextMethod();
-    }
-    
-    // Function to try the next audio method
-    function fallbackToNextMethod() {
-      // Try the API for better quality
       tryApiAudio();
     }
     
@@ -185,29 +165,41 @@ function SyllableClappingGame() {
         if (response.data && response.data.success && response.data.audio_data) {
           console.log("API audio received, playing");
           
-          // Play the audio directly from base64 data
-          audio.src = `data:audio/mp3;base64,${response.data.audio_data}`;
+          // Create a new audio element each time
+          const newAudio = new Audio(`data:audio/mp3;base64,${response.data.audio_data}`);
+          audioRef.current = newAudio;
           
-          audio.play()
+          newAudio.onended = () => {
+            console.log("API audio playback ended");
+            setIsPlayingAudio(false);
+          };
+          
+          newAudio.onerror = (e) => {
+            console.error("API audio playback error:", e);
+            setIsPlayingAudio(false);
+            tryBrowserSpeech();
+          };
+          
+          newAudio.play()
             .then(() => console.log("API audio playing successfully"))
             .catch(error => {
               console.error("Failed to play API audio:", error);
-              fallbackToBrowser();
+              tryBrowserSpeech();
             });
         } else {
           console.log("Invalid API response, falling back to browser speech");
-          fallbackToBrowser();
+          tryBrowserSpeech();
         }
       })
       .catch(err => {
         console.error("Error calling TTS API:", err);
-        fallbackToBrowser();
+        tryBrowserSpeech();
       });
     }
     
     // Function to use browser's speech synthesis
-    function fallbackToBrowser() {
-      console.log("Falling back to browser speech synthesis");
+    function tryBrowserSpeech() {
+      console.log("Using browser speech synthesis");
       
       if ('speechSynthesis' in window) {
         // Cancel any ongoing speech
@@ -246,6 +238,16 @@ function SyllableClappingGame() {
       return;
     }
     
+    // Reset audio state before moving to loading screen
+    setIsPlayingAudio(false);
+    
+    // Clear any existing audio element
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+      audioRef.current = null;
+    }
+    
     // Go to loading screen
     setGameState('loading');
     setCurrentWordIndex(nextIndex);
@@ -265,7 +267,8 @@ function SyllableClappingGame() {
     
     setIsLoading(true);
     
-    // Determine the correct syllable count based on the word data
+    // Get the correct syllable count and breakdown
+    // IMPORTANT: Don't override this with a default value of 1!
     let correctCount;
     let syllableBreakdown;
     
@@ -273,71 +276,93 @@ function SyllableClappingGame() {
     if (currentWord.isCustomWord) {
       // Use the syllable count from the custom word data
       correctCount = currentWord.syllableCount || 
-                     (currentWord.syllableBreakdown ? currentWord.syllableBreakdown.split('-').length : 1);
+                    (currentWord.syllableBreakdown ? currentWord.syllableBreakdown.split('-').length : null);
       syllableBreakdown = currentWord.syllableBreakdown || currentWord.word;
     } else {
-      // For AI-generated words, use the count from the API or fallback to syllables
+      // For AI-generated words, use the count from the API
       correctCount = currentWord.count || 
                     (currentWord.syllables ? 
                       (currentWord.syllables.match(/-/g) || []).length + 1 : 
-                      1);
+                      null);
       syllableBreakdown = currentWord.syllables || currentWord.word;
     }
     
-    // Check if the user's answer is correct
-    const userCount = parseInt(userAnswer, 10);
-    const isCorrect = userCount === correctCount;
-    
-    // Create feedback data
-    const localFeedback = {
-      is_correct: isCorrect,
-      correct_count: correctCount,
-      user_count: userCount,
-      word: currentWord.word,
-      syllable_breakdown: syllableBreakdown,
-      feedback: isCorrect ? 
-        `Great job! "${currentWord.word}" has ${correctCount} syllable${correctCount !== 1 ? 's' : ''}: ${syllableBreakdown}.` :
-        `Nice try! "${currentWord.word}" actually has ${correctCount} syllable${correctCount !== 1 ? 's' : ''}: ${syllableBreakdown}. ${getHintForIncorrectAnswer(currentWord.word, syllableBreakdown)}`
-    };
-    
-    // Update with local feedback immediately
-    setCurrentWord({
-      ...currentWord,
-      feedback: localFeedback,
-      isCorrect: isCorrect
-    });
-    
-    // Show feedback
-    handleContinue();
-    
-    // Only call the API for non-custom words
-    if (!currentWord.isCustomWord) {
-      // Try to get feedback from API without awaiting
-      axios.post('/api/syllabification/check-clapping/', {
-        word: currentWord.word,
-        clap_count: parseInt(userAnswer, 10),
-        syllable_breakdown: syllableBreakdown, // Send the correct breakdown to ensure API knows it
-        is_custom: false
+    // CRITICAL: Don't default to 1 if we couldn't determine the syllable count
+    // Instead, call the API to get the correct count
+    if (correctCount === null) {
+      // Call API to get syllable count for this word
+      axios.post('/api/syllabification/analyze-word/', {
+        word: currentWord.word
       })
       .then(response => {
-        if (response.data) {
-          // Update the current word with API feedback data if available
-          setCurrentWord(prevWord => ({
-            ...prevWord,
-            feedback: response.data,
-            isCorrect: response.data.is_correct
-          }));
+        if (response.data && response.data.syllable_count) {
+          processClaps(response.data.syllable_count, response.data.syllable_breakdown || syllableBreakdown);
+        } else {
+          // If API didn't return valid data, use basic counting as fallback
+          const basicCount = countSyllables(currentWord.word);
+          processClaps(basicCount, syllableBreakdown);
         }
       })
       .catch(err => {
-        console.error("Error checking claps with API:", err);
-      })
-      .finally(() => {
-        setIsLoading(false);
+        console.error("Error getting syllable count from API:", err);
+        // Fallback to basic counting
+        const basicCount = countSyllables(currentWord.word);
+        processClaps(basicCount, syllableBreakdown);
       });
     } else {
-      // For custom words, just use our local feedback
+      // We already have a valid syllable count, proceed with checking
+      processClaps(correctCount, syllableBreakdown);
+    }
+    
+    // Function to process claps once we have the syllable count
+    function processClaps(correctSyllableCount, breakdown) {
+      // Check if the user's answer is correct
+      const userCount = parseInt(userAnswer, 10);
+      const isCorrect = userCount === correctSyllableCount;
+      
+      // Create feedback data
+      const localFeedback = {
+        is_correct: isCorrect,
+        correct_count: correctSyllableCount,
+        user_count: userCount,
+        word: currentWord.word,
+        syllable_breakdown: breakdown,
+        feedback: isCorrect ? 
+          `Great job! "${currentWord.word}" has ${correctSyllableCount} syllable${correctSyllableCount !== 1 ? 's' : ''}: ${breakdown}.` :
+          `Nice try! "${currentWord.word}" actually has ${correctSyllableCount} syllable${correctSyllableCount !== 1 ? 's' : ''}: ${breakdown}. Try saying the word slowly, focusing on each vowel sound.`
+      };
+      
+      // Update with local feedback immediately
+      setCurrentWord({
+        ...currentWord,
+        feedback: localFeedback,
+        isCorrect: isCorrect
+      });
+      
+      // Show feedback
+      handleContinue();
       setIsLoading(false);
+    }
+    
+    // Basic syllable counting function as fallback
+    function countSyllables(word) {
+      const vowels = ['a', 'e', 'i', 'o', 'u', 'y'];
+      let count = 0;
+      let inVowelGroup = false;
+      
+      for (let i = 0; i < word.length; i++) {
+        const isVowel = vowels.includes(word[i].toLowerCase());
+        
+        if (isVowel && !inVowelGroup) {
+          count++;
+          inVowelGroup = true;
+        } else if (!isVowel) {
+          inVowelGroup = false;
+        }
+      }
+      
+      // Ensure we have at least one syllable
+      return Math.max(1, count);
     }
   };
   
