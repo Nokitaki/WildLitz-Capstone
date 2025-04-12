@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import '../../styles/game_tips_modal.css';
+import syllableClappingCharacter from '../../assets/img/syllable-clapping-character.svg';
 
 function GameTipsModal({ isOpen, onClose, game, onStartGame }) {
     // Modal content based on game type
@@ -16,7 +17,7 @@ function GameTipsModal({ isOpen, onClose, game, onStartGame }) {
               'Say the word out loud while clapping',
               'Count the number of claps to identify syllable count'
             ],
-            image: '/assets/img/syllable-clapping-game.jpg'
+            image: syllableClappingCharacter // Using the imported SVG here
           };
         case 'sound-safari':
           return {

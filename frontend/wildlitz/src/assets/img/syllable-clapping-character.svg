@@ -1,0 +1,130 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <circle cx="200" cy="200" r="180" fill="#f9e8d0" />
+  
+  <!-- Character body -->
+  <ellipse cx="200" cy="220" rx="100" ry="120" fill="#ff9f43" />
+  
+  <!-- Face -->
+  <circle cx="200" cy="170" r="80" fill="#feca57" />
+  
+  <!-- Eyes -->
+  <g id="eyes">
+    <circle cx="170" cy="150" r="15" fill="white" />
+    <circle cx="170" cy="150" r="8" fill="#222" />
+    <circle cx="170" cy="146" r="3" fill="white" />
+    
+    <circle cx="230" cy="150" r="15" fill="white" />
+    <circle cx="230" cy="150" r="8" fill="#222" />
+    <circle cx="230" cy="146" r="3" fill="white" />
+  </g>
+  
+  <!-- Mouth -->
+  <path d="M160,190 Q200,220 240,190" stroke="#333" stroke-width="5" fill="none" />
+  
+  <!-- Cheeks -->
+  <circle cx="160" cy="180" r="15" fill="#ffbf8d" opacity="0.6" />
+  <circle cx="240" cy="180" r="15" fill="#ffbf8d" opacity="0.6" />
+  
+  <!-- Hands (with clapping animation) -->
+  <g id="hands">
+    <!-- Left hand -->
+    <g id="left-hand">
+      <circle cx="120" cy="260" r="25" fill="#feca57" />
+      <path d="M135,245 L145,235" stroke="#ff9f43" stroke-width="4" stroke-linecap="round" />
+      <path d="M140,245 L150,235" stroke="#ff9f43" stroke-width="4" stroke-linecap="round" />
+      <path d="M145,245 L155,235" stroke="#ff9f43" stroke-width="4" stroke-linecap="round" />
+    </g>
+    
+    <!-- Right hand -->
+    <g id="right-hand">
+      <circle cx="280" cy="260" r="25" fill="#feca57" />
+      <path d="M265,245 L255,235" stroke="#ff9f43" stroke-width="4" stroke-linecap="round" />
+      <path d="M260,245 L250,235" stroke="#ff9f43" stroke-width="4" stroke-linecap="round" />
+      <path d="M255,245 L245,235" stroke="#ff9f43" stroke-width="4" stroke-linecap="round" />
+    </g>
+  </g>
+  
+  <!-- Sound waves (for clapping animation) -->
+  <g id="sound-waves" opacity="0">
+    <circle cx="200" cy="260" r="30" stroke="#ff9f43" stroke-width="3" fill="none" />
+    <circle cx="200" cy="260" r="45" stroke="#ff9f43" stroke-width="2" fill="none" />
+    <circle cx="200" cy="260" r="60" stroke="#ff9f43" stroke-width="1" fill="none" />
+  </g>
+  
+  <!-- Speech bubble -->
+  <g id="speech-bubble">
+    <path d="M260,100 Q300,80 290,120 L295,155 L270,125 Q240,140 220,120 Q200,100 220,80 Q240,60 260,100 Z" fill="white" stroke="#333" stroke-width="2" />
+    <text x="245" y="110" font-family="Arial" font-size="20" text-anchor="middle" fill="#333">Clap!</text>
+  </g>
+  
+  <!-- Stars background -->
+  <g id="stars">
+    <path d="M50,50 L55,60 L65,62 L57,70 L60,80 L50,75 L40,80 L43,70 L35,62 L45,60 Z" fill="#ffc500" />
+    <path d="M330,70 L335,80 L345,82 L337,90 L340,100 L330,95 L320,100 L323,90 L315,82 L325,80 Z" fill="#ffc500" />
+    <path d="M350,280 L355,290 L365,292 L357,300 L360,310 L350,305 L340,310 L343,300 L335,292 L345,290 Z" fill="#ffc500" />
+    <path d="M60,310 L65,320 L75,322 L67,330 L70,340 L60,335 L50,340 L53,330 L45,322 L55,320 Z" fill="#ffc500" />
+  </g>
+  
+  <!-- Animation for clapping -->
+  <style>
+    @keyframes clap {
+      0% { transform: translateX(0px); }
+      45% { transform: translateX(-30px); }
+      50% { transform: translateX(0px); }
+      55% { transform: translateX(30px); }
+      100% { transform: translateX(0px); }
+    }
+    
+    @keyframes clap-right {
+      0% { transform: translateX(0px); }
+      45% { transform: translateX(30px); }
+      50% { transform: translateX(0px); }
+      55% { transform: translateX(-30px); }
+      100% { transform: translateX(0px); }
+    }
+    
+    @keyframes sound-wave {
+      0% { opacity: 0; transform: scale(0.8); }
+      50% { opacity: 1; }
+      100% { opacity: 0; transform: scale(1.2); }
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    @keyframes blink {
+      0%, 90%, 100% { transform: scaleY(1); }
+      95% { transform: scaleY(0.1); }
+    }
+    
+    #left-hand {
+      animation: clap 2s ease-in-out infinite;
+      transform-origin: center;
+      transform-box: fill-box;
+    }
+    
+    #right-hand {
+      animation: clap-right 2s ease-in-out infinite;
+      transform-origin: center;
+      transform-box: fill-box;
+    }
+    
+    #sound-waves {
+      animation: sound-wave 2s ease-in-out infinite;
+    }
+    
+    #speech-bubble {
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    #eyes {
+      animation: blink 4s ease-in-out infinite;
+      transform-origin: center;
+      transform-box: fill-box;
+    }
+  </style>
+</svg>

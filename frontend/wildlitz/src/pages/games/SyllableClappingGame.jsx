@@ -8,6 +8,7 @@ import SyllableLoadingScreen from '../../components/loading/SyllableLoadingScree
 import SyllableDemoScreen from './SyllableDemoScreen';
 import wildLitzCharacter from '../../assets/img/wildlitz-idle.png';
 import AudioLoadingIndicator from '../../components/audio/AudioLoadingIndicator';
+import syllableClappingCharacter from '../../assets/img/syllable-clapping-character.svg';
 
 function SyllableClappingGame() {
   const navigate = useNavigate();
@@ -545,8 +546,8 @@ function SyllableClappingGame() {
           <div className="syllable-game-container">
             <div className="game-content-wrapper">
               <img 
-                src={wildLitzCharacter} 
-                alt="WildLitz Character" 
+                src={syllableClappingCharacter} 
+                alt="syllable-clapping-character" 
                 className="wildlitz-character"
               />
               

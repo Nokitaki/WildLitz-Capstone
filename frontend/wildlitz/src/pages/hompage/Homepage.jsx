@@ -8,7 +8,7 @@ import vanishingGameImg from '../../assets/img/vanishing-game.jpg';
 import crosswordGameImg from '../../assets/img/crossword-game.png';
 import { motion } from 'framer-motion';
 import GameTipsModal from '../../components/modals/GameTipsModal';
-
+import syllableClappingCharacter from '../../assets/img/syllable-clapping-character.svg';
 function HomePage() {
   const navigate = useNavigate();
   
@@ -93,7 +93,7 @@ function HomePage() {
               }}
               onClick={() => handleGameSelect('syllable-clapping')}
             >
-              <img src={syllableClappingImg} alt="Syllable Clapping Game" className="game-image" />
+              <img src={syllableClappingCharacter} alt="syllable-clapping-character" className="game-image" />
               <div className="game-info">
                 <h3>Syllable Clapping Game</h3>
                 <p>Syllabification</p>
