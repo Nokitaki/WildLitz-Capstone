@@ -1,0 +1,262 @@
+/* SoundSafariLoading.module.css */
+
+.container {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #3e2723; /* Dark brown background consistent with WildLitz */
+    display: flex;
+    flex-direction: column;
+    font-family: 'Poppins', sans-serif;
+    overflow-x: hidden;
+  }
+  
+  .loadingContent {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .loadingCard {
+    background-color: #78c176; /* Light green */
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    padding: 30px;
+    width: 90%;
+    max-width: 700px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+  }
+  
+  .header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .header h1 {
+    color: white;
+    font-size: 1.8rem;
+    margin: 0 0 15px 0;
+    text-align: center;
+  }
+  
+  .progressContainer {
+    width: 80%;
+    height: 10px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .progressBar {
+    height: 100%;
+    background-color: #4a9240; /* Forest green */
+    border-radius: 5px;
+    transition: width 0.5s ease;
+  }
+  
+  .progressText {
+    position: absolute;
+    top: -18px;
+    right: 0;
+    color: white;
+    font-size: 0.8rem;
+  }
+  
+  .aiBadge {
+    align-self: flex-start;
+    background-color: #4a9240; /* Forest green */
+    color: white;
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .loadingTitle {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    color: white;
+  }
+  
+  .loadingDots {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+  
+  .dot {
+    width: 15px;
+    height: 15px;
+    background-color: #4a9240; /* Forest green */
+    border-radius: 50%;
+  }
+  
+  .targetSoundContainer {
+    margin: 20px 0;
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .targetSoundContainer h3 {
+    text-align: center;
+    color: #4a9240; /* Forest green */
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    margin-top: 0;
+  }
+  
+  .targetSoundDisplay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .targetSound {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #4a9240; /* Forest green */
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .targetSoundDisplay p {
+    margin: 0;
+    color: #333;
+    font-size: 1rem;
+  }
+  
+  .infoBox {
+    background-color: #f0f8ff;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    text-align: center;
+    color: #333;
+  }
+  
+  .infoBox h4 {
+    color: #4a9240; /* Forest green */
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+  }
+  
+  .infoBox p {
+    margin: 0;
+    color: #333;
+    font-size: 1rem;
+  }
+  
+  .infoBox.difficulty {
+    background-color: #fff8e1; /* Light yellow */
+  }
+  
+  .infoBox.instructions {
+    background-color: #e3f2fd; /* Light blue */
+  }
+  
+  .infoBox.examples {
+    background-color: #e8f5e9; /* Light green */
+  }
+  
+  .readyButton {
+    background-color: #4a9240; /* Forest green */
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 20px auto;
+    display: block;
+    transition: all 0.2s ease;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .readyButton:hover {
+    background-color: #388e3c; /* Darker green */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .hintBox {
+    background-color: #fff8e1; /* Light yellow */
+    border-radius: 10px;
+    padding: 12px 15px;
+    margin: 15px 0;
+    text-align: center;
+    color: #f57f17; /* Dark yellow/amber */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9rem;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .loadingCard {
+      padding: 20px;
+    }
+    
+    .header h1 {
+      font-size: 1.5rem;
+    }
+    
+    .loadingTitle {
+      font-size: 1.3rem;
+    }
+    
+    .targetSound {
+      font-size: 2.5rem;
+    }
+    
+    .infoBox {
+      padding: 12px;
+    }
+    
+    .readyButton {
+      width: 100%;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .loadingCard {
+      padding: 15px;
+    }
+    
+    .header h1 {
+      font-size: 1.3rem;
+    }
+    
+    .loadingTitle {
+      font-size: 1.1rem;
+    }
+    
+    .targetSound {
+      font-size: 2rem;
+    }
+    
+    .dot {
+      width: 12px;
+      height: 12px;
+    }
+  }

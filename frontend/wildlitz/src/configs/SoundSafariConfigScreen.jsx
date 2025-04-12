@@ -1,14 +1,45 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import styles from '../styles/SoundSafariGame.module.css';
+import styles from '../styles/SoundSafariConfig.module.css';
+import Character from '../assets/img/wildlitz-idle.png';
 
+/**
+ * Configuration screen component for Sound Safari game
+ * Allows setting difficulty, target sound, and other game options
+ */
 const SoundSafariConfigScreen = ({ onStartGame }) => {
   // Game configuration state
   const [playMode, setPlayMode] = useState('solo'); // 'solo' or 'group'
-  const [soundPosition, setSoundPosition] = useState('beginning'); // 'beginning', 'middle', 'ending'
-  const [targetSound, setTargetSound] = useState('s'); // 's', 'm', 't', 'b', 'p', etc.
+  const [soundPosition, setSoundPosition] = useState('beginning'); // 'beginning', 'middle', 'ending', 'anywhere'
+  const [targetSound, setTargetSound] = useState('s'); // Initial target sound
   const [environment, setEnvironment] = useState('jungle'); // 'jungle', 'savanna', 'ocean', 'arctic'
+  const [difficulty, setDifficulty] = useState('easy'); // 'easy', 'medium', 'hard'
+
+  // Available sounds for selection
+  const availableSounds = [
+    { letter: 's', example: 'snake, sun, seal' },
+    { letter: 'm', example: 'monkey, mouse, map' },
+    { letter: 't', example: 'tiger, turtle, table' },
+    { letter: 'b', example: 'bear, ball, boat' },
+    { letter: 'p', example: 'penguin, pig, pan' },
+    { letter: 'f', example: 'fox, fish, frog' },
+    { letter: 'l', example: 'lion, leaf, log' },
+    { letter: 'z', example: 'zebra, zoo, zigzag' }
+  ];
+
+  // Show more sounds state
+  const [showMoreSounds, setShowMoreSounds] = useState(false);
   
+  // Additional sounds that show when "More Sounds" is clicked
+  const additionalSounds = [
+    { letter: 'g', example: 'goat, giraffe, gift' },
+    { letter: 'w', example: 'wolf, whale, water' },
+    { letter: 'd', example: 'dog, dolphin, desk' },
+    { letter: 'c', example: 'cat, cow, car' },
+    { letter: 'r', example: 'rabbit, rat, rain' },
+    { letter: 'h', example: 'horse, hat, hand' }
+  ];
+
   // Handle play mode selection
   const handlePlayModeChange = (mode) => {
     setPlayMode(mode);
@@ -28,18 +59,43 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
   const handleEnvironmentChange = (env) => {
     setEnvironment(env);
   };
+
+  // Handle difficulty selection
+  const handleDifficultyChange = (level) => {
+    setDifficulty(level);
+  };
   
-  // Handle start game
+  // Handle more sounds button
+  const toggleMoreSounds = () => {
+    setShowMoreSounds(!showMoreSounds);
+  };
+  
+  // Handle start game with quick default settings
+  const handleQuickStart = () => {
+    // Set some reasonable defaults and start
+    const gameConfig = {
+      playMode: 'solo',
+      soundPosition: 'beginning',
+      targetSound: 's',
+      environment: 'jungle',
+      difficulty: 'easy'
+    };
+    
+    if (onStartGame) {
+      onStartGame(gameConfig);
+    }
+  };
+  
+  // Handle start game with custom settings
   const handleBeginGame = () => {
     const gameConfig = {
       playMode,
       soundPosition,
       targetSound,
-      environment
+      environment,
+      difficulty
     };
     
-    // In a real implementation, this would pass the config to the game component
-    console.log('Starting game with config:', gameConfig);
     if (onStartGame) {
       onStartGame(gameConfig);
     }
@@ -50,11 +106,20 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
       <div className={styles.header}>
         <h1>WildLitz - Sound Safari Adventure</h1>
         <div className={styles.logo}>
-          <img src="/assets/img/wildlitz-fox.png" alt="WildLitz Fox" />
+          <img src={Character} alt="WildLitz Fox" />
         </div>
       </div>
       
       <div className={styles.configContent}>
+        <motion.button 
+          className={styles.quickStartButton}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleQuickStart}
+        >
+          Quick Start
+        </motion.button>
+        
         <div className={styles.configSection}>
           <h2>Choose your Play Mode</h2>
           <div className={styles.playModeOptions}>
@@ -109,61 +174,100 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
             >
               Ending
             </motion.button>
+            
+            <motion.button 
+              className={`${styles.positionButton} ${soundPosition === 'anywhere' ? styles.selected : ''}`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleSoundPositionChange('anywhere')}
+            >
+              Anywhere
+            </motion.button>
           </div>
           
           <h3>Select Target Sound:</h3>
           <div className={styles.soundOptions}>
-            <motion.button 
-              className={`${styles.soundButton} ${targetSound === 's' ? styles.selected : ''}`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleTargetSoundChange('s')}
-            >
-              S
-            </motion.button>
-            
-            <motion.button 
-              className={`${styles.soundButton} ${targetSound === 'm' ? styles.selected : ''}`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleTargetSoundChange('m')}
-            >
-              M
-            </motion.button>
-            
-            <motion.button 
-              className={`${styles.soundButton} ${targetSound === 't' ? styles.selected : ''}`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleTargetSoundChange('t')}
-            >
-              T
-            </motion.button>
-            
-            <motion.button 
-              className={`${styles.soundButton} ${targetSound === 'b' ? styles.selected : ''}`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleTargetSoundChange('b')}
-            >
-              B
-            </motion.button>
-            
-            <motion.button 
-              className={`${styles.soundButton} ${targetSound === 'p' ? styles.selected : ''}`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleTargetSoundChange('p')}
-            >
-              P
-            </motion.button>
+            {availableSounds.map(sound => (
+              <motion.button 
+                key={sound.letter}
+                className={`${styles.soundButton} ${targetSound === sound.letter ? styles.selected : ''}`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleTargetSoundChange(sound.letter)}
+              >
+                {sound.letter.toUpperCase()}
+                {targetSound === sound.letter && (
+                  <div className={styles.soundTooltip}>{sound.example}</div>
+                )}
+              </motion.button>
+            ))}
             
             <motion.button 
               className={styles.moreSoundsButton}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={toggleMoreSounds}
             >
-              More Sounds ...
+              {showMoreSounds ? 'Less Sounds' : 'More Sounds...'}
+            </motion.button>
+          </div>
+          
+          {showMoreSounds && (
+            <motion.div 
+              className={styles.additionalSounds}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+            >
+              {additionalSounds.map(sound => (
+                <motion.button 
+                  key={sound.letter}
+                  className={`${styles.soundButton} ${targetSound === sound.letter ? styles.selected : ''}`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleTargetSoundChange(sound.letter)}
+                >
+                  {sound.letter.toUpperCase()}
+                  {targetSound === sound.letter && (
+                    <div className={styles.soundTooltip}>{sound.example}</div>
+                  )}
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
+        </div>
+        
+        <div className={styles.configSection}>
+          <h2>Difficulty Level:</h2>
+          <div className={styles.difficultyOptions}>
+            <motion.button 
+              className={`${styles.difficultyButton} ${difficulty === 'easy' ? styles.selected : ''}`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleDifficultyChange('easy')}
+            >
+              <span className={styles.difficultyLabel}>Easy</span>
+              <span className={styles.difficultyDescription}>6 animals, 60 seconds</span>
+            </motion.button>
+            
+            <motion.button 
+              className={`${styles.difficultyButton} ${difficulty === 'medium' ? styles.selected : ''}`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleDifficultyChange('medium')}
+            >
+              <span className={styles.difficultyLabel}>Medium</span>
+              <span className={styles.difficultyDescription}>8 animals, 45 seconds</span>
+            </motion.button>
+            
+            <motion.button 
+              className={`${styles.difficultyButton} ${difficulty === 'hard' ? styles.selected : ''}`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleDifficultyChange('hard')}
+            >
+              <span className={styles.difficultyLabel}>Hard</span>
+              <span className={styles.difficultyDescription}>12 animals, 30 seconds</span>
             </motion.button>
           </div>
         </div>

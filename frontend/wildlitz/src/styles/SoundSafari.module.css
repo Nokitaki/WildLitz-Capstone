@@ -1,0 +1,706 @@
+/* SoundSafari.module.css */
+
+.gameContainer {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #3e2723; /* Dark brown background consistent with WildLitz */
+    display: flex;
+    flex-direction: column;
+    font-family: 'Poppins', sans-serif;
+    overflow-x: hidden;
+    position: relative;
+  }
+  
+  /* Header styles */
+  .gameHeader {
+    background-color: #4a9240; /* Forest green */
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .gameHeader h1 {
+    font-size: 1.5rem;
+    margin: 0;
+    font-weight: 500;
+  }
+  
+  .gameInfo {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+  }
+  
+  .targetSoundBadge {
+    background-color: white;
+    color: #4a9240;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+  }
+  
+  .roundInfo {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+  }
+  
+  /* Intro screen styles */
+  .introScreen {
+    background-color: #78c176; /* Light green */
+    border-radius: 15px;
+    margin: 20px auto;
+    padding: 25px;
+    width: 90%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .introTitle {
+    color: #4a9240;
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 25px;
+  }
+  
+  .soundCircle {
+    width: 180px;
+    height: 180px;
+    background-color: #e9f6e9;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    border: 3px dashed #4a9240;
+  }
+  
+  .soundLetter {
+    font-size: 3.5rem;
+    color: #4a9240;
+    font-weight: bold;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+  }
+  
+  .playButton {
+    background-color: #4a9240;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .playButton:disabled {
+    background-color: #79a978;
+    cursor: not-allowed;
+  }
+  
+  .soundDescription {
+    background-color: #e9f6e9;
+    border-radius: 10px;
+    padding: 15px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  
+  .soundDescription h3 {
+    color: #4a9240;
+    font-size: 1.1rem;
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
+  
+  .soundDescription p {
+    margin: 0;
+    color: #333;
+  }
+  
+  .exampleBox {
+    background-color: #e9f6e9;
+    border-radius: 10px;
+    padding: 15px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  
+  .exampleBox h3 {
+    color: #4a9240;
+    font-size: 1.1rem;
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
+  
+  .exampleWords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .exampleWord {
+    background-color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #333;
+  }
+  
+  .smallPlayButton {
+    background: none;
+    border: none;
+    color: #4a9240;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .moreExamplesButton {
+    background-color: rgba(74, 146, 64, 0.2); /* Light green with opacity */
+    border: none;
+    color: #4a9240;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  
+  .taskBox {
+    background-color: white;
+    border-radius: 10px;
+    padding: 15px;
+    width: 100%;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+  
+  .taskBox h4 {
+    color: #4a9240;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+  }
+  
+  .taskBox p {
+    margin: 0;
+    color: #333;
+    font-size: 1rem;
+  }
+  
+  .continueButton {
+    background-color: #ff9800; /* Orange */
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+  }
+  
+  /* Gameplay screen styles */
+  .gameplayScreen {
+    background-color: #78c176; /* Light green */
+    border-radius: 15px;
+    margin: 20px auto;
+    padding: 25px;
+    width: 90%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .gameTask {
+    background-color: #e9f6e9;
+    color: #4a9240;
+    padding: 10px 15px;
+    border-radius: 25px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+  
+  .selectionInfo {
+    background-color: #4a9240;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  
+  .timerContainer {
+    width: 100%;
+    height: 10px;
+    background-color: #e9f6e9;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .timerBar {
+    height: 100%;
+    background-color: #ff9800; /* Orange */
+    border-radius: 5px;
+    transition: width 1s linear;
+  }
+  
+  .timerText {
+    position: absolute;
+    top: -18px;
+    right: 0;
+    font-size: 0.8rem;
+    color: white;
+  }
+  
+  .animalsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+  
+  .animalCard {
+    background-color: white;
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .animalCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  }
+  
+  .animalCard.selected {
+    border: 2px solid #4a9240;
+    background-color: #e9f6e9;
+  }
+  
+  .animalImage {
+    font-size: 3rem;
+    margin-bottom: 8px;
+  }
+  
+  .animalName {
+    font-size: 0.9rem;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .soundButton {
+    background: none;
+    border: none;
+    color: #4a9240;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .checkmark {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 25px;
+    height: 25px;
+    background-color: #4a9240;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .actionButtons {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: auto;
+  }
+  
+  .cancelButton {
+    background-color: #e9f6e9;
+    color: #4a9240;
+    border: 1px solid #4a9240;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    flex: 1;
+  }
+  
+  .submitButton {
+    background-color: #4a9240;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    flex: 2;
+  }
+  
+  /* Results screen styles */
+  .resultsScreen {
+    background-color: #78c176; /* Light green */
+    border-radius: 15px;
+    margin: 20px auto;
+    padding: 25px;
+    width: 90%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .resultHeader {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #e9f6e9;
+    border-radius: 10px;
+  }
+  
+  .resultHeader h2 {
+    color: #4a9240;
+    font-size: 1.2rem;
+    margin-top: 0;
+    margin-bottom: 10px;
+  }
+  
+  .scoreDisplay {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #4a9240;
+  }
+  
+  .resultsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .correctAnimals {
+    background-color: #e9f6e9;
+    border-radius: 10px;
+    padding: 15px;
+  }
+  
+  .correctAnimals h3 {
+    color: #4a9240;
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1rem;
+  }
+  
+  .incorrectAnimals {
+    background-color: #ffebee; /* Light red */
+    border-radius: 10px;
+    padding: 15px;
+  }
+  
+  .incorrectAnimals h3 {
+    color: #d32f2f; /* Red */
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1rem;
+  }
+  
+  .animalResults {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .resultAnimal {
+    background-color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #333;
+  }
+  
+  .playIcon {
+    cursor: pointer;
+    color: #4a9240;
+    font-size: 1rem;
+  }
+  
+  .teacherTip {
+    background-color: #fff8e1; /* Light yellow */
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-left: 4px solid #ffc107; /* Yellow */
+  }
+  
+  .teacherTip h4 {
+    color: #ff8f00; /* Amber */
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1rem;
+  }
+  
+  .teacherTip p {
+    margin: 0;
+    color: #333;
+    font-size: 0.9rem;
+  }
+  
+  .resultActions {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+  }
+  
+  .tryAgainButton {
+    background-color: #e9f6e9;
+    color: #4a9240;
+    border: 1px solid #4a9240;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    flex: 1;
+  }
+  
+  .nextButton {
+    background-color: #4a9240;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    flex: 2;
+  }
+  
+  /* Confetti animation for celebration */
+  .confetti {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .confettiPiece {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+  
+  /* Game complete screen styles */
+  .completeScreen {
+    background-color: #78c176; /* Light green */
+    border-radius: 15px;
+    margin: 20px auto;
+    padding: 30px;
+    width: 90%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .completeScreen h2 {
+    color: #4a9240;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+  }
+  
+  .finalScore {
+    background-color: #e9f6e9;
+    border-radius: 10px;
+    padding: 20px;
+    width: 100%;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .finalScore h3 {
+    color: #4a9240;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+  }
+  
+  .scoreValue {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #4a9240;
+    margin-bottom: 15px;
+  }
+  
+  .highScoreBadge {
+    background-color: #ffd700; /* Gold */
+    color: #333;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .encouragement {
+    color: #4a9240;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+  
+  .completeActions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .playAgainButton, .changeDifficultyButton {
+    background-color: #4a9240;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .changeDifficultyButton {
+    background-color: #ff9800; /* Orange */
+  }
+  
+  /* Mascot styles */
+  .mascot {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 100px;
+    height: 100px;
+    z-index: 10;
+  }
+  
+  .mascotImage {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .gameHeader {
+      flex-direction: column;
+      padding: 10px;
+    }
+    
+    .gameHeader h1 {
+      margin-bottom: 10px;
+    }
+    
+    .introTitle, .completeScreen h2 {
+      font-size: 1.5rem;
+    }
+    
+    .soundCircle {
+      width: 140px;
+      height: 140px;
+    }
+    
+    .soundLetter {
+      font-size: 2.5rem;
+    }
+    
+    .animalsGrid {
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+    
+    .resultActions, .actionButtons, .completeActions {
+      flex-direction: column;
+    }
+    
+    .mascot {
+      width: 70px;
+      height: 70px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .introScreen, .gameplayScreen, .resultsScreen, .completeScreen {
+      padding: 15px;
+    }
+    
+    .animalsGrid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .soundCircle {
+      width: 120px;
+      height: 120px;
+    }
+    
+    .soundLetter {
+      font-size: 2rem;
+    }
+    
+    .taskBox, .exampleBox {
+      padding: 10px;
+    }
+    
+    .mascot {
+      width: 50px;
+      height: 50px;
+    }
+  }

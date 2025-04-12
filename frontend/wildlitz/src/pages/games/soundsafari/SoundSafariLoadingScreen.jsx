@@ -1,8 +1,40 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import styles from '../../styles/SoundSafariGame.module.css';
+import styles from '../../../styles/SoundSafariLoading.module.css';
 
-const SoundSafariLoadingScreen = ({ targetSound, difficulty, onContinue }) => {
+/**
+ * Loading screen component for Sound Safari game
+ * Displayed between rounds to introduce the target sound and prepare the player
+ */
+const SoundSafariLoadingScreen = ({ 
+  targetSound, 
+  difficulty = 'Medium', 
+  onContinue,
+  round = 1,
+  totalRounds = 5
+}) => {
+  // Examples for each sound to display during loading
+  const soundExamples = {
+    's': 'snake, sun, seal, spider', 
+    'm': 'monkey, mouse, map, moon',
+    't': 'tiger, turtle, table, tree',
+    'b': 'bear, ball, boat, bee',
+    'p': 'penguin, pig, pan, pear',
+    'f': 'fox, fish, frog, flower',
+    'l': 'lion, leaf, log, lamp',
+    'z': 'zebra, zoo, zigzag, zero',
+    'g': 'goat, giraffe, gift, game',
+    'w': 'wolf, whale, water, web',
+    'd': 'dog, dolphin, desk, door',
+    'c': 'cat, cow, car, cake',
+    'r': 'rabbit, rat, rain, rose',
+    'h': 'horse, hat, hand, house'
+  };
+
+  // Get examples for this sound, or show generic message
+  const examples = soundExamples[targetSound.toLowerCase()] || 
+    'words containing this sound';
+
   return (
     <div className={styles.container}>
       <div className={styles.loadingContent}>
@@ -10,8 +42,11 @@ const SoundSafariLoadingScreen = ({ targetSound, difficulty, onContinue }) => {
           <div className={styles.header}>
             <h1>WildLitz - Sound Safari Game</h1>
             <div className={styles.progressContainer}>
-              <div className={styles.progressBar} style={{ width: '40%' }}></div>
-              <span className={styles.progressText}>2/5</span>
+              <div 
+                className={styles.progressBar} 
+                style={{ width: `${(round / totalRounds * 100)}%` }}
+              ></div>
+              <span className={styles.progressText}>{round}/{totalRounds}</span>
             </div>
           </div>
           
@@ -42,17 +77,22 @@ const SoundSafariLoadingScreen = ({ targetSound, difficulty, onContinue }) => {
           <div className={styles.targetSoundContainer}>
             <h3>Your Target Sound:</h3>
             <div className={styles.targetSoundDisplay}>
-              <span className={styles.targetSound}>{targetSound || "sh"}</span>
+              <span className={styles.targetSound}>{targetSound.toUpperCase()}</span>
               <p>Listen for this sound in the words!</p>
             </div>
           </div>
           
+          <div className={`${styles.infoBox} ${styles.examples}`}>
+            <h4>Examples:</h4>
+            <p>{examples}</p>
+          </div>
+          
           <div className={`${styles.infoBox} ${styles.difficulty}`}>
-            <p>Difficulty Level: {difficulty || "Medium"}</p>
+            <p>Difficulty Level: {difficulty}</p>
           </div>
           
           <div className={`${styles.infoBox} ${styles.instructions}`}>
-            <p>Choose words that contain the target sound.</p>
+            <p>Choose animals that contain the target sound.</p>
           </div>
           
           <motion.button 

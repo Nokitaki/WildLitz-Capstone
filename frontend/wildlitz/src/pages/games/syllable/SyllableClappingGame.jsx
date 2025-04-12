@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import '../../styles/syllable_clapping_game.css';
-import SyllableConfigScreen from '../../configs/SyllableConfigScreen';
-import SyllableLoadingScreen from '../../components/loading/SyllableLoadingScreen';
+import '../../../styles/syllable_clapping_game.css';
+import SyllableConfigScreen from '../../../configs/SyllableConfigScreen';
+import SyllableLoadingScreen from '../../../components/loading/SyllableLoadingScreen';
 import SyllableDemoScreen from './SyllableDemoScreen';
-import wildLitzCharacter from '../../assets/img/wildlitz-idle.png';
-import AudioLoadingIndicator from '../../components/audio/AudioLoadingIndicator';
-import syllableClappingCharacter from '../../assets/img/syllable-clapping-character.svg';
+import wildLitzCharacter from '../../../assets/img/wildlitz-idle.png';
+import AudioLoadingIndicator from '../../../components/audio/AudioLoadingIndicator';
+import syllableClappingCharacter from '../../../assets/img/syllable-clapping-character.svg';
 
 function SyllableClappingGame() {
   const navigate = useNavigate();

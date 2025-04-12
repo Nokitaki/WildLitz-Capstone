@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './App.css';
 import LandingPage from '../src/pages/landing_page/LandingPage';
 import HomePage from '../src/pages/hompage/Homepage';
-import SyllableClappingGame from '../src/pages/games/SyllableClappingGame';
-import SoundSafariGame from '../src/pages/games/SoundSafariGame';
+import SyllableClappingGame from '../src/pages/games/syllable/SyllableClappingGame';
+import SoundSafariGame from '../src/pages/games/soundsafari/SoundSafariGame';
 import VanishingGame from '../src/pages/games/VanishingGame';
 import CrosswordPuzzleGame from '../src/pages/games/CrosswordPuzzleGame';
 
