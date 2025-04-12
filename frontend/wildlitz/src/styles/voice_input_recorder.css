@@ -1,203 +1,240 @@
-/* src/styles/voice_input_recorder.css */
+/* src/styles/voice_input_recorder.css - CLEANED VERSION */
+
+:root {
+  --light-brown: #6d4c41;
+  --dark-brown: #5d4037;
+  --medium-brown: #795548;
+  --accent-color: #ffc107;
+  --success-color: #4caf50;
+  --error-color: #f44336;
+  --warning-color: #ffecb3;
+  --transition-default: all 0.2s ease;
+}
 
 .voice-input-recorder {
-    background-color: #6d4c41; /* Lighter brown */
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 20px;
-    color: white;
+  background-color: var(--light-brown);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+  color: white;
+}
+
+.voice-input-recorder h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--accent-color);
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.voice-controls {
+  display: flex;
+  justify-content: center;
+  margin: 15px 0;
+}
+
+.voice-button {
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: var(--transition-default);
+}
+
+.voice-button.start {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.voice-button.stop {
+  background-color: var(--error-color);
+  color: white;
+  animation: pulse 1.5s infinite;
+}
+
+.voice-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.voice-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  animation: none;
+}
+
+.listening-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 15px 0;
+  position: relative;
+}
+
+.pulse-ring {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: rgba(76, 175, 80, 0.3);
+  position: relative;
+  animation: pulse-animation 2s infinite;
+}
+
+.pulse-ring::before {
+  content: '';
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  top: 10px;
+  left: 10px;
+  border-radius: 50%;
+  background-color: rgba(76, 175, 80, 0.5);
+  animation: pulse-animation 2s infinite 0.3s;
+}
+
+.pulse-ring::after {
+  content: '🎤';
+  font-size: 24px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.listening-indicator p {
+  margin-top: 10px;
+  animation: blink 1.5s infinite;
+}
+
+.transcript-display {
+  background-color: var(--dark-brown);
+  border-radius: 8px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+}
+
+.transcript-display p {
+  margin: 0;
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
+.analyzing-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.analyzing-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
+}
+
+.error-message {
+  background-color: #ffcdd2;
+  color: #b71c1c;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin: 15px 0;
+}
+
+.browser-warning {
+  background-color: var(--warning-color);
+  color: #856404;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+
+.voice-instructions {
+  background-color: var(--medium-brown);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 15px;
+}
+
+.voice-instructions p {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.voice-instructions ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.voice-instructions li {
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+/* Animations */
+@keyframes pulse-animation {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
   }
-  
-  .recorder-header h4 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: #ffc107; /* Yellow */
-    font-size: 1rem;
+  50% {
+    transform: scale(1.1);
+    opacity: 0.5;
   }
-  
-  .browser-warning {
-    background-color: #ffecb3; /* Light yellow */
-    color: #856404; /* Dark yellow */
-    padding: 8px 12px;
-    border-radius: 6px;
-    margin-top: 10px;
-    font-size: 0.9rem;
+  100% {
+    transform: scale(0.8);
+    opacity: 0.8;
   }
-  
-  .voice-controls {
-    display: flex;
-    justify-content: center;
-    margin: 15px 0;
-  }
-  
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* Media queries */
+@media (max-width: 480px) {
   .voice-button {
-    padding: 10px 20px;
-    border-radius: 20px;
-    border: none;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  
-  .voice-button.start {
-    background-color: #4caf50; /* Green */
-    color: white;
-  }
-  
-  .voice-button.stop {
-    background-color: #f44336; /* Red */
-    color: white;
-    animation: pulse 1.5s infinite;
-  }
-  
-  .voice-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-  
-  .voice-button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-    animation: none;
-  }
-  
-  .listening-indicator {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 15px 0;
-    position: relative;
+    width: 100%;
+    justify-content: center;
   }
   
   .pulse-ring {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background-color: rgba(76, 175, 80, 0.3); /* Green with opacity */
-    position: relative;
-    animation: pulse-animation 2s infinite;
+    width: 60px;
+    height: 60px;
   }
   
   .pulse-ring::before {
-    content: '';
-    position: absolute;
-    width: 60px;
-    height: 60px;
-    top: 10px;
-    left: 10px;
-    border-radius: 50%;
-    background-color: rgba(76, 175, 80, 0.5); /* Darker green with opacity */
-    animation: pulse-animation 2s infinite 0.3s;
+    width: 45px;
+    height: 45px;
+    top: 7.5px;
+    left: 7.5px;
   }
   
   .pulse-ring::after {
-    content: '🎤';
-    font-size: 24px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    font-size: 20px;
   }
-  
-  .listening-indicator p {
-    margin-top: 10px;
-    animation: blink 1.5s infinite;
-  }
-  
-  .transcript-display {
-    background-color: #5d4037; /* Darker brown */
-    border-radius: 8px;
-    padding: 10px 15px;
-    margin-bottom: 15px;
-  }
-  
-  .transcript-display p {
-    margin: 0;
-    font-weight: bold;
-    color: #ffc107; /* Yellow */
-  }
-  
-  .analyzing-indicator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin: 15px 0;
-  }
-  
-  .analyzing-spinner {
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: white;
-    animation: spin 1s linear infinite;
-  }
-  
-  .error-message {
-    background-color: #ffcdd2; /* Light red */
-    color: #b71c1c; /* Dark red */
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin: 15px 0;
-  }
-  
-  .voice-instructions {
-    background-color: #795548; /* Medium brown */
-    border-radius: 8px;
-    padding: 12px;
-    margin-top: 15px;
-  }
-  
-  .voice-instructions p {
-    margin-top: 0;
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-  }
-  
-  .voice-instructions ul {
-    margin: 0;
-    padding-left: 20px;
-  }
-  
-  .voice-instructions li {
-    font-size: 0.85rem;
-    margin-bottom: 4px;
-  }
-  
-  @keyframes pulse-animation {
-    0% {
-      transform: scale(0.8);
-      opacity: 0.8;
-    }
-    50% {
-      transform: scale(1.1);
-      opacity: 0.5;
-    }
-    100% {
-      transform: scale(0.8);
-      opacity: 0.8;
-    }
-  }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
-  @keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.6; }
-    100% { opacity: 1; }
-  }
-  
-  @keyframes blink {
-    0% { opacity: 1; }
-    50% { opacity: 0.6; }
-    100% { opacity: 1; }
-  }
+}

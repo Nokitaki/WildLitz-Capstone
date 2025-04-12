@@ -178,7 +178,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
       }
     }
     
-    // Prepare the data to send to the API - convert the categories object to an array of selected categories
+    // Convert the categories object to an array of selected categories
     const selectedCategories = Object.keys(categories)
       .filter(key => categories[key])
       .map(key => {
@@ -189,83 +189,76 @@ const SyllableConfigScreen = ({ onStartGame }) => {
           .trim(); // Remove potential leading space
       });
     
-    if (selectedCategories.length === 0 && 
-        Object.values(selectedCustomWords).filter(selected => selected).length === 0) {
-      setError("Please select at least one word category or select some custom words");
-      setIsLoading(false);
-      return;
-    }
-    
     // Filter the custom words to only include selected ones
     const selectedWords = customWords.filter(word => 
       selectedCustomWords[word.word]
     );
     
-    // Determine how many AI words we need
-    const aiWordCount = Math.max(0, questionCount - selectedWords.length);
+    // Make sure we don't have any duplicates in the selected words
+    const uniqueSelectedWords = [];
+    const wordSet = new Set();
     
-    // Log the request for debugging
-    console.log("Game configuration:", {
-      difficulty,
-      questionCount,
-      categories: selectedCategories,
-      selectedCustomWords: selectedWords.length
+    selectedWords.forEach(word => {
+      if (!wordSet.has(word.word)) {
+        wordSet.add(word.word);
+        uniqueSelectedWords.push(word);
+      }
     });
+    
+    // If no categories or custom words are selected
+    if (selectedCategories.length === 0 && uniqueSelectedWords.length === 0) {
+      setError("Please select at least one word category or select some custom words");
+      setIsLoading(false);
+      return;
+    }
+    
+    // Determine how many AI words we need
+    const aiWordCount = Math.max(0, questionCount - uniqueSelectedWords.length);
     
     // Configuration to pass to the game
     const gameConfig = {
       difficulty,
       categories: selectedCategories,
       questionCount: questionCount,
-      customWords: selectedWords
+      customWords: uniqueSelectedWords
     };
     
-    // If selected custom words are provided, use those first
-    if (selectedWords.length > 0) {
-      // Format custom words for the game - converting them to the expected format
-      const formattedCustomWords = selectedWords.map(word => {
-        // Split the word into syllables
-        const syllables = word.syllableBreakdown || word.word; // Use provided breakdown or simple word
-        const count = word.syllableCount || (syllables.split('-').length);
-        
-        return {
-          word: word.word,
-          syllables: syllables,
-          count: count,
-          category: word.category || "Custom",
-          isCustomWord: true,
-          usesCustomAudio: word.usesCustomAudio,
-          customAudio: word.customAudio
-        };
-      });
-      
-      // If we have enough custom words for all questions
-      if (formattedCustomWords.length >= questionCount) {
-        // Just use the first questionCount custom words
-        gameConfig.words = formattedCustomWords.slice(0, questionCount);
-        onStartGame(gameConfig);
-        setIsLoading(false);
-        return;
-      }
-      
-      // Otherwise include some from the API too
-      gameConfig.customWords = formattedCustomWords;
+    // If we have enough custom words for all questions
+    if (uniqueSelectedWords.length >= questionCount) {
+      // Just use the first questionCount custom words
+      gameConfig.words = uniqueSelectedWords.slice(0, questionCount);
+      onStartGame(gameConfig);
+      setIsLoading(false);
+      return;
     }
+    
+    // Otherwise include all custom words
+    gameConfig.customWords = uniqueSelectedWords;
     
     // Call the backend API for additional words if needed
     if (aiWordCount > 0) {
+      // Create an array of words to exclude - to avoid duplicating any custom words
+      const wordsToExclude = uniqueSelectedWords.map(word => word.word);
+      
       axios.post('/api/syllabification/generate-words/', {
         difficulty: difficulty,
         count: aiWordCount,
-        categories: selectedCategories
+        categories: selectedCategories,
+        // Send list of words to exclude
+        previous_words: wordsToExclude
       })
       .then(response => {
         if (response.data && response.data.words && response.data.words.length > 0) {
-          // Combine custom words with API-generated words
+          // Filter out any AI words that might duplicate custom words
+          const aiWords = response.data.words.filter(
+            word => !wordsToExclude.includes(word.word)
+          );
+          
+          // Combine custom words with AI-generated words
           if (gameConfig.customWords && gameConfig.customWords.length > 0) {
-            gameConfig.words = [...gameConfig.customWords, ...response.data.words];
+            gameConfig.words = [...gameConfig.customWords, ...aiWords];
           } else {
-            gameConfig.words = response.data.words;
+            gameConfig.words = aiWords;
           }
           
           onStartGame(gameConfig);

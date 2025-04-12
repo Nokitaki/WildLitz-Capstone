@@ -48,33 +48,44 @@ function SyllableClappingGame() {
   // Handle starting the game after configuration
   // In SyllableConfigScreen.jsx, modify the handleStartGame function:
 
-const handleStartGame = (config) => {
-  // Process words - make sure custom words are properly marked and not duplicated
-  let processedWords = [];
-  
-  // If config has custom words that were selected
-  if (config.customWords && config.customWords.length > 0) {
-    processedWords = config.customWords.map(word => ({
-      ...word,
-      isCustomWord: true, // Mark as custom word
-      // Make sure audio flags are properly set
-      usesCustomAudio: word.usesCustomAudio === true || (word.customAudio ? true : false)
-    }));
-    console.log(`Processed ${processedWords.length} custom words`);
-  }
-  
-  // If config has AI-generated words, add those too
-  if (config.words && config.words.length > 0) {
-    // Combine with AI words WITHOUT adding custom words again
-    processedWords = [...processedWords, ...config.words];
-    console.log(`Total words: ${processedWords.length}`);
-  }
-  
-  // Update game state
-  setGameWords(processedWords);
-  setCurrentWordIndex(0);
-  setGameState('loading');
-
+  const handleStartGame = (config) => {
+    // Track already processed words to avoid duplicates
+    const processedWordIds = new Set();
+    let processedWords = [];
+    
+    // If config has custom words that were selected
+    if (config.customWords && config.customWords.length > 0) {
+      // Process each custom word only once
+      config.customWords.forEach(word => {
+        // Use word text as unique identifier
+        if (!processedWordIds.has(word.word)) {
+          processedWordIds.add(word.word);
+          
+          processedWords.push({
+            ...word,
+            isCustomWord: true, // Mark as custom word
+            // Make sure audio flags are properly set
+            usesCustomAudio: word.usesCustomAudio === true || (word.customAudio ? true : false)
+          });
+        }
+      });
+      console.log(`Processed ${processedWords.length} custom words`);
+    }
+    
+    // If config has AI-generated words, add those too
+    if (config.words && config.words.length > 0) {
+      // Only add AI words that haven't been processed yet
+      const newAiWords = config.words.filter(word => !processedWordIds.has(word.word));
+      
+      // Combine with existing words
+      processedWords = [...processedWords, ...newAiWords];
+      console.log(`Total words: ${processedWords.length}`);
+    }
+    
+    // Update game state
+    setGameWords(processedWords);
+    setCurrentWordIndex(0);
+    setGameState('loading');
     
     // Log the first few words for debugging
     processedWords.slice(0, 3).forEach((word, idx) => {
@@ -94,7 +105,7 @@ const handleStartGame = (config) => {
       }
     }, 2000);
   };
-  
+
   // Handle the continue button in playing state
   const handleContinue = () => {
     setShowFeedback(true);
@@ -228,38 +239,38 @@ const handleStartGame = (config) => {
   
   // Handle the next word button in feedback state
   const handleNextWord = () => {
-    const nextIndex = currentWordIndex + 1;
-    
-    // Check if we've completed all words
-    if (nextIndex >= gameWords.length) {
-      // Game complete
-      alert("Congratulations! You've completed all the words!");
-      setGameState('config');
-      return;
-    }
-    
-    // Reset audio state before moving to loading screen
-    setIsPlayingAudio(false);
-    
-    // Clear any existing audio element
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
-      audioRef.current = null;
-    }
-    
-    // Go to loading screen
-    setGameState('loading');
-    setCurrentWordIndex(nextIndex);
-    
-    // Simulate loading next word
-    setTimeout(() => {
-      setCurrentWord(gameWords[nextIndex]);
-      setUserAnswer('');
-      setShowFeedback(false);
-      setGameState('playing');
-    }, 2000);
-  };
+  const nextIndex = currentWordIndex + 1;
+  
+  // Check if we've completed all words
+  if (nextIndex >= gameWords.length) {
+    // Game complete
+    alert("Congratulations! You've completed all the words!");
+    setGameState('config');
+    return;
+  }
+  
+  // Reset audio state before moving to loading screen
+  setIsPlayingAudio(false);
+  
+  // Clear any existing audio element
+  if (audioRef.current) {
+    audioRef.current.pause();
+    audioRef.current.src = '';
+    audioRef.current = null;
+  }
+  
+  // Go to loading screen
+  setGameState('loading');
+  setCurrentWordIndex(nextIndex);
+  
+  // Move to the next word
+  setTimeout(() => {
+    setCurrentWord(gameWords[nextIndex]);
+    setUserAnswer('');
+    setShowFeedback(false);
+    setGameState('playing');
+  }, 2000);
+};
   
   // Handle checking syllable claps
   const handleCheckClaps = () => {

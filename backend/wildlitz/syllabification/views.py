@@ -1,16 +1,16 @@
-# In syllabification/views.py
+# In syllabification/views.py - FIXED VERSION
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import json
-import random
-from .services import ChatGPTService
-from .models import SyllabificationWord
 from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse
+import json
+import random
 import re
+from .services import ChatGPTService
+from .models import SyllabificationWord
 
-
-# Service initialization
+# Initialize service
 chatgpt_service = ChatGPTService()
 
 def get_syllabification_word(request):
@@ -55,37 +55,6 @@ def get_syllabification_word(request):
         
         return JsonResponse({'error': 'Failed to generate word'}, status=500)
 
-def get_syllabification_word(request):
-    """Get a random word for syllabification practice"""
-    difficulty = request.GET.get('difficulty', 'medium')
-    
-    # Try to get from database first
-    words = SyllabificationWord.objects.filter(difficulty_level=difficulty)
-    
-    if words.exists():
-        # Get a random word
-        word = random.choice(words)
-        return JsonResponse({
-            'word': word.word,
-            'syllables': word.syllable_breakdown,
-            'count': word.syllable_count
-        })
-    else:
-        # Generate new word if none exist
-        generated_words = chatgpt_service.generate_syllabification_words(difficulty, 1)
-        if generated_words:
-            word_data = generated_words[0]
-            # Save to database
-            SyllabificationWord.objects.create(
-                word=word_data['word'],
-                syllable_breakdown=word_data['syllables'],
-                syllable_count=word_data['count'],
-                difficulty_level=difficulty
-            )
-            return JsonResponse(word_data)
-        
-        return JsonResponse({'error': 'Failed to generate word'}, status=500)
-    
 @csrf_exempt
 @require_http_methods(["POST"])
 def check_syllable_clapping(request):
@@ -130,7 +99,6 @@ def check_syllable_clapping(request):
         return JsonResponse(feedback)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
-
 
 @csrf_exempt
 def generate_new_challenge(request):
@@ -196,9 +164,6 @@ def generate_new_challenge(request):
     
     return JsonResponse({'error': 'Only POST method is allowed'}, status=405)
 
-
-
-    
 def get_syllable_sounds(request):
     """Get detailed explanation of syllable sounds for a word"""
     word = request.GET.get('word')
@@ -222,9 +187,6 @@ def get_syllable_sounds(request):
     
     return JsonResponse(explanation)
 
-
-# New TTS endpoints
-
 @csrf_exempt
 @require_http_methods(["POST"])
 def text_to_speech(request):
@@ -244,7 +206,6 @@ def text_to_speech(request):
     
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
-
 
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
@@ -301,9 +262,6 @@ def pronounce_word(request):
         
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
-        
-
-
 
 def test_tts(request):
     """Simple test view for Text-to-Speech functionality"""
@@ -377,196 +335,45 @@ def test_tts(request):
     else:
         error_message = tts_response.get('error', 'Unknown error')
         return HttpResponse(f"<h1>Error generating TTS</h1><p>{error_message}</p>", status=500)
-    
-
-
-
-def test_tts(request):
-    """Simple test view for Text-to-Speech functionality"""
-    word = request.GET.get('word', 'apple')
-    method = request.GET.get('method', 'both')  # 'openai', 'gtts', or 'both'
-    
-    # Results containers
-    openai_response = None
-    gtts_response = None
-    
-    # Try OpenAI TTS if requested
-    if method in ['openai', 'both']:
-        try:
-            openai_response = chatgpt_service.text_to_speech(word)
-        except Exception as e:
-            openai_response = {'success': False, 'error': str(e)}
-    
-    # Try gTTS if requested
-    if method in ['gtts', 'both']:
-        try:
-            gtts_response = chatgpt_service.text_to_speech_fallback(word)
-        except Exception as e:
-            gtts_response = {'success': False, 'error': str(e)}
-    
-    # Create the HTML response
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>TTS Test for "{word}"</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; margin: 20px; }}
-            .container {{ max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }}
-            h1, h2 {{ color: #4a4a4a; }}
-            .word {{ font-size: 32px; margin: 20px 0; color: #2c3e50; }}
-            .player {{ margin: 20px 0; padding: 15px; border: 1px solid #eee; border-radius: 4px; }}
-            .success {{ background-color: #d4edda; border-color: #c3e6cb; }}
-            .error {{ background-color: #f8d7da; border-color: #f5c6cb; }}
-            button {{ 
-                background-color: #3498db; 
-                color: white; 
-                border: none; 
-                padding: 10px 20px; 
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 16px;
-                margin-right: 10px;
-            }}
-            button:hover {{ background-color: #2980b9; }}
-            input[type="text"] {{ 
-                padding: 8px; 
-                border: 1px solid #ddd; 
-                border-radius: 4px; 
-                width: 200px;
-                margin-right: 10px;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>TTS Test Page</h1>
-            <div class="word">{word}</div>
-            
-            <div class="method-select">
-                <h3>Select TTS Method:</h3>
-                <form action="" method="get">
-                    <input type="hidden" name="word" value="{word}">
-                    <button type="submit" name="method" value="openai">OpenAI Only</button>
-                    <button type="submit" name="method" value="gtts">Google TTS Only</button>
-                    <button type="submit" name="method" value="both">Both Methods</button>
-                </form>
-            </div>
-    """
-    
-    # Add OpenAI results if available
-    if openai_response:
-        result_class = "success" if openai_response.get('success', False) else "error"
-        html_content += f"""
-            <h2>OpenAI TTS Results:</h2>
-            <div class="player {result_class}">
-        """
-        
-        if openai_response.get('success', False):
-            audio_url = openai_response.get('audio_url')
-            base64_audio = openai_response.get('audio_data')
-            html_content += f"""
-                <h3>Play using URL (backend file):</h3>
-                <audio controls>
-                    <source src="{audio_url}" type="audio/mp3">
-                    Your browser does not support the audio element.
-                </audio>
-                
-                <h3>Play using Base64 data:</h3>
-                <audio controls>
-                    <source src="data:audio/mp3;base64,{base64_audio}" type="audio/mp3">
-                    Your browser does not support the audio element.
-                </audio>
-            """
-        else:
-            error_message = openai_response.get('error', 'Unknown error')
-            html_content += f"""
-                <h3>Error with OpenAI TTS:</h3>
-                <p>{error_message}</p>
-            """
-        
-        html_content += "</div>"
-    
-    # Add gTTS results if available
-    if gtts_response:
-        result_class = "success" if gtts_response.get('success', False) else "error"
-        html_content += f"""
-            <h2>Google TTS Results:</h2>
-            <div class="player {result_class}">
-        """
-        
-        if gtts_response.get('success', False):
-            audio_url = gtts_response.get('audio_url')
-            base64_audio = gtts_response.get('audio_data')
-            html_content += f"""
-                <h3>Play using URL (backend file):</h3>
-                <audio controls>
-                    <source src="{audio_url}" type="audio/mp3">
-                    Your browser does not support the audio element.
-                </audio>
-                
-                <h3>Play using Base64 data:</h3>
-                <audio controls>
-                    <source src="data:audio/mp3;base64,{base64_audio}" type="audio/mp3">
-                    Your browser does not support the audio element.
-                </audio>
-            """
-        else:
-            error_message = gtts_response.get('error', 'Unknown error')
-            html_content += f"""
-                <h3>Error with Google TTS:</h3>
-                <p>{error_message}</p>
-            """
-        
-        html_content += "</div>"
-    
-    # Add the form to test another word
-    html_content += f"""
-            <div>
-                <h3>Test another word:</h3>
-                <form action="" method="get">
-                    <input type="text" name="word" placeholder="Enter a word" value="{word}">
-                    <input type="hidden" name="method" value="{method}">
-                    <button type="submit">Generate Audio</button>
-                </form>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-    
-    return HttpResponse(html_content)
-
 
 @csrf_exempt
+@require_http_methods(["POST"])
 def generate_syllabification_words(request):
     """API endpoint to generate new syllabification words using ChatGPT"""
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            difficulty = data.get('difficulty', 'medium')
-            count = data.get('count', 10)
-            categories = data.get('categories', [])  # Get categories from request
-            previous_words = data.get('previous_words', [])  # Get previously used words to avoid duplicates
-            
-            # Get words from ChatGPT with category filtering
-            generated_words = chatgpt_service.generate_syllabification_words(
-                difficulty, 
-                count,
-                categories=categories  # Pass categories to the service
-            )
-            
-            # Filter out any words that were already used
-            if previous_words:
-                generated_words = [word for word in generated_words if word['word'] not in previous_words]
-            
-            # Save to database for future use
-            for word_data in generated_words:
+    try:
+        data = json.loads(request.body)
+        difficulty = data.get('difficulty', 'medium')
+        count = data.get('count', 10)
+        categories = data.get('categories', [])
+        # Get words to exclude (custom words or previously seen)
+        previous_words = data.get('previous_words', [])
+        
+        # Get words from ChatGPT with category filtering
+        generated_words = chatgpt_service.generate_syllabification_words(
+            difficulty, 
+            count * 2,  # Generate more than needed to allow for filtering
+            categories=categories
+        )
+        
+        # Filter out any words that were already used
+        if previous_words:
+            # Convert previous_words to lowercase for case-insensitive matching
+            previous_words_lower = [w.lower() for w in previous_words]
+            generated_words = [
+                word for word in generated_words 
+                if word['word'].lower() not in previous_words_lower
+            ]
+        
+        # Ensure we don't have more words than requested
+        generated_words = generated_words[:count]
+        
+        # Save to database for future use
+        for word_data in generated_words:
+            # Check if the word already exists
+            if not SyllabificationWord.objects.filter(word__iexact=word_data['word']).exists():
                 # Determine the category for the word
                 category = word_data.get('category')
                 if not category and categories:
-                    # If word doesn't have a category but categories were specified,
-                    # assign the first category from the request
                     category = categories[0]
                 
                 SyllabificationWord.objects.create(
@@ -574,21 +381,12 @@ def generate_syllabification_words(request):
                     syllable_breakdown=word_data['syllables'],
                     syllable_count=word_data['count'],
                     difficulty_level=difficulty,
-                    category=category or 'General'  # Default to General if no category
+                    category=category or 'General'
                 )
-            
-            return JsonResponse({'words': generated_words})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
-    
-    return JsonResponse({'error': 'Only POST method is allowed'}, status=405)
-
-
-
-
-
-
-
+        
+        return JsonResponse({'words': generated_words})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -694,7 +492,7 @@ def _determine_category(word):
     """Simple category determination based on common word lists"""
     word = word.lower()
     
-    # These are just example lists - you would expand these in a real implementation
+    # Example word lists for different categories
     animal_words = ['cat', 'dog', 'bird', 'fish', 'lion', 'tiger', 'bear', 'elephant', 'zebra', 
                     'giraffe', 'monkey', 'turtle', 'snake', 'frog', 'mouse', 'rabbit']
     
