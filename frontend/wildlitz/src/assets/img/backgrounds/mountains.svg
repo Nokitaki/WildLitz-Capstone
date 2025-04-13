@@ -1,0 +1,53 @@
+<svg viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mountainGradient1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8C6BB1" />
+      <stop offset="100%" stop-color="#6F4D96" />
+    </linearGradient>
+    <linearGradient id="mountainGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7B5AA6" />
+      <stop offset="100%" stop-color="#5D3F80" />
+    </linearGradient>
+    <linearGradient id="mountainGradient3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#9B7BBF" />
+      <stop offset="100%" stop-color="#7D5CA4" />
+    </linearGradient>
+    <filter id="mountainShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="blur" />
+      <feOffset in="blur" dx="0" dy="3" result="offsetBlur" />
+      <feFlood flood-color="rgba(0,0,0,0.3)" result="coloredBlur" />
+      <feComposite in="coloredBlur" in2="offsetBlur" operator="in" result="coloredBlurOffset" />
+      <feMerge>
+        <feMergeNode in="coloredBlurOffset" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Far Mountains -->
+  <path d="M0,300 L0,200 L100,220 L200,180 L300,210 L400,170 L500,210 L600,180 L700,200 L800,160 L900,200 L1000,170 L1100,190 L1200,180 L1200,300 Z" 
+        fill="url(#mountainGradient3)" 
+        filter="url(#mountainShadow)" />
+  
+  <!-- Middle Mountains -->
+  <path d="M0,300 L0,220 L120,240 L200,190 L300,230 L380,180 L500,240 L600,200 L700,230 L800,180 L900,220 L1000,190 L1100,210 L1200,190 L1200,300 Z" 
+        fill="url(#mountainGradient2)" 
+        filter="url(#mountainShadow)" />
+  
+  <!-- Near Mountains -->
+  <path d="M0,300 L0,240 L80,250 L180,210 L280,260 L350,200 L450,250 L550,220 L650,260 L750,210 L850,250 L950,210 L1050,240 L1150,210 L1200,220 L1200,300 Z" 
+        fill="url(#mountainGradient1)" 
+        filter="url(#mountainShadow)" />
+  
+  <!-- Snow Caps -->
+  <path d="M180,210 L200,190 L220,210 M350,200 L370,180 L390,200 M750,210 L770,190 L790,210 M950,210 L970,190 L990,210" 
+        stroke="white" 
+        stroke-width="2" 
+        fill="none" />
+  
+  <!-- Small snow patches -->
+  <circle cx="200" cy="190" r="3" fill="white" />
+  <circle cx="370" cy="180" r="4" fill="white" />
+  <circle cx="770" cy="190" r="3" fill="white" />
+  <circle cx="970" cy="190" r="4" fill="white" />
+</svg>

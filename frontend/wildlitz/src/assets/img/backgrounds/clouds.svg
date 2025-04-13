@@ -1,0 +1,74 @@
+<svg viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="cloudFilter" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10" result="blur" />
+      <feOffset in="blur" dx="0" dy="3" result="offsetBlur" />
+      <feFlood flood-color="rgba(0,0,0,0.1)" result="coloredBlur" />
+      <feComposite in="coloredBlur" in2="offsetBlur" operator="in" result="coloredBlurOffset" />
+      <feMerge>
+        <feMergeNode in="coloredBlurOffset" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Cloud Group 1 -->
+  <g filter="url(#cloudFilter)">
+    <path d="M120,180 
+             C120,180 100,140 140,140 
+             C140,140 160,100 200,120 
+             C200,120 220,80 260,120
+             C260,120 300,100 300,140
+             C300,140 340,120 340,160
+             C340,160 240,180 120,180 Z" 
+          fill="#ffffff" />
+  </g>
+  
+  <!-- Cloud Group 2 -->
+  <g filter="url(#cloudFilter)" transform="translate(250, -50)">
+    <path d="M120,180 
+             C120,180 100,140 140,140 
+             C140,140 160,100 200,120 
+             C200,120 220,80 260,120
+             C260,120 280,100 280,140
+             C280,140 320,120 320,160
+             C320,160 240,180 120,180 Z" 
+          fill="#ffffff" />
+  </g>
+  
+  <!-- Cloud Group 3 -->
+  <g filter="url(#cloudFilter)" transform="translate(500, 20)">
+    <path d="M120,180 
+             C120,180 100,140 140,140 
+             C140,140 160,100 200,120 
+             C200,120 220,80 260,120
+             C260,120 300,100 300,140
+             C300,140 340,120 340,160
+             C340,160 240,180 120,180 Z" 
+          fill="#ffffff" />
+  </g>
+  
+  <!-- Cloud Group 4 -->
+  <g filter="url(#cloudFilter)" transform="translate(800, -30)">
+    <path d="M100,180 
+             C100,180 80,140 120,140 
+             C120,140 140,100 180,120 
+             C180,120 200,80 240,120
+             C240,120 260,100 260,140
+             C260,140 300,120 300,160
+             C300,160 200,180 100,180 Z" 
+          fill="#ffffff" />
+  </g>
+  
+  <!-- Cloud Group 5 -->
+  <g filter="url(#cloudFilter)" transform="translate(1000, 40)">
+    <path d="M80,180 
+             C80,180 60,140 100,140 
+             C100,140 120,100 160,120 
+             C160,120 180,80 220,120
+             C220,120 240,100 240,140
+             C240,140 280,120 280,160
+             C280,160 180,180 80,180 Z" 
+          fill="#ffffff" />
+  </g>
+</svg>

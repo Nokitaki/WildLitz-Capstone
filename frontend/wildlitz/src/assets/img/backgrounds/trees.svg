@@ -1,0 +1,99 @@
+<svg viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Tree Colors -->
+    <linearGradient id="treeGradient1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4CAF50" />
+      <stop offset="100%" stop-color="#388E3C" />
+    </linearGradient>
+    <linearGradient id="treeGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#66BB6A" />
+      <stop offset="100%" stop-color="#43A047" />
+    </linearGradient>
+    <linearGradient id="treeGradient3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#81C784" />
+      <stop offset="100%" stop-color="#4CAF50" />
+    </linearGradient>
+    <!-- Autumn Tree Colors -->
+    <linearGradient id="autumnTree1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FF9800" />
+      <stop offset="100%" stop-color="#F57C00" />
+    </linearGradient>
+    <linearGradient id="autumnTree2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFEB3B" />
+      <stop offset="100%" stop-color="#FFC107" />
+    </linearGradient>
+    <!-- Trunk Color -->
+    <linearGradient id="trunkGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#795548" />
+      <stop offset="100%" stop-color="#5D4037" />
+    </linearGradient>
+    <!-- Tree Shadow -->
+    <filter id="treeShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
+      <feOffset in="blur" dx="0" dy="3" result="offsetBlur" />
+      <feFlood flood-color="rgba(0,0,0,0.3)" result="coloredBlur" />
+      <feComposite in="coloredBlur" in2="offsetBlur" operator="in" result="coloredBlurOffset" />
+      <feMerge>
+        <feMergeNode in="coloredBlurOffset" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Tree Function: Reusable Tree Component -->
+  <g id="tree1" filter="url(#treeShadow)">
+    <rect x="45" y="240" width="10" height="60" fill="url(#trunkGradient)" />
+    <path d="M30,240 L70,240 L50,210 Z" fill="url(#treeGradient1)" />
+    <path d="M25,210 L75,210 L50,180 Z" fill="url(#treeGradient1)" />
+    <path d="M30,180 L70,180 L50,150 Z" fill="url(#treeGradient1)" />
+  </g>
+  
+  <g id="tree2" filter="url(#treeShadow)">
+    <rect x="145" y="250" width="10" height="50" fill="url(#trunkGradient)" />
+    <ellipse cx="150" cy="230" rx="25" ry="30" fill="url(#treeGradient2)" />
+    <ellipse cx="150" cy="200" rx="20" ry="25" fill="url(#treeGradient2)" />
+  </g>
+  
+  <g id="tree3" filter="url(#treeShadow)">
+    <rect x="245" y="245" width="10" height="55" fill="url(#trunkGradient)" />
+    <path d="M250,180 L280,245 L220,245 Z" fill="url(#treeGradient3)" />
+  </g>
+  
+  <g id="autumnTree" filter="url(#treeShadow)">
+    <rect x="345" y="240" width="10" height="60" fill="url(#trunkGradient)" />
+    <path d="M330,240 L370,240 L350,210 Z" fill="url(#autumnTree1)" />
+    <path d="M325,210 L375,210 L350,180 Z" fill="url(#autumnTree1)" />
+    <path d="M330,180 L370,180 L350,150 Z" fill="url(#autumnTree1)" />
+  </g>
+  
+  <g id="tree4" filter="url(#treeShadow)">
+    <rect x="445" y="250" width="10" height="50" fill="url(#trunkGradient)" />
+    <ellipse cx="450" cy="230" rx="25" ry="30" fill="url(#autumnTree2)" />
+    <ellipse cx="450" cy="200" rx="20" ry="25" fill="url(#autumnTree2)" />
+  </g>
+  
+  <!-- Trees along the bottom -->
+  <!-- Use the defined tree types -->
+  <use href="#tree1" x="0" y="0" />
+  <use href="#tree2" x="100" y="0" />
+  <use href="#tree3" x="200" y="0" />
+  <use href="#autumnTree" x="300" y="0" />
+  <use href="#tree4" x="400" y="0" />
+  <use href="#tree2" x="500" y="0" />
+  <use href="#tree3" x="600" y="0" />
+  <use href="#tree1" x="650" y="0" />
+  <use href="#tree4" x="750" y="0" />
+  <use href="#autumnTree" x="800" y="0" />
+  <use href="#tree3" x="900" y="0" />
+  <use href="#tree2" x="950" y="0" />
+  <use href="#tree1" x="1050" y="0" />
+  <use href="#tree4" x="1100" y="0" />
+  
+  <!-- Smaller trees in the background -->
+  <use href="#tree1" x="50" y="30" transform="scale(0.7)" />
+  <use href="#tree3" x="300" y="20" transform="scale(0.6)" />
+  <use href="#tree2" x="650" y="40" transform="scale(0.5)" />
+  <use href="#autumnTree" x="750" y="30" transform="scale(0.6)" />
+  <use href="#tree1" x="1050" y="20" transform="scale(0.7)" />
+  <use href="#tree4" x="1400" y="40" transform="scale(0.6)" />
+</svg>

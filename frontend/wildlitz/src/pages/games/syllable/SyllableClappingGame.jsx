@@ -10,6 +10,12 @@ import wildLitzCharacter from '../../../assets/img/wildlitz-idle.png';
 import AudioLoadingIndicator from '../../../components/audio/AudioLoadingIndicator';
 import syllableClappingCharacter from '../../../assets/img/syllable-clapping-character.svg';
 
+// Import the background SVGs
+import cloudsBackground from '../../../assets/img/backgrounds/clouds.svg';
+import mountainsBackground from '../../../assets/img/backgrounds/mountains.svg';
+import treesBackground from '../../../assets/img/backgrounds/trees.svg';
+import handIcon from '../../../assets/img/hand-icon.svg';
+
 function SyllableClappingGame() {
   const navigate = useNavigate();
   
@@ -25,11 +31,26 @@ function SyllableClappingGame() {
   const [error, setError] = useState(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   
-  const audioRef = useRef(null);
+  // Animation state
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showCharacterAnimation, setShowCharacterAnimation] = useState(false);
+  const [clapAnimation, setClapAnimation] = useState(false);
   
-  // Log when the component mounts for debugging
+  // References
+  const audioRef = useRef(null);
+  const correctSoundRef = useRef(null);
+  const wrongSoundRef = useRef(null);
+  const clapSoundRef = useRef(null);
+  const characterRef = useRef(null);
+  
+  // Load sound effects when component mounts
   useEffect(() => {
     console.log("SyllableClappingGame component mounted");
+    
+    // Initialize sound effects
+    correctSoundRef.current = new Audio('/sounds/correct_answer.mp3');
+    wrongSoundRef.current = new Audio('/sounds/wrong_answer.mp3');
+    clapSoundRef.current = new Audio('/sounds/clap_sound.mp3');
     
     // Cleanup function for when component unmounts
     return () => {
@@ -43,12 +64,26 @@ function SyllableClappingGame() {
         audioRef.current.pause();
         audioRef.current.src = '';
       }
+      
+      // Clean up sound effects
+      if (correctSoundRef.current) {
+        correctSoundRef.current.pause();
+        correctSoundRef.current = null;
+      }
+      
+      if (wrongSoundRef.current) {
+        wrongSoundRef.current.pause();
+        wrongSoundRef.current = null;
+      }
+      
+      if (clapSoundRef.current) {
+        clapSoundRef.current.pause();
+        clapSoundRef.current = null;
+      }
     };
   }, []);
   
   // Handle starting the game after configuration
-  // In SyllableConfigScreen.jsx, modify the handleStartGame function:
-
   const handleStartGame = (config) => {
     // Track already processed words to avoid duplicates
     const processedWordIds = new Set();
@@ -113,7 +148,27 @@ function SyllableClappingGame() {
     setGameState('feedback');
   };
   
-  // Play word pronunciation with improved error handling
+  // Handle clapping
+  const handleClap = () => {
+    // Play clap sound
+    if (clapSoundRef.current) {
+      clapSoundRef.current.play()
+        .catch(error => console.error("Error playing clap sound:", error));
+    }
+    
+    // Show clap animation
+    setClapAnimation(true);
+    setTimeout(() => setClapAnimation(false), 300);
+    
+    // If we already have numbers, increase by one
+    if (userAnswer !== '') {
+      setUserAnswer(prevCount => String(parseInt(prevCount, 10) + 1));
+    } else {
+      setUserAnswer('1');
+    }
+  };
+  
+  // Play word pronunciation with visual feedback
   const handlePlayWordSound = () => {
     if (!currentWord) return;
     
@@ -125,6 +180,16 @@ function SyllableClappingGame() {
     
     setIsPlayingAudio(true);
     console.log(`Attempting to play word: "${currentWord.word}", custom audio: ${currentWord.usesCustomAudio}`);
+    
+    // Add visual feedback - make character bounce
+    if (characterRef.current) {
+      characterRef.current.classList.add('character-bounce');
+      setTimeout(() => {
+        if (characterRef.current) {
+          characterRef.current.classList.remove('character-bounce');
+        }
+      }, 2000);
+    }
     
     // Create a new audio element for better control
     const audio = new Audio();
@@ -240,38 +305,51 @@ function SyllableClappingGame() {
   
   // Handle the next word button in feedback state
   const handleNextWord = () => {
-  const nextIndex = currentWordIndex + 1;
+    const nextIndex = currentWordIndex + 1;
+    
+    // Check if we've completed all words
+    if (nextIndex >= gameWords.length) {
+      // Game complete - show celebration
+      setShowConfetti(true);
+      
+      // Delay navigation to show celebration
+      setTimeout(() => {
+        setShowConfetti(false);
+        alert("Congratulations! You've completed all the words!");
+        setGameState('config');
+      }, 3000);
+      return;
+    }
+    
+    // Reset audio state before moving to loading screen
+    setIsPlayingAudio(false);
+    
+    // Clear any existing audio element
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+      audioRef.current = null;
+    }
+    
+    // Go to loading screen
+    setGameState('loading');
+    setCurrentWordIndex(nextIndex);
+    
+    // Move to the next word
+    setTimeout(() => {
+      setCurrentWord(gameWords[nextIndex]);
+      setUserAnswer('');
+      setShowFeedback(false);
+      setGameState('playing');
+    }, 2000);
+  };
   
-  // Check if we've completed all words
-  if (nextIndex >= gameWords.length) {
-    // Game complete
-    alert("Congratulations! You've completed all the words!");
-    setGameState('config');
-    return;
-  }
-  
-  // Reset audio state before moving to loading screen
-  setIsPlayingAudio(false);
-  
-  // Clear any existing audio element
-  if (audioRef.current) {
-    audioRef.current.pause();
-    audioRef.current.src = '';
-    audioRef.current = null;
-  }
-  
-  // Go to loading screen
-  setGameState('loading');
-  setCurrentWordIndex(nextIndex);
-  
-  // Move to the next word
-  setTimeout(() => {
-    setCurrentWord(gameWords[nextIndex]);
-    setUserAnswer('');
-    setShowFeedback(false);
-    setGameState('playing');
-  }, 2000);
-};
+  // Handle changing the answer value
+  const handleAnswerChange = (e) => {
+    // Only allow numeric input
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setUserAnswer(value);
+  };
   
   // Handle checking syllable claps
   const handleCheckClaps = () => {
@@ -280,7 +358,6 @@ function SyllableClappingGame() {
     setIsLoading(true);
     
     // Get the correct syllable count and breakdown
-    // IMPORTANT: Don't override this with a default value of 1!
     let correctCount;
     let syllableBreakdown;
     
@@ -299,8 +376,7 @@ function SyllableClappingGame() {
       syllableBreakdown = currentWord.syllables || currentWord.word;
     }
     
-    // CRITICAL: Don't default to 1 if we couldn't determine the syllable count
-    // Instead, call the API to get the correct count
+    // If we couldn't determine the syllable count, call the API
     if (correctCount === null) {
       // Call API to get syllable count for this word
       axios.post('/api/syllabification/analyze-word/', {
@@ -331,6 +407,32 @@ function SyllableClappingGame() {
       // Check if the user's answer is correct
       const userCount = parseInt(userAnswer, 10);
       const isCorrect = userCount === correctSyllableCount;
+      
+      // Play appropriate sound effect
+      if (isCorrect) {
+        if (correctSoundRef.current) {
+          correctSoundRef.current.play()
+            .catch(error => console.error("Error playing correct sound:", error));
+        }
+        // Show celebration animation
+        setShowConfetti(true);
+        // Show excited character animation
+        setShowCharacterAnimation(true);
+        setTimeout(() => {
+          setShowConfetti(false);
+          setShowCharacterAnimation(false);
+        }, 2000);
+      } else {
+        if (wrongSoundRef.current) {
+          wrongSoundRef.current.play()
+            .catch(error => console.error("Error playing wrong sound:", error));
+        }
+        // Show sad character animation
+        setShowCharacterAnimation(true);
+        setTimeout(() => {
+          setShowCharacterAnimation(false);
+        }, 2000);
+      }
       
       // Create feedback data
       const localFeedback = {
@@ -378,16 +480,57 @@ function SyllableClappingGame() {
     }
   };
   
-  // Get hint for incorrect answers
-  const getHintForIncorrectAnswer = (word, syllableBreakdown) => {
-    return "Try saying the word slowly, focusing on each vowel sound.";
+  // Play each syllable individually
+  const playSyllableSound = (syllable) => {
+    if (!syllable) return;
+    
+    // Create new audio
+    const audio = new Audio();
+    
+    // Try to get syllable audio from API
+    axios.post('/api/syllabification/text-to-speech/', {
+      text: syllable,
+      voice: 'nova'
+    })
+    .then(response => {
+      if (response.data && response.data.success && response.data.audio_data) {
+        audio.src = `data:audio/mp3;base64,${response.data.audio_data}`;
+        audio.play()
+          .catch(error => {
+            console.error("Failed to play syllable audio:", error);
+            useBrowserSpeech(syllable);
+          });
+      } else {
+        useBrowserSpeech(syllable);
+      }
+    })
+    .catch(err => {
+      console.error("Error calling TTS API for syllable:", err);
+      useBrowserSpeech(syllable);
+    });
+    
+    // Browser speech synthesis fallback
+    function useBrowserSpeech(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.7; // Slower rate for better clarity
+        window.speechSynthesis.speak(utterance);
+      }
+    }
   };
   
-  // Handle changing the answer value
-  const handleAnswerChange = (e) => {
-    // Only allow numeric input
-    const value = e.target.value.replace(/[^0-9]/g, '');
-    setUserAnswer(value);
+  // Generate confetti effect for celebrations
+  const generateConfetti = () => {
+    if (typeof window.confetti === 'function') {
+      window.confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    } else {
+      console.log("Confetti library not available");
+    }
   };
   
   // Handle showing the demonstration
@@ -423,20 +566,6 @@ function SyllableClappingGame() {
     setGameState('playing');
   };
 
-  // Break word into syllables (using the syllable breakdown from backend)
-  const breakIntoSyllables = (word, syllableBreakdown) => {
-    if (!word) return [];
-    if (!syllableBreakdown) return [word];
-    
-    // If the syllable breakdown contains hyphens, split by those
-    if (syllableBreakdown.includes('-')) {
-      return syllableBreakdown.split('-');
-    } 
-    
-    // If no hyphens but we have the word, return the whole word
-    return [word];
-  };
-  
   // Get syllable count from word data
   const getSyllableCount = (word) => {
     if (!word) return 0;
@@ -469,6 +598,20 @@ function SyllableClappingGame() {
     return 1;
   };
 
+  // Break word into syllables (using the syllable breakdown from backend)
+  const breakIntoSyllables = (word, syllableBreakdown) => {
+    if (!word) return [];
+    if (!syllableBreakdown) return [word];
+    
+    // If the syllable breakdown contains hyphens, split by those
+    if (syllableBreakdown.includes('-')) {
+      return syllableBreakdown.split('-');
+    } 
+    
+    // If no hyphens but we have the word, return the whole word
+    return [word];
+  };
+
   // Helper function to get word category
   const getWordCategory = (word) => {
     if (!word) return 'Words';
@@ -480,6 +623,368 @@ function SyllableClappingGame() {
     }
     
     return 'Words';
+  };
+  
+  // Render playing state UI
+  const renderPlaying = () => {
+    return (
+      <div className="syllable-game-container">
+        <motion.div 
+          className="background-layer"
+          style={{ backgroundImage: `url(${cloudsBackground})` }}
+          animate={{ backgroundPositionX: [0, -1200] }}
+          transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.div 
+          className="background-layer"
+          style={{ backgroundImage: `url(${mountainsBackground})`, backgroundPosition: 'bottom' }}
+          animate={{ backgroundPositionX: [0, -1200] }}
+          transition={{ duration: 180, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.div 
+          className="background-layer"
+          style={{ backgroundImage: `url(${treesBackground})`, backgroundPosition: 'bottom' }}
+          animate={{ backgroundPositionX: [0, -1200] }}
+          transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
+        />
+        
+        <div className="game-content-wrapper">
+          <motion.img 
+            ref={characterRef}
+            src={syllableClappingCharacter} 
+            alt="syllable-clapping-character" 
+            className={`wildlitz-character ${showCharacterAnimation ? 'character-excited' : ''}`}
+            animate={{ 
+              y: [0, -10, 0],
+              rotate: showCharacterAnimation ? [0, -5, 5, -5, 0] : 0
+            }}
+            transition={{ 
+              y: { repeat: Infinity, duration: 2, ease: "easeInOut" },
+              rotate: { duration: 0.8, ease: "easeInOut" }
+            }}
+          />
+          
+          {/* Add speech bubble */}
+          <AnimatePresence>
+            <motion.div 
+              className="speech-bubble"
+              initial={{ opacity: 0, scale: 0, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <p>Clap for each syllable you hear!</p>
+            </motion.div>
+          </AnimatePresence>
+          
+          <div className="game-play-card">
+            <div className="game-header">
+              <h1>WildLitz - Syllable Clapping Game</h1>
+              <div className="progress-container">
+                <motion.div 
+                  className="progress-bar" 
+                  style={{ width: `${((currentWordIndex) / gameWords.length * 100)}%` }}
+                  initial={{ width: `${((currentWordIndex - 1) / gameWords.length * 100)}%` }}
+                  animate={{ width: `${((currentWordIndex) / gameWords.length * 100)}%` }}
+                  transition={{ duration: 0.8 }}
+                ></motion.div>
+                <span className="progress-text">{currentWordIndex}/{gameWords.length}</span>
+              </div>
+            </div>
+          
+            <div className="level-indicator">
+              <span>{getSyllableCount(currentWord)}</span>
+            </div>
+            
+            <h2>Listen to the word and count the syllables!</h2>
+            
+            <motion.div 
+              className="word-display"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="category-label">{getWordCategory(currentWord)}</div>
+              <motion.div 
+                className="word-text"
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                {currentWord?.word || ''}
+              </motion.div>
+              <motion.button 
+                className={`sound-button ${isPlayingAudio ? 'playing' : ''}`} 
+                onClick={handlePlayWordSound}
+                disabled={isPlayingAudio}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <span role="img" aria-label="Play sound">🔊</span>
+              </motion.button>
+              
+              {/* Audio playing indicator */}
+              <AudioLoadingIndicator isPlaying={isPlayingAudio} />
+              
+              {/* Audio element for better control */}
+              <audio ref={audioRef} style={{ display: 'none' }} />
+            </motion.div>
+            
+            {/* New clapping interaction area */}
+            <motion.div 
+              className="clap-interaction"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
+              <div className="clap-instruction">Clap for each syllable!</div>
+              
+              <motion.button 
+                className="clap-button"
+                onClick={handleClap}
+                whileHover={{ scale: 1.05, boxShadow: "0 8px 20px rgba(0, 0, 0, 0.25)" }}
+                whileTap={{ scale: 0.95 }}
+                disabled={isLoading}
+              >
+                <motion.img
+                  src={handIcon}
+                  alt="Clap"
+                  className={`hand-icon ${clapAnimation ? 'clapping-animation' : ''}`}
+                  animate={clapAnimation ? { rotate: -30, y: -20 } : { rotate: 0, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                />
+              </motion.button>
+              
+              <div className="clap-counter">{userAnswer || '0'} claps</div>
+            </motion.div>
+            
+            <div className="answer-input-container">
+              <label htmlFor="syllable-count">Number of syllables heard:</label>
+              <motion.input 
+                type="number" 
+                id="syllable-count" 
+                className="syllable-input"
+                value={userAnswer}
+                onChange={handleAnswerChange}
+                min="1"
+                max="10"
+                placeholder="Enter number"
+                whileFocus={{ scale: 1.05, boxShadow: "0 0 0 2px rgba(139, 195, 74, 0.3)" }}
+              />
+            </div>
+            
+            {error && <div className="error-message">{error}</div>}
+            
+            <div className="action-buttons">
+              <motion.button 
+                className="hint-button" 
+                disabled={isLoading}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Hint
+              </motion.button>
+              <motion.button 
+                className="replay-button" 
+                onClick={handlePlayWordSound}
+                disabled={isLoading || isPlayingAudio}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {isPlayingAudio ? 'Playing...' : 'Replay'}
+              </motion.button>
+              <motion.button 
+                className="continue-button" 
+                onClick={handleCheckClaps}
+                disabled={!userAnswer || isLoading}
+                whileHover={{ scale: 1.05, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {isLoading ? 'Checking...' : 'Continue'}
+              </motion.button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
+  // Render feedback state UI
+  const renderFeedback = () => {
+    return (
+      <div className="syllable-game-container">
+        {/* Background layers */}
+        <motion.div 
+          className="background-layer"
+          style={{ backgroundImage: `url(${cloudsBackground})` }}
+          animate={{ backgroundPositionX: [0, -1200] }}
+          transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.div 
+          className="background-layer"
+          style={{ backgroundImage: `url(${mountainsBackground})`, backgroundPosition: 'bottom' }}
+          animate={{ backgroundPositionX: [0, -1200] }}
+          transition={{ duration: 180, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.div 
+          className="background-layer"
+          style={{ backgroundImage: `url(${treesBackground})`, backgroundPosition: 'bottom' }}
+          animate={{ backgroundPositionX: [0, -1200] }}
+          transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
+        />
+        
+        {/* Confetti overlay for correct answers */}
+        {showConfetti && (
+          <div className="confetti-container">
+            {/* The confetti effect is generated by the JS function */}
+            {generateConfetti()}
+          </div>
+        )}
+        
+        <div className="game-content-wrapper">
+          <motion.img 
+            ref={characterRef}
+            src={wildLitzCharacter} 
+            alt="WildLitz Character" 
+            className={`wildlitz-character ${currentWord?.isCorrect ? 'character-excited' : 'character-sad'}`}
+            animate={{ 
+              y: [0, -10, 0],
+              rotate: currentWord?.isCorrect ? [0, -5, 5, -5, 0] : [0, -3, 0, 3, 0]
+            }}
+            transition={{ 
+              y: { repeat: Infinity, duration: 2, ease: "easeInOut" },
+              rotate: { duration: currentWord?.isCorrect ? 0.8 : 0.5, repeat: !currentWord?.isCorrect ? 3 : 0, ease: "easeInOut" }
+            }}
+          />
+          
+          {/* Add speech bubble */}
+          <AnimatePresence>
+            <motion.div 
+              className={`speech-bubble ${currentWord?.isCorrect ? 'correct' : 'incorrect'}`}
+              initial={{ opacity: 0, scale: 0, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <p>{currentWord?.isCorrect ? 'Great job!' : 'Nice try!'}</p>
+            </motion.div>
+          </AnimatePresence>
+          
+          <div className="game-feedback-card">
+            <div className="game-header">
+              <h1>WildLitz - Syllable Clapping Game</h1>
+              <div className="progress-container">
+                <div 
+                  className="progress-bar" 
+                  style={{ width: `${((currentWordIndex) / gameWords.length * 100)}%` }}
+                ></div>
+                <span className="progress-text">{currentWordIndex}/{gameWords.length}</span>
+              </div>
+            </div>
+            
+            <motion.div 
+              className={`feedback-message ${currentWord?.isCorrect ? 'correct' : 'incorrect'}`}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1,
+                x: currentWord?.isCorrect ? 0 : [0, -10, 10, -10, 0]
+              }}
+              transition={{ 
+                duration: 0.5, 
+                x: { duration: 0.5, ease: "easeInOut" }
+              }}
+            >
+              {currentWord?.feedback?.feedback || 
+                (currentWord?.isCorrect ? 
+                  `Great job! This word has ${getSyllableCount(currentWord)} syllables.` :
+                  `Nice try! This word has ${getSyllableCount(currentWord)} syllables.`
+                )
+              }
+              {userAnswer && <div>Your answer: {userAnswer}</div>}
+            </motion.div>
+            
+            <div className="syllable-breakdown">
+              {breakIntoSyllables(
+                currentWord?.word || '', 
+                currentWord?.feedback?.syllable_breakdown || currentWord?.syllables
+              ).map((syllable, index) => (
+                <motion.div 
+                  key={index}
+                  className="syllable-part"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.2 }}
+                  whileHover={{ 
+                    y: -5,
+                    boxShadow: "0 12px 20px rgba(0, 0, 0, 0.15)",
+                    scale: 1.05
+                  }}
+                >
+                  {syllable}
+                  <motion.div 
+                    className="sound-indicator"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: [0, 1.2, 1] }}
+                    transition={{ delay: index * 0.2 + 0.1, duration: 0.5 }}
+                    onClick={() => playSyllableSound(syllable)}
+                  >
+                    🔊
+                  </motion.div>
+                </motion.div>
+              ))}
+            </div>
+            
+            <motion.div 
+              className="syllable-rule"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <h3>Syllable Rule:</h3>
+              <p>Each syllable typically contains at least one vowel sound.</p>
+              <p>
+                In "{currentWord?.word || ''}", we hear the sounds: {
+                  breakIntoSyllables(
+                    currentWord?.word || '', 
+                    currentWord?.feedback?.syllable_breakdown || currentWord?.syllables
+                  ).join(' - ')
+                }
+              </p>
+            </motion.div>
+            
+            <div className="action-buttons">
+              <motion.button 
+                className="hint-button" 
+                onClick={handleShowDemo}
+                disabled={isLoading}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Demonstration
+              </motion.button>
+              <motion.button 
+                className="replay-button" 
+                onClick={handlePlayWordSound}
+                disabled={isLoading || isPlayingAudio}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {isPlayingAudio ? 'Playing...' : 'Replay'}
+              </motion.button>
+              <motion.button 
+                className="next-button" 
+                onClick={handleNextWord}
+                disabled={isLoading}
+                whileHover={{ scale: 1.05, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Next Word
+              </motion.button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // Handle generating more words if we run out
@@ -523,8 +1028,8 @@ function SyllableClappingGame() {
       setIsLoading(false);
     });
   };
-  
-  // Render the appropriate screen based on game state
+
+  // Now update your renderGameContent function
   const renderGameContent = () => {
     switch (gameState) {
       case 'config':
@@ -542,188 +1047,10 @@ function SyllableClappingGame() {
         );
         
       case 'playing':
-        return (
-          <div className="syllable-game-container">
-            <div className="game-content-wrapper">
-              <img 
-                src={syllableClappingCharacter} 
-                alt="syllable-clapping-character" 
-                className="wildlitz-character"
-              />
-              
-              <div className="game-play-card">
-                <div className="game-header">
-                  <h1>WildLitz - Syllable Clapping Game</h1>
-                  <div className="progress-container">
-                    <div 
-                      className="progress-bar" 
-                      style={{ width: `${((currentWordIndex) / gameWords.length * 100)}%` }}
-                    ></div>
-                    <span className="progress-text">{currentWordIndex}/{gameWords.length}</span>
-                  </div>
-                </div>
-              
-                <div className="level-indicator">
-                  <span>{getSyllableCount(currentWord)}</span>
-                </div>
-                
-                <h2>Listen to the word and count the syllables!</h2>
-                
-                <div className="word-display">
-                  <div className="category-label">{getWordCategory(currentWord)}</div>
-                  <div className="word-text">{currentWord?.word || ''}</div>
-                  <button 
-                    className={`sound-button ${isPlayingAudio ? 'playing' : ''}`} 
-                    onClick={handlePlayWordSound}
-                    disabled={isPlayingAudio}
-                  >
-                    <span role="img" aria-label="Play sound">🔊</span>
-                  </button>
-                  
-                  {/* Audio playing indicator */}
-                  <AudioLoadingIndicator isPlaying={isPlayingAudio} />
-                  
-                  {/* Audio element for better control */}
-                  <audio ref={audioRef} style={{ display: 'none' }} />
-                </div>
-                
-                <div className="clap-instruction">Clap for each syllable!</div>
-                
-                <div className="answer-input-container">
-                  <label htmlFor="syllable-count">Number of syllables heard:</label>
-                  <input 
-                    type="number" 
-                    id="syllable-count" 
-                    className="syllable-input"
-                    value={userAnswer}
-                    onChange={handleAnswerChange}
-                    min="1"
-                    max="10"
-                    placeholder="Enter number"
-                  />
-                </div>
-                
-                {error && <div className="error-message">{error}</div>}
-                
-                <div className="action-buttons">
-                  <button className="hint-button" disabled={isLoading}>Hint</button>
-                  <button 
-                    className="replay-button" 
-                    onClick={handlePlayWordSound}
-                    disabled={isLoading || isPlayingAudio}
-                  >
-                    {isPlayingAudio ? 'Playing...' : 'Replay'}
-                  </button>
-                  <button 
-                    className="continue-button" 
-                    onClick={handleCheckClaps}
-                    disabled={!userAnswer || isLoading}
-                  >
-                    {isLoading ? 'Checking...' : 'Continue'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return renderPlaying();
         
       case 'feedback':
-        return (
-          <div className="syllable-game-container">
-            <div className="game-content-wrapper">
-              <img 
-                src={wildLitzCharacter} 
-                alt="WildLitz Character" 
-                className="wildlitz-character"
-              />
-              
-              <div className="game-feedback-card">
-                <div className="game-header">
-                  <h1>WildLitz - Syllable Clapping Game</h1>
-                  <div className="progress-container">
-                    <div 
-                      className="progress-bar" 
-                      style={{ width: `${((currentWordIndex) / gameWords.length * 100)}%` }}
-                    ></div>
-                    <span className="progress-text">{currentWordIndex}/{gameWords.length}</span>
-                  </div>
-                </div>
-                
-                <div className={`feedback-message ${currentWord?.isCorrect ? 'correct' : 'incorrect'}`}>
-                  {currentWord?.feedback?.feedback || 
-                    (currentWord?.isCorrect ? 
-                      `Great job! This word has ${getSyllableCount(currentWord)} syllables.` :
-                      `Nice try! This word has ${getSyllableCount(currentWord)} syllables.`
-                    )
-                  }
-                  {userAnswer && <div>Your answer: {userAnswer}</div>}
-                </div>
-                
-                <div className="syllable-breakdown">
-                  {breakIntoSyllables(
-                    currentWord?.word || '', 
-                    currentWord?.feedback?.syllable_breakdown || currentWord?.syllables
-                  ).map((syllable, index) => (
-                    <motion.div 
-                      key={index}
-                      className="syllable-part"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.2 }}
-                    >
-                      {syllable}
-                      <motion.div 
-                        className="sound-indicator"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: [0, 1.2, 1] }}
-                        transition={{ delay: index * 0.2 + 0.1, duration: 0.5 }}
-                      >
-                        🔊
-                      </motion.div>
-                    </motion.div>
-                  ))}
-                </div>
-                
-                <div className="syllable-rule">
-                  <h3>Syllable Rule:</h3>
-                  <p>Each syllable typically contains at least one vowel sound.</p>
-                  <p>
-                    In "{currentWord?.word || ''}", we hear the sounds: {
-                      breakIntoSyllables(
-                        currentWord?.word || '', 
-                        currentWord?.feedback?.syllable_breakdown || currentWord?.syllables
-                      ).join(' - ')
-                    }
-                  </p>
-                </div>
-                
-                <div className="action-buttons">
-                  <button 
-                    className="hint-button" 
-                    onClick={handleShowDemo}
-                    disabled={isLoading}
-                  >
-                    Demonstration
-                  </button>
-                  <button 
-                    className="replay-button" 
-                    onClick={handlePlayWordSound}
-                    disabled={isLoading || isPlayingAudio}
-                  >
-                    {isPlayingAudio ? 'Playing...' : 'Replay'}
-                  </button>
-                  <button 
-                    className="next-button" 
-                    onClick={handleNextWord}
-                    disabled={isLoading}
-                  >
-                    Next Word
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return renderFeedback();
         
       case 'demo':
         return (
