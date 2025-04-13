@@ -116,7 +116,7 @@
   
   /* Word display */
   .word-display {
-    background-color: #f0f8ff;
+    background-color: #074479;
     border-radius: 10px;
     padding: 20px;
     margin-bottom: 20px;
@@ -512,7 +512,7 @@
 
 /* Enhance word display */
 .word-display {
-  background: linear-gradient(135deg, #f0f8ff 0%, #e0f7fa 100%);
+  background: linear-gradient(135deg, #07569b 0%, #068365 100%);
   border-radius: 20px;
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
   transform-style: preserve-3d;
@@ -521,8 +521,8 @@
 
 .word-text {
   font-size: 3rem;
-  color: #2c3e50;
-  text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.5);
+  color: #98500d;
+  text-shadow: 2px 2px 0 rgba(70, 7, 142, 0.5);
   animation: word-pulse 3s infinite ease-in-out;
 }
 
