@@ -1,0 +1,22 @@
+/* AudioLoadingIndicator.css */
+
+.audio-loading-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 30px;
+    margin-top: 5px;
+  }
+  
+  .sound-wave {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 100%;
+  }
+  
+  .sound-bar {
+    width: 4px;
+    background-color: #4caf50;
+    border-radius: 2px;
+  }

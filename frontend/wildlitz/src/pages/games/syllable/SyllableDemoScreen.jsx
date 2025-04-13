@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import '../../../styles/syllable_clapping_game.css';
+import '../../../styles/components/SyllableClappingGame.css';
 
 const SyllableDemoScreen = ({ word, syllables, explanation, onBack, onPlaySound }) => {
   const [selectedSyllable, setSelectedSyllable] = useState('all');

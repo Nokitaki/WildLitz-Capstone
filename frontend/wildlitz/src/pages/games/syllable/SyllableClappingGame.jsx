@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import '../../../styles/syllable_clapping_game.css';
+import '../../../styles/components/SyllableClappingGame.css';
 import SyllableConfigScreen from './SyllableConfigScreen';
 import SyllableLoadingScreen from './SyllableLoadingScreen';
 import SyllableDemoScreen from './SyllableDemoScreen';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import '../../styles/game_tips_modal.css';
+import '../../styles/components/GameTipsModal.css';
 import syllableClappingCharacter from '../../assets/img/syllable-clapping-character.svg';
 
 function GameTipsModal({ isOpen, onClose, game, onStartGame }) {

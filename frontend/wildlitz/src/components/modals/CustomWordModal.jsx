@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import VoiceInputRecorder from '../audio/VoiceInputRecorder';
 import axios from 'axios';
-import '../../styles/custom_word_modal.css';
+import '../../styles//components/CustomWordModal.css';
 
 const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
   const [words, setWords] = useState([]);

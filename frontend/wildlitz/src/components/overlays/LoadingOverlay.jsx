@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import '../../styles/loading_overlay.css';
+import '../../styles/components/LoadingOverlay.css';
 import wildLitzLogo from '../../assets/img/wildlitz-logo.png';
 
 function LoadingOverlay({ isLoading }) {

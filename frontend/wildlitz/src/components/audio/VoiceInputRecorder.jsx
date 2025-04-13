@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import '../../styles/voice_input_recorder.css';
+import '../../styles//components/VoiceInputRecorder.css';
 
 const VoiceInputRecorder = ({ onWordRecognized }) => {
   const [isListening, setIsListening] = useState(false);
