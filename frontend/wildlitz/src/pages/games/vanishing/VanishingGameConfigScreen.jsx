@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import styles from '../styles/VanishingGame.module.css';
+import styles from '../../../styles/VanishingGame.module.css';
 
 const VanishingGameConfigScreen = ({ onStartGame }) => {
   // Game configuration state

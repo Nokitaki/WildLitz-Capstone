@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import styles from '../styles/CrosswordPuzzle.module.css';
+import styles from '../../../styles/CrosswordPuzzle.module.css';
 
 const CrosswordPuzzleConfigScreen = ({ onStartGame }) => {
   // Game configuration state

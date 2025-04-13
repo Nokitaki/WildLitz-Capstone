@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import '../styles/syllable_clapping_game.css';
-import CustomWordModal from '../components/modals/CustomWordModal';
+import '../../../styles/syllable_clapping_game.css';
+import CustomWordModal from '../../../components/modals/CustomWordModal';
 
 const SyllableConfigScreen = ({ onStartGame }) => {
   const navigate = useNavigate();

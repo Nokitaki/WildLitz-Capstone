@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import '../../styles/syllable_clapping_game.css';
+import '../../../styles/syllable_clapping_game.css';
 
 const SyllableLoadingScreen = ({ category, difficulty, onContinue, wordIndex = 0, totalWords = 10 }) => {
   // Get appropriate hint based on category

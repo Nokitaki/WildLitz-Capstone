@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import VanishingGameConfigScreen from '../../configs/VanishingGameConfigScreen';
-import styles from '../../styles/VanishingGame.module.css';
+import VanishingGameConfigScreen from './VanishingGameConfigScreen';
+import styles from '../../../styles/VanishingGame.module.css';
 
 const VanishingGame = () => {
   // Game state management

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import CrosswordPuzzleConfigScreen from '../../configs/CrosswordPuzzleConfigScreen';
-import styles from '../../styles/CrosswordPuzzle.module.css';
+import CrosswordPuzzleConfigScreen from './CrosswordPuzzleConfigScreen';
+import styles from '../../../styles/CrosswordPuzzle.module.css';
 
 const CrosswordPuzzleGame = () => {
   // Game state management

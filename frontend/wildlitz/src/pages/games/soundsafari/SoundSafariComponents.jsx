@@ -10,6 +10,7 @@ import styles from '../../../styles/SoundSafari.module.css';
  */
 const SoundIntroScreen = ({ targetSound, onContinue }) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [activeExample, setActiveExample] = useState(null);
 
   // Get examples for this target sound
   const examples = SOUND_EXAMPLES[targetSound] || [];
@@ -34,72 +35,136 @@ const SoundIntroScreen = ({ targetSound, onContinue }) => {
 
   // Play example word
   const playExampleWord = (word) => {
+    setActiveExample(word);
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(word);
       utterance.rate = 0.8;
+      utterance.onend = () => setActiveExample(null);
       window.speechSynthesis.speak(utterance);
+    } else {
+      setTimeout(() => setActiveExample(null), 1000);
     }
   };
 
   return (
-    <div className={styles.introScreen}>
-      <h2 className={styles.introTitle}>Listen for the sound:</h2>
-      
-      <div className={styles.soundCircle}>
-        <span className={styles.soundLetter}>
-          {targetSound.toUpperCase()} {targetSound.toLowerCase()}
-        </span>
+    <div className={styles.card}>
+      <div className={styles.cardHeader}>
+        <h2 className={styles.cardTitle}>
+          Listen for the Sound
+          <span role="img" aria-label="Listening" className={styles.headerEmoji}>👂</span>
+        </h2>
+        <p className={styles.cardSubtitle}>Learn to identify the "{targetSound}" sound</p>
       </div>
       
-      <motion.button 
-        className={styles.playButton}
-        onClick={playSound}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        disabled={isPlaying}
-      >
-        {isPlaying ? 'Playing...' : 'Tap to hear the sound'}
-      </motion.button>
-      
-      <div className={styles.soundDescription}>
-        <h3>How to make this sound:</h3>
-        <p>{soundDescription}</p>
-      </div>
-      
-      <div className={styles.exampleBox}>
-        <h3>Example words with the "{targetSound}" Sound:</h3>
-        <div className={styles.exampleWords}>
-          {examples.slice(0, 4).map((word, index) => (
-            <div key={index} className={styles.exampleWord}>
-              <span>{word}</span>
-              <motion.button 
-                className={styles.smallPlayButton}
-                onClick={() => playExampleWord(word)}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                🔊
-              </motion.button>
+      <div className={styles.soundCircleWrapper}>
+        <motion.div 
+          className={styles.soundCircle}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={playSound}
+        >
+          <span className={styles.soundLetter}>
+            {targetSound.toUpperCase()} {targetSound.toLowerCase()}
+          </span>
+          {isPlaying && (
+            <div className={styles.soundWaves}>
+              {[...Array(3)].map((_, i) => (
+                <motion.div 
+                  key={i}
+                  className={styles.soundWave}
+                  animate={{
+                    scale: [1, 1.5, 1],
+                    opacity: [0.7, 0.3, 0]
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    delay: i * 0.3
+                  }}
+                />
+              ))}
             </div>
-          ))}
-          {examples.length > 4 && (
-            <button className={styles.moreExamplesButton}>More examples</button>
           )}
-        </div>
+        </motion.div>
+        
+        <motion.p 
+          className={styles.tapInstruction}
+          animate={{ y: [0, -5, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        >
+          Tap to hear sound
+        </motion.p>
       </div>
       
-      <div className={styles.taskBox}>
-        <h4>Your task:</h4>
-        <p>Find animals that contain the "{targetSound}" sound</p>
+      <div className={styles.infoContainer}>
+        <div className={styles.soundDescription}>
+          <div className={styles.sectionTitle}>
+            <span role="img" aria-label="How to" className={styles.titleEmoji}>🔤</span>
+            <h3>How to make this sound:</h3>
+          </div>
+          <div className={styles.descriptionBox}>
+            <p>{soundDescription}</p>
+          </div>
+        </div>
+        
+        <motion.div 
+          className={styles.examplesContainer}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <div className={styles.sectionTitle}>
+            <span role="img" aria-label="Examples" className={styles.titleEmoji}>✨</span>
+            <h3>Example words with "{targetSound}" sound:</h3>
+          </div>
+          
+          <div className={styles.exampleWords}>
+            {examples.slice(0, 4).map((word, index) => (
+              <motion.div 
+                key={index} 
+                className={`${styles.exampleWord} ${activeExample === word ? styles.activeExample : ''}`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => playExampleWord(word)}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + (index * 0.1) }}
+              >
+                <span>{word}</span>
+                <motion.div 
+                  className={styles.playIcon}
+                  animate={activeExample === word ? { 
+                    scale: [1, 1.2, 1],
+                    color: ['#4a9240', '#ffd600', '#4a9240'] 
+                  } : {}}
+                  transition={{ duration: 1, repeat: Infinity }}
+                >
+                  🔊
+                </motion.div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+      
+      <div className={styles.taskContainer}>
+        <div className={styles.sectionTitle}>
+          <span role="img" aria-label="Task" className={styles.titleEmoji}>🎯</span>
+          <h3>Your Safari Task:</h3>
+        </div>
+        <div className={styles.taskBox}>
+          <p>Find animals that have the "{targetSound}" sound in their names</p>
+        </div>
       </div>
       
       <motion.button 
         className={styles.continueButton}
-        onClick={onContinue}
-        whileHover={{ scale: 1.05 }}
+        whileHover={{ scale: 1.05, boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}
         whileTap={{ scale: 0.95 }}
+        onClick={onContinue}
       >
         Start the Safari!
+        <span role="img" aria-label="Start" className={styles.buttonEmoji}>🦁</span>
       </motion.button>
     </div>
   );
@@ -117,7 +182,11 @@ const GameplayScreen = ({
 }) => {
   const [selectedAnimals, setSelectedAnimals] = useState([]);
   const [timeRemaining, setTimeRemaining] = useState(timeLimit);
+  const [showHint, setShowHint] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [visibleHint, setVisibleHint] = useState('');
   const timerRef = useRef(null);
+  const hintTimeoutRef = useRef(null);
 
   useEffect(() => {
     // Set up timer
@@ -136,6 +205,7 @@ const GameplayScreen = ({
     // Clear timer on unmount
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (hintTimeoutRef.current) clearTimeout(hintTimeoutRef.current);
     };
   }, [timeLimit]);
 
@@ -169,34 +239,112 @@ const GameplayScreen = ({
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  // Display a temporary hint
+  const showTemporaryHint = () => {
+    let hint = '';
+    switch(soundPosition) {
+      case 'beginning':
+        hint = `Look for animals that start with "${targetSound}"`;
+        break;
+      case 'ending':
+        hint = `Look for animals that end with "${targetSound}"`;
+        break;
+      case 'middle':
+        hint = `Look for animals that have "${targetSound}" in the middle`;
+        break;
+      default:
+        hint = `Look for animals that have "${targetSound}" anywhere in their name`;
+    }
+    
+    setVisibleHint(hint);
+    setShowHint(true);
+    
+    // Clear previous timeout if it exists
+    if (hintTimeoutRef.current) {
+      clearTimeout(hintTimeoutRef.current);
+    }
+    
+    // Hide hint after 3 seconds
+    hintTimeoutRef.current = setTimeout(() => {
+      setShowHint(false);
+    }, 3000);
+  };
+
   // Play animal name
   const playAnimalSound = (e, animal) => {
     e.stopPropagation(); // Prevent toggling selection when playing sound
     
+    setIsPlaying(true);
+    
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(animal.name);
       utterance.rate = 0.8;
+      utterance.onend = () => {
+        setIsPlaying(false);
+      };
       window.speechSynthesis.speak(utterance);
+    } else {
+      // Simple fallback if speech synthesis isn't available
+      setTimeout(() => setIsPlaying(false), 1000);
     }
   };
 
   return (
-    <div className={styles.gameplayScreen}>
-      <div className={styles.gameHeader}>
-        <div className={styles.gameTask}>
-          Find animals with the "{targetSound}" Sound!
-        </div>
-        <div className={styles.selectionInfo}>
-          Selected {selectedAnimals.length}/{animals.length}
-        </div>
+    <div className={styles.card}>
+      <div className={styles.cardHeader}>
+        <h2 className={styles.cardTitle}>
+          <span role="img" aria-label="Sound Safari" className={styles.headerEmoji}>🔍</span>
+          Sound Safari Hunt
+        </h2>
+        <p className={styles.cardSubtitle}>
+          Find the animals with the <span className={styles.targetSoundText}>"{targetSound}"</span> sound!
+        </p>
       </div>
+      
+      <div className={styles.gameStatusBar}>
+        <div className={styles.selectionCount}>
+          <span className={styles.countLabel}>Selected:</span>
+          <span className={styles.countNumber}>{selectedAnimals.length}/{animals.length}</span>
+        </div>
+        
+        <motion.button 
+          className={styles.hintButton}
+          onClick={showTemporaryHint}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <span role="img" aria-label="Hint">💡</span>
+          Hint
+        </motion.button>
+      </div>
+      
+      {showHint && (
+        <motion.div 
+          className={styles.hintBubble}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+        >
+          {visibleHint}
+        </motion.div>
+      )}
       
       {timeLimit > 0 && (
         <div className={styles.timerContainer}>
-          <div className={styles.timerBar} style={{ 
-            width: `${(timeRemaining / timeLimit) * 100}%` 
-          }}></div>
-          <span className={styles.timerText}>{formatTime(timeRemaining)}</span>
+          <div className={styles.timerLabel}>
+            Time: <span className={timeRemaining < 10 ? styles.timerWarning : ''}>{formatTime(timeRemaining)}</span>
+          </div>
+          <div className={styles.timerBarContainer}>
+            <motion.div 
+              className={styles.timerBar}
+              initial={{ width: '100%' }}
+              animate={{ 
+                width: `${(timeRemaining / timeLimit) * 100}%`,
+                backgroundColor: timeRemaining < 10 ? '#f44336' : '#4caf50'
+              }}
+              transition={{ duration: 0.5 }}
+            ></motion.div>
+          </div>
         </div>
       )}
       
@@ -206,8 +354,11 @@ const GameplayScreen = ({
             key={animal.id}
             className={`${styles.animalCard} ${selectedAnimals.some(a => a.id === animal.id) ? styles.selected : ''}`}
             onClick={() => handleToggleSelect(animal)}
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.05, boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}
             whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: Math.random() * 0.5 }}
           >
             <div className={styles.animalImage}>
               {animal.image}
@@ -219,14 +370,20 @@ const GameplayScreen = ({
                 onClick={(e) => playAnimalSound(e, animal)}
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.9 }}
+                disabled={isPlaying}
               >
-                🔊
+                {isPlaying ? '🔊' : '🔊'}
               </motion.button>
             </div>
             {selectedAnimals.some(a => a.id === animal.id) && (
-              <div className={styles.checkmark}>
+              <motion.div 
+                className={styles.checkmark}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
                 ✓
-              </div>
+              </motion.div>
             )}
           </motion.div>
         ))}
@@ -234,19 +391,22 @@ const GameplayScreen = ({
       
       <div className={styles.actionButtons}>
         <motion.button 
-          className={styles.cancelButton}
+          className={styles.clearButton}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setSelectedAnimals([])}
+          disabled={selectedAnimals.length === 0}
         >
-          Cancel
+          <span role="img" aria-label="Clear">🔄</span>
+          Clear Selection
         </motion.button>
         <motion.button 
           className={styles.submitButton}
-          whileHover={{ scale: 1.05 }}
+          whileHover={{ scale: 1.05, boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}
           whileTap={{ scale: 0.95 }}
           onClick={handleSubmit}
         >
+          <span role="img" aria-label="Submit">✅</span>
           Submit Answer
         </motion.button>
       </div>
@@ -265,12 +425,24 @@ const ResultsScreen = ({
   onNextRound, 
   onTryAgain 
 }) => {
-  const correctCount = selectedAnimals.filter(animal => 
+  const [isPlaying, setIsPlaying] = useState(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  
+  // Calculate results
+  const correctSelected = selectedAnimals.filter(animal => 
     correctAnimals.some(a => a.id === animal.id)
-  ).length;
+  );
+  
+  const incorrectSelected = selectedAnimals.filter(animal => 
+    incorrectAnimals.some(a => a.id === animal.id)
+  );
+  
+  const missedCorrect = correctAnimals.filter(animal => 
+    !selectedAnimals.some(a => a.id === animal.id)
+  );
   
   // Calculate percentage score
-  const score = Math.round((correctCount / correctAnimals.length) * 100);
+  const score = Math.round((correctSelected.length / correctAnimals.length) * 100);
   
   // Determine feedback message based on score
   const getFeedbackMessage = () => {
@@ -279,145 +451,271 @@ const ResultsScreen = ({
     if (score >= 50) return "Good Effort!";
     return "Keep Practicing!";
   };
+  
+  // Get feedback icon based on score
+  const getFeedbackIcon = () => {
+    if (score >= 90) return "🏆";
+    if (score >= 70) return "🌟";
+    if (score >= 50) return "👍";
+    return "🌱";
+  };
 
   // Play celebration sound for high scores
   useEffect(() => {
     if (score > 70) {
-      const audio = new Audio('/sounds/celebration.mp3');
-      audio.volume = 0.5;
-      audio.play().catch(err => console.error("Error playing sound:", err));
+      setShowConfetti(true);
+      
+      // Simple sound effect
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Play a few happy notes
+      [0, 4, 7, 12].forEach((note, index) => {
+        const oscillator = audioContext.createOscillator();
+        oscillator.type = 'triangle';
+        oscillator.frequency.value = 440 * Math.pow(2, note / 12); // A major scale
+        
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = 0.1;
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.start(audioContext.currentTime + index * 0.15);
+        oscillator.stop(audioContext.currentTime + 0.2 + index * 0.15);
+      });
     }
   }, []);
 
   // Play animal name 
   const playAnimalSound = (animal) => {
+    if (isPlaying) return;
+    
+    setIsPlaying(animal.id);
+    
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(animal.name);
       utterance.rate = 0.8;
+      utterance.onend = () => setIsPlaying(null);
       window.speechSynthesis.speak(utterance);
+    } else {
+      setTimeout(() => setIsPlaying(null), 1000);
     }
   };
 
   return (
-    <motion.div 
-      className={styles.resultsScreen}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <motion.div 
-        className={styles.confetti}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: score >= 70 ? 1 : 0 }}
-      >
-        {/* Confetti animation for high scores */}
-        {Array.from({ length: 30 }).map((_, i) => (
-          <motion.div
-            key={i}
-            className={styles.confettiPiece}
-            style={{
-              backgroundColor: `hsl(${Math.random() * 360}, 80%, 60%)`,
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, Math.random() * 500 + 100],
-              x: [0, (Math.random() - 0.5) * 200],
-              rotate: [0, Math.random() * 360],
-            }}
-            transition={{
-              duration: Math.random() * 2 + 2,
-              ease: "linear",
-              repeat: Infinity,
-              repeatType: "loop",
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
-      </motion.div>
+    <div className={styles.card}>
+      {showConfetti && (
+        <div className={styles.confettiContainer}>
+          {Array.from({ length: 50 }).map((_, i) => (
+            <motion.div
+              key={i}
+              className={styles.confettiPiece}
+              style={{
+                backgroundColor: `hsl(${Math.random() * 360}, 80%, 60%)`,
+                width: `${Math.random() * 10 + 5}px`,
+                height: `${Math.random() * 10 + 5}px`,
+                top: `-50px`,
+                left: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [`0vh`, `100vh`],
+                x: [0, Math.random() * 100 - 50],
+                rotate: [0, Math.random() * 360 * (Math.random() > 0.5 ? 1 : -1)],
+              }}
+              transition={{
+                duration: Math.random() * 2 + 2,
+                ease: "linear",
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+      )}
       
-      <div className={styles.resultHeader}>
-        <motion.h2 
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          {`Good Job! You found ${correctCount}/${correctAnimals.length} animals with the "${targetSound}" Sound!`}
-        </motion.h2>
-        <motion.div 
-          className={styles.scoreDisplay}
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          Score: {score}% - {getFeedbackMessage()}
-        </motion.div>
+      <div className={styles.cardHeader}>
+        <h2 className={styles.cardTitle}>
+          <span role="img" aria-label="Results" className={styles.headerEmoji}>🔍</span>
+          Safari Results
+        </h2>
+      </div>
+      
+      <div className={styles.scoreSection}>
+        <div className={styles.scoreBanner} style={{ 
+          backgroundImage: `linear-gradient(to right, 
+            ${score >= 70 ? '#4caf50' : score >= 50 ? '#ff9800' : '#f44336'}, 
+            ${score >= 70 ? '#81c784' : score >= 50 ? '#ffb74d' : '#e57373'})` 
+        }}>
+          <div className={styles.scoreInfo}>
+            <div className={styles.scoreText}>
+              Score: <span>{score}%</span>
+            </div>
+            <div className={styles.feedbackMessage}>
+              <span className={styles.feedbackIcon}>{getFeedbackIcon()}</span>
+              {getFeedbackMessage()}
+            </div>
+          </div>
+          <div className={styles.scoreDetails}>
+            You found {correctSelected.length} of {correctAnimals.length} animals with the "{targetSound}" sound!
+          </div>
+        </div>
       </div>
       
       <div className={styles.resultsContainer}>
-        <motion.div 
-          className={styles.correctAnimals}
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          <h3>You correctly found these animals with the "{targetSound}" Sound:</h3>
-          <div className={styles.animalResults}>
-            {correctAnimals.filter(animal => 
-              selectedAnimals.some(a => a.id === animal.id)
-            ).map(animal => (
-              <div key={animal.id} className={styles.resultAnimal}>
-                <span className={styles.playIcon} onClick={() => playAnimalSound(animal)}>🔊</span>
-                {animal.name}
-              </div>
-            ))}
+        <div className={styles.resultSection}>
+          <div className={styles.sectionHeader}>
+            <span role="img" aria-label="Correct" className={styles.sectionIcon}>✅</span>
+            <h3>Correct Answers!</h3>
           </div>
-        </motion.div>
+          {correctSelected.length > 0 ? (
+            <div className={styles.animalsGrid}>
+              {correctSelected.map(animal => (
+                <motion.div 
+                  key={animal.id} 
+                  className={styles.animalResult}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: Math.random() * 0.3 + 0.1 }}
+                  onClick={() => playAnimalSound(animal)}
+                >
+                  <div className={styles.animalIcon}>
+                    {animal.image}
+                  </div>
+                  <div className={styles.animalInfo}>
+                    <div className={styles.animalName}>
+                      {animal.name}
+                      <motion.div 
+                        className={styles.soundIcon}
+                        animate={isPlaying === animal.id ? { 
+                          scale: [1, 1.2, 1],
+                          color: ['#4a9240', '#ffd600', '#4a9240']
+                        } : {}}
+                        transition={{ duration: 0.5, repeat: Infinity }}
+                      >
+                        🔊
+                      </motion.div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.emptyMessage}>
+              <p>You didn't find any animals with the "{targetSound}" sound.</p>
+            </div>
+          )}
+        </div>
         
-        <motion.div 
-          className={styles.incorrectAnimals}
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-        >
-          <h3>Animals without the sound of "{targetSound}":</h3>
-          <div className={styles.animalResults}>
-            {incorrectAnimals.filter(animal => 
-              selectedAnimals.some(a => a.id === animal.id)
-            ).map(animal => (
-              <div key={animal.id} className={styles.resultAnimal}>
-                <span className={styles.playIcon} onClick={() => playAnimalSound(animal)}>🔊</span>
-                {animal.name}
-              </div>
-            ))}
+        {incorrectSelected.length > 0 && (
+          <div className={styles.resultSection}>
+            <div className={styles.sectionHeader}>
+              <span role="img" aria-label="Incorrect" className={styles.sectionIcon}>❌</span>
+              <h3>Incorrect Choices</h3>
+            </div>
+            <div className={styles.animalsGrid}>
+              {incorrectSelected.map(animal => (
+                <motion.div 
+                  key={animal.id} 
+                  className={`${styles.animalResult} ${styles.incorrect}`}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: Math.random() * 0.3 + 0.1 }}
+                  onClick={() => playAnimalSound(animal)}
+                >
+                  <div className={styles.animalIcon}>
+                    {animal.image}
+                  </div>
+                  <div className={styles.animalInfo}>
+                    <div className={styles.animalName}>
+                      {animal.name}
+                      <motion.div 
+                        className={styles.soundIcon}
+                        animate={isPlaying === animal.id ? { 
+                          scale: [1, 1.2, 1],
+                          color: ['#4a9240', '#ffd600', '#4a9240']
+                        } : {}}
+                        transition={{ duration: 0.5, repeat: Infinity }}
+                      >
+                        🔊
+                      </motion.div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </motion.div>
+        )}
+        
+        {missedCorrect.length > 0 && (
+          <div className={styles.resultSection}>
+            <div className={styles.sectionHeader}>
+              <span role="img" aria-label="Missed" className={styles.sectionIcon}>🔍</span>
+              <h3>You Missed These</h3>
+            </div>
+            <div className={styles.animalsGrid}>
+              {missedCorrect.map(animal => (
+                <motion.div 
+                  key={animal.id} 
+                  className={`${styles.animalResult} ${styles.missed}`}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: Math.random() * 0.3 + 0.1 }}
+                  onClick={() => playAnimalSound(animal)}
+                >
+                  <div className={styles.animalIcon}>
+                    {animal.image}
+                  </div>
+                  <div className={styles.animalInfo}>
+                    <div className={styles.animalName}>
+                      {animal.name}
+                      <motion.div 
+                        className={styles.soundIcon}
+                        animate={isPlaying === animal.id ? { 
+                          scale: [1, 1.2, 1],
+                          color: ['#4a9240', '#ffd600', '#4a9240']
+                        } : {}}
+                        transition={{ duration: 0.5, repeat: Infinity }}
+                      >
+                        🔊
+                      </motion.div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       
       <div className={styles.teacherTip}>
-        <h4>Teacher Tip:</h4>
-        <p>Ask the students to make the "{targetSound}" sound and find other words that have this sound.</p>
+        <div className={styles.tipHeader}>
+          <span role="img" aria-label="Teacher tip" className={styles.tipIcon}>💡</span>
+          <h4>Teacher Tip:</h4>
+        </div>
+        <p>Ask students to think of other words that have the "{targetSound}" sound and create their own animal names using this sound!</p>
       </div>
       
-      <div className={styles.resultActions}>
+      <div className={styles.actionButtons}>
         <motion.button 
           className={styles.tryAgainButton}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={onTryAgain}
         >
+          <span role="img" aria-label="Try Again">🔄</span>
           Try Again
         </motion.button>
         <motion.button 
           className={styles.nextButton}
-          whileHover={{ scale: 1.05 }}
+          whileHover={{ scale: 1.05, boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}
           whileTap={{ scale: 0.95 }}
           onClick={onNextRound}
         >
+          <span role="img" aria-label="Next">⏩</span>
           Next Challenge
         </motion.button>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -432,42 +730,223 @@ const GameCompleteScreen = ({
 }) => {
   // Calculate final score as percentage
   const finalScore = Math.round(score / totalRounds);
+  const [showConfetti, setShowConfetti] = useState(false);
+  
+  // Determine achievement level based on score
+  const getAchievement = () => {
+    if (finalScore >= 90) return { title: "Safari Master", emoji: "🏆", color: "#ffd700" };
+    if (finalScore >= 75) return { title: "Sound Explorer", emoji: "🌟", color: "#c0ca33" };
+    if (finalScore >= 60) return { title: "Animal Tracker", emoji: "🔍", color: "#29b6f6" };
+    return { title: "Safari Beginner", emoji: "🌱", color: "#66bb6a" };
+  };
+  
+  const achievement = getAchievement();
+  
+  // Play celebration effects
+  useEffect(() => {
+    // Show confetti for good scores
+    if (finalScore >= 70) {
+      setShowConfetti(true);
+      
+      // Play victory sound
+      const playVictorySound = () => {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Create a victory melody
+        const notes = [0, 4, 7, 12, 7, 12];
+        notes.forEach((note, index) => {
+          const oscillator = audioContext.createOscillator();
+          oscillator.type = 'triangle';
+          oscillator.frequency.value = 440 * Math.pow(2, note / 12); // A major scale
+          
+          const gainNode = audioContext.createGain();
+          gainNode.gain.value = 0.1;
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.start(audioContext.currentTime + index * 0.2);
+          oscillator.stop(audioContext.currentTime + 0.15 + index * 0.2);
+        });
+      };
+      
+      // Play the sound with a slight delay
+      setTimeout(playVictorySound, 500);
+    }
+  }, [finalScore]);
+  
+  // Get feedback message based on score
+  const getFeedbackMessage = () => {
+    if (finalScore >= 90) return "Amazing job! You're a true Sound Safari expert!";
+    if (finalScore >= 75) return "Great work! You've got a good ear for sounds!";
+    if (finalScore >= 60) return "Good job! Keep practicing to improve your skills!";
+    return "Nice try! With more practice, you'll be a sound expert!";
+  };
+  
+  // Get tip based on score
+  const getTip = () => {
+    if (finalScore >= 90) return "Challenge yourself with higher difficulty levels!";
+    if (finalScore >= 75) return "Try a harder difficulty to test your skills!";
+    if (finalScore >= 60) return "Keep practicing to recognize sounds faster!";
+    return "Listen carefully to the sounds and practice with different words!";
+  };
   
   return (
-    <div className={styles.completeScreen}>
-      <h2>Safari Complete!</h2>
-      <div className={styles.finalScore}>
-        <h3>Your Final Score:</h3>
-        <div className={styles.scoreValue}>
-          {finalScore}%
+    <div className={styles.card}>
+      {showConfetti && (
+        <div className={styles.confettiContainer}>
+          {Array.from({ length: 100 }).map((_, i) => (
+            <motion.div
+              key={i}
+              className={styles.confettiPiece}
+              style={{
+                backgroundColor: `hsl(${Math.random() * 360}, 80%, 60%)`,
+                width: `${Math.random() * 15 + 5}px`,
+                height: `${Math.random() * 8 + 5}px`,
+                borderRadius: Math.random() > 0.5 ? '50%' : '3px',
+                top: `-50px`,
+                left: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [`0vh`, `100vh`],
+                x: [0, Math.random() * 200 - 100],
+                rotate: [0, Math.random() * 360 * (Math.random() > 0.5 ? 1 : -1)],
+              }}
+              transition={{
+                duration: Math.random() * 3 + 2,
+                ease: "linear",
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
         </div>
-        
-        {finalScore >= 80 ? (
-          <div className={styles.highScoreBadge}>
-            <span role="img" aria-label="Trophy">🏆</span> Great Job!
-          </div>
-        ) : (
-          <div className={styles.encouragement}>
-            Keep practicing! You're getting better!
-          </div>
-        )}
+      )}
+      
+      <div className={styles.cardHeader}>
+        <motion.h2 
+          className={styles.cardTitle}
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, type: 'spring' }}
+        >
+          <span role="img" aria-label="Complete" className={styles.headerEmoji}>🎉</span>
+          Safari Complete!
+        </motion.h2>
       </div>
       
-      <div className={styles.completeActions}>
-        <button 
+      <motion.div 
+        className={styles.trophyContainer}
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 0.8, delay: 0.3, type: 'spring' }}
+      >
+        {/* Trophy icon with achievement level */}
+        <motion.div 
+          className={styles.trophyIcon} 
+          style={{ backgroundColor: achievement.color }}
+          animate={{ rotate: [-5, 5, -5, 5, 0] }}
+          transition={{ 
+            duration: 1,
+            times: [0, 0.25, 0.5, 0.75, 1],
+            ease: "easeInOut",
+            delay: 1
+          }}
+        >
+          <span>{achievement.emoji}</span>
+        </motion.div>
+        <div className={styles.achievementTitle} style={{ color: achievement.color }}>
+          {achievement.title}
+        </div>
+      </motion.div>
+      
+      <motion.div 
+        className={styles.finalScoreContainer}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+      >
+        <div className={styles.scoreCircle}>
+          <svg viewBox="0 0 100 100" className={styles.scoreCircleSvg}>
+            <circle 
+              cx="50" cy="50" r="45" 
+              fill="none" 
+              stroke="#e0e0e0" 
+              strokeWidth="8"
+            />
+            <motion.circle 
+              cx="50" cy="50" r="45" 
+              fill="none" 
+              stroke={finalScore >= 70 ? "#4caf50" : finalScore >= 50 ? "#ff9800" : "#f44336"} 
+              strokeWidth="8"
+              strokeDasharray="283"
+              strokeDashoffset="283"
+              initial={{ strokeDashoffset: 283 }}
+              animate={{ strokeDashoffset: 283 - (283 * finalScore / 100) }}
+              transition={{ duration: 1.5, delay: 0.8, ease: "easeOut" }}
+              style={{ transformOrigin: "center", transform: "rotate(-90deg)" }}
+            />
+          </svg>
+          <div className={styles.scoreValue}>
+            <motion.span
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.3 }}
+            >
+              {finalScore}%
+            </motion.span>
+          </div>
+        </div>
+      </motion.div>
+      
+      <motion.div 
+        className={styles.feedbackMessage}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5 }}
+      >
+        <p>{getFeedbackMessage()}</p>
+      </motion.div>
+      
+      <motion.div 
+        className={styles.tipContainer}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.8 }}
+      >
+        <div className={styles.tipHeader}>
+          <span role="img" aria-label="Tip" className={styles.tipIcon}>💡</span>
+          <h3>Pro Tip:</h3>
+        </div>
+        <p>{getTip()}</p>
+      </motion.div>
+      
+      <motion.div 
+        className={styles.actionButtons}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 2 }}
+      >
+        <motion.button 
           className={styles.playAgainButton}
+          whileHover={{ scale: 1.05, boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}
+          whileTap={{ scale: 0.95 }}
           onClick={onPlayAgain}
         >
+          <span role="img" aria-label="Play Again" className={styles.buttonIcon}>🔄</span>
           Play Again
-        </button>
+        </motion.button>
         
-        <button 
+        <motion.button 
           className={styles.changeDifficultyButton}
+          whileHover={{ scale: 1.05, boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}
+          whileTap={{ scale: 0.95 }}
           onClick={onChangeDifficulty}
         >
+          <span role="img" aria-label="Difficulty" className={styles.buttonIcon}>⚙️</span>
           Change Difficulty
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     </div>
   );
 };

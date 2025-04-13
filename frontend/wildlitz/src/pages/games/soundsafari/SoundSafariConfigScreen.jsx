@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import styles from '../styles/SoundSafariConfig.module.css';
-import Character from '../assets/img/wildlitz-idle.png';
+import styles from '../../../styles/SoundSafariConfig.module.css';
+import Character from '../../../assets/img/wildlitz-idle.png';
 
 /**
  * Configuration screen component for Sound Safari game
