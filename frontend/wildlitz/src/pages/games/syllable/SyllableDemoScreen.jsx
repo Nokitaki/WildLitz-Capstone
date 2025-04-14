@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import '../../../styles/components/SyllableClappingGame.css';
+import styles from '../../../styles/SyllableDemoScreen.module.css'; // Assuming you have a CSS module for styles
 
 const SyllableDemoScreen = ({ word, syllables, explanation, onBack, onPlaySound }) => {
   const [selectedSyllable, setSelectedSyllable] = useState('all');
@@ -101,23 +101,23 @@ const SyllableDemoScreen = ({ word, syllables, explanation, onBack, onPlaySound 
   };
   
   return (
-    <div className="syllable-game-container">
-      <div className="demo-content">
-        <div className="demo-card">
-          <div className="game-header">
+    <div className={styles.container}>
+      <div className={styles.demoContent}>
+        <div className={styles.demoCard}>
+          <div className={styles.header}>
             <h1>WildLitz - Syllable Sound Demonstration</h1>
-            <div className="word-badge">
-              Word: {word}
+            <div className={styles.wordBadge}>
+              Word: <span className={styles.wordHighlight}>{word}</span>
             </div>
           </div>
           
-          <h2 className="demo-title">Listen and Watch Each Syllable</h2>
+          <h2 className={styles.demoTitle}>Listen and Watch Each Syllable</h2>
           
-          <div className="syllable-buttons">
+          <div className={styles.syllableButtons}>
             {syllables.map((syllable, index) => (
               <button 
                 key={index}
-                className={`syllable-button ${selectedSyllable === syllable ? 'active' : ''}`}
+                className={`${styles.syllableButton} ${selectedSyllable === syllable ? styles.active : ''}`}
                 onClick={() => setSelectedSyllable(syllable)}
                 disabled={isLoading}
               >
@@ -125,7 +125,7 @@ const SyllableDemoScreen = ({ word, syllables, explanation, onBack, onPlaySound 
               </button>
             ))}
             <button 
-              className={`syllable-button ${selectedSyllable === 'all' ? 'active' : ''}`}
+              className={`${styles.syllableButton} ${selectedSyllable === 'all' ? styles.active : ''}`}
               onClick={() => setSelectedSyllable('all')}
               disabled={isLoading}
             >
@@ -133,9 +133,9 @@ const SyllableDemoScreen = ({ word, syllables, explanation, onBack, onPlaySound 
             </button>
           </div>
           
-          <div className="demo-display">
+          <div className={styles.demoDisplay}>
             <motion.button 
-              className="clap-play-button"
+              className={styles.playButton}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={handlePlaySelected}
@@ -148,24 +148,24 @@ const SyllableDemoScreen = ({ word, syllables, explanation, onBack, onPlaySound 
               )}
             </motion.button>
             
-            <div className="phonetic-display">
-              <div className="sound-label">
+            <div className={styles.phoneticDisplay}>
+              <div className={styles.soundLabel}>
                 {selectedSyllable === 'all' ? 
                   `Word: "${word}"` : 
                   `Syllable: "${selectedSyllable}"`
                 }
               </div>
               
-              <div className="mouth-diagram">
+              <div className={styles.mouthDiagram}>
                 <svg width="150" height="100" viewBox="0 0 150 100">
                   <ellipse cx="75" cy="50" rx="70" ry="40" stroke="#333" strokeWidth="2" fill="none" />
                   <path d="M30,50 Q75,80 120,50" stroke="#f00" strokeWidth="2" fill="none" />
                 </svg>
-                <p className="diagram-label">{getPhoneticDescription(selectedSyllable === 'all' ? word : selectedSyllable)}</p>
+                <p className={styles.diagramLabel}>{getPhoneticDescription(selectedSyllable === 'all' ? word : selectedSyllable)}</p>
               </div>
               
               <button 
-                className={`speed-button ${playbackSpeed === 'slow' ? 'active' : ''}`}
+                className={`${styles.speedButton} ${playbackSpeed === 'slow' ? styles.active : ''}`}
                 onClick={() => setPlaybackSpeed(playbackSpeed === 'slow' ? 'normal' : 'slow')}
                 disabled={isLoading}
               >
@@ -174,7 +174,7 @@ const SyllableDemoScreen = ({ word, syllables, explanation, onBack, onPlaySound 
             </div>
           </div>
           
-          <div className="practice-section">
+          <div className={styles.practiceSection}>
             <h3>Practice with this sound:</h3>
             <p>
               Try saying the {selectedSyllable === 'all' ? 'word' : 'syllable'} slowly, then at normal speed. 
@@ -182,16 +182,16 @@ const SyllableDemoScreen = ({ word, syllables, explanation, onBack, onPlaySound 
             </p>
             
             {explanation && explanation.full_pronunciation_tip && (
-              <div className="pronunciation-tip">
+              <div className={styles.pronunciationTip}>
                 <h4>Pronunciation Tip:</h4>
                 <p>{explanation.full_pronunciation_tip}</p>
               </div>
             )}
           </div>
           
-          <div className="demo-controls">
+          <div className={styles.demoControls}>
             <button 
-              className="control-button back"
+              className={`${styles.controlButton} ${styles.backButton}`}
               onClick={onBack}
               disabled={isLoading}
             >
@@ -199,7 +199,7 @@ const SyllableDemoScreen = ({ word, syllables, explanation, onBack, onPlaySound 
             </button>
             {syllables.length > 1 && (
               <button 
-                className="control-button next"
+                className={`${styles.controlButton} ${styles.nextButton}`}
                 onClick={() => {
                   const currentIndex = syllables.indexOf(selectedSyllable);
                   if (currentIndex === -1 || currentIndex === syllables.length - 1) {
