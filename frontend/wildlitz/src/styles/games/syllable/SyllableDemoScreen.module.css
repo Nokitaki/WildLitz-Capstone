@@ -1,0 +1,328 @@
+/* SyllableDemoScreen.module.css */
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #a78bfa, #c4b5fd);
+  padding: 2rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.demoCard {
+  background-color: white;
+  border-radius: 24px;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 800px;
+  padding: 2.5rem;
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.header h1 {
+  color: #2d3748;
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.wordDisplay {
+  margin-top: 1rem;
+}
+
+.wordDisplay h2 {
+  font-size: 3rem;
+  color: #7c3aed;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Demo Content */
+.demoContent {
+  margin-bottom: 2.5rem;
+}
+
+/* Syllable Tabs */
+.syllableTabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 2rem;
+}
+
+.syllableTab {
+  background-color: #f5f3ff;
+  color: #7c3aed;
+  border: 2px solid #ede9fe;
+  border-radius: 12px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.syllableTab:hover {
+  background-color: #ede9fe;
+  transform: translateY(-2px);
+}
+
+.syllableTab.active {
+  background-color: #7c3aed;
+  color: white;
+  border-color: #7c3aed;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+/* Demo Visualization */
+.demoVisualization {
+  background-color: #f8fafc;
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.animationContainer {
+  width: 100%;
+  min-height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fullWordAnimation {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.syllableVisual {
+  background-color: #7c3aed;
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.syllableVisual.large {
+  font-size: 2rem;
+  padding: 1.5rem 2.5rem;
+}
+
+.playButton {
+  background-color: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.playButton:hover:not(:disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+}
+
+.playButton:disabled {
+  background-color: #cbd5e0;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.playButton.playing {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Pronunciation Guide */
+.pronunciationGuide {
+  background-color: #f5f3ff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.pronunciationGuide h3 {
+  color: #4a5568;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.guideContent {
+  color: #4a5568;
+  font-size: 1.1rem;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.emphasisText {
+  color: #7c3aed;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+/* Mouth Shape */
+.mouthShape {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.mouthContainer {
+  width: 100px;
+  height: 80px;
+  margin: 0 auto 1rem auto;
+  background-color: #ffe4e6;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.mouth {
+  width: 50px;
+  height: 20px;
+  background-color: #e53e3e;
+  border-radius: 0 0 50px 50px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.mouth.speaking {
+  height: 30px;
+  animation: speak 0.5s infinite alternate;
+}
+
+@keyframes speak {
+  0% { height: 20px; }
+  100% { height: 40px; }
+}
+
+.mouthShape p {
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+/* Action Buttons */
+.actionButtons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.backButton {
+  background-color: #f5f3ff;
+  color: #7c3aed;
+  border: 2px solid #7c3aed;
+  border-radius: 12px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  background-color: #ede9fe;
+  transform: translateY(-2px);
+}
+
+.navigationButtons {
+  display: flex;
+  gap: 1rem;
+}
+
+.navButton {
+  background-color: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navButton:hover:not(:disabled) {
+  background-color: #6d28d9;
+  transform: translateY(-2px);
+}
+
+.navButton:disabled {
+  background-color: #cbd5e0;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .demoCard {
+    padding: 1.5rem;
+  }
+  
+  .header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .wordDisplay h2 {
+    font-size: 2.2rem;
+  }
+  
+  .syllableTab {
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+  }
+  
+  .syllableVisual.large {
+    font-size: 1.5rem;
+    padding: 1rem 1.5rem;
+  }
+  
+  .actionButtons {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .backButton, .navigationButtons {
+    width: 100%;
+  }
+  
+  .navigationButtons {
+    justify-content: space-between;
+  }
+  
+  .navButton {
+    flex: 1;
+    text-align: center;
+    padding: 0.8rem 0.5rem;
+  }
+}

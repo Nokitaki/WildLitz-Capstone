@@ -1,0 +1,239 @@
+/* CompletionScreen.module.css */
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #7c3aed, #c026d3);
+    padding: 2rem;
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Confetti Animation */
+  .confetti {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background-image: 
+      radial-gradient(circle, #ffb6ff 8px, transparent 8px),
+      radial-gradient(circle, #ffd166 15px, transparent 15px),
+      radial-gradient(circle, #06d6a0 20px, transparent 20px),
+      radial-gradient(circle, #118ab2 15px, transparent 15px),
+      radial-gradient(circle, #ef476f 18px, transparent 18px);
+    background-size: 
+      300px 300px, 
+      250px 250px, 
+      200px 200px, 
+      250px 250px, 
+      300px 300px;
+    animation: confetti 10s linear infinite;
+    opacity: 0.3;
+  }
+  
+  @keyframes confetti {
+    0% {
+      background-position: 
+        0% 0%, 
+        50% 0%, 
+        100% 0%, 
+        0% 100%, 
+        50% 100%;
+    }
+    100% {
+      background-position: 
+        100% 100%, 
+        0% 100%, 
+        50% 100%, 
+        100% 0%, 
+        50% 0%;
+    }
+  }
+  
+  .completionCard {
+    background-color: white;
+    border-radius: 24px;
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 800px;
+    padding: 3rem;
+  }
+  
+  /* Header Section */
+  .header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+  
+  .trophy {
+    font-size: 5rem;
+    margin-bottom: 1rem;
+    animation: trophy-bounce 2s ease infinite;
+  }
+  
+  @keyframes trophy-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+  
+  .header h1 {
+    color: #7c3aed;
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #7c3aed, #c026d3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .header p {
+    color: #4a5568;
+    font-size: 1.2rem;
+  }
+  
+  /* Stats Container */
+  .statsContainer {
+    background-color: #f5f3ff;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .statsContainer h2 {
+    color: #4a5568;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .statGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .statItem {
+    background-color: white;
+    border-radius: 12px;
+    padding: 1.2rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+  }
+  
+  .statItem:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+  
+  .statLabel {
+    color: #718096;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .statValue {
+    color: #7c3aed;
+    font-size: 2rem;
+    font-weight: 800;
+  }
+  
+  /* Feedback Message */
+  .feedbackMessage {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  
+  .feedbackMessage p {
+    color: #4a5568;
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+  
+  /* Action Buttons */
+  .actionButtons {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+  }
+  
+  .homeButton {
+    background-color: #f5f3ff;
+    color: #7c3aed;
+    border: 2px solid #7c3aed;
+    border-radius: 12px;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .homeButton:hover {
+    background-color: #ede9fe;
+    transform: translateY(-3px);
+  }
+  
+  .playAgainButton {
+    background-color: #7c3aed;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  }
+  
+  .playAgainButton:hover {
+    background-color: #6d28d9;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .completionCard {
+      padding: 2rem;
+    }
+    
+    .header h1 {
+      font-size: 2.2rem;
+    }
+    
+    .trophy {
+      font-size: 4rem;
+    }
+    
+    .statGrid {
+      grid-template-columns: 1fr 1fr;
+    }
+    
+    .actionButtons {
+      flex-direction: column-reverse;
+      gap: 1rem;
+    }
+    
+    .homeButton, .playAgainButton {
+      width: 100%;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .completionCard {
+      padding: 1.5rem;
+    }
+    
+    .statGrid {
+      grid-template-columns: 1fr;
+    }
+  }

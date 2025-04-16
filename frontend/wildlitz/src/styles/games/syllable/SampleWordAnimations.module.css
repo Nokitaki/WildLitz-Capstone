@@ -1,0 +1,241 @@
+/* SampleWordAnimations.css */
+/* Styling for sample word-specific animations */
+
+.sample-word-animation {
+    width: 100%;
+    height: 200px;
+    background-color: #f8f9fa;
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    margin: 1rem 0;
+  }
+  
+  /* Shared styling for all animation containers */
+  .cat-animation-container,
+  .elephant-animation-container,
+  .butterfly-animation-container,
+  .watermelon-animation-container,
+  .default-animation-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+  }
+  
+  .syllable-text-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .syllable-text {
+    font-size: 1.8rem;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    color: #495057;
+    background-color: #e9ecef;
+    transition: all 0.3s ease;
+  }
+  
+  .syllable-text.active {
+    background-color: #4dabf7;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Cat Animation Styles */
+  .cat-animation-container {
+    background-color: #fff3e0;
+  }
+  
+  .cat-image {
+    width: 100px;
+    height: 80px;
+    background-image: url('/path/to/cat.svg'); /* Replace with your cat image path */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-bottom: 20px;
+  }
+  
+  /* Elephant Animation Styles */
+  .elephant-animation-container {
+    background-color: #e8f5e9;
+  }
+  
+  .elephant-body {
+    position: relative;
+    width: 120px;
+    height: 80px;
+    background-color: #9e9e9e;
+    border-radius: 50%;
+    margin-bottom: 20px;
+  }
+  
+  .elephant-head {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background-color: #9e9e9e;
+    border-radius: 50%;
+    top: -10px;
+    left: -20px;
+  }
+  
+  .elephant-trunk {
+    position: absolute;
+    width: 15px;
+    height: 40px;
+    background-color: #9e9e9e;
+    border-radius: 10px;
+    top: 10px;
+    left: -30px;
+    transform-origin: top center;
+  }
+  
+  .elephant-ear-left {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-color: #bdbdbd;
+    border-radius: 50%;
+    top: -20px;
+    left: -10px;
+    z-index: -1;
+  }
+  
+  .elephant-ear-right {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-color: #bdbdbd;
+    border-radius: 50%;
+    top: -20px;
+    left: 10px;
+    z-index: -1;
+  }
+  
+  /* Butterfly Animation Styles */
+  .butterfly-animation-container {
+    background-color: #e3f2fd;
+  }
+  
+  .butterfly-body {
+    position: relative;
+    width: 10px;
+    height: 60px;
+    background-color: #90caf9;
+    margin-bottom: 20px;
+  }
+  
+  .butterfly-wing-left,
+  .butterfly-wing-right {
+    position: absolute;
+    width: 40px;
+    height: 30px;
+    background-color: #42a5f5;
+    border-radius: 50% 50% 50% 50%;
+    top: 15px;
+    transform-origin: center right;
+  }
+  
+  .butterfly-wing-left {
+    left: -40px;
+  }
+  
+  .butterfly-wing-right {
+    right: -40px;
+    transform: scaleX(-1);
+  }
+  
+  /* Watermelon Animation Styles */
+  .watermelon-animation-container {
+    background-color: #f9fbe7;
+  }
+  
+  .watermelon-circle {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    background-color: #f44336;
+    border-radius: 50%;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  
+  .watermelon-slice {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background-color: #4caf50;
+    bottom: 0;
+    left: 25px;
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    transform-origin: bottom center;
+  }
+  
+  .watermelon-center {
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    background-color: #e57373;
+    border-radius: 50%;
+    top: 5px;
+    left: 5px;
+  }
+  
+  /* Default Animation Styles */
+  .default-animation-container {
+    background-color: #f5f5f5;
+    justify-content: center;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 600px) {
+    .sample-word-animation {
+      height: 180px;
+    }
+    
+    .syllable-text {
+      font-size: 1.5rem;
+      padding: 0.3rem 0.7rem;
+    }
+    
+    .cat-image {
+      width: 80px;
+      height: 60px;
+    }
+    
+    .elephant-body {
+      width: 100px;
+      height: 70px;
+    }
+    
+    .watermelon-circle {
+      width: 80px;
+      height: 80px;
+    }
+    
+    .watermelon-slice {
+      width: 40px;
+      height: 40px;
+      left: 20px;
+    }
+    
+    .watermelon-center {
+      width: 70px;
+      height: 70px;
+      top: 5px;
+      left: 5px;
+    }
+  }
