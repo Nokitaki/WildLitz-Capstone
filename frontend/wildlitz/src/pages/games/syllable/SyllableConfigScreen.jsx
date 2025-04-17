@@ -19,9 +19,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   const [customWords, setCustomWords] = useState([]);
   const [newCustomWord, setNewCustomWord] = useState({ 
     word: '', 
-    syllableBreakdown: '', 
     category: 'Custom Words',
-    syllableCount: 0
   });
   const [audioRecording, setAudioRecording] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -101,8 +99,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     const wordToAdd = {
       ...newCustomWord,
       id: Date.now(), // Add unique ID
-      syllableCount: newCustomWord.syllableCount || calculateSyllableCount(newCustomWord.syllableBreakdown),
-      audioRecording: audioRecording
     };
 
     const updatedWords = [...customWords, wordToAdd];
@@ -118,11 +114,8 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     // Reset form
     setNewCustomWord({ 
       word: '', 
-      syllableBreakdown: '', 
       category: 'Custom Words',
-      syllableCount: 0
     });
-    setAudioRecording(null);
   };
 
   // Record custom audio
@@ -264,10 +257,12 @@ const SyllableConfigScreen = ({ onStartGame }) => {
               >
                 <span className={styles.customIcon}>✏️</span>
                 <div className={styles.customLabel}>
-                  <span>Custom Words</span>
-                  {customWords.length > 0 && (
-                    <span className={styles.customCount}>{customWords.length}</span>
-                  )}
+                  <div className={styles.customLabelFlex}>
+                    <span>Custom Words</span>
+                    {customWords.length > 0 && (
+                      <span className={styles.customCount}>{customWords.length}</span>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             </div>
@@ -308,12 +303,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         </div>
 
         <div className={styles.gameFooter}>
-          {customWords.length > 0 && (
-            <div className={styles.customWordsSummary}>
-              <span className={styles.customWordsIcon}>📚</span>
-              <span>{customWords.length} custom word{customWords.length !== 1 ? 's' : ''} added</span>
-            </div>
-          )}
+          
           
           <motion.button
             className={styles.startButton}
@@ -324,6 +314,13 @@ const SyllableConfigScreen = ({ onStartGame }) => {
           >
             Start Game
           </motion.button>
+
+          {customWords.length > 0 && (
+            <div className={styles.customWordsSummary}>
+              <span className={styles.customWordsIcon}>📚</span>
+              <span>{customWords.length} custom word{customWords.length !== 1 ? 's' : ''} added</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -364,74 +361,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                     className={styles.wordInput}
                   />
                 </div>
-                
-                <div className={styles.formGroup}>
-                  <label htmlFor="syllable-breakdown">
-                    Syllable Breakdown 
-                    <span className={styles.infoText}>
-                      (separate with hyphens, e.g. "e-le-phant")
-                    </span>
-                  </label>
-                  <div className={styles.syllableInputGroup}>
-                    <input
-                      id="syllable-breakdown"
-                      type="text"
-                      value={newCustomWord.syllableBreakdown}
-                      onChange={(e) => updateSyllableBreakdown(e.target.value)}
-                      placeholder="e.g. e-le-phant"
-                      className={styles.syllableInput}
-                    />
-                    <div className={styles.syllableCount}>
-                      <span>{newCustomWord.syllableCount || calculateSyllableCount(newCustomWord.syllableBreakdown)}</span>
-                      <span>syllables</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className={styles.formGroup}>
-                  <label htmlFor="word-category">Category</label>
-                  <select
-                    id="word-category"
-                    value={newCustomWord.category}
-                    onChange={(e) => setNewCustomWord({...newCustomWord, category: e.target.value})}
-                    className={styles.categorySelect}
-                  >
-                    {categories.map(category => (
-                      <option key={category.id} value={category.name}>
-                        {category.icon} {category.name}
-                      </option>
-                    ))}
-                    <option value="Custom Words">✏️ Custom Words</option>
-                  </select>
-                </div>
-                
-                <div className={styles.formGroup}>
-                  <label>Record Pronunciation (Optional)</label>
-                  <div className={styles.recordingControls}>
-                    {audioRecording ? (
-                      <motion.button
-                        className={styles.playButton}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={playRecordedAudio}
-                      >
-                        <span className={styles.playIcon}>🔊</span>
-                        Play Recording
-                      </motion.button>
-                    ) : (
-                      <motion.button
-                        className={`${styles.recordButton} ${isRecording ? styles.recording : ''}`}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={handleStartRecording}
-                        disabled={isRecording}
-                      >
-                        <span className={styles.micIcon}>🎤</span>
-                        {isRecording ? 'Recording...' : 'Record Pronunciation'}
-                      </motion.button>
-                    )}
-                  </div>
-                </div>
 
                 <motion.button
                   className={styles.addWordButton}
@@ -461,25 +390,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                         <div className={styles.wordItemContent}>
                           <div className={styles.wordItemHeader}>
                             <span className={styles.wordText}>{word.word}</span>
-                            <span className={styles.wordCategory}>{word.category}</span>
                           </div>
-                          
-                          <div className={styles.wordItemDetails}>
-                            {word.syllableBreakdown && (
-                              <div className={styles.syllableBreakdown}>
-                                {word.syllableBreakdown}
-                              </div>
-                            )}
-                            <div className={styles.syllableCounter}>
-                              {word.syllableCount || calculateSyllableCount(word.syllableBreakdown)} syllables
-                            </div>
-                          </div>
-                          
-                          {word.audioRecording && (
-                            <button className={styles.audioButton}>
-                              <span role="img" aria-label="Play">🔊</span>
-                            </button>
-                          )}
                         </div>
                         
                         <motion.button

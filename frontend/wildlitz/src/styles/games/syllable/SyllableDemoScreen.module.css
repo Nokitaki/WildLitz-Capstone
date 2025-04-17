@@ -1,70 +1,132 @@
-/* SyllableDemoScreen.module.css */
+/* src/styles/games/syllable/SyllableDemoScreen.module.css */
 
-.container {
+.syllableDemoContainer {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(to bottom, #a78bfa, #c4b5fd);
-  padding: 2rem;
-  font-family: 'Poppins', sans-serif;
+  position: relative;
 }
 
-.demoCard {
-  background-color: white;
-  border-radius: 24px;
-  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.15);
+/* Background layers for consistent visual with game */
+.backgroundLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  max-width: 800px;
-  padding: 2.5rem;
-  overflow: hidden;
+  height: 100%;
+  background-repeat: repeat-x;
+  background-size: cover;
 }
 
-/* Header */
-.header {
+.demoContentWrapper {
+  z-index: 1;
+  width: 90%;
+  height: 90%;
+  max-width: 1200px;
+  display: flex;
+  gap: 2rem;
+  position: relative;
+}
+
+/* Character column */
+.demoCharacterColumn {
+  width: 20%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 3rem;
+}
+
+.demoCharacter {
+  width: 100%;
+  max-width: 180px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+/* Speech bubble */
+.speechBubble {
+  background-color: white;
+  border-radius: 16px;
+  padding: 1rem;
+  width: 90%;
+  position: relative;
+  color: #4a5568;
+  font-weight: 600;
   text-align: center;
-  margin-bottom: 2.5rem;
-}
-
-.header h1 {
-  color: #2d3748;
-  font-size: 2.2rem;
-  font-weight: 800;
-  margin-bottom: 1rem;
-}
-
-.wordDisplay {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin-top: 1rem;
 }
 
+.speechBubble:after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid white;
+}
+
+/* Main demo card */
+.demoCard {
+  width: 75%;
+  height: 100%;
+  background-color: white;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Demo header */
+.demoHeader {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.demoHeader h1 {
+  color: #2d3748;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.wordDisplay {
+  margin-top: 0.5rem;
+}
+
 .wordDisplay h2 {
-  font-size: 3rem;
-  color: #7c3aed;
+  font-size: 2.8rem;
+  color: #8b5cf6;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 2px;
 }
 
-/* Demo Content */
-.demoContent {
-  margin-bottom: 2.5rem;
-}
-
-/* Syllable Tabs */
+/* Syllable tabs */
 .syllableTabs {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
   gap: 0.8rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .syllableTab {
   background-color: #f5f3ff;
-  color: #7c3aed;
+  color: #8b5cf6;
   border: 2px solid #ede9fe;
   border-radius: 12px;
-  padding: 0.8rem 1.5rem;
+  padding: 0.7rem 1.5rem;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
@@ -73,176 +135,233 @@
 
 .syllableTab:hover {
   background-color: #ede9fe;
-  transform: translateY(-2px);
 }
 
 .syllableTab.active {
-  background-color: #7c3aed;
+  background-color: #8b5cf6;
   color: white;
-  border-color: #7c3aed;
+  border-color: #8b5cf6;
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
-/* Demo Visualization */
-.demoVisualization {
+/* Pronunciation container */
+.pronunciationContainer {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Mouth visualization */
+.mouthVisualization {
+  width: 40%;
   background-color: #f8fafc;
   border-radius: 16px;
-  padding: 2rem;
-  margin-bottom: 2rem;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
 }
 
-.animationContainer {
-  width: 100%;
-  min-height: 120px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.fullWordAnimation {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.syllableVisual {
-  background-color: #7c3aed;
-  color: white;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  font-size: 1.2rem;
-  font-weight: 700;
-  transition: all 0.3s ease;
-}
-
-.syllableVisual.large {
-  font-size: 2rem;
-  padding: 1.5rem 2.5rem;
-}
-
-.playButton {
-  background-color: #7c3aed;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-}
-
-.playButton:hover:not(:disabled) {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
-}
-
-.playButton:disabled {
-  background-color: #cbd5e0;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.playButton.playing {
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
-}
-
-/* Pronunciation Guide */
-.pronunciationGuide {
-  background-color: #f5f3ff;
-  border-radius: 16px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.pronunciationGuide h3 {
+.mouthVisualization h3 {
   color: #4a5568;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 700;
   margin-bottom: 1rem;
   text-align: center;
 }
 
-.guideContent {
-  color: #4a5568;
-  font-size: 1.1rem;
+.mouthDiagram {
+  margin-bottom: 1.5rem;
   text-align: center;
-  line-height: 1.6;
 }
 
-.emphasisText {
-  color: #7c3aed;
-  font-weight: 700;
+.shapeDescription {
+  color: #718096;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.shapeDescription span {
+  font-weight: 600;
+  color: #8b5cf6;
+}
+
+.playSoundButton {
+  background-color: #8b5cf6;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.playSoundButton:disabled {
+  background-color: #cbd5e0;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.playIcon, .playingIcon, .loadingIcon {
   font-size: 1.2rem;
 }
 
-/* Mouth Shape */
-.mouthShape {
-  text-align: center;
-  margin-bottom: 2rem;
+.speedToggle {
+  background-color: #f5f3ff;
+  color: #8b5cf6;
+  border: 2px solid #ede9fe;
+  border-radius: 12px;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.mouthContainer {
-  width: 100px;
-  height: 80px;
-  margin: 0 auto 1rem auto;
-  background-color: #ffe4e6;
-  border-radius: 50%;
+.speedToggle.active {
+  background-color: #ede9fe;
+  border-color: #8b5cf6;
+}
+
+.speedToggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Sound explanation */
+.soundExplanation {
+  width: 60%;
+  background-color: #f5f3ff;
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.soundExplanation h3 {
+  color: #4a5568;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.explanationContent {
+  color: #4a5568;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.phoneticGuide {
+  margin-bottom: 1rem;
+}
+
+.examples {
+  margin-bottom: 1rem;
+}
+
+.pronunciationTip {
+  background-color: #ede9fe;
+  border-radius: 8px;
+  padding: 0.8rem;
+  margin-top: 1rem;
+}
+
+.pronunciationTip h4 {
+  color: #8b5cf6;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+/* Syllable breakdown */
+.syllableBreakdown {
+  background-color: #f8fafc;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.syllableBreakdown h3 {
+  color: #4a5568;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.breakdownVisualization {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.syllableUnit {
+  background-color: #f5f3ff;
+  color: #8b5cf6;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.syllableUnit:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.2);
+}
+
+.syllableUnit.highlighted {
+  background-color: #8b5cf6;
+  color: white;
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3);
+}
+
+.soundIndicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  background-color: #8b5cf6;
+  color: white;
+  border-radius: 50%;
+  display: flex;
   align-items: center;
-  position: relative;
+  justify-content: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-.mouth {
-  width: 50px;
-  height: 20px;
-  background-color: #e53e3e;
-  border-radius: 0 0 50px 50px;
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.mouth.speaking {
-  height: 30px;
-  animation: speak 0.5s infinite alternate;
-}
-
-@keyframes speak {
-  0% { height: 20px; }
-  100% { height: 40px; }
-}
-
-.mouthShape p {
+.breakdownTip {
+  text-align: center;
   color: #718096;
   font-size: 0.9rem;
+  font-style: italic;
 }
 
-/* Action Buttons */
-.actionButtons {
+/* Control buttons */
+.demoControls {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: auto;
 }
 
 .backButton {
   background-color: #f5f3ff;
-  color: #7c3aed;
-  border: 2px solid #7c3aed;
+  color: #8b5cf6;
+  border: 2px solid #8b5cf6;
   border-radius: 12px;
   padding: 0.8rem 1.5rem;
   font-size: 1.1rem;
@@ -256,13 +375,13 @@
   transform: translateY(-2px);
 }
 
-.navigationButtons {
+.navigationControls {
   display: flex;
   gap: 1rem;
 }
 
 .navButton {
-  background-color: #7c3aed;
+  background-color: #8b5cf6;
   color: white;
   border: none;
   border-radius: 12px;
@@ -274,7 +393,7 @@
 }
 
 .navButton:hover:not(:disabled) {
-  background-color: #6d28d9;
+  background-color: #7c3aed;
   transform: translateY(-2px);
 }
 
@@ -283,14 +402,62 @@
   cursor: not-allowed;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .demoCard {
-    padding: 1.5rem;
+/* Responsive design */
+@media (max-width: 1200px) {
+  .demoContentWrapper {
+    width: 95%;
   }
   
-  .header h1 {
-    font-size: 1.8rem;
+  .pronunciationContainer {
+    flex-direction: column;
+  }
+  
+  .mouthVisualization,
+  .soundExplanation {
+    width: 100%;
+  }
+}
+
+@media (max-width: 992px) {
+  .demoContentWrapper {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    height: auto;
+  }
+  
+  .demoCharacterColumn {
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  
+  .demoCharacter {
+    width: 120px;
+    margin-right: 1rem;
+  }
+  
+  .speechBubble {
+    width: 60%;
+    margin-top: 0;
+  }
+  
+  .speechBubble:after {
+    top: 50%;
+    left: -10px;
+    transform: translateY(-50%);
+    border-left: none;
+    border-right: 10px solid white;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+  }
+  
+  .demoCard {
+    width: 100%;
+    height: auto;
+    padding: 1.5rem;
   }
   
   .wordDisplay h2 {
@@ -301,28 +468,61 @@
     padding: 0.6rem 1rem;
     font-size: 1rem;
   }
-  
-  .syllableVisual.large {
-    font-size: 1.5rem;
-    padding: 1rem 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .demoHeader h1 {
+    font-size: 1.7rem;
   }
   
-  .actionButtons {
+  .wordDisplay h2 {
+    font-size: 1.8rem;
+  }
+  
+  .demoCharacter {
+    width: 100px;
+  }
+  
+  .speechBubble {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .demoCard {
+    padding: 1rem;
+  }
+  
+  .syllableTabs {
+    gap: 0.5rem;
+  }
+  
+  .syllableTab {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+  }
+  
+  .syllableUnit {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+  }
+  
+  .demoControls {
     flex-direction: column;
     gap: 1rem;
   }
   
-  .backButton, .navigationButtons {
+  .backButton,
+  .navigationControls {
     width: 100%;
   }
   
-  .navigationButtons {
+  .navigationControls {
     justify-content: space-between;
   }
   
   .navButton {
     flex: 1;
-    text-align: center;
     padding: 0.8rem 0.5rem;
+    font-size: 0.9rem;
   }
 }
