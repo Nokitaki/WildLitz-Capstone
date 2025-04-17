@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import axios from 'axios';
 import styles from '../../../styles/games/syllable/SyllableDemoScreen.module.css';
 import wildLitzCharacter from '../../../assets/img/wildlitz-idle.png';
-import cloudsBackground from '../../../assets/img/backgrounds/clouds.svg';
-import mountainsBackground from '../../../assets/img/backgrounds/mountains.svg';
-import treesBackground from '../../../assets/img/backgrounds/trees.svg';
 
 const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlaySound }) => {
   const [selectedSyllable, setSelectedSyllable] = useState('all');
@@ -13,7 +9,6 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [syllableAudio, setSyllableAudio] = useState({});
-  const [mouthAnimation, setMouthAnimation] = useState(false);
   
   // If syllables aren't provided, split the word by hyphens
   const syllableArray = syllables.length > 0 
@@ -54,7 +49,6 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
     if (!syllable) return;
     
     setIsPlaying(true);
-    setMouthAnimation(true);
     
     // If we have the syllable audio data from the API
     if (syllableAudio.syllables) {
@@ -66,7 +60,6 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
         
         audio.onended = () => {
           setIsPlaying(false);
-          setMouthAnimation(false);
         };
         
         audio.play().catch(error => {
@@ -90,18 +83,15 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
         
         utterance.onend = () => {
           setIsPlaying(false);
-          setMouthAnimation(false);
         };
         
         utterance.onerror = () => {
           setIsPlaying(false);
-          setMouthAnimation(false);
         };
         
         window.speechSynthesis.speak(utterance);
       } else {
         setIsPlaying(false);
-        setMouthAnimation(false);
       }
     }
   };
@@ -109,14 +99,12 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
   // Function to play the whole word
   const playWordSound = () => {
     setIsPlaying(true);
-    setMouthAnimation(true);
     
     if (onPlaySound) {
       onPlaySound();
       // Since we don't control the audio in the parent, set a timeout to stop animation
       setTimeout(() => {
         setIsPlaying(false);
-        setMouthAnimation(false);
       }, 1500);
     } else if (syllableAudio.complete_word_audio && syllableAudio.complete_word_audio.audio_data) {
       const audio = new Audio(`data:audio/mp3;base64,${syllableAudio.complete_word_audio.audio_data}`);
@@ -124,7 +112,6 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
       
       audio.onended = () => {
         setIsPlaying(false);
-        setMouthAnimation(false);
       };
       
       audio.play().catch(error => {
@@ -146,18 +133,15 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
         
         utterance.onend = () => {
           setIsPlaying(false);
-          setMouthAnimation(false);
         };
         
         utterance.onerror = () => {
           setIsPlaying(false);
-          setMouthAnimation(false);
         };
         
         window.speechSynthesis.speak(utterance);
       } else {
         setIsPlaying(false);
-        setMouthAnimation(false);
       }
     }
   };
@@ -201,169 +185,93 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
     }
   };
   
-  // Simple function to get vowels in a syllable
-  const getVowels = (syllable) => {
-    const vowelMatches = syllable.match(/[aeiou]/gi);
-    return vowelMatches ? vowelMatches.join('') : 'vowels';
-  };
-  
-  // Mouth position based on syllable
-  const getMouthPosition = (syllable) => {
-    if (!syllable || syllable === 'all') return { path: "M35,50 Q75,80 115,50", shape: "wide" };
-    
-    const vowels = getVowels(syllable).toLowerCase();
-    
-    if (vowels.includes('a')) {
-      return { path: "M35,50 Q75,90 115,50", shape: "open" };
-    } else if (vowels.includes('e') || vowels.includes('i')) {
-      return { path: "M35,50 Q75,60 115,50", shape: "smile" };
-    } else if (vowels.includes('o')) {
-      return { path: "M35,50 Q75,70 115,50", shape: "round" };
-    } else if (vowels.includes('u')) {
-      return { path: "M35,50 Q75,65 115,50", shape: "pursed" };
-    }
-    
-    return { path: "M35,50 Q75,70 115,50", shape: "neutral" };
-  };
-  
   const wordText = typeof word === 'string' ? word : word?.word || 'example';
-  const mouthPosition = getMouthPosition(selectedSyllable === 'all' ? null : selectedSyllable);
   
   return (
     <div className={styles.syllableDemoContainer}>
-      {/* Background layers */}
-      <motion.div 
-        className={styles.backgroundLayer}
-        style={{ backgroundImage: `url(${cloudsBackground})` }}
-        animate={{ backgroundPositionX: [0, -1200] }}
-        transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-      />
-      <motion.div 
-        className={styles.backgroundLayer}
-        style={{ backgroundImage: `url(${mountainsBackground})`, backgroundPosition: 'bottom' }}
-        animate={{ backgroundPositionX: [0, -1200] }}
-        transition={{ duration: 180, repeat: Infinity, ease: "linear" }}
-      />
-      <motion.div 
-        className={styles.backgroundLayer}
-        style={{ backgroundImage: `url(${treesBackground})`, backgroundPosition: 'bottom' }}
-        animate={{ backgroundPositionX: [0, -1200] }}
-        transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
-      />
-      
       <div className={styles.demoContentWrapper}>
         {/* Character on the left */}
         <div className={styles.demoCharacterColumn}>
-          <motion.img 
+          <img 
             src={wildLitzCharacter} 
             alt="WildLitz Character" 
             className={styles.demoCharacter}
-            animate={{ 
-              y: [0, -10, 0],
-              rotate: mouthAnimation ? [0, -5, 5, -5, 0] : 0
-            }}
-            transition={{ 
-              y: { repeat: Infinity, duration: 2, ease: "easeInOut" },
-              rotate: { duration: 0.8, repeat: mouthAnimation ? 3 : 0, ease: "easeInOut" }
-            }}
           />
           
-          <motion.div 
-            className={styles.speechBubble}
-            initial={{ opacity: 0, scale: 0, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}
-          >
+          <div className={styles.speechBubble}>
             <p>Let's learn how to say each syllable!</p>
-          </motion.div>
+          </div>
         </div>
         
         {/* Main demo card */}
         <div className={styles.demoCard}>
           <div className={styles.demoHeader}>
             <h1>Syllable Sound Demonstration</h1>
-            <div className={styles.wordDisplay}>
-              <h2>{wordText}</h2>
-            </div>
           </div>
           
-          {/* Syllable Tabs */}
-          <div className={styles.syllableTabs}>
-            {syllableArray.map((syllable, index) => (
-              <motion.button
-                key={index}
-                className={`${styles.syllableTab} ${selectedSyllable === syllable ? styles.active : ''}`}
-                onClick={() => setSelectedSyllable(syllable)}
-                whileHover={{ y: -3, boxShadow: "0 10px 15px rgba(0, 0, 0, 0.1)" }}
-                whileTap={{ y: 0, boxShadow: "0 5px 10px rgba(0, 0, 0, 0.1)" }}
-              >
-                {syllable}
-              </motion.button>
-            ))}
-            <motion.button
-              className={`${styles.syllableTab} ${selectedSyllable === 'all' ? styles.active : ''}`}
-              onClick={() => setSelectedSyllable('all')}
-              whileHover={{ y: -3, boxShadow: "0 10px 15px rgba(0, 0, 0, 0.1)" }}
-              whileTap={{ y: 0, boxShadow: "0 5px 10px rgba(0, 0, 0, 0.1)" }}
-            >
-              Full Word
-            </motion.button>
-          </div>
-          
-          {/* Pronunciation Visualization */}
-          <div className={styles.pronunciationContainer}>
-            {/* Mouth visualization */}
-            <div className={styles.mouthVisualization}>
-              <h3>Mouth Shape</h3>
-              <div className={styles.mouthDiagram}>
-                <svg width="150" height="100" viewBox="0 0 150 100">
-                  <ellipse cx="75" cy="50" rx="70" ry="40" stroke="#333" strokeWidth="2" fill="#ffebee" />
-                  <motion.path 
-                    d={mouthPosition.path} 
-                    stroke="#d32f2f" 
-                    strokeWidth="3" 
-                    fill="none"
-                    initial={false}
-                    animate={{ 
-                      d: mouthAnimation 
-                        ? [mouthPosition.path, "M35,50 Q75,95 115,50", mouthPosition.path]
-                        : mouthPosition.path
+          {/* Syllable breakdown visualization - now at the top */}
+          <div className={styles.syllableBreakdown}>
+            <h3>Syllable Breakdown</h3>
+            <div className={styles.breakdownVisualization}>
+              {syllableArray.map((syllable, index) => (
+                <div 
+                  key={index}
+                  className={`${styles.syllableUnit} ${selectedSyllable === syllable ? styles.highlighted : ''}`}
+                  onClick={() => setSelectedSyllable(syllable)}
+                >
+                  {syllable}
+                  <div 
+                    className={styles.soundIndicator}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playSyllableSound(syllable);
                     }}
-                    transition={{ 
-                      duration: 0.3,
-                      repeat: mouthAnimation ? Infinity : 0,
-                      repeatType: "reverse"
-                    }}
-                  />
-                </svg>
-                <p className={styles.shapeDescription}>Mouth shape: <span>{mouthPosition.shape}</span></p>
-              </div>
-              
-              <motion.button 
-                className={styles.playSoundButton}
-                onClick={handlePlaySelected}
-                disabled={isPlaying || isLoading}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                  >
+                    🔊
+                  </div>
+                </div>
+              ))}
+              <button
+                className={`${styles.fullWordButton} ${selectedSyllable === 'all' ? styles.active : ''}`}
+                onClick={() => setSelectedSyllable('all')}
               >
-                {isLoading ? (
-                  <span className={styles.loadingIcon}>⏳</span>
-                ) : isPlaying ? (
-                  <span className={styles.playingIcon}>🔊</span>
-                ) : (
-                  <span className={styles.playIcon}>▶️</span>
-                )}
-                {isLoading ? "Loading..." : isPlaying ? "Playing..." : "Play Sound"}
-              </motion.button>
-              
-              <button 
-                className={`${styles.speedToggle} ${playbackSpeed === 'slow' ? styles.active : ''}`}
-                onClick={() => setPlaybackSpeed(playbackSpeed === 'normal' ? 'slow' : 'normal')}
-                disabled={isPlaying || isLoading}
-              >
-                {playbackSpeed === 'slow' ? 'Normal Speed' : 'Slow Speed'}
+                Full Word
               </button>
+            </div>
+            <p className={styles.breakdownTip}>
+              Click on a syllable to select it or use the "Full Word" button for the entire word.
+            </p>
+          </div>
+          
+          {/* Pronunciation Section */}
+          <div className={styles.pronunciationContainer}>
+            {/* Sound player section */}
+            <div className={styles.soundPlayerSection}>
+              <h3>{selectedSyllable === 'all' ? 'Listen to Full Word' : `Listen to "${selectedSyllable}"`}</h3>
+              <div className={styles.playerControls}>
+                <button 
+                  className={styles.playSoundButton}
+                  onClick={handlePlaySelected}
+                  disabled={isPlaying || isLoading}
+                >
+                  {isLoading ? (
+                    <span className={styles.loadingIcon}>⏳</span>
+                  ) : isPlaying ? (
+                    <span className={styles.playingIcon}>🔊</span>
+                  ) : (
+                    <span className={styles.playIcon}>▶️</span>
+                  )}
+                  {isLoading ? "Loading..." : isPlaying ? "Playing..." : "Play Sound"}
+                </button>
+                
+                <button 
+                  className={`${styles.speedToggle} ${playbackSpeed === 'slow' ? styles.active : ''}`}
+                  onClick={() => setPlaybackSpeed(playbackSpeed === 'normal' ? 'slow' : 'normal')}
+                  disabled={isPlaying || isLoading}
+                >
+                  {playbackSpeed === 'slow' ? 'Normal Speed' : 'Slow Speed'}
+                </button>
+              </div>
             </div>
             
             {/* Sound explanation */}
@@ -392,56 +300,11 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
             </div>
           </div>
           
-          {/* Syllable breakdown visualization */}
-          <div className={styles.syllableBreakdown}>
-            <h3>Syllable Breakdown</h3>
-            <div className={styles.breakdownVisualization}>
-              {syllableArray.map((syllable, index) => (
-                <motion.div 
-                  key={index}
-                  className={`${styles.syllableUnit} ${selectedSyllable === syllable ? styles.highlighted : ''}`}
-                  animate={{ 
-                    scale: selectedSyllable === syllable ? 1.1 : 1,
-                    backgroundColor: selectedSyllable === syllable ? '#8b5cf6' : '#f5f3ff',
-                    color: selectedSyllable === syllable ? '#ffffff' : '#8b5cf6'
-                  }}
-                  transition={{ duration: 0.3 }}
-                  onClick={() => setSelectedSyllable(syllable)}
-                >
-                  {syllable}
-                  <motion.div 
-                    className={styles.soundIndicator}
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      playSyllableSound(syllable);
-                    }}
-                  >
-                    🔊
-                  </motion.div>
-                </motion.div>
-              ))}
-            </div>
-            <p className={styles.breakdownTip}>
-              Click on each syllable to hear it pronounced separately.
-            </p>
-          </div>
-          
-          {/* Control buttons */}
-          <div className={styles.demoControls}>
-            <motion.button 
-              className={styles.backButton}
-              onClick={onBack}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Back to Game
-            </motion.button>
-            
-            {syllableArray.length > 1 && selectedSyllable !== 'all' && (
-              <div className={styles.navigationControls}>
-                <motion.button 
+          {/* Navigation buttons with Back to Game button positioned on the right */}
+          <div className={styles.navigationContainer}>
+            {syllableArray.length > 1 && selectedSyllable !== 'all' ? (
+              <div className={styles.syllableNavigation}>
+                <button 
                   className={styles.navButton}
                   onClick={() => {
                     const currentIndex = syllableArray.indexOf(selectedSyllable);
@@ -450,12 +313,10 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
                     }
                   }}
                   disabled={syllableArray.indexOf(selectedSyllable) === 0}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                 >
-                  Previous
-                </motion.button>
-                <motion.button 
+                  Previous Syllable
+                </button>
+                <button 
                   className={styles.navButton}
                   onClick={() => {
                     const currentIndex = syllableArray.indexOf(selectedSyllable);
@@ -464,13 +325,21 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
                     }
                   }}
                   disabled={syllableArray.indexOf(selectedSyllable) === syllableArray.length - 1}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                 >
-                  Next
-                </motion.button>
+                  Next Syllable
+                </button>
               </div>
+            ) : (
+              <div className={styles.emptyNavSpace}></div>
             )}
+            
+            {/* Back to Game button positioned on the right */}
+            <button 
+              className={styles.backButton}
+              onClick={onBack}
+            >
+              Back to Game
+            </button>
           </div>
         </div>
       </div>
