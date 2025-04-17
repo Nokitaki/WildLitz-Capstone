@@ -258,7 +258,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                 <span className={styles.customIcon}>✏️</span>
                 <div className={styles.customLabel}>
                   <div className={styles.customLabelFlex}>
-                    <span>Custom Words</span>
+                    <span>Custom Words </span>
                     {customWords.length > 0 && (
                       <span className={styles.customCount}>{customWords.length}</span>
                     )}
