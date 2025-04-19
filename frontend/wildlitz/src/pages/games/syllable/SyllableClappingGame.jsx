@@ -5,7 +5,6 @@ import SyllableConfigScreen from './SyllableConfigScreen';
 import SyllableDemoScreen from './SyllableDemoScreen';
 import CompletionScreen from './CompletionScreen';
 import Character from '../../../assets/img/wildlitz-idle.png';
-import Butterfly from '../../../assets/img/butterfly.jpg'; // for visual example
 
 const SyllableClappingGame = () => {
   const navigate = useNavigate();
@@ -13,11 +12,16 @@ const SyllableClappingGame = () => {
   // Game state management
   const [gamePhase, setGamePhase] = useState('config'); // config, playing, feedback, demo, complete
   const [gameConfig, setGameConfig] = useState(null);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const [currentWord, setCurrentWord] = useState({
-    word: "butterfly",
-    syllables: "but-ter-fly",
-    count: 3,
-    category: "Animals"
+    word: "",
+    syllables: "",
+    count: 0,
+    category: "",
+    image_url: ""
   });
   const [clapCount, setClapCount] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(1);
@@ -32,7 +36,6 @@ const SyllableClappingGame = () => {
   const [isFlipping, setIsFlipping] = useState(false);
   
   // Generate hint/welcome messages for different game states
-  // [In real implemetation the get message will be Ai generated to provide more variety of message and interaction based on the presented word]
   const getStartMessage = () => {
     const messages = [ 
       `Listen to "${currentWord.word}" and count the syllables!`,
@@ -43,15 +46,53 @@ const SyllableClappingGame = () => {
     ];
     return messages[Math.floor(Math.random() * messages.length)];
   };
+
+  // Fetch a new word from the API
+  const fetchNewWord = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Use the selected difficulty and categories from gameConfig
+      const difficulty = gameConfig?.difficulty || 'medium';
+      const categories = gameConfig?.categories || [];
+      
+      // Call API service function (to be defined in a separate file)
+      const response = await fetch(`http://127.0.0.1:8000/api/syllabification/get-word-supabase/?difficulty=${difficulty}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch word');
+      }
+      
+      const wordData = await response.json();
+      
+      // Update state with the new word
+      setCurrentWord({
+        word: wordData.word,
+        syllables: wordData.syllables,
+        count: wordData.count,
+        category: wordData.category,
+        image_url: wordData.image_url || ''
+      });
+      
+    } catch (err) {
+      setError('Failed to load word. Please try again.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   // Show welcome message when a new word starts
   useEffect(() => {
     if (gamePhase === 'playing') {
+      fetchNewWord();
+      
       // Set message and show bubble
       setBubbleMessage(getStartMessage());
       setShowBubble(true);
       
-      // Hide bubble after 4 seconds
+      // Hide bubble after 5 seconds
       const bubbleTimer = setTimeout(() => {
         setShowBubble(false);
       }, 5000);
@@ -60,7 +101,7 @@ const SyllableClappingGame = () => {
       setIsFlipped(true);
       setIsFlipping(true);
       
-      // Auto flip back to word after 4 seconds
+      // Auto flip back to word after 3 seconds
       const flipTimer = setTimeout(() => {
         setIsFlipped(false);
         setIsFlipping(true);
@@ -71,7 +112,7 @@ const SyllableClappingGame = () => {
         clearTimeout(flipTimer);
       };
     }
-  }, [gamePhase, currentWord]);
+  }, [gamePhase, currentIndex]);
   
   // Handle card flip transition end
   const handleFlipTransitionEnd = () => {
@@ -89,7 +130,6 @@ const SyllableClappingGame = () => {
   // Handle starting the game from config screen
   const handleStartGame = (config) => {
     setGameConfig(config);
-    // Here you would load words based on config
     setGamePhase('playing');
   };
   
@@ -139,10 +179,10 @@ const SyllableClappingGame = () => {
       // Game is complete, calculate stats
       const sampleStats = {
         totalWords: totalWords,
-        correctAnswers: 8,
-        accuracy: '80%',
+        correctAnswers: 8, // TODO: Track actual correct answers
+        accuracy: '80%',   // TODO: Calculate based on performance
         difficulty: gameConfig?.difficulty || 'Medium',
-        completionTime: '3:45'
+        completionTime: '3:45' // TODO: Track actual time
       };
       setGameStats(sampleStats);
       setGamePhase('complete');
@@ -151,10 +191,7 @@ const SyllableClappingGame = () => {
       setCurrentIndex(nextIndex);
       setClapCount(0);
       setGamePhase('playing');
-      
-      // New word message will be set by the useEffect
-      
-      // Here you would load the next word data
+      // fetchNewWord will be called by the useEffect
     }
   };
   
@@ -193,7 +230,7 @@ const SyllableClappingGame = () => {
             <div className={styles.characterWrapper}>
               <img src={Character} alt="WildLitz Character" className={styles.character} />
               
-              {/* Feedback bubble below character - now shows on start */}
+              {/* Feedback bubble below character */}
               {showBubble && (
                 <div className={styles.feedbackBubble}>
                   {bubbleMessage}
@@ -213,7 +250,7 @@ const SyllableClappingGame = () => {
             </div>
           </div>
           
-          {/* Word Display in Center - Now with flip effect */}
+          {/* Word Display in Center - With flip effect */}
           <div 
             className={`${styles.wordSection} ${isFlipped ? styles.flipped : ''}`}
             onClick={handleCardFlip}
@@ -223,7 +260,11 @@ const SyllableClappingGame = () => {
             <div className={styles.cardFront}>
               <div className={styles.wordImageContainer}>
                 <div className={styles.wordImage}>
-                  <span>🦋</span>
+                  <img 
+                    src={currentWord.image_url} 
+                    alt={currentWord.word} 
+                    className={styles.realImage}
+                  />
                 </div>
               </div>
               
@@ -250,15 +291,29 @@ const SyllableClappingGame = () => {
             {/* Back side - Real image */}
             <div className={styles.cardBack}>
               <div className={styles.realImageContainer}>
-                <img 
-                  src={Butterfly} 
-                  alt={currentWord.word} 
-                  className={styles.realImage}
-                />
+                {currentWord.image_url ? (
+                  <img 
+                    src={currentWord.image_url} 
+                    alt={currentWord.word} 
+                    className={styles.realImage}
+                  />
+                ) : (
+                  <div className={styles.placeholderImage}>
+                    <img 
+                    src={currentWord.image_url} 
+                    alt={currentWord.word} 
+                    className={styles.realImage}
+                  />
+                  </div>
+                )}
               </div>
-              <div className={styles.funFactContainer}> {/** Later will be AI generated */}
+              <div className={styles.funFactContainer}>
                 <span className={styles.funFactIcon}>💡</span>
-                <div className={styles.funFact}>Fun fact: Butterflies taste with their feet and can see ultraviolet light invisible to humans!</div>
+                <div className={styles.funFact}>
+                  {currentWord.category === 'Animals' ? 
+                    `Fun fact about ${currentWord.word}: This ${currentWord.word} is an amazing creature!` : 
+                    `Fun fact about ${currentWord.word}: This is a ${currentWord.category.toLowerCase()} item with ${currentWord.count} syllables!`}
+                </div>
               </div>
               <div className={styles.flipInstruction}>
                 Click to see word
@@ -291,6 +346,21 @@ const SyllableClappingGame = () => {
             </button>
           </div>
         </div>
+        
+        {/* Loading and Error States */}
+        {isLoading && (
+          <div className={styles.loadingOverlay}>
+            <div className={styles.loadingSpinner}></div>
+            <p>Loading next word...</p>
+          </div>
+        )}
+        
+        {error && (
+          <div className={styles.errorMessage}>
+            <p>{error}</p>
+            <button onClick={fetchNewWord}>Try Again</button>
+          </div>
+        )}
       </div>
     );
   };
@@ -339,7 +409,7 @@ const SyllableClappingGame = () => {
             </div>
           </div>
           
-          {/* Word and Image - Now with flip effect */}
+          {/* Word and Image - With flip effect */}
           <div 
             className={`${styles.wordSection} ${isFlipped ? styles.flipped : ''}`}
             onClick={handleCardFlip}
@@ -349,7 +419,11 @@ const SyllableClappingGame = () => {
             <div className={styles.cardFront}>
               <div className={styles.wordImageContainer}>
                 <div className={styles.wordImage}>
-                  <span>🦋</span>
+                <img 
+                    src={currentWord.image_url} 
+                    alt={currentWord.word} 
+                    className={styles.realImage}
+                  />
                 </div>
               </div>
               
@@ -373,15 +447,29 @@ const SyllableClappingGame = () => {
             {/* Back side - Real image */}
             <div className={styles.cardBack}>
               <div className={styles.realImageContainer}>
-                <img 
-                  src={Butterfly} 
-                  alt={currentWord.word} 
-                  className={styles.realImage}
-                />
+                {currentWord.image_url ? (
+                  <img 
+                    src={currentWord.image_url} 
+                    alt={currentWord.word} 
+                    className={styles.realImage}
+                  />
+                ) : (
+                  <div className={styles.placeholderImage}>
+                    <img 
+                    src={currentWord.image_url} 
+                    alt={currentWord.word} 
+                    className={styles.realImage}
+                  />
+                  </div>
+                )}
               </div>
-              <div className={styles.funFactContainer}> {/** Later will be AI generated */}
+              <div className={styles.funFactContainer}>
                 <span className={styles.funFactIcon}>💡</span>
-                <div className={styles.funFact}>Fun fact: Butterflies taste with their feet and can see ultraviolet light invisible to humans!</div>
+                <div className={styles.funFact}>
+                  {currentWord.category === 'Animals' ? 
+                    `Fun fact about ${currentWord.word}: This ${currentWord.word} is an amazing creature!` : 
+                    `Fun fact about ${currentWord.word}: This is a ${currentWord.category.toLowerCase()} item with ${currentWord.count} syllables!`}
+                </div>
               </div>
               <div className={styles.flipInstruction}>
                 Click to see word
@@ -413,7 +501,8 @@ const SyllableClappingGame = () => {
                 <span>🤖</span> AI Learning Assistant
               </div>
               <div className={styles.aiFeedbackContent}>
-                In "butterfly", we hear three distinct syllables: but-ter-fly. Each syllable has one vowel sound. Try clapping slowly as you say but-ter-fly to feel each syllable!
+                In "{currentWord.word}", we hear {currentWord.count} distinct syllables: {currentWord.syllables}. 
+                Each syllable has one vowel sound. Try clapping slowly as you say {currentWord.syllables} to feel each syllable!
               </div>
             </div>
             
