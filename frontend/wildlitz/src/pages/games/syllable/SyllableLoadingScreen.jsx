@@ -1,3 +1,4 @@
+// src/pages/games/syllable/SyllableLoadingScreen.jsx <current update > 2025-04-21 9:30:00>
 import React from 'react';
 import { motion } from 'framer-motion';
 import '../../../styles/games/syllable/SyllableLoadingScreen.module.css';

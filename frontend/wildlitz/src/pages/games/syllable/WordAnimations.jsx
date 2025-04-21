@@ -1,3 +1,4 @@
+// src/pages/games/syllable/WordAnimations.jsx <current update > 2025-04-21 9:30:00>
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import '../../../styles/WordAnimations.css';

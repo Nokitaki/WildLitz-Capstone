@@ -1,3 +1,4 @@
+// src/pages/games/syllable/SampleWordAnimations.jsx <current update > 2025-04-21 9:30:00>
 import React from 'react';
 import { motion } from 'framer-motion';
 import '../../../styles/games/syllable/SampleWordAnimations.module.css'; // Import your CSS styles for animations

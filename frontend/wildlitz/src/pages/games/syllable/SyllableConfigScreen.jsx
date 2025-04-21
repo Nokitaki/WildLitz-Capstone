@@ -1,3 +1,4 @@
+// src/pages/games/syllable/SyllableConfigScreen.jsx <current update > 2025-04-22 6:30:00>
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/syllable/SyllableConfigScreen.module.css';
@@ -8,12 +9,12 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   const [questionCount, setQuestionCount] = useState(10);
   const [selectedCategories, setSelectedCategories] = useState({
     animals: true,
-    colors: false,
-    foodItems: true,
-    places: true,
-    feelings: false,
-    commonObjects: true,
-    numbers: true,
+    fruits: false,
+    food: true,
+    toys: true,
+    clothes: false,
+    schoolSupplies: true,
+    nature: true,
   });
   const [showCustomWordModal, setShowCustomWordModal] = useState(false);
   const [customWords, setCustomWords] = useState([]);
@@ -38,14 +39,13 @@ const SyllableConfigScreen = ({ onStartGame }) => {
 
   const categories = [
     { id: 'animals', name: 'Animals', icon: '🦁' },
-    { id: 'colors', name: 'Colors', icon: '🎨' },
-    { id: 'foodItems', name: 'Food Items', icon: '🍎' },
-    { id: 'places', name: 'Places', icon: '🏠' },
-    { id: 'feelings', name: 'Feelings', icon: '😊' },
-    { id: 'commonObjects', name: 'Common Objects', icon: '📱' },
-    { id: 'numbers', name: 'Numbers', icon: '🔢' },
+    { id: 'fruits', name: 'Fruits', icon: '🍎' },
+    { id: 'food', name: 'Food', icon: '🍕' },
+    { id: 'toys', name: 'Toys', icon: '🧸' },
+    { id: 'clothes', name: 'Clothes', icon: '👕' },
+    { id: 'schoolSupplies', name: 'School Supplies', icon: '✏️' },
+    { id: 'nature', name: 'Nature', icon: '🌿' },
   ];
-
   const difficultyInfo = {
     easy: { emoji: '😊', text: '1-2 syllables', color: '#4caf50' },
     medium: { emoji: '🤔', text: '2-3 syllables', color: '#ff9800' },

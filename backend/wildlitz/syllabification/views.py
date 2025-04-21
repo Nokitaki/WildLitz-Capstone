@@ -1,4 +1,5 @@
-from django.http import JsonResponse
+# backend/wildlitz/syllabification/views.py <current update > 2025-04-21 9:30:00>
+from django.http import JsonResponse 
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json

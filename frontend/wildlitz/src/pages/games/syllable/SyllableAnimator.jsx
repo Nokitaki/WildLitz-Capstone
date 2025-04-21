@@ -1,3 +1,4 @@
+// src/pages/games/syllable/SyllableAnimator.jsx <current update > 2025-04-21 9:30:00>
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import '../../../styles/SyllableAnimator.css';
