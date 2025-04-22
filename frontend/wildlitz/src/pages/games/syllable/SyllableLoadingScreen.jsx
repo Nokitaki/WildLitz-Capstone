@@ -1,26 +1,9 @@
-// src/pages/games/syllable/SyllableLoadingScreen.jsx <current update > 2025-04-21 9:30:00>
+// src/pages/games/syllable/SyllableLoadingScreen.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
-import '../../../styles/games/syllable/SyllableLoadingScreen.module.css';
+import styles from '../../../styles/games/syllable/SyllableLoadingScreen.module.css';
 
-const SyllableLoadingScreen = ({ category, difficulty, onContinue, wordIndex = 0, totalWords = 10 }) => {
-  // Get appropriate hint based on category
-  const getHint = (category) => {
-    const hints = {
-      'Animals': 'A creature from the animal kingdom',
-      'Colors': 'Something that describes visual appearance',
-      'Food Items': 'Something you can eat',
-      'Action Words': 'Something you can do',
-      'Places': 'Somewhere you can go',
-      'Feelings': 'An emotion or sensation',
-      'Common Objects': 'Something you might use every day',
-      'Numbers': 'Related to counting or mathematics',
-      'Custom Words': 'A special word selected for learning'
-    };
-    
-    return hints[category] || 'Focus on listening for syllables';
-  };
-
+const SyllableLoadingScreen = ({ difficulty, wordIndex = 0, totalWords = 10, tip = "" }) => {
   // Get color theme based on difficulty
   const getDifficultyColor = (level) => {
     switch(level.toLowerCase()) {
@@ -32,72 +15,81 @@ const SyllableLoadingScreen = ({ category, difficulty, onContinue, wordIndex = 0
     }
   };
 
+  const dotVariants = {
+    jump: {
+      y: -15,
+      transition: {
+        duration: 0.6,
+        repeat: Infinity,
+        repeatType: "mirror",
+        ease: "easeInOut",
+      },
+    },
+  };
+
   return (
-    <div className="syllable-game-container">
-      <div className="loading-content">
-        <div className="loading-card">
-          <div className="game-header">
+    <div className={styles.loadingScreenContainer}>
+      <div className={styles.loadingContent}>
+        <div className={styles.loadingCard}>
+          <div className={styles.gameHeader}>
             <h1>WildLitz - Syllable Clapping Game</h1>
-            <div className="progress-container">
-              <div 
-                className="progress-bar" 
-                style={{ 
-                  width: `${(wordIndex / totalWords * 100)}%`,
-                  backgroundColor: getDifficultyColor(difficulty)
-                }}
-              ></div>
-              <span className="progress-text">{wordIndex}/{totalWords}</span>
+            <div className={styles.progressContainer}>
+              <div className={styles.loadingBarContainer}>
+                <motion.div 
+                  className={styles.loadingBar}
+                  animate={{
+                    width: ['0%', '100%'],
+                    x: ['-5%', '5%']
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: 'reverse',
+                    ease: 'easeInOut'
+                  }}
+                  style={{ backgroundColor: getDifficultyColor(difficulty) }}
+                />
+              </div>
             </div>
           </div>
           
-          <div className="ai-badge">
-            <span role="img" aria-label="AI">🤖</span> AI Assisted Selection
+          <div className={styles.aiBadge}>
+            <span role="img" aria-label="AI">🤖</span> AI Assisted Learning
           </div>
           
-          <h2 className="loading-title">Preparing Next Word...</h2>
+          <h2 className={styles.loadingTitle}>Preparing Game...</h2>
           
-          <div className="loading-dots">
-            <motion.div 
-              className="dot"
-              animate={{ scale: [1, 1.5, 1] }}
-              transition={{ duration: 1, repeat: Infinity, delay: 0 }}
-              style={{ backgroundColor: getDifficultyColor(difficulty) }}
-            />
-            <motion.div 
-              className="dot"
-              animate={{ scale: [1, 1.5, 1] }}
-              transition={{ duration: 1, repeat: Infinity, delay: 0.3 }}
-              style={{ backgroundColor: getDifficultyColor(difficulty) }}
-            />
-            <motion.div 
-              className="dot"
-              animate={{ scale: [1, 1.5, 1] }}
-              transition={{ duration: 1, repeat: Infinity, delay: 0.6 }}
-              style={{ backgroundColor: getDifficultyColor(difficulty) }}
-            />
-          </div>
-          
-          <div className="info-box category">
-            <p>Category: {category}</p>
-          </div>
-          
-          <div className="info-box difficulty">
-            <p>Difficulty Level: {difficulty}</p>
-          </div>
-          
-          <motion.button 
-            className="ready-button"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onContinue}
-            style={{ backgroundColor: getDifficultyColor(difficulty) }}
+          <motion.div 
+            className={styles.loadingDotsContainer}
+            animate="jump"
+            transition={{ staggerChildren: 0.2 }}
           >
-            Get ready for the next word!
-          </motion.button>
+            <motion.div 
+              className={styles.loadingDot}
+              variants={dotVariants}
+              style={{ backgroundColor: getDifficultyColor(difficulty) }}
+            />
+            <motion.div 
+              className={styles.loadingDot}
+              variants={dotVariants}
+              style={{ backgroundColor: getDifficultyColor(difficulty) }}
+            />
+            <motion.div 
+              className={styles.loadingDot}
+              variants={dotVariants}
+              style={{ backgroundColor: getDifficultyColor(difficulty) }}
+            />
+          </motion.div>
           
-          <div className="hint-box">
-            <span role="img" aria-label="Hint">💡</span> Hint: {getHint(category)}
+          <div className={styles.infoBox}>
+            <p><strong>Difficulty Level:</strong> {difficulty}</p>
           </div>
+          
+          {tip && (
+            <div className={styles.tipsBox}>
+              <span role="img" aria-label="Tip">💡</span> <strong>Tip:</strong> {tip}
+            </div>
+          )}
         </div>
       </div>
     </div>

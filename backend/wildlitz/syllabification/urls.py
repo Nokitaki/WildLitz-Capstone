@@ -1,15 +1,20 @@
-# backend/wildlitz/syllabification/urls.py <current update > 2025-04-21 9:30:00>
+# backend/wildlitz/syllabification/urls.py
 from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    # Only include the Supabase endpoint for now
+    # Existing endpoint for getting words from Supabase
     path('get-word-supabase/', views.get_syllabification_word_from_supabase, name='get_syllabification_word_from_supabase'),
     
-    # Remove any endpoints that reference functions you've deleted
-    # We can add these back one by one as you implement them
+    # New endpoint for batch word retrieval
+    path('get-word-batch/', views.get_word_batch, name='get_word_batch'),
+    
+    # Other AI-related endpoints
+    path('check-syllable-answer/', views.check_syllable_answer, name='check_syllable_answer'),
+    path('get-syllable-pronunciation/', views.get_syllable_pronunciation, name='get_syllable_pronunciation'),
+    path('generate-ai-content/', views.generate_ai_content, name='generate_ai_content'),
 ]
 
 if settings.DEBUG:

@@ -1,4 +1,4 @@
-// src/pages/games/syllable/SyllableConfigScreen.jsx <current update > 2025-04-22 6:30:00>
+// Update the categories to match the database exactly
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/syllable/SyllableConfigScreen.module.css';
@@ -37,6 +37,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     }
   }, []);
 
+  // IMPORTANT: Make sure these category IDs and names match exactly with your database
   const categories = [
     { id: 'animals', name: 'Animals', icon: '🦁' },
     { id: 'fruits', name: 'Fruits', icon: '🍎' },
@@ -46,6 +47,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     { id: 'schoolSupplies', name: 'School Supplies', icon: '✏️' },
     { id: 'nature', name: 'Nature', icon: '🌿' },
   ];
+
   const difficultyInfo = {
     easy: { emoji: '😊', text: '1-2 syllables', color: '#4caf50' },
     medium: { emoji: '🤔', text: '2-3 syllables', color: '#ff9800' },
@@ -118,24 +120,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     });
   };
 
-  // Record custom audio
-  const handleStartRecording = () => {
-    setIsRecording(true);
-    // Implementation for audio recording would go here
-    // This is a placeholder - would need actual recording logic
-    
-    setTimeout(() => {
-      setIsRecording(false);
-      setAudioRecording("mock_audio_recording_data");
-    }, 2000);
-  };
-
-  // Play recorded audio
-  const playRecordedAudio = () => {
-    // Implementation to play the recorded audio
-    console.log("Playing recorded audio");
-  };
-
   // Delete a custom word
   const deleteCustomWord = (id) => {
     const updatedWords = customWords.filter(word => word.id !== id);
@@ -150,11 +134,13 @@ const SyllableConfigScreen = ({ onStartGame }) => {
 
   // Start the game with selected settings
   const handleStartGame = () => {
-    // Get selected category names
+    // Get selected category names - make sure they match database categories exactly
     const categoryNames = Object.entries(selectedCategories)
       .filter(([_, isSelected]) => isSelected)
       .map(([id, _]) => {
         const category = categories.find(cat => cat.id === id);
+        
+        // Use the exact category name - this must match your database
         return category ? category.name : '';
       })
       .filter(name => name !== '');
@@ -164,6 +150,8 @@ const SyllableConfigScreen = ({ onStartGame }) => {
       alert("Please select at least one category or add custom words");
       return;
     }
+
+    console.log("Starting game with categories:", categoryNames);
 
     // Pass game configuration to parent
     onStartGame({
@@ -303,8 +291,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         </div>
 
         <div className={styles.gameFooter}>
-          
-          
           <motion.button
             className={styles.startButton}
             whileHover={{ scale: 1.03, boxShadow: "0 8px 15px rgba(106,90,205,0.4)" }}

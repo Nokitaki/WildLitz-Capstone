@@ -1,22 +1,28 @@
-// src/pages/games/syllable/SyllableDemoScreen.jsx <current update > 2025-04-21 9:30:00>
+// src/pages/games/syllable/SyllableDemoScreen.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from '../../../styles/games/syllable/SyllableDemoScreen.module.css';
 import wildLitzCharacter from '../../../assets/img/wildlitz-idle.png';
 
-const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlaySound }) => {
+const SyllableDemoScreen = ({ word, onBack, onPlaySound, pronunciationGuide }) => {
   const [selectedSyllable, setSelectedSyllable] = useState('all');
   const [playbackSpeed, setPlaybackSpeed] = useState('normal');
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [syllableAudio, setSyllableAudio] = useState({});
+  const [pronunciation, setPronunciation] = useState(null);
+  const [characterMessage, setCharacterMessage] = useState('');
   
   // If syllables aren't provided, split the word by hyphens
-  const syllableArray = syllables.length > 0 
-    ? syllables 
-    : (word?.syllable_breakdown?.split('-') || word?.syllables?.split('-') || [word?.word || 'example']);
+  const syllableArray = word?.syllables?.split('-') || [word?.word || 'example'];
   
-  // Load syllable sounds when component mounts or when word changes
+  // Helper function to truncate messages to prevent UI overflow
+  const truncateMessage = (message, maxLength) => {
+    if (!message) return '';
+    return message.length > maxLength ? message.substring(0, maxLength) + '...' : message;
+  };
+  
+  // Load syllable sounds and pronunciation guidance
   useEffect(() => {
     if (!word) return;
     
@@ -24,6 +30,62 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
     
     // Get the word text, handling different object structures
     const wordText = typeof word === 'string' ? word : word.word;
+    
+    // Use the pronunciation guide if it was passed as a prop
+    if (pronunciationGuide) {
+      setPronunciation(pronunciationGuide);
+      
+      // Set the character message if provided in the pronunciation guide
+      if (pronunciationGuide.character_message) {
+        // Truncate the message if it's too long to prevent UI issues
+        setCharacterMessage(truncateMessage(pronunciationGuide.character_message, 120));
+      } else {
+        // Only generate a message if one wasn't provided
+        generateDemoMessage();
+      }
+      
+      setIsLoading(false);
+      return;
+    }
+    
+    // Otherwise fetch pronunciation data
+    const fetchPronunciationData = async () => {
+      try {
+        const response = await axios.post('/api/syllabification/get-syllable-pronunciation/', {
+          word: wordText,
+          syllables: word.syllables
+        });
+        
+        if (response.data) {
+          setPronunciation(response.data);
+          
+          // Set the character message from the response if available
+          if (response.data.character_message) {
+            // Truncate the message if it's too long to prevent UI issues
+            setCharacterMessage(truncateMessage(response.data.character_message, 120));
+          } else {
+            // Only generate a message if one wasn't provided
+            generateDemoMessage();
+          }
+        }
+      } catch (err) {
+        console.error("Error loading pronunciation guidance:", err);
+        // Set default pronunciation data
+        setPronunciation({
+          syllables: syllableArray.map(syllable => ({
+            syllable,
+            pronunciation_guide: `Say "${syllable}" clearly.`,
+            similar_sound_word: 'example'
+          })),
+          full_pronunciation_tip: `Say the word "${wordText}" by pronouncing each syllable clearly.`
+        });
+        
+        // Generate a message since we don't have one
+        generateDemoMessage();
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
     // Call API to get syllable audio
     axios.post('/api/syllabification/pronounce-word/', {
@@ -39,11 +101,34 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
     .catch(err => {
       console.error("Error loading syllable sounds:", err);
       // If API call fails, we'll fall back to browser speech synthesis
-    })
-    .finally(() => {
-      setIsLoading(false);
     });
-  }, [word]);
+    
+    fetchPronunciationData();
+  }, [word, pronunciationGuide, syllableArray]);
+  
+  // Generate a word-specific demo message if needed
+  const generateDemoMessage = async () => {
+    // Don't generate a message if we already have one from pronunciationGuide
+    if (characterMessage) return;
+    
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/api/syllabification/generate-ai-content/', {
+        type: 'character_message',
+        word: word.word,
+        context: 'demo'
+      });
+      
+      if (response.data && response.data.content) {
+        // Truncate message to prevent UI overflow
+        setCharacterMessage(truncateMessage(response.data.content, 120));
+      } else {
+        setCharacterMessage(`Let's learn how to pronounce "${word.word}" syllable by syllable!`);
+      }
+    } catch (error) {
+      console.error("Error generating demo message:", error);
+      setCharacterMessage(`Let's learn how to pronounce "${word.word}" syllable by syllable!`);
+    }
+  };
   
   // Function to play a specific syllable sound
   const playSyllableSound = (syllable) => {
@@ -149,9 +234,9 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
   
   // Function to get phonetic description based on syllable
   const getPhoneticDescription = (syllable) => {
-    if (explanation && explanation.syllables) {
-      const syllableInfo = explanation.syllables.find(s => s.syllable === syllable);
-      if (syllableInfo) {
+    if (pronunciation && pronunciation.syllables) {
+      const syllableInfo = pronunciation.syllables.find(s => s.syllable === syllable);
+      if (syllableInfo && syllableInfo.pronunciation_guide) {
         return syllableInfo.pronunciation_guide;
       }
     }
@@ -166,8 +251,8 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
   
   // Function to get example word with similar sound
   const getSimilarSoundWord = (syllable) => {
-    if (explanation && explanation.syllables) {
-      const syllableInfo = explanation.syllables.find(s => s.syllable === syllable);
+    if (pronunciation && pronunciation.syllables) {
+      const syllableInfo = pronunciation.syllables.find(s => s.syllable === syllable);
       if (syllableInfo && syllableInfo.similar_sound_word) {
         return syllableInfo.similar_sound_word;
       }
@@ -200,7 +285,7 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
           />
           
           <div className={styles.speechBubble}>
-            <p>Let's learn how to say each syllable!</p>
+            <p>{characterMessage || 'Let\'s learn how to say each syllable!'}</p>
           </div>
         </div>
         
@@ -291,10 +376,10 @@ const SyllableDemoScreen = ({ word, syllables = [], explanation, onBack, onPlayS
                   )}
                 </div>
                 
-                {explanation && explanation.full_pronunciation_tip && (
+                {pronunciation && pronunciation.full_pronunciation_tip && selectedSyllable === 'all' && (
                   <div className={styles.pronunciationTip}>
                     <h4>Pronunciation Tip:</h4>
-                    <p>{explanation.full_pronunciation_tip}</p>
+                    <p>{pronunciation.full_pronunciation_tip}</p>
                   </div>
                 )}
               </div>
