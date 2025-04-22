@@ -328,7 +328,7 @@ const SyllableClappingGame = () => {
     // Re-enable the demo button after 6 seconds
     setTimeout(() => {
       setDemoButtonDisabled(false);
-    }, 6000);
+    }, 3000);
   };
   
   // Handle going back from demo to feedback
