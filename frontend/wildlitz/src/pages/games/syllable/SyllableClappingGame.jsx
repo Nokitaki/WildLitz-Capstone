@@ -239,9 +239,6 @@ const SyllableClappingGame = () => {
   // Show welcome message when a new word starts
   useEffect(() => {
     if (gamePhase === 'playing') {
-      // Load the current word from preloaded array
-      loadCurrentWord();
-      
       // Show message and bubble
       setShowBubble(true);
       
@@ -258,6 +255,18 @@ const SyllableClappingGame = () => {
       const flipTimer = setTimeout(() => {
         setIsFlipped(false);
         setIsFlipping(true);
+        
+        // After flipping back to word, wait a moment then play the sound
+        const audioTimer = setTimeout(() => {
+          // Make sure we have the current word before trying to play it
+          if (currentWord && currentWord.word) {
+            // Play the word using TTS
+            handlePlaySound(); // <-- Use your existing function
+          }
+        }, 500);
+        
+        // Clean up the audio timer
+        return () => clearTimeout(audioTimer);
       }, 3000);
       
       return () => {
@@ -265,7 +274,7 @@ const SyllableClappingGame = () => {
         clearTimeout(flipTimer);
       };
     }
-  }, [gamePhase, wordIndex]);
+  }, [gamePhase]);
   
   // Handle card flip transition end
   const handleFlipTransitionEnd = () => {
@@ -289,22 +298,75 @@ const SyllableClappingGame = () => {
     setStartTime(new Date());
     setTotalWords(config.questionCount || 10);
     
-    // Set a tip using our hardcoded function instead of API call
+    // Set a tip using our hardcoded function
     const gameTip = getSyllableTip(config.difficulty);
     setSyllableTip(gameTip);
     
     // Show loading screen before preloading words
     setGamePhase('loading');
     
-    // Preload all words first
-    const success = await preloadGameWords(config);
+    // Preload all words first - IMPORTANT: capture the returned words
+    const words = await preloadGameWords(config);
     
-    if (success) {
-      // Automatically transition to playing phase when data is loaded
+    if (words && words.length > 0) {
+      // Use the words array directly instead of relying on gameWords state
+      
+      // Set the current word explicitly using the first word from the returned array
+      const firstWord = words[0];
+      setCurrentWord({
+        word: firstWord.word,
+        syllables: firstWord.syllables,
+        count: firstWord.count,
+        category: firstWord.category,
+        image_url: firstWord.image_url || null,
+        fun_fact: firstWord.fun_fact || `Fun fact about ${firstWord.word}!`,
+        intro_message: firstWord.intro_message || `Let's listen and count the syllables!`
+      });
+      
+      // Set bubble message
+      setBubbleMessage(firstWord.intro_message || `Let's listen and count the syllables!`);
+      
+      // Transition to playing phase
       setGamePhase('playing');
+    } else {
+      // Handle error - words couldn't be loaded
+      console.error("Failed to load word data");
+      setError('Could not load game data. Please try different settings or reload the page.');
     }
   };
   
+  const playWordWithTTS = (word) => {
+    if (!word) {
+      console.warn('Attempted to play TTS for empty word');
+      return;
+    }
+    
+    setIsPlaying(true);
+    
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.rate = 0.35; // Slightly slower for clarity
+      
+      utterance.onend = () => {
+        setIsPlaying(false);
+      };
+      
+      utterance.onerror = () => {
+        setIsPlaying(false);
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      // Fallback if speech synthesis is not available
+      console.warn('Text-to-speech not supported in this browser');
+      setTimeout(() => setIsPlaying(false), 2000);
+    }
+  };
+
+
   // Handle clap button press
   const handleClap = () => {
     setClapCount(prev => prev + 1);
@@ -312,9 +374,40 @@ const SyllableClappingGame = () => {
   
   // Handle play sound button
   const handlePlaySound = () => {
+    // Get the current word directly from state
+    const word = currentWord?.word;
+    
+    // Safety check to ensure we have a valid word
+    if (!word) {
+      console.warn('Attempted to play sound for undefined word');
+      return;
+    }
+  
     setIsPlaying(true);
-    // Simulate audio playing for 2 seconds
-    setTimeout(() => setIsPlaying(false), 2000);
+    
+    // Use text-to-speech to read the current word
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.rate = 0.35; // Slightly slower for clarity
+      
+      utterance.onend = () => {
+        setIsPlaying(false);
+      };
+      
+      utterance.onerror = () => {
+        setIsPlaying(false);
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      // Fallback if speech synthesis is not available
+      console.warn('Text-to-speech not supported in this browser');
+      // Simulate audio playing for 2 seconds
+      setTimeout(() => setIsPlaying(false), 2000);
+    }
   };
   
   // Handle checking the answer
@@ -424,7 +517,6 @@ const SyllableClappingGame = () => {
     return true;
   };
   
-  // Replace the handleNextWord function with this version:
 
   const handleNextWord = () => {
     // Disable the next button to prevent multiple clicks
@@ -469,7 +561,26 @@ const SyllableClappingGame = () => {
     // Wait 1.5 seconds with the transition screen
     setTimeout(() => {
       // Advance to the next word index
-      setWordIndex(prevIndex => prevIndex + 1);
+      const newWordIndex = wordIndex + 1;
+      setWordIndex(newWordIndex);
+      
+      // Explicitly set the current word to the new word
+      const wordData = gameWords[newWordIndex];
+      if (wordData) {
+        // Update the current word explicitly
+        setCurrentWord({
+          word: wordData.word,
+          syllables: wordData.syllables,
+          count: wordData.count,
+          category: wordData.category,
+          image_url: wordData.image_url || null,
+          fun_fact: wordData.fun_fact || `Fun fact about ${wordData.word}!`,
+          intro_message: wordData.intro_message || `Let's listen and count the syllables!`
+        });
+        
+        // Set bubble message
+        setBubbleMessage(wordData.intro_message || `Let's listen and count the syllables!`);
+      }
       
       // Now change to playing phase
       setGamePhase('playing');
@@ -484,6 +595,35 @@ const SyllableClappingGame = () => {
       setTimeout(() => {
         setShowBubble(false);
       }, 6000);
+      
+      // Auto-play the word only after the card flip animation
+      setTimeout(() => {
+        // First the card flips to show the image (3 seconds)
+        // Then it flips back to show the word
+        setTimeout(() => {
+          if (wordData && wordData.word) {
+            // Cancel any ongoing speech
+            if ('speechSynthesis' in window) {
+              window.speechSynthesis.cancel();
+              
+              const utterance = new SpeechSynthesisUtterance(wordData.word);
+              utterance.rate = 0.35; // Slightly slower for clarity
+              
+              setIsPlaying(true);
+              
+              utterance.onend = () => {
+                setIsPlaying(false);
+              };
+              
+              utterance.onerror = () => {
+                setIsPlaying(false);
+              };
+              
+              window.speechSynthesis.speak(utterance);
+            }
+          }
+        }, 3500); // Wait for card flip animation to complete
+      }, 100);
     }, 1500);
   };
 
@@ -494,23 +634,35 @@ const SyllableClappingGame = () => {
       return false;
     }
     
-    const wordData = gameWords[wordIndex];
-    
-    // Update state with the current word
-    setCurrentWord({
-      word: wordData.word,
-      syllables: wordData.syllables,
-      count: wordData.count,
-      category: wordData.category,
-      image_url: wordData.image_url || null, // Use null instead of empty string
-      fun_fact: wordData.fun_fact || `Fun fact about ${wordData.word}: This is a ${wordData.category.toLowerCase()} with ${wordData.count} syllables!`,
-      intro_message: wordData.intro_message || `Let's listen and count the syllables!`
-    });
-    
-    // Set the bubble message from the AI-generated intro
-    setBubbleMessage(wordData.intro_message || `Let's listen and count the syllables!`);
-    
-    return true;
+    try {
+      const wordData = gameWords[wordIndex];
+      
+      if (!wordData) {
+        console.error(`No word data found at index ${wordIndex}`);
+        setError('Failed to load word data. Please try again.');
+        return false;
+      }
+      
+      // Update state with the current word
+      setCurrentWord({
+        word: wordData.word || 'example',
+        syllables: wordData.syllables || 'ex-am-ple',
+        count: wordData.count || 3,
+        category: wordData.category || 'Default',
+        image_url: wordData.image_url || null,
+        fun_fact: wordData.fun_fact || `Fun fact about words!`,
+        intro_message: wordData.intro_message || `Let's listen and count the syllables!`
+      });
+      
+      // Set the bubble message from the AI-generated intro
+      setBubbleMessage(wordData.intro_message || `Let's listen and count the syllables!`);
+      
+      return true;
+    } catch (error) {
+      console.error('Error loading current word:', error);
+      setError('An error occurred while loading the word. Please try again.');
+      return false;
+    }
   };  
   
   // Preload all words for the game session
@@ -563,17 +715,21 @@ const SyllableClappingGame = () => {
         
         // Shuffle the array to randomize word order
         const shuffledWords = [...uniqueWords].sort(() => Math.random() - 0.5);
+        
+        // Set state for future use
         setGameWords(shuffledWords);
         setWordIndex(0);
-        return true;
+        
+        // IMPORTANT CHANGE: Return the words array directly
+        return shuffledWords;
       } else {
         setError('Could not load enough words. Please try different settings.');
-        return false;
+        return null;
       }
     } catch (err) {
       console.error('Error preloading words:', err);
       setError('Failed to load words. Please try again.');
-      return false;
+      return null;
     } finally {
       setIsLoading(false);
     }
@@ -678,7 +834,7 @@ const SyllableClappingGame = () => {
                   disabled={isPlaying}
                 >
                   <span className={styles.soundIcon}>🔊</span>
-                  <span>{isPlaying ? 'Playing...' : 'Listen'}</span>
+                  <span>{isPlaying ? 'Playing...' : 'Listen Again'}</span>
                 </button>
               </div>
               
