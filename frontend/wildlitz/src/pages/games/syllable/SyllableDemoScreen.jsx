@@ -13,8 +13,11 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound, pronunciationGuide }) =
   const [pronunciation, setPronunciation] = useState(null);
   const [characterMessage, setCharacterMessage] = useState('');
   
-  // If syllables aren't provided, split the word by hyphens
+  // Split syllables from syllable breakdown
   const syllableArray = word?.syllables?.split('-') || [word?.word || 'example'];
+  
+  // Split pronunciation guides if available
+  const pronunciationArray = word?.pronunciation_guide?.split('-') || syllableArray;
   
   // Helper function to truncate messages to prevent UI overflow
   const truncateMessage = (message, maxLength) => {
@@ -72,9 +75,10 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound, pronunciationGuide }) =
         console.error("Error loading pronunciation guidance:", err);
         // Set default pronunciation data
         setPronunciation({
-          syllables: syllableArray.map(syllable => ({
+          syllables: syllableArray.map((syllable, index) => ({
             syllable,
-            pronunciation_guide: `Say "${syllable}" clearly.`,
+            // Use pronunciation guide if available, otherwise use original syllable
+            pronunciation_guide: pronunciationArray[index] || `Say "${syllable}" clearly.`,
             similar_sound_word: 'example'
           })),
           full_pronunciation_tip: `Say the word "${wordText}" by pronouncing each syllable clearly.`
@@ -104,7 +108,7 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound, pronunciationGuide }) =
     });
     
     fetchPronunciationData();
-  }, [word, pronunciationGuide, syllableArray]);
+  }, [word, pronunciationGuide, syllableArray, pronunciationArray]);
   
   // Generate a word-specific demo message if needed
   const generateDemoMessage = async () => {
@@ -130,11 +134,15 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound, pronunciationGuide }) =
     }
   };
   
-  // Function to play a specific syllable sound
-  const playSyllableSound = (syllable) => {
+  // Function to play a specific syllable sound using the pronunciation guide
+  const playSyllableSound = (syllable, index) => {
     if (!syllable) return;
     
     setIsPlaying(true);
+    
+    // Use the pronunciation guide if available, otherwise use the original syllable
+    // Important: This is where we're now using the pronunciation_guide for better TTS
+    const textToSpeak = pronunciationArray[index] || syllable;
     
     // If we have the syllable audio data from the API
     if (syllableAudio.syllables) {
@@ -150,14 +158,14 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound, pronunciationGuide }) =
         
         audio.play().catch(error => {
           console.error("Failed to play syllable audio:", error);
-          useBrowserSpeech(syllable);
+          useBrowserSpeech(textToSpeak);
         });
         return;
       }
     }
     
-    // Fallback: Use browser's speech synthesis
-    useBrowserSpeech(syllable);
+    // Fallback: Use browser's speech synthesis with the pronunciation guide
+    useBrowserSpeech(textToSpeak);
     
     function useBrowserSpeech(text) {
       if ('speechSynthesis' in window) {
@@ -182,7 +190,7 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound, pronunciationGuide }) =
     }
   };
   
-  // Function to play the whole word
+  // Function to play the whole word - keep using the whole word rather than pronunciation guide
   const playWordSound = () => {
     setIsPlaying(true);
     
@@ -267,7 +275,9 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound, pronunciationGuide }) =
     if (selectedSyllable === 'all') {
       playWordSound();
     } else {
-      playSyllableSound(selectedSyllable);
+      // Get the index of the syllable to find the corresponding pronunciation guide
+      const syllableIndex = syllableArray.indexOf(selectedSyllable);
+      playSyllableSound(selectedSyllable, syllableIndex);
     }
   };
   
@@ -310,7 +320,7 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound, pronunciationGuide }) =
                     className={styles.soundIndicator}
                     onClick={(e) => {
                       e.stopPropagation();
-                      playSyllableSound(syllable);
+                      playSyllableSound(syllable, index);
                     }}
                   >
                     🔊

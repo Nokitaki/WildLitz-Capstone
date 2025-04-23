@@ -90,14 +90,44 @@ const SyllableClappingGame = () => {
     setSpeakingSyllable(syllable);
     
     // Use slow speech rate by default
-    const rate = 0.5; // Fixed slow rate
+    const rate = 0.5;
+    
+    // Get syllable array and find index of the current syllable
+    const syllableArray = currentWord.syllables.split('-');
+    const syllableIndex = syllableArray.indexOf(syllable);
+    
+    // Initialize text to speak with the original syllable as fallback
+    let textToSpeak = syllable;
+    
+    // Check if we have a pronunciation guide and it can be properly parsed
+    if (currentWord.pronunciation_guide && syllableIndex !== -1) {
+      try {
+        // Split the pronunciation guide and get the corresponding pronunciation
+        const pronunciationArray = currentWord.pronunciation_guide.split('-');
+        
+        // Make sure we have enough pronunciation guides for all syllables
+        if (pronunciationArray.length > syllableIndex) {
+          textToSpeak = pronunciationArray[syllableIndex];
+          console.log(`Using pronunciation guide for "${syllable}": "${textToSpeak}"`);
+        } else {
+          console.warn(`Pronunciation guide doesn't have entry for syllable ${syllableIndex}`);
+        }
+      } catch (error) {
+        console.error('Error parsing pronunciation guide:', error);
+      }
+    } else {
+      console.warn(`No pronunciation guide available for syllable: ${syllable}`);
+    }
+    
+    // Add a short pause for better TTS behavior
+    textToSpeak = textToSpeak.trim();
     
     // Try to use browser's text-to-speech
     if ('speechSynthesis' in window) {
       // Cancel any ongoing speech
       window.speechSynthesis.cancel();
       
-      const utterance = new SpeechSynthesisUtterance(syllable);
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
       utterance.rate = rate;
       
       utterance.onend = () => {
@@ -119,51 +149,58 @@ const SyllableClappingGame = () => {
     }
   };
 
-
-  
-
   // Fetch a new word from the API
-  const fetchNewWord = async () => {
-    setIsLoading(true);
-    setError(null);
+const fetchNewWord = async () => {
+  setIsLoading(true);
+  setError(null);
+  
+  try {
+    // Use the selected difficulty and categories from gameConfig
+    const difficulty = gameConfig?.difficulty || 'medium';
+    const categories = gameConfig?.categories || [];
     
-    try {
-      // Use the selected difficulty and categories from gameConfig
-      const difficulty = gameConfig?.difficulty || 'medium';
-      const categories = gameConfig?.categories || [];
-      
-      // Build query string for categories
-      const categoryParams = categories.map(cat => `categories[]=${encodeURIComponent(cat)}`).join('&');
-      
-      // Call API to get a word with AI-generated content
-      const response = await axios.get(
-        `http://127.0.0.1:8000/api/syllabification/get-word-supabase/?difficulty=${difficulty}&${categoryParams}`
-      );
-      
-      const wordData = response.data;
-      
-      // First update state with the new word
-      setCurrentWord({
-        word: wordData.word,
-        syllables: wordData.syllables,
-        count: wordData.count,
-        category: wordData.category,
-        image_url: wordData.image_url || null, // Set to null instead of empty string
-        fun_fact: wordData.fun_fact || `Fun fact about ${wordData.word}: This is a ${wordData.category.toLowerCase()} with ${wordData.count} syllables!`,
-        intro_message: wordData.intro_message || `Listen to "${wordData.word}" and count the syllables!`
-      });
-      
-      // Then set the bubble message from the AI-generated intro
-      // Use the actual word directly from the response data to avoid referencing wordData.word too early
-      setBubbleMessage(wordData.intro_message || `Listen to "${wordData.word}" and count the syllables!`);
-      
-    } catch (err) {
-      setError('Failed to load word. Please try again.');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    // Build query string for categories
+    const categoryParams = categories.map(cat => `categories[]=${encodeURIComponent(cat)}`).join('&');
+    
+    // Call API to get a word with AI-generated content
+    const response = await axios.get(
+      `http://127.0.0.1:8000/api/syllabification/get-word-supabase/?difficulty=${difficulty}&${categoryParams}`
+    );
+    
+    const wordData = response.data;
+    
+    // Add this debug logging right after getting the response
+    console.log('Pronunciation guide from API:', wordData.pronunciation_guide);
+    
+    // First update state with the new word
+    setCurrentWord({
+      word: wordData.word,
+      syllables: wordData.syllables,
+      count: wordData.count,
+      category: wordData.category,
+      image_url: wordData.image_url || null, // Set to null instead of empty string
+      pronunciation_guide: wordData.pronunciation_guide || wordData.syllables, // Make sure to include pronunciation guide
+      fun_fact: wordData.fun_fact || `Fun fact about ${wordData.word}: This is a ${wordData.category.toLowerCase()} with ${wordData.count} syllables!`,
+      intro_message: wordData.intro_message || `Listen to "${wordData.word}" and count the syllables!`
+    });
+    
+    // Add this debug logging right after setting the state
+    console.log('Current word state:', {
+      word: wordData.word,
+      syllables: wordData.syllables,
+      pronunciation_guide: wordData.pronunciation_guide || wordData.syllables
+    });
+    
+    // Then set the bubble message from the AI-generated intro
+    setBubbleMessage(wordData.intro_message || `Listen to "${wordData.word}" and count the syllables!`);
+    
+  } catch (err) {
+    setError('Failed to load word. Please try again.');
+    console.error(err);
+  } finally {
+    setIsLoading(false);
+  }
+};
   
   // State to store all preloaded words
   const [gameWords, setGameWords] = useState([]);
@@ -507,6 +544,7 @@ const SyllableClappingGame = () => {
       count: nextWordData.count,
       category: nextWordData.category,
       image_url: nextWordData.image_url || null,
+      pronunciation_guide: nextWordData.pronunciation_guide || nextWordData.syllables, // Make sure to include pronunciation guide
       fun_fact: nextWordData.fun_fact || `Fun fact about ${nextWordData.word}!`,
       intro_message: nextWordData.intro_message || `Listen to "${nextWordData.word}" and count the syllables!`
     });
@@ -574,6 +612,7 @@ const SyllableClappingGame = () => {
           count: wordData.count,
           category: wordData.category,
           image_url: wordData.image_url || null,
+          pronunciation_guide: wordData.pronunciation_guide || wordData.syllables, // Make sure to include pronunciation guide
           fun_fact: wordData.fun_fact || `Fun fact about ${wordData.word}!`,
           intro_message: wordData.intro_message || `Let's listen and count the syllables!`
         });
@@ -650,6 +689,7 @@ const SyllableClappingGame = () => {
         count: wordData.count || 3,
         category: wordData.category || 'Default',
         image_url: wordData.image_url || null,
+        pronunciation_guide: wordData.pronunciation_guide || wordData.syllables || 'ex-am-ple', // Make sure to include pronunciation guide
         fun_fact: wordData.fun_fact || `Fun fact about words!`,
         intro_message: wordData.intro_message || `Let's listen and count the syllables!`
       });
@@ -663,7 +703,7 @@ const SyllableClappingGame = () => {
       setError('An error occurred while loading the word. Please try again.');
       return false;
     }
-  };  
+  };
   
   // Preload all words for the game session
   const preloadGameWords = async (config) => {
@@ -1051,7 +1091,7 @@ const SyllableClappingGame = () => {
               </button>
             ))}
           </div>
-          
+                    
           {/* AI Feedback Section */}
           <div className={styles.aiFeedbackSection}>
             <div className={styles.aiFeedbackTitle}>

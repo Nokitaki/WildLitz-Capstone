@@ -66,12 +66,18 @@ def get_syllabification_word_from_supabase(request):
             # Generate an intro message
             intro_message = ai_generator.generate_character_message(word['word'], 'intro', difficulty)
             
+            # Add this debug logging right before returning the response
+            pronunciation_guide = word.get('pronunciation_guide', word['syllable_breakdown'])
+            logger.info(f"Word: {word['word']}, Syllables: {word['syllable_breakdown']}, Pronunciation Guide: {pronunciation_guide}")
+            
+            # Then return the response
             return JsonResponse({
                 'word': word['word'],
                 'syllables': word['syllable_breakdown'],
                 'count': word['syllable_count'],
                 'category': word['category'],
                 'image_url': word.get('image_url', ''),
+                'pronunciation_guide': pronunciation_guide,  # Make sure this is included
                 'fun_fact': fun_fact,
                 'intro_message': intro_message
             })
@@ -265,6 +271,7 @@ def get_word_batch(request):
                     'count': word['syllable_count'],
                     'category': word['category'],
                     'image_url': word.get('image_url', ''),
+                    'pronunciation_guide': word.get('pronunciation_guide', word['syllable_breakdown']),
                     'fun_fact': fun_fact,
                     'intro_message': intro_message
                 })
