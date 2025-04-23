@@ -20,6 +20,8 @@ const SyllableClappingGame = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [speakingSyllable, setSpeakingSyllable] = useState(null);
+
   const [currentWord, setCurrentWord] = useState({
     word: "",
     syllables: "",
@@ -75,6 +77,50 @@ const SyllableClappingGame = () => {
     const difficultyTips = tips[difficulty.toLowerCase()] || tips['medium'];
     return difficultyTips[Math.floor(Math.random() * difficultyTips.length)];
   };
+
+  const handleQuit = () => {
+    // Show a confirmation if needed
+    if (window.confirm("Are you sure you want to quit? Your progress will be lost.")) {
+      navigate('/home'); // Navigate to home page
+    }
+  };
+
+  const handleSyllablePronunciation = (syllable) => {
+    // Set the currently speaking syllable for visual feedback
+    setSpeakingSyllable(syllable);
+    
+    // Use slow speech rate by default
+    const rate = 0.5; // Fixed slow rate
+    
+    // Try to use browser's text-to-speech
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(syllable);
+      utterance.rate = rate;
+      
+      utterance.onend = () => {
+        setSpeakingSyllable(null);
+      };
+      
+      utterance.onerror = () => {
+        setSpeakingSyllable(null);
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      // Fallback if speech synthesis is not available
+      console.warn('Text-to-speech not supported in this browser');
+      // Still set and clear the speaking state for UI feedback with a delay
+      setTimeout(() => {
+        setSpeakingSyllable(null);
+      }, 1000);
+    }
+  };
+
+
+  
 
   // Fetch a new word from the API
   const fetchNewWord = async () => {
@@ -537,6 +583,22 @@ const SyllableClappingGame = () => {
   const getFallbackMessage = () => {
     return `Let's listen and count the syllables!`;
   };
+
+  const renderQuitButton = () => {
+  // Only show the quit button during actual gameplay phases
+  if (gamePhase === 'playing' || gamePhase === 'feedback') {
+    return (
+      <button 
+        className={styles.quitButton}
+        onClick={handleQuit}
+      >
+        <span>←</span>
+        Quit Game
+      </button>
+    );
+  }
+  return null; // Don't render the button for other phases
+};
   
   // Render Playing Phase
   const renderPlayingPhase = () => {
@@ -666,6 +728,15 @@ const SyllableClappingGame = () => {
             <div className={styles.clapCountDisplay}>
               <span className={styles.clapCount}>{clapCount}</span>
               <span className={styles.clapLabel}>claps</span>
+              
+              {/* Add reset button here */}
+              <button 
+                className={styles.resetButton}
+                onClick={() => setClapCount(0)}
+                title="Reset claps"
+              >
+                <span className={styles.resetIcon}>🔄</span>
+              </button>
             </div>
             
             <button 
@@ -810,51 +881,50 @@ const SyllableClappingGame = () => {
           
           {/* Syllable Breakdown */}
           <div className={styles.syllableSection}>
-            <h3>Syllable Breakdown</h3>
-            
-            <div className={styles.syllables}>
-              {currentWord.syllables.split('-').map((syllable, index) => (
-                <div key={index} className={styles.syllable}>
-                  <span>{syllable}</span>
-                  <button 
-                    className={styles.syllablePlayButton}
-                    onClick={() => handlePlaySound()}
-                  >
-                    🔊
-                  </button>
-                </div>
-              ))}
-            </div>
-            
-            {/* AI Feedback Section */}
-            <div className={styles.aiFeedbackSection}>
-              <div className={styles.aiFeedbackTitle}>
-                <span>🤖</span> AI Learning Assistant
-              </div>
-              <div className={styles.aiFeedbackContent}>
-                In "{currentWord.word}", we hear {currentWord.count} distinct syllables: {currentWord.syllables}. 
-                Each syllable has one vowel sound. Try clapping slowly as you say {currentWord.syllables} to feel each syllable!
-              </div>
-            </div>
-            
-            <div className={styles.actionButtons}>
+          <h3>Syllable Breakdown</h3>
+          
+          <div className={styles.syllables}>
+            {currentWord.syllables.split('-').map((syllable, index) => (
               <button 
-                className={`${styles.demoButton} ${demoButtonDisabled ? styles.disabled : ''}`}
-                onClick={handleShowDemo}
-                disabled={demoButtonDisabled}
+                key={index} 
+                className={`${styles.syllableButton} ${speakingSyllable === syllable ? styles.speaking : ''}`}
+                onClick={() => handleSyllablePronunciation(syllable)}
+                disabled={speakingSyllable !== null}
               >
-                {demoButtonDisabled ? 'Loading Demo...' : 'Sound Demo'}
+                {syllable}
               </button>
-              
-              <button 
-                className={`${styles.nextButton} ${nextButtonDisabled ? styles.disabled : ''}`}
-                onClick={handleNextWord}
-                disabled={nextButtonDisabled}
-              >
-                {nextButtonDisabled ? 'Loading...' : (currentIndex === totalWords ? 'See Results' : 'Next Word')}
-              </button>
+            ))}
+          </div>
+          
+          {/* AI Feedback Section */}
+          <div className={styles.aiFeedbackSection}>
+            <div className={styles.aiFeedbackTitle}>
+              <span>🤖</span> AI Learning Assistant
+            </div>
+            <div className={styles.aiFeedbackContent}>
+              In "{currentWord.word}", we hear {currentWord.count} distinct syllables: {currentWord.syllables}. 
+              Each syllable has one vowel sound. Try clapping slowly as you say {currentWord.syllables} to feel each syllable!
             </div>
           </div>
+          
+          <div className={styles.actionButtons}>
+            <button 
+              className={`${styles.demoButton} ${demoButtonDisabled ? styles.disabled : ''}`}
+              onClick={handleShowDemo}
+              disabled={demoButtonDisabled}
+            >
+              {demoButtonDisabled ? 'Loading Demo...' : 'Sound Demo'}
+            </button>
+            
+            <button 
+              className={`${styles.nextButton} ${nextButtonDisabled ? styles.disabled : ''}`}
+              onClick={handleNextWord}
+              disabled={nextButtonDisabled}
+            >
+              {nextButtonDisabled ? 'Loading...' : (currentIndex === totalWords ? 'See Results' : 'Next Word')}
+            </button>
+          </div>
+        </div>
         </div>
       </div>
     );
@@ -926,10 +996,11 @@ const SyllableClappingGame = () => {
   };
   
   return (
-    <div className={styles.container}>
-      {renderGameContent()}
-    </div>
-  );
+  <div className={styles.container}>
+    {renderQuitButton()}
+    {renderGameContent()}
+  </div>
+);
 };
 
 export default SyllableClappingGame;
