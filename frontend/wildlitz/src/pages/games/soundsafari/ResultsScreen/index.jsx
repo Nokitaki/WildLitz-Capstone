@@ -1,5 +1,4 @@
-// components/SoundSafari/ResultsScreen/index.jsx
-
+// src/pages/games/soundsafari/ResultScreen/index.jsx <updated on 2025-04-25>
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../../styles/games/safari/SoundSafari.module.css';

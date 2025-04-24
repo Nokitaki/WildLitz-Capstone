@@ -1,4 +1,4 @@
-// components/SoundSafari/GameplayScreen/TimerDisplay.jsx
+// src/pages/games/soundsafari/GameplayScreen/TimerDisplay.jsx <updated on 2025-04-25>
 
 import React from 'react';
 import { motion } from 'framer-motion';

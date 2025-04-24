@@ -1,4 +1,4 @@
-// components/SoundSafari/SoundIntroScreen/index.jsx
+// src/pages/games/soundsafari/SoundIntroScreren/index.jsx <updated on 2025-04-25>
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';

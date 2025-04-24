@@ -1,4 +1,4 @@
-// src/pages/games/syllable/SoundSafariConfigScreen.jsx <current update > 2025-04-24 4:12pm>
+// src/pages/games/soundsafari/SoundSafariConfigScreen.jsx <updated on 2025-04-25>
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/safari/SoundSafariConfig.module.css';

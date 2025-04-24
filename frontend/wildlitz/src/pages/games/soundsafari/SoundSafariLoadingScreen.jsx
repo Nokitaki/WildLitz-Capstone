@@ -1,5 +1,4 @@
-// src/pages/games/syllable/SoundSafariConfigScreen.jsx <current update > 2025-04-24 4:12pm>
-// src/pages/games/syllable/SoundSafariLoadingScreen.jsx
+// src/pages/games/soundsafari/SoundSafariLoadingScreen.jsx <updated on 2025-04-25>
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/safari/SoundSafariLoading.module.css';

@@ -1,4 +1,4 @@
-// components/SoundSafariGame.jsx - Refactored to use smaller components
+// src/pages/games/soundsafari/SoundSafariGame.jsx <updated on 2025-04-25>
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';

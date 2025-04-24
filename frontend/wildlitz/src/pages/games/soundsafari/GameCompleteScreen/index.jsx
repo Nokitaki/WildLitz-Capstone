@@ -1,4 +1,4 @@
-// components/SoundSafari/GameCompleteScreen/index.jsx
+// src/pages/games/soundsafari/GameCompleteScreen/index.jsx <updated on 2025-04-25>
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';

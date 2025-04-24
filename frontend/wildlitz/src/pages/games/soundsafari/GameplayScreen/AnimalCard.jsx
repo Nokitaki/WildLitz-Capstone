@@ -1,4 +1,4 @@
-// components/SoundSafari/GameplayScreen/AnimalCard.jsx
+// src/pages/games/soundsafari/GameplayScreen/AnimalCard.jsx <updated on 2025-04-25>
 
 import React from 'react';
 import { motion } from 'framer-motion';

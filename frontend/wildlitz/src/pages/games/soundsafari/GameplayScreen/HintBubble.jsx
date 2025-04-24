@@ -1,4 +1,4 @@
-// components/SoundSafari/GameplayScreen/HintBubble.jsx
+// src/pages/games/soundsafari/GameplayScreen/HintBubble.jsx <updated on 2025-04-25>
 
 import React from 'react';
 import { motion } from 'framer-motion';

@@ -1,4 +1,4 @@
-// components/SoundSafari/ResultsScreen/ResultCard.jsx
+// src/pages/games/soundsafari/ResultScreen/ResultCard.jsx <updated on 2025-04-25>
 
 import React from 'react';
 import { motion } from 'framer-motion';
