@@ -1,0 +1,1015 @@
+/* Hint bubble */
+.hintBubble {
+  background-color: #fff8e1; /* Light yellow */
+  color: #f57c00; /* Dark orange */
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  margin-bottom: 0.75rem;
+  text-align: center;
+  font-weight: 600;
+  position: relative;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+.hintBubble::before {
+  content: '';
+  position: absolute;
+  top: -0.5rem;
+  right: 1.5rem;
+  width: 0;
+  height: 0;
+  border-left: 0.5rem solid transparent;
+  border-right: 0.5rem solid transparent;
+  border-bottom: 0.5rem solid #fff8e1;
+}
+
+/* Target sound highlight */
+.targetSoundText {
+  background-color: #81c9c0; /* Teal */
+  color: white;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.4rem;
+  font-weight: 700;
+}
+
+/* Timer styles */
+.timerContainer {
+  margin-bottom: 0.75rem;
+}
+
+.timerLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.timerWarning {
+  color: #f44336; /* Red */
+  animation: pulse 1s infinite;
+}
+
+.timerBarContainer {
+  width: 100%;
+  height: 0.5rem;
+  background-color: #e0e0e0;
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.timerBar {
+  height: 100%;
+  background-color: #81c9c0; /* Teal */
+  border-radius: 0.25rem;
+}
+
+/* Animals grid */
+.animalsGridWrapper {
+  overflow-y: auto;
+  max-height: calc(100vh - 19rem);
+  margin-bottom: 0.75rem;
+}
+
+.animalsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+  gap: 0.5rem;
+  padding: 0.25rem 0.25rem 0.5rem 0;
+}
+
+.animalCard {
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 0.15rem 0.4rem rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  border: 0.125rem solid transparent;
+}
+
+.animalCard:hover {
+  transform: translateY(-0.25rem);
+  box-shadow: 0 0.375rem 0.75rem rgba(0, 0, 0, 0.15);
+}
+
+.animalCard.selected {
+  border: 0.125rem solid #81c9c0; /* Teal */
+  background-color: #e8f4f1; /* Light teal */
+}
+
+.animalImage {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  filter: drop-shadow(0 0.15rem 0.15rem rgba(0, 0, 0, 0.2));
+}
+
+.animalName {
+  font-size: 0.85rem;
+  color: #333;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.soundButton {
+  background: none;
+  border: none;
+  color: #81c9c0; /* Teal */
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.soundButton:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.soundButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.checkmark {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  background-color: #81c9c0; /* Teal */
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  font-size: 0.7rem;
+  box-shadow: 0 0.1rem 0.25rem rgba(0, 0, 0, 0.2);
+}
+
+/* Action buttons */
+.actionButtons {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+.clearButton,
+.tryAgainButton {
+  background-color: #eeeeee;
+  color: #616161;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.clearButton:hover,
+.tryAgainButton:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-0.15rem);
+}
+
+.clearButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ResultsScreen specific styles */
+/* Confetti animation */
+.confettiContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+
+.confettiPiece {
+  position: absolute;
+  border-radius: 0.15rem;
+}
+
+/* Score section */
+.scoreSection {
+  margin-bottom: 1.25rem;
+}
+
+.scoreBanner {
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.scoreInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.scoreText {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.scoreText span {
+  font-size: 1.5rem;
+  margin-left: 0.25rem;
+}
+
+.feedbackMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.feedbackIcon {
+  font-size: 1.3rem;
+}
+
+.scoreDetails {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+/* Results container */
+.resultsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 28rem);
+  margin-bottom: 1rem;
+  padding-right: 0.25rem;
+}
+
+.resultSection {
+  background-color: #f5f9f8; /* Very light teal */
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  box-shadow: 0 0.15rem 0.4rem rgba(0, 0, 0, 0.05);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.sectionIcon {
+  font-size: 1.2rem;
+}
+
+.sectionHeader h3 {
+  margin: 0;
+  color: #296b63; /* Dark teal */
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Results animals grid */
+.resultsAnimalsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.animalResult {
+  background-color: #e8f4f1; /* Light teal */
+  border-radius: 0.75rem;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0.1rem 0.25rem rgba(0, 0, 0, 0.05);
+}
+
+.animalResult:hover {
+  transform: translateY(-0.25rem);
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+}
+
+.animalResult.incorrect {
+  background-color: #ffebee; /* Light red */
+}
+
+.animalResult.missed {
+  background-color: #e3f2fd; /* Light blue */
+}
+
+.animalResultIcon {
+  font-size: 2.5rem;
+  margin-bottom: 0.25rem;
+  filter: drop-shadow(0 0.1rem 0.15rem rgba(0, 0, 0, 0.2));
+}
+
+.animalResultInfo {
+  width: 100%;
+  text-align: center;
+}
+
+.animalResultName {
+  color: #333;
+  font-weight: 500;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.soundIcon {
+  font-size: 0.9rem;
+  color: #81c9c0; /* Teal */
+  opacity: 0.7;
+}
+
+.animalResult:hover .soundIcon {
+  opacity: 1;
+}
+
+/* Empty message */
+.emptyMessage {
+  background-color: #f5f5f5;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  text-align: center;
+  color: #757575;
+  font-style: italic;
+}
+
+/* Teacher tip */
+.teacherTip {
+  background-color: #fff8e1; /* Light yellow */
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border-left: 0.25rem solid #fcae3e; /* Orange */
+  color: #333;
+}
+
+.tipHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tipIcon {
+  font-size: 1.2rem;
+}
+
+.tipHeader h4 {
+  margin: 0;
+  color: #f57c00; /* Dark orange */
+  font-size: 1rem;
+}
+
+.teacherTip p {
+  margin: 0;
+  line-height: 1.4;
+  font-size: 0.9rem;
+}
+
+/* GameCompleteScreen specific styles */
+/* Trophy container */
+.trophyContainer {
+  text-align: center;
+  margin: 1rem 0 1.5rem;
+}
+
+.trophyIcon {
+  width: 5rem;
+  height: 5rem;
+  margin: 0 auto;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2.5rem;
+  box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.2),
+              0 0 0 0.5rem rgba(255, 255, 255, 0.5);
+}
+
+.achievementTitle {
+  margin-top: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.1);
+}
+
+/* Final score display */
+.finalScoreContainer {
+  margin: 1rem 0 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.scoreCircle {
+  position: relative;
+  width: 7rem;
+  height: 7rem;
+}
+
+.scoreCircleSvg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.scoreValue {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+}
+
+/* Feedback message */
+.feedbackMessage {
+  background-color: #e8f4f1; /* Light teal */
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  box-shadow: 0 0.15rem 0.4rem rgba(0, 0, 0, 0.1);
+}
+
+.feedbackMessage p {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #296b63; /* Dark teal */
+  font-weight: 600;
+}
+
+/* Tip container */
+.tipContainer {
+  background-color: #fff8e1; /* Light yellow */
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  border-left: 0.25rem solid #fcae3e; /* Orange */
+}
+
+.tipContainer p {
+  margin: 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.changeDifficultyButton {
+  background-color: #fcae3e; /* Orange */
+}
+
+.changeDifficultyButton:hover {
+  background-color: #f57c00; /* Dark orange */
+}
+
+.buttonIcon {
+  font-size: 1.2rem;
+}
+
+/* Animation keyframes */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+  .introHeader,
+  .gameplayHeader,
+  .resultsHeader {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+  
+  .gameStatusBar {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+  
+  .infoContainer {
+    grid-template-columns: 1fr;
+  }
+  
+  .animalsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+  }
+  
+  .exampleWords {
+    grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+  }
+  
+  .soundCircle {
+    width: 6rem;
+    height: 6rem;
+  }
+  
+  .soundLetter {
+    font-size: 2.5rem;
+  }
+  
+  .actionButtons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .clearButton, 
+  .submitButton,
+  .tryAgainButton,
+  .nextButton,
+  .playAgainButton,
+  .changeDifficultyButton {
+    width: 100%;
+  }
+  
+  .trophyIcon {
+    width: 4rem;
+    height: 4rem;
+    font-size: 2rem;
+  }
+  
+  .scoreCircle {
+    width: 5rem;
+    height: 5rem;
+  }
+  
+  .scoreValue {
+    font-size: 1.5rem;
+  }
+  
+  .introCard,
+  .gameplayCard,
+  .resultsCard,
+  .completeCard {
+    padding: 1rem;
+  }
+  
+  .resultsContainer {
+    max-height: calc(100vh - 25rem);
+  }
+}
+
+/* For TV displays and larger screens */
+@media (min-width: 1440px) {
+  .introCard,
+  .gameplayCard,
+  .resultsCard,
+  .completeCard {
+    max-width: 65rem;
+    padding: 2rem;
+  }
+  
+  .introTitle,
+  .gameplayTitle,
+  .resultsTitle,
+  .completeTitle {
+    font-size: 2.5rem;
+  }
+  
+  .introSubtitle,
+  .gameplaySubtitle {
+    font-size: 1.5rem;
+  }
+  
+  .soundCircle {
+    width: 10rem;
+    height: 10rem;
+  }
+  
+  .soundLetter {
+    font-size: 4rem;
+  }
+  
+  .sectionTitle h3,
+  .sectionHeader h3 {
+    font-size: 1.5rem;
+  }
+  
+  .descriptionBox p,
+  .taskBox p,
+  .teacherTip p,
+  .tipContainer p {
+    font-size: 1.25rem;
+  }
+  
+  .animalImage {
+    font-size: 4rem;
+  }
+  
+  .animalName {
+    font-size: 1.1rem;
+  }
+  
+  .continueButton,
+  .submitButton,
+  .nextButton,
+  .playAgainButton,
+  .changeDifficultyButton,
+  .clearButton,
+  .tryAgainButton {
+    font-size: 1.25rem;
+    padding: 1rem 2rem;
+  }
+  
+  .exampleWord {
+    font-size: 1.25rem;
+  }
+  
+  .animalsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  }
+  
+  .trophyIcon {
+    width: 8rem;
+    height: 8rem;
+    font-size: 4rem;
+  }
+  
+  .achievementTitle {
+    font-size: 2.5rem;
+  }
+  
+  .scoreCircle {
+    width: 10rem;
+    height: 10rem;
+  }
+  
+  .scoreValue {
+    font-size: 3rem;
+  }
+  
+  .infoContainer {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .animalsGridWrapper {
+    max-height: calc(100vh - 20rem);
+  }
+  
+  .resultsContainer {
+    max-height: calc(100vh - 26rem);
+  }
+}/* SoundSafari.module.css - Redesigned for no overflow/scroll TV display */
+
+/* Common screen containers */
+.introScreenContainer,
+.gameplayScreenContainer,
+.resultsScreenContainer,
+.completeScreenContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+/* Common card styling for all screens */
+.introCard,
+.gameplayCard,
+.resultsCard,
+.completeCard {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 50rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(5px);
+  max-height: calc(100vh - 2rem);
+  position: relative;
+}
+
+/* Common headers for all screens */
+.introHeader,
+.gameplayHeader,
+.resultsHeader {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.introTitle,
+.gameplayTitle,
+.resultsTitle,
+.completeTitle {
+  color: #296b63; /* Dark teal */
+  font-size: 1.8rem;
+  margin: 0 0 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.headerEmoji {
+  font-size: 1.8rem;
+}
+
+.introSubtitle,
+.gameplaySubtitle {
+  color: #333;
+  font-size: 1.1rem;
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* SoundIntroScreen specific styles */
+.soundCircleWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.soundCircle {
+  width: 8rem;
+  height: 8rem;
+  background: linear-gradient(135deg, #81c9c0, #a0dad1);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  border: 0.25rem dashed rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.soundLetter {
+  font-size: 3rem;
+  color: white;
+  font-weight: bold;
+  text-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
+
+.tapInstruction {
+  color: #333;
+  font-size: 0.9rem;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Sound waves animation */
+.soundWaves {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.soundWave {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 0.2rem solid rgba(255, 255, 255, 0.7);
+}
+
+/* Information container */
+.infoContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 24rem);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.sectionTitle h3 {
+  color: #296b63; /* Dark teal */
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.titleEmoji {
+  font-size: 1.2rem;
+}
+
+.soundDescription {
+  margin-bottom: 1rem;
+}
+
+.descriptionBox {
+  background-color: #f5f9f8; /* Very light teal */
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  border-left: 0.25rem solid #81c9c0; /* Teal */
+}
+
+.descriptionBox p {
+  margin: 0;
+  color: #333;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+/* Example words container */
+.examplesContainer {
+  margin-bottom: 1rem;
+}
+
+.exampleWords {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: 0.5rem;
+}
+
+.exampleWord {
+  background-color: #e8f4f1; /* Light teal */
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1rem;
+  color: #296b63; /* Dark teal */
+  cursor: pointer;
+  box-shadow: 0 0.15rem 0.4rem rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.exampleWord:hover {
+  background-color: #d5eae5;
+  transform: translateY(-0.15rem);
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+}
+
+.exampleWord.activeExample {
+  background-color: #81c9c0; /* Teal */
+  color: white;
+}
+
+.playIcon {
+  font-size: 1.2rem;
+}
+
+/* Task container */
+.taskContainer {
+  margin-bottom: 1rem;
+}
+
+.taskBox {
+  background-color: #fff8e1; /* Light yellow */
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  border-left: 0.25rem solid #fcae3e; /* Orange */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.taskBox p {
+  margin: 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  width: 100%;
+}
+
+/* Common button styles */
+.continueButton,
+.submitButton,
+.nextButton,
+.playAgainButton,
+.changeDifficultyButton {
+  background-color: #81c9c0; /* Teal */
+  color: white;
+  border: none;
+  border-radius: 2rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0 auto;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.continueButton:hover,
+.submitButton:hover,
+.nextButton:hover,
+.playAgainButton:hover,
+.changeDifficultyButton:hover {
+  background-color: #6dbdb3;
+  transform: translateY(-0.15rem);
+  box-shadow: 0 0.375rem 0.75rem rgba(0, 0, 0, 0.2);
+}
+
+.buttonEmoji {
+  font-size: 1.2rem;
+}
+
+/* GameplayScreen specific styles */
+.gameStatusBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.selectionCount {
+  background-color: #e8f4f1; /* Light teal */
+  border-radius: 1rem;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #296b63; /* Dark teal */
+}
+
+.countLabel {
+  font-weight: 500;
+}
+
+.countNumber {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.hintButton {
+  background-color: #fff8e1; /* Light yellow */
+  color: #f57c00; /* Dark orange */
+  border: none;
+  border-radius: 1rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 0.15rem 0.25rem rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.hintButton:hover {
+  background-color: #ffecb3;
+  transform: translateY(-0.15rem);
+  box-shadow: 0 0.25rem 0.4rem rgba(0, 0, 0, 0.15);
+}
