@@ -92,42 +92,21 @@ const SyllableClappingGame = () => {
     // Use slow speech rate by default
     const rate = 0.5;
     
-    // Get syllable array and find index of the current syllable
+    // Get syllable array and find index
     const syllableArray = currentWord.syllables.split('-');
     const syllableIndex = syllableArray.indexOf(syllable);
     
-    // Initialize text to speak with the original syllable as fallback
-    let textToSpeak = syllable;
+    // Get the correct pronunciation using our helper
+    const textToSpeak = getPronunciationForSyllable(syllable, syllableIndex, currentWord);
     
-    // Check if we have a pronunciation guide and it can be properly parsed
-    if (currentWord.pronunciation_guide && syllableIndex !== -1) {
-      try {
-        // Split the pronunciation guide and get the corresponding pronunciation
-        const pronunciationArray = currentWord.pronunciation_guide.split('-');
-        
-        // Make sure we have enough pronunciation guides for all syllables
-        if (pronunciationArray.length > syllableIndex) {
-          textToSpeak = pronunciationArray[syllableIndex];
-          console.log(`Using pronunciation guide for "${syllable}": "${textToSpeak}"`);
-        } else {
-          console.warn(`Pronunciation guide doesn't have entry for syllable ${syllableIndex}`);
-        }
-      } catch (error) {
-        console.error('Error parsing pronunciation guide:', error);
-      }
-    } else {
-      console.warn(`No pronunciation guide available for syllable: ${syllable}`);
-    }
-    
-    // Add a short pause for better TTS behavior
-    textToSpeak = textToSpeak.trim();
+    console.log(`Speaking syllable "${syllable}" with pronunciation "${textToSpeak}"`);
     
     // Try to use browser's text-to-speech
     if ('speechSynthesis' in window) {
       // Cancel any ongoing speech
       window.speechSynthesis.cancel();
       
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      const utterance = new SpeechSynthesisUtterance(textToSpeak.trim());
       utterance.rate = rate;
       
       utterance.onend = () => {
@@ -142,65 +121,123 @@ const SyllableClappingGame = () => {
     } else {
       // Fallback if speech synthesis is not available
       console.warn('Text-to-speech not supported in this browser');
-      // Still set and clear the speaking state for UI feedback with a delay
       setTimeout(() => {
         setSpeakingSyllable(null);
       }, 1000);
     }
   };
 
-  // Fetch a new word from the API
-const fetchNewWord = async () => {
-  setIsLoading(true);
-  setError(null);
-  
-  try {
-    // Use the selected difficulty and categories from gameConfig
-    const difficulty = gameConfig?.difficulty || 'medium';
-    const categories = gameConfig?.categories || [];
+  const renderSyllableButtons = () => {
+    // Safety check
+    if (!currentWord || !currentWord.syllables) {
+      return <div className={styles.syllables}>No syllables available</div>;
+    }
     
-    // Build query string for categories
-    const categoryParams = categories.map(cat => `categories[]=${encodeURIComponent(cat)}`).join('&');
+    const syllableArray = currentWord.syllables.split('-');
     
-    // Call API to get a word with AI-generated content
-    const response = await axios.get(
-      `http://127.0.0.1:8000/api/syllabification/get-word-supabase/?difficulty=${difficulty}&${categoryParams}`
+    return (
+      <div className={styles.syllables}>
+        {syllableArray.map((syllable, index) => {
+          // Get the pronunciation for this syllable
+          const pronunciation = getPronunciationForSyllable(syllable, index, currentWord);
+          
+          return (
+            <button 
+              key={index} 
+              className={`${styles.syllableButton} ${speakingSyllable === syllable ? styles.speaking : ''}`}
+              onClick={() => handleSyllablePronunciation(syllable)}
+              disabled={speakingSyllable !== null}
+            >
+              {syllable}
+              {pronunciation !== syllable && (
+                <span className={styles.syllablePronunciation}>({pronunciation})</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
     );
+  };
+
+  const validateWordData = (wordData) => {
+    // Check for required fields
+    if (!wordData.word || !wordData.syllables) {
+      console.error('Word data missing critical fields:', wordData);
+      return false;
+    }
     
-    const wordData = response.data;
+    // Check syllable breakdown
+    const syllables = wordData.syllables.split('-');
+    if (syllables.length !== wordData.count) {
+      console.warn(`Syllable count mismatch: breakdown has ${syllables.length} but count is ${wordData.count}`);
+    }
     
-    // Add this debug logging right after getting the response
-    console.log('Pronunciation guide from API:', wordData.pronunciation_guide);
+    // Check pronunciation guide if available
+    if (wordData.pronunciation_guide) {
+      try {
+        const pronunciations = wordData.pronunciation_guide.split('-');
+        if (pronunciations.length !== syllables.length) {
+          console.warn(`Pronunciation guide segments (${pronunciations.length}) don't match syllable count (${syllables.length})`);
+        }
+      } catch (error) {
+        console.error('Error parsing pronunciation guide:', error);
+        return false;
+      }
+    }
     
-    // First update state with the new word
-    setCurrentWord({
-      word: wordData.word,
-      syllables: wordData.syllables,
-      count: wordData.count,
-      category: wordData.category,
-      image_url: wordData.image_url || null, // Set to null instead of empty string
-      pronunciation_guide: wordData.pronunciation_guide || wordData.syllables, // Make sure to include pronunciation guide
-      fun_fact: wordData.fun_fact || `Fun fact about ${wordData.word}: This is a ${wordData.category.toLowerCase()} with ${wordData.count} syllables!`,
-      intro_message: wordData.intro_message || `Listen to "${wordData.word}" and count the syllables!`
-    });
+    return true;
+  };
+
+  // Fetch a new word from the API
+  const fetchNewWord = async () => {
+    setIsLoading(true);
+    setError(null);
     
-    // Add this debug logging right after setting the state
-    console.log('Current word state:', {
-      word: wordData.word,
-      syllables: wordData.syllables,
-      pronunciation_guide: wordData.pronunciation_guide || wordData.syllables
-    });
-    
-    // Then set the bubble message from the AI-generated intro
-    setBubbleMessage(wordData.intro_message || `Listen to "${wordData.word}" and count the syllables!`);
-    
-  } catch (err) {
-    setError('Failed to load word. Please try again.');
-    console.error(err);
-  } finally {
-    setIsLoading(false);
-  }
-};
+    try {
+      // Use the selected difficulty and categories from gameConfig
+      const difficulty = gameConfig?.difficulty || 'medium';
+      const categories = gameConfig?.categories || [];
+      
+      // Build query string for categories
+      const categoryParams = categories.map(cat => `categories[]=${encodeURIComponent(cat)}`).join('&');
+      
+      // Call API to get a word with AI-generated content
+      const response = await axios.get(
+        `http://127.0.0.1:8000/api/syllabification/get-word-supabase/?difficulty=${difficulty}&${categoryParams}`
+      );
+      
+      const wordData = response.data;
+      
+      // Validate the word data
+      if (!validateWordData(wordData)) {
+        console.warn('Word data validation failed, but continuing with available data');
+      }
+      
+      // Debug pronunciation guide specifically
+      console.log('Pronunciation guide:', wordData.pronunciation_guide);
+      
+      // First update state with the new word
+      setCurrentWord({
+        word: wordData.word,
+        syllables: wordData.syllables,
+        count: wordData.count,
+        category: wordData.category,
+        image_url: wordData.image_url || null,
+        pronunciation_guide: wordData.pronunciation_guide || wordData.syllables, // Fall back to syllables if no guide
+        fun_fact: wordData.fun_fact || `Fun fact about ${wordData.word}: This is a ${wordData.category.toLowerCase()} with ${wordData.count} syllables!`,
+        intro_message: wordData.intro_message || `Listen to "${wordData.word}" and count the syllables!`
+      });
+      
+      // Then set the bubble message from the AI-generated intro
+      setBubbleMessage(wordData.intro_message || `Listen to "${wordData.word}" and count the syllables!`);
+      
+    } catch (err) {
+      setError('Failed to load word. Please try again.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   // State to store all preloaded words
   const [gameWords, setGameWords] = useState([]);
@@ -419,7 +456,7 @@ const fetchNewWord = async () => {
       console.warn('Attempted to play sound for undefined word');
       return;
     }
-  
+    
     setIsPlaying(true);
     
     // Use text-to-speech to read the current word
@@ -427,6 +464,8 @@ const fetchNewWord = async () => {
       // Cancel any ongoing speech
       window.speechSynthesis.cancel();
       
+      // For word playback, we use the word directly, not the pronunciation guide
+      // This is because we want users to hear the actual word, not the phonetic breakdown
       const utterance = new SpeechSynthesisUtterance(word);
       utterance.rate = 0.35; // Slightly slower for clarity
       
@@ -445,6 +484,31 @@ const fetchNewWord = async () => {
       // Simulate audio playing for 2 seconds
       setTimeout(() => setIsPlaying(false), 2000);
     }
+  };
+
+  const getPronunciationForSyllable = (syllable, syllableIndex, word) => {
+    // Safety checks
+    if (!word || !word.syllables || !word.pronunciation_guide) {
+      return syllable; // Fall back to the syllable itself
+    }
+    
+    try {
+      // Get the correct syllable and pronunciation arrays
+      const syllables = word.syllables.split('-');
+      const pronunciations = word.pronunciation_guide.split('-');
+      
+      // Validate that we have the correct syllable at the expected index
+      if (syllableIndex >= 0 && syllableIndex < syllables.length && 
+          syllables[syllableIndex] === syllable && 
+          syllableIndex < pronunciations.length) {
+        return pronunciations[syllableIndex];
+      }
+    } catch (error) {
+      console.error('Error parsing pronunciation guide:', error);
+    }
+    
+    // Default fallback
+    return syllable;
   };
   
   // Handle checking the answer
@@ -533,24 +597,35 @@ const fetchNewWord = async () => {
     const nextWordData = gameWords[nextWordIndex];
     if (!nextWordData) return false;
     
+    // Log the word data being loaded
+    console.log('Setting up next word:', nextWordData);
+    console.log('Pronunciation guide for next word:', nextWordData.pronunciation_guide);
+    
     // Reset all related states
     setClapCount(0);
     setAiResponse(null);
     
-    // Update the current word
+    // Update the current word - ensure all fields are properly populated
     setCurrentWord({
       word: nextWordData.word,
       syllables: nextWordData.syllables,
       count: nextWordData.count,
       category: nextWordData.category,
       image_url: nextWordData.image_url || null,
-      pronunciation_guide: nextWordData.pronunciation_guide || nextWordData.syllables, // Make sure to include pronunciation guide
+      pronunciation_guide: nextWordData.pronunciation_guide || nextWordData.syllables, // Ensure we have some guide
       fun_fact: nextWordData.fun_fact || `Fun fact about ${nextWordData.word}!`,
       intro_message: nextWordData.intro_message || `Listen to "${nextWordData.word}" and count the syllables!`
     });
     
     // Update bubble message for the new word
     setBubbleMessage(nextWordData.intro_message || `Listen to "${nextWordData.word}" and count the syllables!`);
+    
+    // Log the current word state after update
+    console.log('Current word state updated:', {
+      word: nextWordData.word,
+      syllables: nextWordData.syllables,
+      pronunciation_guide: nextWordData.pronunciation_guide || nextWordData.syllables
+    });
     
     return true;
   };
@@ -794,6 +869,45 @@ const fetchNewWord = async () => {
     );
   }
   return null; // Don't render the button for other phases
+};
+
+const debugPronunciationGuide = () => {
+  // Log the current word state
+  console.group('Pronunciation Guide Debug');
+  console.log('Current word:', currentWord);
+  
+  if (!currentWord) {
+    console.error('Current word not defined');
+    console.groupEnd();
+    return;
+  }
+  
+  console.log('Word:', currentWord.word);
+  console.log('Syllables:', currentWord.syllables);
+  console.log('Pronunciation guide:', currentWord.pronunciation_guide);
+  
+  // Check if pronunciation guide exists
+  if (!currentWord.pronunciation_guide) {
+    console.warn('Pronunciation guide is missing or undefined');
+    console.groupEnd();
+    return;
+  }
+  
+  // Check if syllables and pronunciation guide have the same format
+  const syllables = currentWord.syllables.split('-');
+  const pronunciations = currentWord.pronunciation_guide.split('-');
+  
+  console.log('Syllable count:', syllables.length);
+  console.log('Pronunciation segments count:', pronunciations.length);
+  
+  // Compare each syllable with its pronunciation
+  console.log('Syllable to pronunciation mapping:');
+  syllables.forEach((syllable, index) => {
+    const pronunciation = index < pronunciations.length ? pronunciations[index] : 'MISSING';
+    console.log(`Syllable ${index + 1}: "${syllable}" → Pronunciation: "${pronunciation}"`);
+  });
+  
+  console.groupEnd();
 };
   
   // Render Playing Phase
@@ -1080,16 +1194,35 @@ const fetchNewWord = async () => {
           <h3>Syllable Breakdown</h3>
           
           <div className={styles.syllables}>
-            {currentWord.syllables.split('-').map((syllable, index) => (
-              <button 
-                key={index} 
-                className={`${styles.syllableButton} ${speakingSyllable === syllable ? styles.speaking : ''}`}
-                onClick={() => handleSyllablePronunciation(syllable)}
-                disabled={speakingSyllable !== null}
-              >
-                {syllable}
-              </button>
-            ))}
+            {currentWord.syllables.split('-').map((syllable, index) => {
+              // Get the corresponding pronunciation guide if available
+              let pronunciation = syllable;
+              if (currentWord.pronunciation_guide) {
+                try {
+                  const guides = currentWord.pronunciation_guide.split('-');
+                  if (guides.length > index) {
+                    pronunciation = guides[index];
+                  }
+                } catch (error) {
+                  console.error(`Error parsing pronunciation for ${syllable}:`, error);
+                }
+              }
+              
+              return (
+                <button 
+                  key={index} 
+                  className={`${styles.syllableButton} ${speakingSyllable === syllable ? styles.speaking : ''}`}
+                  onClick={() => handleSyllablePronunciation(syllable)}
+                  disabled={speakingSyllable !== null}
+                  title={`Pronunciation: ${pronunciation}`}
+                >
+                  {syllable}
+                  {pronunciation !== syllable && (
+                    <span className={styles.syllablePronunciation}>{pronunciation}</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
                     
           {/* AI Feedback Section */}

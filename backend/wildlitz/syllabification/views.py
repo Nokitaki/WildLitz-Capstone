@@ -71,7 +71,7 @@ def get_syllabification_word_from_supabase(request):
             logger.info(f"Word: {word['word']}, Syllables: {word['syllable_breakdown']}, Pronunciation Guide: {pronunciation_guide}")
             
             # Then return the response
-            return JsonResponse({
+            response_data = {
                 'word': word['word'],
                 'syllables': word['syllable_breakdown'],
                 'count': word['syllable_count'],
@@ -80,7 +80,16 @@ def get_syllabification_word_from_supabase(request):
                 'pronunciation_guide': pronunciation_guide,  # Make sure this is included
                 'fun_fact': fun_fact,
                 'intro_message': intro_message
-            })
+            }
+            
+            # Add more debugging info in the response during development
+            # Remove this in production
+            # response_data['debug'] = {
+            #     'raw_word_data': word,
+            #     'pronunciation_available': 'pronunciation_guide' in word,
+            # }
+            
+            return JsonResponse(response_data)
         else:
             logger.warning("No words found matching criteria")
             return JsonResponse({'error': 'No words found with the specified criteria'}, status=404)

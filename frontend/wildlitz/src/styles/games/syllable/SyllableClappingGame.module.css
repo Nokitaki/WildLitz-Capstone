@@ -1063,6 +1063,9 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .syllableButton::after {
@@ -1095,6 +1098,16 @@
 
 .syllableButton.speaking::after {
   animation: pulse 1s infinite;
+}
+
+.syllablePronunciation {
+  font-size: 0.75rem;
+  color: #666;
+  font-style: italic;
+  margin-top: 4px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @keyframes pulse {
