@@ -1217,9 +1217,7 @@ const debugPronunciationGuide = () => {
                   title={`Pronunciation: ${pronunciation}`}
                 >
                   {syllable}
-                  {pronunciation !== syllable && (
-                    <span className={styles.syllablePronunciation}>{pronunciation}</span>
-                  )}
+                  {pronunciation !== syllable}
                 </button>
               );
             })}
