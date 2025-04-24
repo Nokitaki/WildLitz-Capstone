@@ -1,7 +1,7 @@
 // src/pages/games/syllable/SoundSafariConfigScreen.jsx <current update > 2025-04-24 4:12pm>
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import styles from '../../../styles/SoundSafariConfig.module.css';
+import styles from '../../../styles/games/safari/SoundSafariConfig.module.css';
 
 /**
  * Configuration screen component for Sound Safari game
