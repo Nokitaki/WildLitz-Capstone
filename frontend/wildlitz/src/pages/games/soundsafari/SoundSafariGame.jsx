@@ -1,34 +1,35 @@
 // src/pages/games/soundsafari/SoundSafariGame.jsx <updated on 2025-04-25>
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Character from '../../../assets/img/wildlitz-idle.png';
+import styles from '../../../styles/games/safari/SoundSafariGame.module.css';
+
+// Import mascot
+import WildLitzFox from '../../../assets/img/wildlitz-idle.png';
 
 // Import components
 import SoundSafariConfigScreen from './SoundSafariConfigScreen';
 import SoundSafariLoadingScreen from './SoundSafariLoadingScreen';
-import { 
-  SoundIntroScreen, 
-  GameplayScreen, 
-  ResultsScreen, 
-  GameCompleteScreen 
-} from './index'; // Import from index.js
-
-import styles from '../../../styles/games/safari/SoundSafariGame.module.css';
+import SoundIntroScreen from './SoundIntroScreen';
+import GameplayScreen from './GameplayScreen';
+import ResultsScreen from './ResultsScreen';
+import GameCompleteScreen from './GameCompleteScreen';
 
 // Import mock data
 import { 
   ANIMALS_DATA, 
   SOUND_DESCRIPTIONS, 
   SOUND_POSITIONS, 
-  DIFFICULTY_LEVELS 
+  DIFFICULTY_LEVELS,
+  ENVIRONMENTS 
 } from '../../../mock/soundSafariData';
 
 /**
  * Main Sound Safari Game component that manages game state and flow
+ * Redesigned with horizontal layout, no overflow/scrolling, and modular CSS
  */
 const SoundSafariGame = () => {
-  // Game states: 'config', 'loading', 'intro', 'playing', 'results', 'complete'
+  // Game states: 'config', 'loading', 'intro', 'gameplay', 'results', 'complete'
   const [gameState, setGameState] = useState('config');
   
   // Game configuration
@@ -36,7 +37,6 @@ const SoundSafariGame = () => {
     difficulty: 'easy',
     targetSound: 's',
     soundPosition: SOUND_POSITIONS.beginning,
-    playMode: 'solo',
     environment: 'jungle'
   });
   
@@ -52,20 +52,9 @@ const SoundSafariGame = () => {
   // Keep track of used sounds to avoid repetition
   const [soundsUsed, setSoundsUsed] = useState([]);
   
-  // Animation variants
-  const pageTransition = {
-    hidden: { opacity: 0, x: -30 },
-    visible: { 
-      opacity: 1, 
-      x: 0,
-      transition: { duration: 0.5, ease: "easeOut" }
-    },
-    exit: { 
-      opacity: 0, 
-      x: 30,
-      transition: { duration: 0.3, ease: "easeIn" } 
-    }
-  };
+  // Character speech bubble
+  const [showBubble, setShowBubble] = useState(false);
+  const [bubbleMessage, setBubbleMessage] = useState("");
   
   /**
    * Handle starting a new game with the given configuration
@@ -164,7 +153,14 @@ const SoundSafariGame = () => {
    * Handle continuing from intro to gameplay
    */
   const handleContinueFromIntro = () => {
-    setGameState('playing');
+    setGameState('gameplay');
+    setBubbleMessage(`Find animals with the "${gameConfig.targetSound}" sound!`);
+    setShowBubble(true);
+    
+    // Hide the bubble after 5 seconds
+    setTimeout(() => {
+      setShowBubble(false);
+    }, 5000);
   };
   
   /**
@@ -189,6 +185,18 @@ const SoundSafariGame = () => {
     
     setScore(prev => prev + roundScore);
     setGameState('results');
+    
+    const scoreMessage = roundScore >= 80 
+      ? `Great job! You found ${correctSelected} of ${correctAnimals.length} animals with the "${gameConfig.targetSound}" sound!`
+      : `You found ${correctSelected} of ${correctAnimals.length} animals with the "${gameConfig.targetSound}" sound. Keep practicing!`;
+    
+    setBubbleMessage(scoreMessage);
+    setShowBubble(true);
+    
+    // Hide the bubble after 5 seconds
+    setTimeout(() => {
+      setShowBubble(false);
+    }, 5000);
   };
   
   /**
@@ -247,32 +255,14 @@ const SoundSafariGame = () => {
    * Handle changing difficulty after game completion
    */
   const handleChangeDifficulty = () => {
-    // Cycle through difficulties
-    const difficulties = ['easy', 'medium', 'hard'];
-    const currentIndex = difficulties.indexOf(gameConfig.difficulty);
-    const newDifficulty = difficulties[(currentIndex + 1) % difficulties.length];
-    
-    // Update game config
-    setGameConfig(prev => ({
-      ...prev,
-      difficulty: newDifficulty
-    }));
-    
-    // Reset game state
-    setCurrentRound(1);
-    setScore(0);
-    setSoundsUsed([]);
-    
-    // Go back to config screen
+    // Reset to config screen
     setGameState('config');
   };
   
-  // Calculate which animals were correct and incorrect for the results screen
-  const correctAnimals = roundAnimals.filter(animal => animal.hasSound === gameConfig.targetSound);
-  const incorrectAnimals = roundAnimals.filter(animal => animal.hasSound !== gameConfig.targetSound);
-  
-  // Get background color based on environment
-  const getEnvironmentBackground = () => {
+  /**
+   * Get environment background class based on selected environment
+   */
+  const getEnvironmentClass = () => {
     switch(gameConfig.environment) {
       case 'jungle': return styles.jungleBackground;
       case 'savanna': return styles.savannaBackground;
@@ -282,51 +272,68 @@ const SoundSafariGame = () => {
     }
   };
   
+  /**
+   * Calculate final stats for results screen
+   */
+  const getGameResults = () => {
+    // Calculate which animals were correct and incorrect
+    const correctAnimals = roundAnimals.filter(animal => animal.hasSound === gameConfig.targetSound);
+    const incorrectAnimals = roundAnimals.filter(animal => animal.hasSound !== gameConfig.targetSound);
+    
+    return {
+      correctAnimals,
+      incorrectAnimals,
+      selectedAnimals,
+      targetSound: gameConfig.targetSound
+    };
+  };
+  
+  /**
+   * Render the progress indicator
+   */
+  const renderProgressIndicator = () => {
+    if (gameState === 'config') return null;
+    
+    return (
+      <div className={styles.progressIndicator}>
+        <div className={styles.progressLabel}>
+          <span>Round</span>
+          <span className={styles.progressNumbers}>{currentRound}/{totalRounds}</span>
+        </div>
+        <div className={styles.progressBar}>
+          <div 
+            className={styles.progressFill} 
+            style={{ width: `${(currentRound / totalRounds) * 100}%` }}
+          ></div>
+        </div>
+      </div>
+    );
+  };
+  
   return (
-    <div className={`${styles.gameContainer} ${getEnvironmentBackground()}`}>
-      <header className={styles.gameHeader}>
-        <h1>
-          <span className={styles.gameTitle}>Sound Safari</span>
-          <span className={styles.gameBadge}>Adventure</span>
-        </h1>
-        
-        {gameState !== 'config' && (
-          <div className={styles.gameInfo}>
-            <div className={styles.targetSoundBadge}>
-              Target Sound: <span className={styles.soundHighlight}>{gameConfig.targetSound.toUpperCase()}</span>
-            </div>
-            <div className={styles.roundInfo}>
-              <span className={styles.roundText}>Round</span> 
-              <span className={styles.roundNumbers}>{currentRound}/{totalRounds}</span>
-            </div>
-          </div>
-        )}
-      </header>
-      
+    <div className={`${styles.gameContainer} ${getEnvironmentClass()}`}>
       <div className={styles.gameContent}>
+        {renderProgressIndicator()}
+        
         <AnimatePresence mode="wait">
           {gameState === 'config' && (
             <motion.div
               key="config"
-              variants={pageTransition}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className={styles.screenContainer}
             >
-              <SoundSafariConfigScreen 
-                onStartGame={handleStartGame}
-              />
+              <SoundSafariConfigScreen onStartGame={handleStartGame} />
             </motion.div>
           )}
           
           {gameState === 'loading' && (
             <motion.div
               key="loading"
-              variants={pageTransition}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className={styles.screenContainer}
             >
               <SoundSafariLoadingScreen 
@@ -342,10 +349,9 @@ const SoundSafariGame = () => {
           {gameState === 'intro' && (
             <motion.div
               key="intro"
-              variants={pageTransition}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className={styles.screenContainer}
             >
               <SoundIntroScreen 
@@ -355,13 +361,12 @@ const SoundSafariGame = () => {
             </motion.div>
           )}
           
-          {gameState === 'playing' && (
+          {gameState === 'gameplay' && (
             <motion.div
-              key="playing"
-              variants={pageTransition}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+              key="gameplay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className={styles.screenContainer}
             >
               <GameplayScreen 
@@ -377,17 +382,13 @@ const SoundSafariGame = () => {
           {gameState === 'results' && (
             <motion.div
               key="results"
-              variants={pageTransition}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className={styles.screenContainer}
             >
               <ResultsScreen 
-                selectedAnimals={selectedAnimals}
-                correctAnimals={correctAnimals}
-                incorrectAnimals={incorrectAnimals}
-                targetSound={gameConfig.targetSound}
+                results={getGameResults()}
                 onNextRound={handleNextRound}
                 onTryAgain={handleTryAgain}
               />
@@ -397,14 +398,13 @@ const SoundSafariGame = () => {
           {gameState === 'complete' && (
             <motion.div
               key="complete"
-              variants={pageTransition}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className={styles.screenContainer}
             >
               <GameCompleteScreen 
-                score={score}
+                score={score / totalRounds}
                 totalRounds={totalRounds}
                 onPlayAgain={handlePlayAgain}
                 onChangeDifficulty={handleChangeDifficulty}
@@ -412,38 +412,36 @@ const SoundSafariGame = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-      
-      <div className={styles.mascotContainer}>
-        <motion.div
-          className={styles.mascot}
-          animate={{ 
-            y: [0, -15, 0],
-            rotate: gameState === 'playing' ? [0, 5, 0, -5, 0] : 0
-          }}
-          transition={{ 
-            y: { repeat: Infinity, duration: 3, ease: "easeInOut" },
-            rotate: { repeat: Infinity, duration: 2, ease: "easeInOut" }
-          }}
-        >
-          <img 
-            src={Character}
-            alt="WildLitz Fox" 
-            className={styles.mascotImage}
-          />
-          
-          {/* Speech bubble that appears in certain game states */}
-          {gameState === 'playing' && (
+        
+        {/* Character/Mascot - Only show when not in config */}
+        {gameState !== 'config' && (
+          <div className={styles.mascotContainer}>
             <motion.div 
-              className={styles.speechBubble}
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1 }}
+              className={styles.mascot}
+              animate={{ 
+                y: [0, -10, 0],
+                rotate: gameState === 'gameplay' ? [0, 3, 0, -3, 0] : 0
+              }}
+              transition={{ 
+                y: { repeat: Infinity, duration: 3, ease: "easeInOut" },
+                rotate: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+              }}
             >
-              <p>Find the sounds!</p>
+              <img src={WildLitzFox} alt="WildLitz Fox" className={styles.mascotImage} />
+              
+              {showBubble && (
+                <motion.div 
+                  className={styles.speechBubble}
+                  initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {bubbleMessage}
+                </motion.div>
+              )}
             </motion.div>
-          )}
-        </motion.div>
+          </div>
+        )}
       </div>
     </div>
   );

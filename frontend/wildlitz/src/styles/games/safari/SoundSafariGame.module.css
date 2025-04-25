@@ -1,1126 +1,195 @@
 /* src/styles/games/safari/SoundSafariGame.module.css */
+/* SoundSafariGame.module.css */
 
-/* Main container and layout */
 .gameContainer {
   width: 100%;
   height: 100vh;
-  display: flex;
-  flex-direction: column;
-  font-family: 'Poppins', sans-serif;
-  position: relative;
-  color: #333;
-  overflow: hidden; /* Prevent scrolling */
-}
-
-/* Environment backgrounds (teal-based from your color palette) */
-.jungleEnvironment {
-  background: linear-gradient(to bottom, #81c9c0, #a0dad1);
-}
-
-.savannaEnvironment {
-  background: linear-gradient(to bottom, #f7ecd5, #f5f0e5);
-}
-
-.oceanEnvironment {
-  background: linear-gradient(to bottom, #a0c8d7, #b9e0ef);
-}
-
-.arcticEnvironment {
-  background: linear-gradient(to bottom, #e5f1f9, #f5f9fc);
-}
-
-/* Game layout */
-.gameContent {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 0.5rem;
-  position: relative;
   overflow: hidden;
-  max-height: calc(100vh - 1rem);
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
 }
 
-/* Game header */
-.gameHeader {
+/* Environment backgrounds */
+.jungleBackground {
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+}
+
+.savannaBackground {
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+}
+
+.oceanBackground {
+  background: linear-gradient(135deg, #2196f3 0%, #0d47a1 100%);
+}
+
+.arcticBackground {
+  background: linear-gradient(135deg, #90caf9 0%, #42a5f5 100%);
+}
+
+.gameContent {
+  width: 90%;
+  height: 90%;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  padding: 0.5rem 1rem;
-  background-color: rgba(255, 255, 255, 0.7);
-  border-radius: 1rem;
-  margin-bottom: 0.5rem;
-  z-index: 10;
+  position: relative;
+}
+
+.screenContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Progress indicator */
+.progressIndicator {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 10px 15px;
+  width: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   backdrop-filter: blur(5px);
 }
 
-.gameTitleContainer {
-  display: flex;
-  align-items: center;
-}
-
-.gameTitle {
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin: 0;
-  color: #296b63; /* Dark teal */
-}
-
-.gameBadge {
-  font-size: 0.8rem;
-  background-color: #81c9c0; /* Teal */
-  color: #fff;
-  padding: 0.25rem 0.5rem;
-  border-radius: 1rem;
-  margin-left: 0.5rem;
-  font-weight: 600;
-}
-
-.gameInfo {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.targetSoundBadge {
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 0.5rem 0.75rem;
-  border-radius: 1rem;
-  font-weight: 500;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.soundHighlight {
-  background-color: #81c9c0; /* Teal */
-  color: #fff;
-  padding: 0.15rem 0.5rem;
-  border-radius: 0.5rem;
-  font-weight: 700;
-  font-size: 1rem;
-}
-
-.roundInfo {
-  background-color: #81c9c0; /* Teal */
-  color: #fff;
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  font-weight: 600;
+.progressLabel {
   display: flex;
   flex-direction: column;
   align-items: center;
+  color: white;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
 }
 
-.roundNumbers {
+.progressNumbers {
   font-size: 1.1rem;
   font-weight: 700;
 }
 
-/* Mascot */
-.mascot {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  z-index: 20;
-  width: 5rem;
-  height: 5rem;
+.progressBar {
+  width: 100%;
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  overflow: hidden;
 }
 
-.characterPlaceholder {
-  font-size: 4rem;
-  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.2));
+.progressFill {
+  height: 100%;
+  background-color: white;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* Character/Mascot */
+.mascotContainer {
+  position: absolute;
+  bottom: 20px;
+  left: 20px; /* Change from 'right: 20px' to 'left: 20px' */
+  z-index: 100;
+  width: 180px;
+}
+
+.mascot {
+  position: relative;
+}
+
+.mascotImage {
+  width: 100%; /* Was likely a fixed width like 120px */
+  max-width: 180px; /* Match from Syllable game */
+  height: auto;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
 .speechBubble {
   position: absolute;
-  top: -3rem;
-  right: 0;
+  top: -20px;
+  right: 150px;
   background-color: white;
-  color: #333;
-  padding: 0.5rem 0.75rem;
-  border-radius: 1rem;
-  font-weight: 600;
+  border-radius: 15px;
+  padding: 12px 16px;
+  max-width: 250px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   font-size: 0.9rem;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-  white-space: nowrap;
-}
-
-.speechBubble::after {
-  content: '';
-  position: absolute;
-  bottom: -0.5rem;
-  right: 1.5rem;
-  width: 0;
-  height: 0;
-  border-left: 0.5rem solid transparent;
-  border-right: 0.5rem solid transparent;
-  border-top: 0.5rem solid white;
-}
-
-/* Config Screen */
-.configScreen {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-}
-
-.resultsCard {
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  width: 100%;
-  max-width: 40rem;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(5px);
-  max-height: calc(100vh - 7rem);
-  overflow: hidden;
-}
-
-.confettiContainer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 5;
-  overflow: hidden;
-}
-
-.confettiPiece {
-  position: absolute;
-  border-radius: 3px;
-}
-
-.resultsTitle {
-  text-align: center;
-  color: #296b63; /* Dark teal */
-  font-size: 1.8rem;
-  margin-top: 0;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.scoreSection {
-  margin-bottom: 1rem;
-}
-
-.scoreBanner {
-  border-radius: 0.75rem;
-  padding: 1rem;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-  position: relative;
-  overflow: hidden;
-  color: white;
-}
-
-.scoreInfo {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.scoreText {
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.scoreText span {
-  font-size: 1.5rem;
-  margin-left: 0.25rem;
-}
-
-.feedbackMessage {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.feedbackIcon {
-  font-size: 1.25rem;
-}
-
-.resultsGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-  overflow-y: auto;
-  max-height: calc(100vh - 20rem);
-  padding-right: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.resultSection {
-  background-color: #f5f9f8; /* Very light teal */
-  border-radius: 0.75rem;
-  padding: 1rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-.resultSection h3 {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0;
-  margin-bottom: 0.75rem;
-  color: #296b63; /* Dark teal */
-  font-size: 1.1rem;
-}
-
-.animalsResultGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
-  gap: 0.5rem;
-}
-
-.animalResult {
-  background-color: #e8f4f1; /* Light teal */
-  border-radius: 0.75rem;
-  padding: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.animalResult.missed {
-  background-color: #e3f2fd; /* Light blue */
-}
-
-.animalResultImage {
-  font-size: 2rem;
-  margin-bottom: 0.25rem;
-}
-
-.animalResultName {
-  font-size: 0.75rem;
   color: #333;
   font-weight: 500;
   text-align: center;
 }
 
-.noAnimals {
-  padding: 0.5rem;
-  text-align: center;
-  color: #777;
-  font-style: italic;
-}
-
-.nextButton {
-  background-color: #81c9c0; /* Teal */
-  color: white;
-  border: none;
-  padding: 0.75rem 2rem;
-  border-radius: 2rem;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin: 0 auto;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-}
-
-/* Complete Screen */
-.completeScreen {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-}
-
-.completeCard {
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  width: 100%;
-  max-width: 35rem;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(5px);
-  max-height: calc(100vh - 7rem);
-  overflow: hidden;
-  position: relative;
-}
-
-.completeTitle {
-  text-align: center;
-  color: #296b63; /* Dark teal */
-  font-size: 1.8rem;
-  margin-top: 0;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.trophyContainer {
-  text-align: center;
-  margin: 0.5rem 0 1rem;
-}
-
-.trophyIcon {
-  width: 5rem;
-  height: 5rem;
-  margin: 0 auto;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 2.5rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-}
-
-.achievementTitle {
-  margin-top: 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.finalScoreContainer {
-  margin: 1rem 0;
-  display: flex;
-  justify-content: center;
-}
-
-.scoreCircle {
-  position: relative;
-  width: 7rem;
-  height: 7rem;
-}
-
-.scoreCircleSvg {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.scoreValue {
+.speechBubble:after {
+  content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #333;
-}
-
-.feedbackMessage {
-  background-color: #e8f4f1; /* Light teal */
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.feedbackMessage p {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #296b63; /* Dark teal */
-  font-weight: 600;
-}
-
-.playAgainButton {
-  background-color: #81c9c0; /* Teal */
-  color: white;
-  border: none;
-  padding: 0.75rem 2rem;
-  border-radius: 2rem;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin: 0 auto;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-}
-
-/* Animation keyframes */
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.6; }
-  100% { opacity: 1; }
+  top: 50%;
+  right: -5px;
+  transform: translateY(-50%);
+  border-left: 12px solid white;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
 }
 
 /* Media queries for responsive design */
 @media (max-width: 768px) {
-  .gameHeader {
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.5rem;
+  .gameContent {
+    width: 95%;
+    height: 95%;
   }
   
-  .configGrid, 
-  .environmentGrid {
-    grid-template-columns: 1fr;
+  .mascotImage {
+    width: 90px;
   }
   
-  .animalsGrid {
-    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+  .speechBubble {
+    max-width: 200px;
+    font-size: 0.8rem;
+    padding: 10px 14px;
+    top: -40px;
+    right: 70px;
   }
   
-  .mascot {
-    width: 4rem;
-    height: 4rem;
+  .progressIndicator {
+    width: 100px;
+    padding: 8px 12px;
+  }
+}
+
+/* For very large screens */
+@media (min-width: 1600px) {
+  .gameContent {
+    width: 80%;
+    height: 80%;
   }
   
-  .characterPlaceholder {
-    font-size: 3rem;
+  .mascotImage {
+    width: 150px;
   }
   
-  .soundCircle {
-    width: 5rem;
-    height: 5rem;
-  }
-  
-  .actionButtons {
-    flex-direction: column;
-  }
-  
-  .clearButton, 
-  .submitButton, 
-  .continueButton, 
-  .nextButton, 
-  .playAgainButton {
-    width: 100%;
-  }
-  
-  .trophyIcon {
-    width: 4rem;
-    height: 4rem;
-    font-size: 2rem;
-  }
-  
-  .scoreCircle {
-    width: 5rem;
-    height: 5rem;
-  }
-  
-  .scoreValue {
-    font-size: 1.5rem;
+  .speechBubble {
+    max-width: 300px;
+    font-size: 1rem;
   }
 }
 
-/* For larger screens like TVs */
-@media (min-width: 1440px) {
-  .configGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  
-  .animalsGrid {
-    grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
-  }
-  
-  .resultsGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-  
-  .gameHeader {
-    padding: 1rem 2rem;
-  }
-  
-  .configTitle,
-  .introTitle,
-  .resultsTitle,
-  .completeTitle {
-    font-size: 2.5rem;
-  }
-  
-  .gameTitle {
-    font-size: 2rem;
+/* For TV screens with different aspect ratios */
+@media (min-aspect-ratio: 16/9) {
+  .gameContent {
+    width: 85%;
+    height: 85%;
   }
 }
 
-.configContent {
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  width: 100%;
-  max-width: 50rem;
-  max-height: calc(100vh - 7rem);
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(5px);
-}
-
-.configTitle {
-  text-align: center;
-  color: #296b63; /* Dark teal */
-  font-size: 2rem;
-  margin-top: 0;
-  margin-bottom: 1rem;
-}
-
-.configTitle span {
-  color: #81c9c0; /* Teal */
-}
-
-.quickStartButton {
-  background-color: #fcae3e; /* Orange from your color scheme */
-  color: white;
-  border: none;
-  border-radius: 2rem;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  width: fit-content;
-  margin: 0 auto 1rem;
-  font-size: 1rem;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-}
-
-.configGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
-  overflow-y: auto;
-  max-height: calc(100vh - 15rem);
-  padding-right: 0.5rem;
-}
-
-.configSection {
-  background-color: #f5f9f8; /* Very light teal */
-  border-radius: 1rem;
-  padding: 1rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-.configSection h2 {
-  font-size: 1.2rem;
-  color: #296b63; /* Dark teal */
-  margin-top: 0;
-  margin-bottom: 1rem;
-}
-
-.buttonGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.optionButton {
-  background-color: white;
-  color: #333;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  font-weight: 500;
-}
-
-.optionButton.selected {
-  background-color: #81c9c0; /* Teal */
-  color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.difficultyButton {
-  background-color: white;
-  color: #333;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.difficultyButton.selected {
-  background-color: #81c9c0; /* Teal */
-  color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.difficultyLabel {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.difficultyDesc {
-  font-size: 0.8rem;
-  opacity: 0.8;
-}
-
-.environmentGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-}
-
-.environmentButton {
-  background-color: white;
-  color: #333;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.environmentButton.selected {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-weight: 600;
-}
-
-.environmentButton.jungle {
-  background-color: #e8f4f1; /* Light jungle color */
-}
-
-.environmentButton.jungle.selected {
-  background-color: #a0dad1; /* Teal */
-  color: white;
-}
-
-.environmentButton.savanna {
-  background-color: #f7ecd5; /* Light savanna color */
-}
-
-.environmentButton.savanna.selected {
-  background-color: #f5e5b8; /* Sand */
-  color: #333;
-}
-
-.environmentButton.ocean {
-  background-color: #e1f2f7; /* Light ocean color */
-}
-
-.environmentButton.ocean.selected {
-  background-color: #a0c8d7; /* Light blue */
-  color: white;
-}
-
-.environmentButton.arctic {
-  background-color: #f0f7fb; /* Light arctic color */
-}
-
-.environmentButton.arctic.selected {
-  background-color: #d2e5f1; /* Ice blue */
-  color: #333;
-}
-
-.envIcon {
-  font-size: 1.5rem;
-}
-
-.configActions {
-  display: flex;
-  justify-content: center;
-  margin-top: 1rem;
-}
-
-.startButton {
-  background-color: #81c9c0; /* Teal */
-  color: white;
-  border: none;
-  border-radius: 2rem;
-  padding: 0.75rem 2rem;
-  font-weight: 600;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-}
-
-/* Intro Screen */
-.introScreen {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-}
-
-.introCard {
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  width: 100%;
-  max-width: 40rem;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(5px);
-  max-height: calc(100vh - 7rem);
-  overflow: hidden;
-}
-
-.introTitle {
-  text-align: center;
-  color: #296b63; /* Dark teal */
-  font-size: 1.8rem;
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.soundCircleWrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0 0 1.5rem 0;
-}
-
-.soundCircle {
-  width: 6rem;
-  height: 6rem;
-  background: linear-gradient(135deg, #81c9c0, #a0dad1);
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-}
-
-.soundLetter {
-  font-size: 2.5rem;
-  color: white;
-  font-weight: bold;
-  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
-  z-index: 2;
-}
-
-.soundWaves {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.soundWave {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.7);
-}
-
-.tapInstruction {
-  color: #666;
-  font-size: 0.9rem;
-  margin: 0;
-  font-style: italic;
-}
-
-.examplesContainer {
-  margin-bottom: 1.5rem;
-}
-
-.examplesContainer h3 {
-  color: #296b63; /* Dark teal */
-  font-size: 1.1rem;
-  margin-top: 0;
-  margin-bottom: 0.75rem;
-}
-
-.exampleWords {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.exampleWord {
-  background-color: #e8f4f1; /* Light teal */
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.75rem;
-  font-size: 1rem;
-  color: #296b63;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.taskContainer {
-  background-color: #f7ecd5; /* Light yellow */
-  padding: 1rem;
-  border-radius: 0.75rem;
-  margin-bottom: 1.5rem;
-  border-left: 4px solid #fcae3e; /* Orange */
-}
-
-.taskContainer h3 {
-  color: #d2751d; /* Dark orange */
-  font-size: 1.1rem;
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-}
-
-.taskContainer p {
-  margin: 0;
-  color: #333;
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.continueButton {
-  background-color: #81c9c0; /* Teal */
-  color: white;
-  border: none;
-  border-radius: 2rem;
-  padding: 0.75rem 1.5rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin: 0 auto;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s ease;
-}
-
-/* Gameplay Screen */
-.gameplayScreen {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-}
-
-.gameplayCard {
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 1rem;
-  padding: 1rem;
-  width: 100%;
-  max-width: 50rem;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(5px);
-  max-height: calc(100vh - 7rem);
-  overflow: hidden;
-}
-
-.gameStatusBar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.selectionCount {
-  background-color: #e8f4f1; /* Light teal */
-  border-radius: 1rem;
-  padding: 0.5rem 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: #296b63; /* Dark teal */
-}
-
-.countNumber {
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.hintButton {
-  background-color: #f7ecd5; /* Light yellow */
-  color: #d2751d; /* Dark orange */
-  border: none;
-  border-radius: 1rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-.hintBubble {
-  background-color: #f7ecd5; /* Light yellow */
-  color: #d2751d; /* Dark orange */
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
-  margin-bottom: 0.75rem;
-  text-align: center;
-  font-weight: 600;
-  position: relative;
-}
-
-.timerContainer {
-  margin-bottom: 0.75rem;
-}
-
-.timerLabel {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.25rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.timerWarning {
-  color: #d32f2f; /* Red */
-  animation: pulse 1s infinite;
-}
-
-.timerBarContainer {
-  width: 100%;
-  height: 0.5rem;
-  background-color: #e0e0e0;
-  border-radius: 0.25rem;
-  overflow: hidden;
-}
-
-.timerBar {
-  height: 100%;
-  background-color: #81c9c0; /* Teal */
-  border-radius: 0.25rem;
-}
-
-.animalsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
-  gap: 0.5rem;
-  overflow-y: auto;
-  max-height: calc(100vh - 18rem);
-  padding: 0.5rem 0;
-  margin-bottom: 0.75rem;
-}
-
-.animalCard {
-  background-color: white;
-  border-radius: 0.75rem;
-  padding: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
-  border: 2px solid transparent;
-}
-
-.animalCard.selected {
-  border: 2px solid #81c9c0; /* Teal */
-  background-color: #e8f4f1; /* Light teal */
-}
-
-.animalImage {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.animalName {
-  font-size: 0.85rem;
-  color: #333;
-  font-weight: 500;
-  text-align: center;
-}
-
-.checkmark {
-  position: absolute;
-  top: 0.25rem;
-  right: 0.25rem;
-  width: 1.25rem;
-  height: 1.25rem;
-  background-color: #81c9c0; /* Teal */
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  font-weight: bold;
-  font-size: 0.8rem;
-}
-
-.actionButtons {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-top: auto;
-}
-
-.clearButton {
-  background-color: #f5f5f5;
-  color: #666;
-  border: none;
-  padding: 0.75rem 1rem;
-  border-radius: 2rem;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.submitButton {
-  background-color: #81c9c0; /* Teal */
-  color: white;
-  border: none;
-  padding: 0.75rem 1rem;
-  border-radius: 2rem;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  flex: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-}
-
-/* Results Screen */
-.resultsScreen {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
+@media (max-aspect-ratio: 4/3) {
+  .gameContent {
+    width: 95%;
+    height: 95%;
+  }
 }

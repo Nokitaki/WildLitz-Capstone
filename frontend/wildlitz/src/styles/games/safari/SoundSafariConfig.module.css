@@ -1,336 +1,458 @@
 /* src/styles/games/safari/SoundSafariConfig.module.css */
 
-.container {
+.configContainer {
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 1rem;
-  overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* Config content */
-.configContent {
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 1.5rem;
-  padding: 1.5rem;
+.configCardWrapper {
   width: 100%;
-  max-width: 50rem;
-  max-height: calc(100vh - 2rem);
+  max-width: 1600px;
+  height: 90vh;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 24px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.configHeader {
+  text-align: center;
+  margin-bottom: 15px;
 }
 
 .configTitle {
-  text-align: center;
-  color: #81c9c0; /* Teal from color palette */
-  font-size: 1.8rem;
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-  font-weight: 700;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #333;
+  margin: 0 0 5px 0;
 }
 
-/* Quick start button */
+.configTitle span {
+  color: #4caf50;
+}
+
+.configSubtitle {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+}
+
+.configContent {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+}
+
+.configColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.configSection {
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.configSection h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.2rem;
+  color: #333;
+  margin: 0 0 12px 0;
+}
+
+.sectionEmoji {
+  font-size: 1.3rem;
+}
+
+.buttonGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.optionButton {
+  background-color: #f5f5f5;
+  color: #333;
+  border: none;
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.optionButton:hover {
+  background-color: #eeeeee;
+  transform: translateY(-2px);
+}
+
+.optionButton.selected {
+  background-color: #4caf50;
+  color: white;
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.difficultyButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.difficultyButton {
+  background-color: #f5f5f5;
+  color: #333;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.difficultyButton:hover {
+  background-color: #eeeeee;
+  transform: translateY(-2px);
+}
+
+.difficultyButton.selected {
+  background-color: #4caf50;
+  color: white;
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.difficultyTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.difficultyDetails {
+  display: flex;
+  justify-content: space-around;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+.environmentGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 15px;
+  flex: 1;
+}
+
+.environmentButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.environmentButton:hover {
+  transform: translateY(-2px);
+}
+
+.environmentButton.selected {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-weight: 600;
+}
+
+.jungleEnv {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.jungleEnv.selected {
+  background-color: #4caf50;
+  color: white;
+}
+
+.savannaEnv {
+  background-color: #fff8e1;
+  color: #ff8f00;
+}
+
+.savannaEnv.selected {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.oceanEnv {
+  background-color: #e3f2fd;
+  color: #0d47a1;
+}
+
+.oceanEnv.selected {
+  background-color: #2196f3;
+  color: white;
+}
+
+.arcticEnv {
+  background-color: #f3f8fc;
+  color: #1976d2;
+}
+
+.arcticEnv.selected {
+  background-color: #90caf9;
+  color: #333;
+}
+
+.envEmoji {
+  font-size: 1.8rem;
+}
+
+.quickStartContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+  padding-top: 15px;
+}
+
 .quickStartButton {
-  background-color: #fcae3e; /* Pastel orange from color palette */
+  background-color: #ff9800;
   color: white;
   border: none;
-  border-radius: 2rem;
-  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   cursor: pointer;
-  width: fit-content;
-  margin: 0 auto 0.5rem;
-  font-size: 1rem;
-  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+  transition: all 0.2s ease;
+  width: 100%;
+  max-width: 250px;
 }
 
 .quickStartButton:hover {
   background-color: #f57c00;
-  transform: translateY(-0.125rem);
+  box-shadow: 0 6px 16px rgba(255, 152, 0, 0.4);
 }
 
-/* Config grid layout */
-.configGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 1rem;
-  overflow-y: auto;
-  max-height: calc(100vh - 15rem);
-  padding-right: 0.5rem;
-}
-
-/* Config sections */
-.configSection {
-  background-color: #f5f9f8; /* Very light teal */
-  border-radius: 1rem;
-  padding: 1rem;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
-}
-
-.configSection h2 {
-  font-size: 1.25rem;
-  color: #296b63; /* Dark teal */
-  margin-top: 0;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-/* Sound position section */
-.soundPositionOptions {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-}
-
-.positionButton {
-  background-color: white;
-  color: #333;
-  border: none;
-  border-radius: 0.75rem;
-  padding: 0.75rem 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
-}
-
-.positionButton:hover {
-  transform: translateY(-0.125rem);
-  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
-}
-
-.positionButton.selected {
-  background-color: #81c9c0; /* Teal */
-  color: white;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
-}
-
-/* Difficulty options */
-.difficultyOptions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.difficultyButton {
-  background-color: white;
-  color: #333;
-  border: none;
-  border-radius: 0.75rem;
-  padding: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
-}
-
-.difficultyButton:hover {
-  transform: translateY(-0.125rem);
-  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
-}
-
-.difficultyButton.selected {
-  background-color: #81c9c0; /* Teal */
-  color: white;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
-}
-
-.difficultyLabel {
+.buttonEmoji {
   font-size: 1.1rem;
-  font-weight: bold;
-  margin-bottom: 0.25rem;
 }
 
-.difficultyDescription {
-  font-size: 0.85rem;
-  opacity: 0.8;
-}
-
-/* Environment options */
-.environmentOptions {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-}
-
-.environmentButton {
-  background-color: white;
-  color: #333;
-  border: none;
-  border-radius: 0.75rem;
-  padding: 0.75rem 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.gameInfoSection {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
-}
-
-.environmentButton:hover {
-  transform: translateY(-0.125rem);
-  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
-}
-
-.environmentButton.selected {
-  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
-  font-weight: bold;
-}
-
-.envIcon {
-  font-size: 1.5rem;
-  margin-bottom: 0.25rem;
-}
-
-.environmentButton.jungle {
-  background-color: #e8f4f1; /* Light teal/jungle */
-}
-
-.environmentButton.jungle.selected {
-  background-color: #81c9c0; /* Teal */
-  color: white;
-}
-
-.environmentButton.savanna {
-  background-color: #f7ecd5; /* Light yellow/sand */
-}
-
-.environmentButton.savanna.selected {
-  background-color: #f5e5b8; /* Pastel yellow */
-  color: #333;
-}
-
-.environmentButton.ocean {
-  background-color: #e1f2f7; /* Light blue */
-}
-
-.environmentButton.ocean.selected {
-  background-color: #a0d6e3; /* Pastel blue */
-  color: white;
-}
-
-.environmentButton.arctic {
-  background-color: #f0f7fb; /* Very light blue */
-}
-
-.environmentButton.arctic.selected {
-  background-color: #d2e5f1; /* Pastel ice blue */
-  color: #333;
-}
-
-/* Action buttons */
-.configActions {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: auto;
-}
-
-.backButton {
-  background-color: #e0e0e0;
-  color: #333;
-  border: none;
-  border-radius: 2rem;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  gap: 10px;
   flex: 1;
 }
 
-.backButton:hover {
-  background-color: #d5d5d5;
-  transform: translateY(-0.125rem);
+.infoBox {
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  padding: 12px;
+  flex: 1;
+}
+
+.infoBox h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  color: #333;
+  margin: 0 0 6px 0;
+}
+
+.infoBox p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #555;
+  line-height: 1.4;
+}
+
+.infoEmoji {
+  font-size: 1.1rem;
+}
+
+.startButtonContainer {
+  display: flex;
+  justify-content: center;
+  padding-top: 10px;
 }
 
 .startButton {
-  background-color: #81c9c0; /* Teal */
+  background-color: #4caf50;
   color: white;
   border: none;
-  border-radius: 2rem;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
+  border-radius: 50px;
+  padding: 10px 25px;
   font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centers the text and icon */
+  gap: 8px;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
   transition: all 0.2s ease;
-  flex: 2;
-  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+  width: auto; /* Change from 100% to auto */
+  max-width: 400px; /* Limit the maximum width */
+  margin: 0 auto; /* Centers the button in its container */
 }
 
 .startButton:hover {
-  background-color: #6dbdb3;
-  transform: translateY(-0.125rem);
-  box-shadow: 0 0.375rem 0.75rem rgba(0, 0, 0, 0.2);
+  background-color: #388e3c;
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  transform: translateY(-2px);
 }
 
 /* Media queries for responsive design */
-@media (max-width: 768px) {
-  .configGrid {
-    grid-template-columns: 1fr;
-  }
-  
-  .configActions {
+@media (max-width: 1200px) {
+  .configContent {
     flex-direction: column;
   }
   
-  .configTitle {
-    font-size: 1.5rem;
+  .configSection {
+    padding: 12px;
   }
   
-  .backButton, .startButton {
-    width: 100%;
+  .quickStartContainer {
+    padding-top: 10px;
+  }
+  
+  .environmentGrid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
-/* For TV displays and larger screens */
-@media (min-width: 1440px) {
-  .configContent {
-    max-width: 65rem;
-  }
-  
-  .configGrid {
-    grid-template-columns: repeat(3, 1fr);
+@media (max-width: 768px) {
+  .configCardWrapper {
+    padding: 15px;
   }
   
   .configTitle {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
   }
   
-  .quickStartButton,
-  .backButton,
-  .startButton {
-    font-size: 1.25rem;
-    padding: 1rem 2rem;
+  .configSubtitle {
+    font-size: 0.9rem;
   }
   
-  .configSection h2 {
+  .buttonGrid, .environmentGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .optionButton, .difficultyButton, .environmentButton {
+    padding: 8px;
+    font-size: 0.8rem;
+  }
+  
+  .envEmoji {
     font-size: 1.5rem;
   }
   
-  .difficultyLabel {
-    font-size: 1.25rem;
+  .startButton, .quickStartButton {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .buttonGrid, .environmentGrid {
+    grid-template-columns: 1fr;
   }
   
-  .difficultyDescription {
+  .configTitle {
+    font-size: 1.5rem;
+  }
+  
+  .configCardWrapper {
+    padding: 10px;
+  }
+  
+  .configContent {
+    gap: 10px;
+  }
+  
+  .infoBox {
+    padding: 10px;
+  }
+  
+  .infoBox p {
+    font-size: 0.8rem;
+  }
+}
+
+/* For very large screens */
+@media (min-width: 1800px) {
+  .configCardWrapper {
+    max-width: 1800px;
+    padding: 30px;
+  }
+  
+  .configTitle {
+    font-size: 2.6rem;
+  }
+  
+  .configSubtitle {
+    font-size: 1.2rem;
+  }
+  
+  .configSection h2 {
+    font-size: 1.4rem;
+  }
+  
+  .optionButton, .difficultyButton, .environmentButton {
+    padding: 15px;
     font-size: 1rem;
   }
   
-  .environmentButton,
-  .positionButton,
-  .difficultyButton {
-    padding: 1rem;
+  .envEmoji {
+    font-size: 2.2rem;
   }
   
-  .envIcon {
-    font-size: 2rem;
+  .difficultyTitle {
+    font-size: 1.2rem;
+  }
+  
+  .difficultyDetails {
+    font-size: 0.95rem;
+  }
+  
+  .infoBox h3 {
+    font-size: 1.2rem;
+  }
+  
+  .infoBox p {
+    font-size: 1rem;
+  }
+  
+  .startButton, .quickStartButton {
+    padding: 12px 30px;
+    font-size: 1.1rem;
   }
 }
