@@ -1,0 +1,549 @@
+/* GameplayScreen.module.css */
+
+.gameplayContainer {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    box-sizing: border-box;
+  }
+  
+  .gameplayCard {
+    width: 100%;
+    max-width: 1600px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 24px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+  }
+  
+  .gameHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .targetInfo {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .gameTitle {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #333;
+    margin: 0 0 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .titleEmoji {
+    font-size: 1.8rem;
+  }
+  
+  .gameSubtitle {
+    font-size: 1rem;
+    color: #666;
+    margin: 0;
+  }
+  
+  .targetSoundText {
+    background-color: #81c9c0;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+  }
+  
+  .gameControls {
+    display: flex;
+    gap: 15px;
+  }
+  
+  .selectionCount {
+    background-color: #e8f4f1;
+    border-radius: 20px;
+    padding: 8px 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #296b63;
+  }
+  
+  .countLabel {
+    font-weight: 500;
+  }
+  
+  .countNumber {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  
+  .hintButton {
+    background-color: #fff8e1;
+    color: #f57c00;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+  }
+  
+  .hintButton:hover {
+    background-color: #ffecb3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .hintIcon {
+    font-size: 1.1rem;
+  }
+  
+  .hintBubble {
+    background-color: #fff8e1;
+    color: #f57c00;
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: 600;
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .hintBubble::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: 120px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #fff8e1;
+  }
+  
+  .gameContent {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+  }
+  
+  .gameColumn {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Left Column - Timer & Instructions */
+  .gameColumn:first-child {
+    width: 30%;
+  }
+  
+  /* Right Column - Animals Grid */
+  .animalsColumn {
+    width: 70%;
+  }
+  
+  .timerSection {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    height: 100%;
+  }
+  
+  .timerContainer {
+    margin-bottom: 5px;
+  }
+  
+  .timerLabel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .timerWarning {
+    color: #f44336;
+    animation: pulse 1s infinite;
+  }
+  
+  .timerBarContainer {
+    width: 100%;
+    height: 8px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .timerBar {
+    height: 100%;
+    background-color: #4caf50;
+    border-radius: 4px;
+  }
+  
+  .instructionsSection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .instructionCard {
+    background-color: #f5f9f8;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .cardIcon {
+    font-size: 2rem;
+    flex-shrink: 0;
+    color: #296b63;
+  }
+  
+  .cardContent {
+    flex: 1;
+  }
+  
+  .cardContent h3 {
+    margin: 0 0 5px 0;
+    font-size: 1rem;
+    color: #296b63;
+  }
+  
+  .cardContent p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #333;
+    line-height: 1.4;
+  }
+  
+  .tipsSection {
+    background-color: #e3f2fd;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: auto;
+    border-left: 4px solid #2196f3;
+  }
+  
+  .tipTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  
+  .tipEmoji {
+    font-size: 1.2rem;
+  }
+  
+  .tipTitle h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #1976d2;
+  }
+  
+  .tipsList {
+    margin: 0;
+    padding-left: 20px;
+  }
+  
+  .tipsList li {
+    font-size: 0.9rem;
+    color: #333;
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+  
+  .tipsList li:last-child {
+    margin-bottom: 0;
+  }
+  
+  .animalsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+    overflow-y: auto;
+    max-height: calc(100vh - 250px);
+    padding-right: 10px;
+  }
+  
+  .animalCard {
+    background-color: white;
+    border-radius: 12px;
+    padding: 15px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+  }
+  
+  .animalCard.selected {
+    border: 2px solid #81c9c0;
+    background-color: #e8f4f1;
+  }
+  
+  .animalImage {
+    font-size: 3rem;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+  }
+  
+  .animalInfo {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .animalName {
+    font-size: 0.85rem;
+    color: #333;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  
+  .soundButton {
+    background: none;
+    border: none;
+    color: #81c9c0;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+  }
+  
+  .soundButton:hover {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  
+  .soundButton:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  
+  .checkmark {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    background-color: #81c9c0;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    font-size: 0.7rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .actionButtons {
+    display: flex;
+    gap: 15px;
+    margin-top: auto;
+  }
+  
+  .clearButton {
+    background-color: #eeeeee;
+    color: #616161;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+  }
+  
+  .clearButton:hover:not(:disabled) {
+    background-color: #e0e0e0;
+    transform: translateY(-2px);
+  }
+  
+  .clearButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .submitButton {
+    background-color: #81c9c0;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    flex: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 8px rgba(129, 201, 192, 0.3);
+  }
+  
+  .submitButton:hover {
+    background-color: #6dbdb3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(129, 201, 192, 0.4);
+  }
+  
+  .buttonIcon {
+    font-size: 1.1rem;
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+  }
+  
+  /* Media queries for responsive design */
+  @media (max-width: 1200px) {
+    .gameContent {
+      flex-direction: column;
+    }
+    
+    .gameColumn:first-child,
+    .animalsColumn {
+      width: 100%;
+    }
+    
+    .gameHeader {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    
+    .gameControls {
+      width: 100%;
+      justify-content: space-between;
+    }
+    
+    .instructionsSection {
+      flex-direction: row;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 5px;
+    }
+    
+    .instructionCard {
+      min-width: 200px;
+      flex-shrink: 0;
+    }
+    
+    .tipsSection {
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+    
+    .animalsGrid {
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      max-height: none;
+      overflow-y: visible;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .gameplayCard {
+      padding: 15px;
+    }
+    
+    .gameTitle {
+      font-size: 1.4rem;
+    }
+    
+    .animalImage {
+      font-size: 2.5rem;
+    }
+    
+    .instructionCard {
+      min-width: 160px;
+    }
+    
+    .actionButtons {
+      flex-direction: column;
+    }
+    
+    .clearButton, .submitButton {
+      width: 100%;
+    }
+  }
+  
+  /* For very large screens */
+  @media (min-width: 1800px) {
+    .gameplayCard {
+      max-width: 1800px;
+    }
+    
+    .gameTitle {
+      font-size: 2.2rem;
+    }
+    
+    .gameSubtitle {
+      font-size: 1.2rem;
+    }
+    
+    .animalsGrid {
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+    
+    .animalImage {
+      font-size: 3.5rem;
+    }
+    
+    .animalName {
+      font-size: 1rem;
+    }
+    
+    .cardContent h3 {
+      font-size: 1.2rem;
+    }
+    
+    .cardContent p,
+    .tipsList li {
+      font-size: 1rem;
+    }
+    
+    .clearButton, .submitButton {
+      padding: 15px 25px;
+      font-size: 1.1rem;
+    }
+  }
