@@ -1,9 +1,9 @@
-// src/pages/games/soundsafari/ResultScreen/index.jsx <updated on 2025-04-27>
+// src/pages/games/soundsafari/ResultScreen.jsx <updated on 2025-04-27>
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import styles from '../../../../styles/games/safari/ResultsScreen.module.css';
-import { playCelebrationSound, playSpeech } from '../../../../utils/soundUtils';
-import WildLitzFox from '../../../../assets/img/wildlitz-idle.png';
+import styles from '../../../styles/games/safari/ResultsScreen.module.css';
+import { playCelebrationSound, playSpeech } from '../../../utils/soundUtils';
+import WildLitzFox from '../../../assets/img/wildlitz-idle.png';
 
 /**
  * Results screen component displaying round results

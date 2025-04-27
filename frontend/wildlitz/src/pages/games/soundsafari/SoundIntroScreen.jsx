@@ -1,11 +1,11 @@
-// src/pages/games/soundsafari/SoundIntroScreen/index.jsx <updated on 2025-04-27>
+// src/pages/games/soundsafari/SoundIntroScreen.jsx <updated on 2025-04-27>
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { SOUND_EXAMPLES, SOUND_DESCRIPTIONS } from '../../../../mock/soundSafariData'; 
-import styles from '../../../../styles/games/safari/SoundIntroScreen.module.css';
-import { playSpeech } from '../../../../utils/soundUtils';
-import WildLitzFox from '../../../../assets/img/wildlitz-idle.png';
+import { SOUND_EXAMPLES, SOUND_DESCRIPTIONS } from '../../../mock/soundSafariData'; 
+import styles from '../../../styles/games/safari/SoundIntroScreen.module.css';
+import { playSpeech } from '../../../utils/soundUtils';
+import WildLitzFox from '../../../assets/img/wildlitz-idle.png';
 
 /**
  * Component for introducing the target sound to players

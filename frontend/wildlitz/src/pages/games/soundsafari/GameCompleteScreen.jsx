@@ -1,9 +1,9 @@
-// src/pages/games/soundsafari/GameCompleteScreen/index.jsx <updated on 2025-04-25>
+// src/pages/games/soundsafari/GameCompleteScreen.jsx<updated on 2025-04-25>
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import styles from '../../../../styles/games/safari/GameCompleteScreen.module.css';
-import { playCelebrationSound } from '../../../../utils/soundUtils';
+import styles from '../../../styles/games/safari/GameCompleteScreen.module.css';
+import { playCelebrationSound } from '../../../utils/soundUtils';
 
 /**
  * Game completion screen component

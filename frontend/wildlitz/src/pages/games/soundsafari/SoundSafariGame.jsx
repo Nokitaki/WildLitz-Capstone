@@ -12,7 +12,7 @@ import SoundSafariConfigScreen from './SoundSafariConfigScreen';
 import SoundSafariLoadingScreen from './SoundSafariLoadingScreen';
 import SoundIntroScreen from './SoundIntroScreen';
 import GameplayScreen from './GameplayScreen';
-import ResultsScreen from './ResultsScreen';
+import ResultsScreen from './ResultScreen';
 import GameCompleteScreen from './GameCompleteScreen';
 
 // Import mock data

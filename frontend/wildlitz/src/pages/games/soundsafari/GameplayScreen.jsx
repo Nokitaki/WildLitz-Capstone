@@ -1,10 +1,10 @@
-// src/pages/games/soundsafari/GameplayScreen/index.jsx <updated on 2025-04-27>
+// src/pages/games/soundsafari/GameplayScreen.jsx <updated on 2025-04-27>
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import styles from '../../../../styles/games/safari/GameplayScreen.module.css';
-import { playSpeech } from '../../../../utils/soundUtils';
-import WildLitzFox from '../../../../assets/img/wildlitz-idle.png';
+import styles from '../../../styles/games/safari/GameplayScreen.module.css';
+import { playSpeech } from '../../../utils/soundUtils';
+import WildLitzFox from '../../../assets/img/wildlitz-idle.png';
 
 /**
  * Component for the main gameplay screen
