@@ -135,31 +135,7 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
           </h2>
         </div>
         
-        {/* Character with feedback */}
-        <div className={styles.characterContainer}>
-          <motion.div 
-            className={styles.character}
-            animate={{ 
-              y: [0, -8, 0],
-              rotate: score >= 70 ? [0, 3, 0, -3, 0] : [0, 2, 0, -2, 0]
-            }}
-            transition={{ 
-              y: { repeat: Infinity, duration: 3, ease: "easeInOut" },
-              rotate: { repeat: Infinity, duration: 2, ease: "easeInOut" }
-            }}
-          >
-            <img src={WildLitzFox} alt="WildLitz Fox" className={styles.characterImage} />
-            
-            <motion.div 
-              className={styles.speechBubble}
-              initial={{ opacity: 0, scale: 0.8, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              {getCharacterFeedback()}
-            </motion.div>
-          </motion.div>
-        </div>
+       
         
         {/* Score Banner */}
         <div className={styles.scoreSection}>

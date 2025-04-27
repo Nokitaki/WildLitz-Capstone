@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { SOUND_EXAMPLES, SOUND_DESCRIPTIONS } from '../../../mock/soundSafariData'; 
 import styles from '../../../styles/games/safari/SoundIntroScreen.module.css';
 import { playSpeech } from '../../../utils/soundUtils';
-import WildLitzFox from '../../../assets/img/wildlitz-idle.png';
 
 /**
  * Component for introducing the target sound to players
@@ -14,7 +13,6 @@ import WildLitzFox from '../../../assets/img/wildlitz-idle.png';
 const SoundIntroScreen = ({ targetSound, onContinue }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeExample, setActiveExample] = useState(null);
-  const [showSpeechBubble, setShowSpeechBubble] = useState(true);
   const [introPlayed, setIntroPlayed] = useState(false);
   
   // Get description and examples for this target sound
@@ -42,9 +40,7 @@ const SoundIntroScreen = ({ targetSound, onContinue }) => {
             
             // After playing the sound, explain how to make it
             setTimeout(() => {
-              playSpeech(soundDescription, 0.9, () => {
-                setShowSpeechBubble(false);
-              });
+              playSpeech(soundDescription, 0.9);
             }, 1500);
           }, 500);
         });
@@ -77,35 +73,6 @@ const SoundIntroScreen = ({ targetSound, onContinue }) => {
           </p>
         </div>
         
-        {/* Character */}
-        <div className={styles.characterContainer}>
-          <motion.div 
-            className={styles.character}
-            animate={{ 
-              y: [0, -8, 0],
-              rotate: [0, 2, 0, -2, 0]
-            }}
-            transition={{ 
-              y: { repeat: Infinity, duration: 3, ease: "easeInOut" },
-              rotate: { repeat: Infinity, duration: 2, ease: "easeInOut" }
-            }}
-          >
-            <img src={WildLitzFox} alt="WildLitz Fox" className={styles.characterImage} />
-            
-            {/* Speech bubble */}
-            {showSpeechBubble && (
-              <motion.div 
-                className={styles.speechBubble}
-                initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                {getCharacterIntro()}
-              </motion.div>
-            )}
-          </motion.div>
-        </div>
-        
         <div className={styles.introContent}>
 
           {/* Right Column - Task & Continue Button */}
@@ -135,8 +102,6 @@ const SoundIntroScreen = ({ targetSound, onContinue }) => {
                 <span className={styles.tipIcon}>💡</span>
                 <p>The sound might be at the beginning, middle, or end of an animal's name.</p>
               </div>
-              
-              
             </div>
           </div>
         
@@ -253,8 +218,6 @@ const SoundIntroScreen = ({ targetSound, onContinue }) => {
               </div>
             </div>
           </div>
-          
-          
         </div>
       </div>
     </div>

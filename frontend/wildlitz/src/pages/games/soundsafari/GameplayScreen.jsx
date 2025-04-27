@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/safari/GameplayScreen.module.css';
 import { playSpeech } from '../../../utils/soundUtils';
-import WildLitzFox from '../../../assets/img/wildlitz-idle.png';
 
 /**
  * Component for the main gameplay screen
@@ -192,37 +191,17 @@ const GameplayScreen = ({
           </div>
         </div>
         
-        {/* Character with Speech Bubble */}
-        <div className={styles.characterContainer}>
+        {/* Hint display - this will be used to display hints without the character */}
+        {showHint && (
           <motion.div 
-            className={styles.character}
-            animate={{ 
-              y: [0, -8, 0],
-              rotate: [0, 2, 0, -2, 0]
-            }}
-            transition={{ 
-              y: { repeat: Infinity, duration: 3, ease: "easeInOut" },
-              rotate: { repeat: Infinity, duration: 2, ease: "easeInOut" }
-            }}
+            className={styles.hintDisplay}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            <img src={WildLitzFox} alt="WildLitz Fox" className={styles.characterImage} />
-            
-            {/* Speech bubble for intro or hints */}
-            {(showIntro || showHint) && (
-              <motion.div 
-                className={styles.speechBubble}
-                initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                {showIntro 
-                  ? getCharacterIntro() 
-                  : `Look for animals with the "${targetSound}" sound ${getPositionText()} of their name!`
-                }
-              </motion.div>
-            )}
+            Look for animals with the "{targetSound}" sound {getPositionText()} of their name!
           </motion.div>
-        </div>
+        )}
         
         {/* Game Content */}
         <div className={styles.gameContent}>

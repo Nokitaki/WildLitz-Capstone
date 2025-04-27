@@ -50,54 +50,6 @@
   margin: 0;
 }
 
-/* Character styles */
-.characterContainer {
-  display: flex;
-  justify-content: center;
-  margin: 0 0 10px 0;
-  position: relative;
-  height: 80px;
-}
-
-.character {
-  position: relative;
-  width: 120px;
-}
-
-.characterImage {
-  width: 100%;
-  max-width: 120px;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-}
-
-.speechBubble {
-  position: absolute;
-  top: -60px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: white;
-  border-radius: 15px;
-  padding: 10px 14px;
-  max-width: 300px;
-  min-width: 240px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  font-size: 0.85rem;
-  color: #333;
-  text-align: center;
-  z-index: 5;
-}
-
-.speechBubble:after {
-  content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-top: 10px solid white;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-}
-
 .introContent {
   display: flex;
   gap: 16px;
@@ -399,24 +351,6 @@
   
   .examplesGrid {
     grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .characterContainer {
-    height: 70px;
-  }
-  
-  .character {
-    width: 100px;
-  }
-  
-  .characterImage {
-    max-width: 100px;
-  }
-  
-  .speechBubble {
-    min-width: 200px;
-    font-size: 0.8rem;
-    padding: 8px 12px;
   }
 }
 

@@ -115,52 +115,17 @@
   font-size: 1rem;
 }
 
-/* Character styling */
-.characterContainer {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 10px;
-  position: relative;
-  height: 70px;
-}
-
-.character {
-  position: relative;
-  width: 100px;
-}
-
-.characterImage {
-  width: 100%;
-  max-width: 100px;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-}
-
-.speechBubble {
-  position: absolute;
-  top: -60px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: white;
-  border-radius: 15px;
+/* Hint display for when the character is not showing the hint */
+.hintDisplay {
+  background-color: #fff8e1;
+  border-radius: 10px;
   padding: 10px 14px;
-  max-width: 300px;
-  min-width: 240px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  font-size: 0.85rem;
-  color: #333;
   text-align: center;
-  z-index: 5;
-}
-
-.speechBubble:after {
-  content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-top: 10px solid white;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  color: #f57c00;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  font-weight: 500;
 }
 
 .gameContent {
@@ -456,20 +421,7 @@
     font-size: 0.8rem;
   }
   
-  .characterContainer {
-    height: 60px;
-  }
-  
-  .character {
-    width: 80px;
-  }
-  
-  .characterImage {
-    max-width: 80px;
-  }
-  
-  .speechBubble {
-    min-width: 200px;
+  .hintDisplay {
     font-size: 0.8rem;
     padding: 8px 12px;
   }
@@ -580,6 +532,12 @@
   
   .gameSubtitle {
     font-size: 1rem;
+  }
+  
+  .hintDisplay {
+    font-size: 1rem;
+    padding: 12px 16px;
+    margin-bottom: 12px;
   }
 }
 

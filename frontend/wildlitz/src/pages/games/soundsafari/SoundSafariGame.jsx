@@ -292,28 +292,48 @@ const SoundSafariGame = () => {
    * Render the progress indicator
    */
   const renderProgressIndicator = () => {
-    if (gameState === 'config') return null;
-    
-    return (
-      <div className={styles.progressIndicator}>
-        <div className={styles.progressLabel}>
-          <span>Round</span>
-          <span className={styles.progressNumbers}>{currentRound}/{totalRounds}</span>
-        </div>
-        <div className={styles.progressBar}>
-          <div 
-            className={styles.progressFill} 
-            style={{ width: `${(currentRound / totalRounds) * 100}%` }}
-          ></div>
-        </div>
-      </div>
-    );
+    if (gameState === 'config' && gameConfig === 'intro') return null;
+  };
+
+  /**
+   * Determine if the mascot should be shown
+   */
+  const shouldShowMascot = () => {
+    return gameState === 'intro' || gameState === 'gameplay';
   };
   
   return (
     <div className={`${styles.gameContainer} ${getEnvironmentClass()}`}>
       <div className={styles.gameContent}>
         {renderProgressIndicator()}
+        
+        {/* Add Fox Mascot that only appears during intro and gameplay */}
+        {shouldShowMascot() && (
+          <motion.div
+            className={styles.foxMascot}
+            animate={{ 
+              y: [0, -8, 0],
+              rotate: [0, 2, 0, -2, 0]
+            }}
+            transition={{ 
+              y: { repeat: Infinity, duration: 3, ease: "easeInOut" },
+              rotate: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+            }}
+          >
+            <img src={WildLitzFox} alt="WildLitz Fox" className={styles.foxImage} />
+            
+            {showBubble && (
+              <motion.div 
+                className={styles.speechBubble}
+                initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {bubbleMessage}
+              </motion.div>
+            )}
+          </motion.div>
+        )}
         
         <AnimatePresence mode="wait">
           {gameState === 'config' && (

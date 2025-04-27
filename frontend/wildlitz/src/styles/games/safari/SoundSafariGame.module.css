@@ -30,7 +30,7 @@
 }
 
 .gameContent {
-  width: 80%; /* Decreased from 90% to 80% */
+  width: 80%;
   height: 90%;
   display: flex;
   flex-direction: column;
@@ -46,6 +46,51 @@
   justify-content: center;
   align-items: center;
   overflow: hidden; /* Ensure no scrolling */
+}
+
+/* Fox Mascot Styling */
+.foxMascot {
+  position: fixed; /* Fixed position instead of absolute */
+  bottom: 20px;
+  left: 20px;
+  width: 120px;
+  height: 120px;
+  z-index: 100; /* High z-index to appear on top */
+  pointer-events: none; /* Make sure it doesn't interfere with clicks */
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2)); /* Add drop shadow for better visibility */
+}
+
+.foxImage {
+  width: 100%;
+  height: auto;
+}
+
+/* Speech bubble styling */
+.speechBubble {
+  position: absolute;
+  top: -70px; /* Positioned above the fox */
+  left: 60px;
+  background-color: white;
+  border-radius: 15px;
+  padding: 10px 14px;
+  min-width: 180px;
+  max-width: 220px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  font-size: 0.85rem;
+  color: #333;
+  text-align: center;
+  z-index: 101;
+  pointer-events: none; /* So clicks pass through */
+}
+
+.speechBubble:after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 30px; /* Position the speech tail to point at the fox */
+  border-top: 10px solid white;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
 }
 
 /* Progress indicator */
@@ -98,6 +143,22 @@
   .gameContent {
     width: 85%;
   }
+  
+  .foxMascot {
+    width: 100px;
+    height: 100px;
+    bottom: 15px;
+    left: 15px;
+  }
+  
+  .speechBubble {
+    top: -60px;
+    left: 50px;
+    min-width: 160px;
+    max-width: 200px;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -114,6 +175,22 @@
   .progressNumbers {
     font-size: 0.9rem;
   }
+  
+  .foxMascot {
+    width: 80px;
+    height: 80px;
+    bottom: 10px;
+    left: 10px;
+  }
+  
+  .speechBubble {
+    top: -50px;
+    left: 40px;
+    min-width: 140px;
+    max-width: 180px;
+    font-size: 0.7rem;
+    padding: 6px 10px;
+  }
 }
 
 /* For TV screens with different aspect ratios */
@@ -121,6 +198,21 @@
   .gameContent {
     width: 75%;
     height: 85%;
+  }
+  
+  .foxMascot {
+    width: 130px;
+    height: 130px;
+    bottom: 30px;
+    left: 30px;
+  }
+  
+  .speechBubble {
+    top: -80px;
+    left: 65px;
+    min-width: 200px;
+    max-width: 240px;
+    font-size: 0.9rem;
   }
 }
 
