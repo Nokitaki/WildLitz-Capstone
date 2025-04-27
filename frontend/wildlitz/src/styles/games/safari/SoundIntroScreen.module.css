@@ -1,438 +1,512 @@
 /* SoundIntroScreen.module.css */
+/* Redesigned for horizontal layout with no overflow/scroll */
 
 .introContainer {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 1rem;
-    box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+.introCard {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.introHeader {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.introTitle {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #333;
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.titleEmoji {
+  font-size: 1.6rem;
+}
+
+.introSubtitle {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Character styles */
+.characterContainer {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 10px 0;
+  position: relative;
+  height: 80px;
+}
+
+.character {
+  position: relative;
+  width: 120px;
+}
+
+.characterImage {
+  width: 100%;
+  max-width: 120px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.speechBubble {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: white;
+  border-radius: 15px;
+  padding: 10px 14px;
+  max-width: 300px;
+  min-width: 240px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  font-size: 0.85rem;
+  color: #333;
+  text-align: center;
+  z-index: 5;
+}
+
+.speechBubble:after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top: 10px solid white;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+}
+
+.introContent {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.introColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Left Column - Sound Circle & How to Make */
+.soundCircleWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.soundCircle {
+  width: 110px;
+  height: 110px;
+  background: linear-gradient(135deg, #81c9c0, #a0dad1);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8px;
+  border: 3px dashed rgba(255, 255, 255, 0.7);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.soundLetter {
+  font-size: 2.2rem;
+  color: white;
+  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
+
+.soundWaves {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.soundWave {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.7);
+}
+
+.tapInstruction {
+  color: #666;
+  font-size: 0.8rem;
+  margin: 0;
+  font-style: italic;
+}
+
+.howToMakeSection {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  height: 100%;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.sectionTitle h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #296b63;
+}
+
+.sectionEmoji {
+  font-size: 1.1rem;
+}
+
+.descriptionBox {
+  background-color: #f5f9f8;
+  border-radius: 10px;
+  padding: 12px;
+  border-left: 4px solid #81c9c0;
+}
+
+.descriptionBox p {
+  margin: 0;
+  color: #333;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+/* Center Column - Example Words */
+.examplesSection {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.examplesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.exampleWord {
+  background-color: #e8f4f1;
+  padding: 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #296b63;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.exampleWord:hover {
+  background-color: #d5eae5;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+}
+
+.exampleWord.activeExample {
+  background-color: #81c9c0;
+  color: white;
+}
+
+.playIcon {
+  font-size: 1.1rem;
+}
+
+.wordDetails {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wordDetail {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background-color: #f5f9f8;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.detailIcon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.wordDetail p {
+  margin: 0;
+  color: #333;
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+/* Right Column - Task & Continue Button */
+.taskSection {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.taskStep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  background-color: #f5f9f8;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.stepNumber {
+  width: 24px;
+  height: 24px;
+  background-color: #81c9c0;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.taskStep p {
+  margin: 0;
+  color: #333;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.tipBox {
+  background-color: #fff8e1;
+  border-radius: 10px;
+  padding: 10px;
+  margin-top: 8px;
+  border-left: 4px solid #ffc107;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.tipIcon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.tipBox p {
+  margin: 0;
+  color: #333;
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.startButtonContainer {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  padding-top: 16px;
+}
+
+.continueButton {
+  background-color: #81c9c0;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+  transition: all 0.2s ease;
+}
+
+.continueButton:hover {
+  background-color: #6dbdb3;
+  box-shadow: 0 6px 14px rgba(76, 175, 80, 0.4);
+  transform: translateY(-2px);
+}
+
+.buttonEmoji {
+  font-size: 1.1rem;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 1024px) {
+  .introContent {
+    gap: 10px;
+  }
+  
+  .soundCircle {
+    width: 90px;
+    height: 90px;
+  }
+  
+  .soundLetter {
+    font-size: 1.8rem;
+  }
+  
+  .examplesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .characterContainer {
+    height: 70px;
+  }
+  
+  .character {
+    width: 100px;
+  }
+  
+  .characterImage {
+    max-width: 100px;
+  }
+  
+  .speechBubble {
+    min-width: 200px;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .introContent {
+    flex-direction: column;
+    gap: 10px;
   }
   
   .introCard {
-    width: 100%;
-    max-width: 1600px;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 24px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px);
-  }
-  
-  .introHeader {
-    text-align: center;
-    margin-bottom: 15px;
+    padding: 12px;
   }
   
   .introTitle {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #333;
-    margin: 0 0 5px 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-size: 1.4rem;
+  }
+  
+  .introSubtitle {
+    font-size: 0.8rem;
+  }
+  
+  .soundCircle {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .soundLetter {
+    font-size: 1.6rem;
+  }
+  
+  .howToMakeSection, .examplesSection, .taskSection {
+    padding: 10px;
+  }
+  
+  .sectionTitle h3 {
+    font-size: 0.9rem;
+  }
+  
+  .descriptionBox p, .wordDetail p, .taskStep p, .tipBox p {
+    font-size: 0.75rem;
+  }
+  
+  .examplesGrid {
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
   
-  .titleEmoji {
+  .exampleWord {
+    font-size: 0.8rem;
+    padding: 8px;
+  }
+  
+  .continueButton {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+}
+
+/* For large displays */
+@media (min-width: 1440px) {
+  .introCard {
+    max-width: 1400px;
+    padding: 20px;
+  }
+  
+  .introTitle {
     font-size: 2rem;
   }
   
   .introSubtitle {
     font-size: 1rem;
-    color: #666;
-    margin: 0;
-  }
-  
-  .introContent {
-    display: flex;
-    gap: 20px;
-    flex: 1;
-  }
-  
-  .introColumn {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  /* Left Column - Sound Circle & How to Make */
-  .soundCircleWrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px;
   }
   
   .soundCircle {
-    width: 150px;
-    height: 150px;
-    background: linear-gradient(135deg, #81c9c0, #a0dad1);
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 10px;
-    border: 3px dashed rgba(255, 255, 255, 0.7);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
+    width: 140px;
+    height: 140px;
   }
   
   .soundLetter {
-    font-size: 3rem;
-    color: white;
-    font-weight: bold;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    z-index: 2;
+    font-size: 2.8rem;
   }
   
-  .soundWaves {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .soundWave {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.7);
-  }
-  
-  .tapInstruction {
-    color: #666;
-    font-size: 0.9rem;
-    margin: 0;
-    font-style: italic;
-  }
-  
-  .howToMakeSection {
-    background-color: rgba(255, 255, 255, 0.7);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    height: 100%;
-  }
-  
-  .sectionTitle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 15px;
-  }
-  
-  .sectionTitle h3 {
-    margin: 0;
-    font-size: 1.2rem;
-    color: #296b63;
-  }
-  
-  .sectionEmoji {
-    font-size: 1.3rem;
-  }
-  
-  .descriptionBox {
-    background-color: #f5f9f8;
-    border-radius: 12px;
-    padding: 15px;
-    border-left: 4px solid #81c9c0;
-  }
-  
-  .descriptionBox p {
-    margin: 0;
-    color: #333;
-    font-size: 1rem;
-    line-height: 1.5;
-  }
-  
-  /* Center Column - Example Words */
-  .examplesSection {
-    background-color: rgba(255, 255, 255, 0.7);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .examplesGrid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  
-  .exampleWord {
-    background-color: #e8f4f1;
-    padding: 12px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 1rem;
-    color: #296b63;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-    font-weight: 500;
-  }
-  
-  .exampleWord:hover {
-    background-color: #d5eae5;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  .exampleWord.activeExample {
-    background-color: #81c9c0;
-    color: white;
-  }
-  
-  .playIcon {
-    font-size: 1.2rem;
-  }
-  
-  .wordDetails {
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .wordDetail {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    background-color: #f5f9f8;
-    padding: 12px;
-    border-radius: 12px;
-  }
-  
-  .detailIcon {
-    font-size: 1.2rem;
-    flex-shrink: 0;
-  }
-  
-  .wordDetail p {
-    margin: 0;
-    color: #333;
-    font-size: 0.9rem;
-    line-height: 1.4;
-  }
-  
-  /* Right Column - Task & Continue Button */
-  .taskSection {
-    background-color: rgba(255, 255, 255, 0.7);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .taskStep {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-    background-color: #f5f9f8;
-    padding: 12px;
-    border-radius: 12px;
-  }
-  
-  .stepNumber {
-    width: 30px;
-    height: 30px;
-    background-color: #81c9c0;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-    font-size: 1rem;
-    flex-shrink: 0;
-  }
-  
-  .taskStep p {
-    margin: 0;
-    color: #333;
-    font-size: 1rem;
-    line-height: 1.4;
-  }
-  
-  .tipBox {
-    background-color: #fff8e1;
-    border-radius: 12px;
-    padding: 15px;
-    margin-top: 10px;
-    border-left: 4px solid #ffc107;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  
-  .tipIcon {
-    font-size: 1.3rem;
-    flex-shrink: 0;
-  }
-  
-  .tipBox p {
-    margin: 0;
-    color: #333;
+  .descriptionBox p, .wordDetail p, .taskStep p, .tipBox p {
     font-size: 0.95rem;
-    line-height: 1.4;
   }
-  
-  .startButtonContainer {
-    margin-top: auto;
-    display: flex;
-    justify-content: center;
-    padding-top: 20px;
+}
+
+/* For extra wide displays */
+@media (min-width: 1800px) {
+  .introCard {
+    max-width: 1600px;
   }
-  
-  .continueButton {
-    background-color: #81c9c0;
-    color: white;
-    border: none;
-    border-radius: 50px;
-    padding: 12px 25px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-    transition: all 0.2s ease;
-  }
-  
-  .continueButton:hover {
-    background-color: #6dbdb3;
-    box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
-    transform: translateY(-2px);
-  }
-  
-  .buttonEmoji {
-    font-size: 1.3rem;
-  }
-  
-  /* Media queries for responsive design */
-  @media (max-width: 1200px) {
-    .introContent {
-      flex-direction: column;
-    }
-    
-    .soundCircle {
-      width: 120px;
-      height: 120px;
-    }
-    
-    .soundLetter {
-      font-size: 2.5rem;
-    }
-    
-    .examplesGrid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .introCard {
-      padding: 15px;
-    }
-    
-    .introTitle {
-      font-size: 1.6rem;
-    }
-    
-    .soundCircle {
-      width: 100px;
-      height: 100px;
-    }
-    
-    .soundLetter {
-      font-size: 2rem;
-    }
-    
-    .examplesGrid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .sectionTitle h3 {
-      font-size: 1rem;
-    }
-    
-    .taskStep {
-      padding: 10px;
-    }
-    
-    .taskStep p, .tipBox p, .wordDetail p {
-      font-size: 0.85rem;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .examplesGrid {
-      grid-template-columns: 1fr;
-    }
-    
-    .continueButton {
-      width: 100%;
-      padding: 10px 15px;
-      font-size: 1rem;
-    }
-  }
-  
-  /* For very large screens */
-  @media (min-width: 1800px) {
-    .introCard {
-      max-width: 1800px;
-    }
-    
-    .soundCircle {
-      width: 180px;
-      height: 180px;
-    }
-    
-    .soundLetter {
-      font-size: 3.5rem;
-    }
-    
-    .introTitle {
-      font-size: 2.5rem;
-    }
-    
-    .sectionTitle h3 {
-      font-size: 1.4rem;
-    }
-    
-    .descriptionBox p,
-    .taskStep p,
-    .tipBox p,
-    .wordDetail p {
-      font-size: 1.1rem;
-    }
-    
-    .exampleWord {
-      font-size: 1.1rem;
-      padding: 15px;
-    }
-    
-    .continueButton {
-      padding: 15px 30px;
-      font-size: 1.3rem;
-    }
-  }
+}

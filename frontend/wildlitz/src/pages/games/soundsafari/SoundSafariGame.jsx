@@ -1,4 +1,4 @@
-// src/pages/games/soundsafari/SoundSafariGame.jsx <updated on 2025-04-25>
+// src/pages/games/soundsafari/SoundSafariGame.jsx <updated on 2025-04-27>
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,7 +26,7 @@ import {
 
 /**
  * Main Sound Safari Game component that manages game state and flow
- * Redesigned with horizontal layout, no overflow/scrolling, and modular CSS
+ * Redesigned with horizontal layout, no overflow/scrolling, and compact layout
  */
 const SoundSafariGame = () => {
   // Game states: 'config', 'loading', 'intro', 'gameplay', 'results', 'complete'
@@ -412,36 +412,6 @@ const SoundSafariGame = () => {
             </motion.div>
           )}
         </AnimatePresence>
-        
-        {/* Character/Mascot - Only show when not in config */}
-        {gameState !== 'config' && (
-          <div className={styles.mascotContainer}>
-            <motion.div 
-              className={styles.mascot}
-              animate={{ 
-                y: [0, -10, 0],
-                rotate: gameState === 'gameplay' ? [0, 3, 0, -3, 0] : 0
-              }}
-              transition={{ 
-                y: { repeat: Infinity, duration: 3, ease: "easeInOut" },
-                rotate: { repeat: Infinity, duration: 2, ease: "easeInOut" }
-              }}
-            >
-              <img src={WildLitzFox} alt="WildLitz Fox" className={styles.mascotImage} />
-              
-              {showBubble && (
-                <motion.div 
-                  className={styles.speechBubble}
-                  initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {bubbleMessage}
-                </motion.div>
-              )}
-            </motion.div>
-          </div>
-        )}
       </div>
     </div>
   );

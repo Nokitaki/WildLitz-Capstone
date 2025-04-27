@@ -1,16 +1,14 @@
-// src/pages/games/soundsafari/GameplayScreen/index.jsx <updated on 2025-04-25>
+// src/pages/games/soundsafari/GameplayScreen/index.jsx <updated on 2025-04-27>
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../../styles/games/safari/GameplayScreen.module.css';
-
-// Import sub-components
-import HintBubble from './HintBubble';
-import TimerDisplay from './TimerDisplay';
-import AnimalCard from './AnimalCard';
+import { playSpeech } from '../../../../utils/soundUtils';
+import WildLitzFox from '../../../../assets/img/wildlitz-idle.png';
 
 /**
- * Component for the main gameplay screen where users select animals
+ * Component for the main gameplay screen
+ * Redesigned with horizontal layout and no overflow/scroll
  */
 const GameplayScreen = ({ 
   animals, 
@@ -23,6 +21,9 @@ const GameplayScreen = ({
   const [timeRemaining, setTimeRemaining] = useState(timeLimit);
   const [showHint, setShowHint] = useState(false);
   const [isPlaying, setIsPlaying] = useState(null);
+  const [showIntro, setShowIntro] = useState(true);
+  const [highlightedAnimal, setHighlightedAnimal] = useState(null);
+  const [introPlayed, setIntroPlayed] = useState(false);
   const timerRef = useRef(null);
   
   // Format time as MM:SS
@@ -42,8 +43,60 @@ const GameplayScreen = ({
     }
   };
   
-  // Set up timer
+  // Generate character intro speech
+  const getCharacterIntro = () => {
+    const positionText = getPositionText();
+    return `Let's find the animals with the "${targetSound}" sound ${positionText} of their names! Listen carefully and select all the matching animals.`;
+  };
+  
+  // Play intro speech when component mounts
   useEffect(() => {
+    if (!introPlayed) {
+      const introSpeech = getCharacterIntro();
+      // Small delay to ensure component is fully mounted
+      setTimeout(() => {
+        playSpeech(introSpeech, 0.9, () => {
+          setIntroPlayed(true);
+          setShowIntro(false);
+          
+          // Start introducing each animal with a small delay
+          setTimeout(() => {
+            introduceAnimals();
+          }, 500);
+        });
+      }, 300);
+    }
+  }, [introPlayed]);
+  
+  // Function to introduce animals one by one with TTS
+  const introduceAnimals = () => {
+    let index = 0;
+    
+    const introduceNext = () => {
+      if (index < animals.length) {
+        const animal = animals[index];
+        setHighlightedAnimal(animal.id);
+        
+        playSpeech(animal.name, 0.9, () => {
+          // Move to next animal after a short pause
+          setTimeout(() => {
+            setHighlightedAnimal(null);
+            index++;
+            setTimeout(introduceNext, 300);
+          }, 800);
+        });
+      } else {
+        // All animals introduced, start the timer
+        setHighlightedAnimal(null);
+        startTimer();
+      }
+    };
+    
+    introduceNext();
+  };
+  
+  // Start the timer after introductions
+  const startTimer = () => {
     if (timeLimit > 0) {
       timerRef.current = setInterval(() => {
         setTimeRemaining(prev => {
@@ -56,12 +109,14 @@ const GameplayScreen = ({
         });
       }, 1000);
     }
-    
-    // Clean up timer on unmount
+  };
+  
+  // Clean up timer on unmount
+  useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [timeLimit]);
+  }, []);
   
   // Toggle animal selection
   const handleToggleSelect = (animal) => {
@@ -128,8 +183,8 @@ const GameplayScreen = ({
             <motion.button 
               className={styles.hintButton}
               onClick={handleShowHint}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
             >
               <span className={styles.hintIcon}>💡</span>
               Hint
@@ -137,17 +192,37 @@ const GameplayScreen = ({
           </div>
         </div>
         
-        {/* Hint Bubble */}
-        {showHint && (
+        {/* Character with Speech Bubble */}
+        <div className={styles.characterContainer}>
           <motion.div 
-            className={styles.hintBubble}
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            className={styles.character}
+            animate={{ 
+              y: [0, -8, 0],
+              rotate: [0, 2, 0, -2, 0]
+            }}
+            transition={{ 
+              y: { repeat: Infinity, duration: 3, ease: "easeInOut" },
+              rotate: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+            }}
           >
-            Look for animals with the "{targetSound}" sound {getPositionText()} of their name!
+            <img src={WildLitzFox} alt="WildLitz Fox" className={styles.characterImage} />
+            
+            {/* Speech bubble for intro or hints */}
+            {(showIntro || showHint) && (
+              <motion.div 
+                className={styles.speechBubble}
+                initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {showIntro 
+                  ? getCharacterIntro() 
+                  : `Look for animals with the "${targetSound}" sound ${getPositionText()} of their name!`
+                }
+              </motion.div>
+            )}
           </motion.div>
-        )}
+        </div>
         
         {/* Game Content */}
         <div className={styles.gameContent}>
@@ -196,34 +271,32 @@ const GameplayScreen = ({
                   </div>
                 </div>
               </div>
-              
-              <div className={styles.tipsSection}>
-                <div className={styles.tipTitle}>
-                  <span className={styles.tipEmoji}>💡</span>
-                  <h3>Sound Safari Tips</h3>
-                </div>
-                <ul className={styles.tipsList}>
-                  <li>The sound "{targetSound}" can be subtle - listen closely!</li>
-                  <li>Some animals may have similar sounds - choose carefully.</li>
-                  <li>Click the hint button if you need a reminder.</li>
-                </ul>
-              </div>
             </div>
           </div>
           
-          {/* Center/Right Column - Animals Grid */}
+          {/* Right Column - Animals Grid */}
           <div className={`${styles.gameColumn} ${styles.animalsColumn}`}>
             <div className={styles.animalsGrid}>
               {animals.map(animal => (
                 <motion.div 
                   key={animal.id}
-                  className={`${styles.animalCard} ${selectedAnimals.some(a => a.id === animal.id) ? styles.selected : ''}`}
+                  className={`${styles.animalCard} 
+                    ${selectedAnimals.some(a => a.id === animal.id) ? styles.selected : ''} 
+                    ${highlightedAnimal === animal.id ? styles.highlighted : ''}`}
                   onClick={() => handleToggleSelect(animal)}
-                  whileHover={{ scale: 1.05, boxShadow: "0 8px 16px rgba(0, 0, 0, 0.2)" }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: Math.random() * 0.5 }}
+                  whileHover={{ scale: 1.03, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" }}
+                  whileTap={{ scale: 0.97 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ 
+                    opacity: 1, 
+                    y: 0,
+                    scale: highlightedAnimal === animal.id ? [1, 1.05, 1] : 1,
+                    boxShadow: highlightedAnimal === animal.id ? "0 0 15px rgba(124, 77, 255, 0.8)" : "0 3px 6px rgba(0, 0, 0, 0.1)"
+                  }}
+                  transition={{ 
+                    delay: Math.random() * 0.3,
+                    scale: { repeat: highlightedAnimal === animal.id ? Infinity : 0, duration: 1 }
+                  }}
                 >
                   <div className={styles.animalImage}>
                     {animal.image}
@@ -234,7 +307,7 @@ const GameplayScreen = ({
                       <motion.button 
                         className={styles.soundButton}
                         onClick={(e) => playAnimalSound(e, animal)}
-                        whileHover={{ scale: 1.2 }}
+                        whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         disabled={isPlaying !== null}
                       >
@@ -260,8 +333,8 @@ const GameplayScreen = ({
             <div className={styles.actionButtons}>
               <motion.button 
                 className={styles.clearButton}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={handleClearSelection}
                 disabled={selectedAnimals.length === 0}
               >
@@ -270,8 +343,8 @@ const GameplayScreen = ({
               </motion.button>
               <motion.button 
                 className={styles.submitButton}
-                whileHover={{ scale: 1.05, boxShadow: "0 8px 16px rgba(0, 0, 0, 0.2)" }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.03, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" }}
+                whileTap={{ scale: 0.97 }}
                 onClick={handleSubmit}
               >
                 <span className={styles.buttonIcon}>✅</span>

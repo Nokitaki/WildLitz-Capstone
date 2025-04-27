@@ -1,4 +1,4 @@
-// src/pages/games/soundsafari/SoundSafariConfigScreen.jsx <updated on 2025-04-25>
+// src/pages/games/soundsafari/SoundSafariConfigScreen.jsx <updated on 2025-04-27>
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/safari/SoundSafariConfig.module.css';
@@ -80,8 +80,6 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
                 </h3>
                 <p>Use different difficulty levels to match student abilities. Discuss animal names and sounds to reinforce phonetic concepts.</p>
               </div>
-              
-      
             </div>
           </div>
           
@@ -95,8 +93,8 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
               <div className={styles.environmentGrid}>
                 <motion.button
                   className={`${styles.environmentButton} ${styles.jungleEnv} ${environment === 'jungle' ? styles.selected : ''}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setEnvironment('jungle')}
                 >
                   <span className={styles.envEmoji}>🌴</span>
@@ -105,8 +103,8 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
                 
                 <motion.button
                   className={`${styles.environmentButton} ${styles.savannaEnv} ${environment === 'savanna' ? styles.selected : ''}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setEnvironment('savanna')}
                 >
                   <span className={styles.envEmoji}>🦒</span>
@@ -115,8 +113,8 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
                 
                 <motion.button
                   className={`${styles.environmentButton} ${styles.oceanEnv} ${environment === 'ocean' ? styles.selected : ''}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setEnvironment('ocean')}
                 >
                   <span className={styles.envEmoji}>🌊</span>
@@ -125,8 +123,8 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
                 
                 <motion.button
                   className={`${styles.environmentButton} ${styles.arcticEnv} ${environment === 'arctic' ? styles.selected : ''}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setEnvironment('arctic')}
                 >
                   <span className={styles.envEmoji}>❄️</span>
@@ -137,8 +135,8 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
               <div className={styles.startButtonContainer}>
                 <motion.button 
                   className={styles.startButton}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={handleStartGame}
                 >
                   <span className={styles.buttonEmoji}>🚀</span>
@@ -158,8 +156,8 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
               <div className={styles.buttonGrid}>
                 <motion.button
                   className={`${styles.optionButton} ${soundPosition === 'beginning' ? styles.selected : ''}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setSoundPosition('beginning')}
                 >
                   Beginning
@@ -167,8 +165,8 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
                 
                 <motion.button
                   className={`${styles.optionButton} ${soundPosition === 'middle' ? styles.selected : ''}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setSoundPosition('middle')}
                 >
                   Middle
@@ -176,8 +174,8 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
                 
                 <motion.button
                   className={`${styles.optionButton} ${soundPosition === 'ending' ? styles.selected : ''}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setSoundPosition('ending')}
                 >
                   Ending
@@ -185,8 +183,8 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
                 
                 <motion.button
                   className={`${styles.optionButton} ${soundPosition === 'anywhere' ? styles.selected : ''}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setSoundPosition('anywhere')}
                 >
                   Anywhere
@@ -202,8 +200,8 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
               <div className={styles.difficultyButtons}>
                 <motion.button
                   className={`${styles.difficultyButton} ${difficulty === 'easy' ? styles.selected : ''}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setDifficulty('easy')}
                 >
                   <div className={styles.difficultyTitle}>Easy</div>
@@ -215,8 +213,8 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
                 
                 <motion.button
                   className={`${styles.difficultyButton} ${difficulty === 'medium' ? styles.selected : ''}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setDifficulty('medium')}
                 >
                   <div className={styles.difficultyTitle}>Medium</div>
@@ -228,8 +226,8 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
                 
                 <motion.button
                   className={`${styles.difficultyButton} ${difficulty === 'hard' ? styles.selected : ''}`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setDifficulty('hard')}
                 >
                   <div className={styles.difficultyTitle}>Hard</div>

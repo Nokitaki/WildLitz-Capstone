@@ -1,4 +1,5 @@
 /* src/styles/games/safari/SoundSafariConfig.module.css */
+/* Redesigned for horizontal layout with no overflow/scroll */
 
 .configContainer {
   width: 100%;
@@ -6,33 +7,33 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
+  padding: 0.5rem;
   box-sizing: border-box;
 }
 
 .configCardWrapper {
   width: 100%;
-  max-width: 1600px;
-  height: 90vh;
+  height: 100%;
   background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 24px;
-  padding: 20px;
+  border-radius: 20px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
+  overflow: hidden;
 }
 
 .configHeader {
   text-align: center;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
 .configTitle {
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-weight: 800;
   color: #333;
-  margin: 0 0 5px 0;
+  margin: 0 0 4px 0;
 }
 
 .configTitle span {
@@ -40,62 +41,65 @@
 }
 
 .configSubtitle {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #666;
   margin: 0;
 }
 
 .configContent {
   display: flex;
-  gap: 20px;
+  gap: 16px;
   flex: 1;
   min-height: 0;
+  height: calc(100% - 60px);
 }
 
 .configColumn {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
+  overflow: hidden;
 }
 
 .configSection {
   background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 16px;
-  padding: 15px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   flex: 1;
+  overflow: hidden;
 }
 
 .configSection h2 {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 1.2rem;
+  gap: 6px;
+  font-size: 1.1rem;
   color: #333;
-  margin: 0 0 12px 0;
+  margin: 0 0 10px 0;
 }
 
 .sectionEmoji {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
 }
 
 .buttonGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .optionButton {
   background-color: #f5f5f5;
   color: #333;
   border: none;
-  border-radius: 12px;
-  padding: 10px;
-  font-size: 0.9rem;
+  border-radius: 10px;
+  padding: 9px;
+  font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -109,13 +113,13 @@
 .optionButton.selected {
   background-color: #4caf50;
   color: white;
-  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 3px 6px rgba(76, 175, 80, 0.3);
 }
 
 .difficultyButtons {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   flex: 1;
 }
 
@@ -123,8 +127,8 @@
   background-color: #f5f5f5;
   color: #333;
   border: none;
-  border-radius: 12px;
-  padding: 12px;
+  border-radius: 10px;
+  padding: 10px;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -138,27 +142,27 @@
 .difficultyButton.selected {
   background-color: #4caf50;
   color: white;
-  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 3px 6px rgba(76, 175, 80, 0.3);
 }
 
 .difficultyTitle {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .difficultyDetails {
   display: flex;
   justify-content: space-around;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   opacity: 0.9;
 }
 
 .environmentGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 15px;
+  gap: 8px;
+  margin-bottom: 12px;
   flex: 1;
 }
 
@@ -168,12 +172,13 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 10px;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 500;
+  font-size: 0.85rem;
 }
 
 .environmentButton:hover {
@@ -181,7 +186,7 @@
 }
 
 .environmentButton.selected {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
   font-weight: 600;
 }
 
@@ -226,82 +231,14 @@
 }
 
 .envEmoji {
-  font-size: 1.8rem;
-}
-
-.quickStartContainer {
-  display: flex;
-  justify-content: center;
-  margin-top: auto;
-  padding-top: 15px;
-}
-
-.quickStartButton {
-  background-color: #ff9800;
-  color: white;
-  border: none;
-  border-radius: 50px;
-  padding: 10px 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
-  transition: all 0.2s ease;
-  width: 100%;
-  max-width: 250px;
-}
-
-.quickStartButton:hover {
-  background-color: #f57c00;
-  box-shadow: 0 6px 16px rgba(255, 152, 0, 0.4);
-}
-
-.buttonEmoji {
-  font-size: 1.1rem;
-}
-
-.gameInfoSection {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  flex: 1;
-}
-
-.infoBox {
-  background-color: rgba(255, 255, 255, 0.6);
-  border-radius: 12px;
-  padding: 12px;
-  flex: 1;
-}
-
-.infoBox h3 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1rem;
-  color: #333;
-  margin: 0 0 6px 0;
-}
-
-.infoBox p {
-  margin: 0;
-  font-size: 0.85rem;
-  color: #555;
-  line-height: 1.4;
-}
-
-.infoEmoji {
-  font-size: 1.1rem;
+  font-size: 1.5rem;
 }
 
 .startButtonContainer {
   display: flex;
   justify-content: center;
-  padding-top: 10px;
+  margin-top: auto;
+  padding-top: 12px;
 }
 
 .startButton {
@@ -309,57 +246,104 @@
   color: white;
   border: none;
   border-radius: 50px;
-  padding: 10px 25px;
-  font-size: 1rem;
+  padding: 10px 20px;
+  font-size: 0.95rem;
   font-weight: 600;
   display: flex;
   align-items: center;
-  justify-content: center; /* Centers the text and icon */
+  justify-content: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
   transition: all 0.2s ease;
-  width: auto; /* Change from 100% to auto */
-  max-width: 400px; /* Limit the maximum width */
-  margin: 0 auto; /* Centers the button in its container */
+  width: auto;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 .startButton:hover {
   background-color: #388e3c;
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  box-shadow: 0 5px 12px rgba(76, 175, 80, 0.4);
   transform: translateY(-2px);
 }
 
+.gameInfoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.infoBox {
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 10px;
+  padding: 10px;
+  flex: 1;
+}
+
+.infoBox h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  color: #333;
+  margin: 0 0 5px 0;
+}
+
+.infoBox p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #555;
+  line-height: 1.3;
+}
+
+.infoEmoji {
+  font-size: 1rem;
+}
+
+.buttonEmoji {
+  font-size: 1rem;
+}
+
 /* Media queries for responsive design */
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
   .configContent {
-    flex-direction: column;
-  }
-  
-  .configSection {
-    padding: 12px;
-  }
-  
-  .quickStartContainer {
-    padding-top: 10px;
+    gap: 10px;
   }
   
   .environmentGrid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .infoBox p {
+    font-size: 0.75rem;
   }
 }
 
 @media (max-width: 768px) {
+  .configContent {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
   .configCardWrapper {
-    padding: 15px;
+    padding: 12px;
   }
   
   .configTitle {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
   }
   
   .configSubtitle {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+  }
+  
+  .configSection {
+    padding: 8px;
+  }
+  
+  .configSection h2 {
+    font-size: 1rem;
   }
   
   .buttonGrid, .environmentGrid {
@@ -367,92 +351,39 @@
   }
   
   .optionButton, .difficultyButton, .environmentButton {
-    padding: 8px;
-    font-size: 0.8rem;
+    padding: 6px;
+    font-size: 0.75rem;
   }
   
   .envEmoji {
-    font-size: 1.5rem;
-  }
-  
-  .startButton, .quickStartButton {
-    padding: 8px 15px;
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .buttonGrid, .environmentGrid {
-    grid-template-columns: 1fr;
-  }
-  
-  .configTitle {
-    font-size: 1.5rem;
-  }
-  
-  .configCardWrapper {
-    padding: 10px;
-  }
-  
-  .configContent {
-    gap: 10px;
-  }
-  
-  .infoBox {
-    padding: 10px;
-  }
-  
-  .infoBox p {
-    font-size: 0.8rem;
-  }
-}
-
-/* For very large screens */
-@media (min-width: 1800px) {
-  .configCardWrapper {
-    max-width: 1800px;
-    padding: 30px;
-  }
-  
-  .configTitle {
-    font-size: 2.6rem;
-  }
-  
-  .configSubtitle {
     font-size: 1.2rem;
   }
   
-  .configSection h2 {
-    font-size: 1.4rem;
+  .startButton {
+    padding: 8px 15px;
+    font-size: 0.85rem;
+  }
+}
+
+/* For large displays */
+@media (min-width: 1440px) {
+  .configCardWrapper {
+    max-width: 1400px;
+    padding: 20px;
   }
   
-  .optionButton, .difficultyButton, .environmentButton {
-    padding: 15px;
-    font-size: 1rem;
-  }
-  
-  .envEmoji {
+  .configTitle {
     font-size: 2.2rem;
   }
   
-  .difficultyTitle {
-    font-size: 1.2rem;
-  }
-  
-  .difficultyDetails {
-    font-size: 0.95rem;
-  }
-  
-  .infoBox h3 {
-    font-size: 1.2rem;
-  }
-  
-  .infoBox p {
+  .configSubtitle {
     font-size: 1rem;
   }
-  
-  .startButton, .quickStartButton {
-    padding: 12px 30px;
-    font-size: 1.1rem;
+}
+
+/* For extra wide displays */
+@media (min-width: 1800px) {
+  .configCardWrapper {
+    max-width: 1600px;
   }
 }

@@ -1,9 +1,9 @@
-// src/pages/games/soundsafari/ResultScreen/index.jsx <updated on 2025-04-25>
+// src/pages/games/soundsafari/ResultScreen/index.jsx <updated on 2025-04-27>
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../../styles/games/safari/ResultsScreen.module.css';
-import ResultCard from './ResultCard';
-import { playCelebrationSound } from '../../../../utils/soundUtils';
+import { playCelebrationSound, playSpeech } from '../../../../utils/soundUtils';
+import WildLitzFox from '../../../../assets/img/wildlitz-idle.png';
 
 /**
  * Results screen component displaying round results
@@ -12,6 +12,7 @@ import { playCelebrationSound } from '../../../../utils/soundUtils';
 const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
   const [isPlaying, setIsPlaying] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [feedbackPlayed, setFeedbackPlayed] = useState(false);
   
   // Extract results
   const { 
@@ -67,27 +68,52 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
       setShowConfetti(true);
       playCelebrationSound(score);
     }
+    
+    // Play character feedback after a short delay
+    if (!feedbackPlayed) {
+      setTimeout(() => {
+        const feedbackMessage = getCharacterFeedback();
+        playSpeech(feedbackMessage, 0.9, () => {
+          setFeedbackPlayed(true);
+        });
+      }, 1000);
+    }
   }, [score]);
+  
+  // Get character feedback based on score
+  const getCharacterFeedback = () => {
+    const correctMessage = `You found ${correctSelected.length} out of ${correctAnimals.length} animals with the "${targetSound}" sound!`;
+    
+    if (score >= 90) {
+      return `Wonderful job! ${correctMessage} That's excellent listening!`;
+    } else if (score >= 70) {
+      return `Great work! ${correctMessage} You're becoming a sound expert!`;
+    } else if (score >= 50) {
+      return `Good effort! ${correctMessage} Keep practicing and you'll get even better.`;
+    } else {
+      return `${correctMessage} Let's keep practicing to get better at hearing the sounds.`;
+    }
+  };
   
   return (
     <div className={styles.resultsContainer}>
       <div className={styles.resultsCard}>
         {showConfetti && (
           <div className={styles.confettiContainer}>
-            {Array.from({ length: 50 }).map((_, i) => (
+            {Array.from({ length: 30 }).map((_, i) => (
               <motion.div
                 key={i}
                 className={styles.confettiPiece}
                 style={{
                   backgroundColor: `hsl(${Math.random() * 360}, 80%, 60%)`,
-                  width: `${Math.random() * 10 + 5}px`,
-                  height: `${Math.random() * 10 + 5}px`,
-                  top: `-50px`,
+                  width: `${Math.random() * 8 + 5}px`,
+                  height: `${Math.random() * 8 + 5}px`,
+                  top: `-20px`,
                   left: `${Math.random() * 100}%`,
                 }}
                 animate={{
                   y: [`0vh`, `100vh`],
-                  x: [0, Math.random() * 100 - 50],
+                  x: [0, Math.random() * 80 - 40],
                   rotate: [0, Math.random() * 360 * (Math.random() > 0.5 ? 1 : -1)],
                 }}
                 transition={{
@@ -107,6 +133,32 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
             <span className={styles.titleEmoji}>🔍</span>
             Safari Results
           </h2>
+        </div>
+        
+        {/* Character with feedback */}
+        <div className={styles.characterContainer}>
+          <motion.div 
+            className={styles.character}
+            animate={{ 
+              y: [0, -8, 0],
+              rotate: score >= 70 ? [0, 3, 0, -3, 0] : [0, 2, 0, -2, 0]
+            }}
+            transition={{ 
+              y: { repeat: Infinity, duration: 3, ease: "easeInOut" },
+              rotate: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+            }}
+          >
+            <img src={WildLitzFox} alt="WildLitz Fox" className={styles.characterImage} />
+            
+            <motion.div 
+              className={styles.speechBubble}
+              initial={{ opacity: 0, scale: 0.8, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              {getCharacterFeedback()}
+            </motion.div>
+          </motion.div>
         </div>
         
         {/* Score Banner */}
@@ -147,8 +199,8 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
                       key={animal.id}
                       className={styles.animalResult}
                       onClick={() => handlePlaySound(animal)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: Math.random() * 0.3 }}
@@ -178,15 +230,6 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
                 </div>
               )}
             </div>
-            
-            {/* Teacher Tip */}
-            <div className={styles.teacherTip}>
-              <div className={styles.tipHeader}>
-                <span className={styles.tipIcon}>💡</span>
-                <h4>Teacher Tip:</h4>
-              </div>
-              <p>Ask students to think of other words that have the "{targetSound}" sound and create their own animal names using this sound!</p>
-            </div>
           </div>
           
           {/* Middle Column - Incorrect Answers */}
@@ -203,8 +246,8 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
                       key={animal.id}
                       className={`${styles.animalResult} ${styles.incorrect}`}
                       onClick={() => handlePlaySound(animal)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: Math.random() * 0.3 + 0.2 }}
@@ -246,8 +289,8 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
                       key={animal.id}
                       className={`${styles.animalResult} ${styles.missed}`}
                       onClick={() => handlePlaySound(animal)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: Math.random() * 0.3 + 0.4 }}
@@ -280,8 +323,8 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
         <div className={styles.actionButtons}>
           <motion.button 
             className={styles.tryAgainButton}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
             onClick={onTryAgain}
           >
             <span className={styles.buttonIcon}>🔄</span>
@@ -289,8 +332,8 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
           </motion.button>
           <motion.button 
             className={styles.nextButton}
-            whileHover={{ scale: 1.05, boxShadow: "0 8px 16px rgba(0, 0, 0, 0.2)" }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.03, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" }}
+            whileTap={{ scale: 0.97 }}
             onClick={onNextRound}
           >
             <span className={styles.buttonIcon}>⏩</span>
