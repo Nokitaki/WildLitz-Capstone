@@ -1,4 +1,4 @@
-// src/pages/games/soundsafari/GameplayScreen.jsx <updated on 2025-04-27>
+// src/pages/games/soundsafari/GameplayScreen.jsx <updated on 2025-04-28>
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
@@ -14,16 +14,15 @@ const GameplayScreen = ({
   targetSound, 
   soundPosition, 
   onSubmit, 
-  timeLimit 
+  timeLimit
 }) => {
   const [selectedAnimals, setSelectedAnimals] = useState([]);
   const [timeRemaining, setTimeRemaining] = useState(timeLimit);
   const [showHint, setShowHint] = useState(false);
   const [isPlaying, setIsPlaying] = useState(null);
-  const [showIntro, setShowIntro] = useState(true);
   const [highlightedAnimal, setHighlightedAnimal] = useState(null);
-  const [introPlayed, setIntroPlayed] = useState(false);
   const timerRef = useRef(null);
+  const introductionStarted = useRef(false);
   
   // Format time as MM:SS
   const formatTime = (seconds) => {
@@ -48,26 +47,26 @@ const GameplayScreen = ({
     return `Let's find the animals with the "${targetSound}" sound ${positionText} of their names! Listen carefully and select all the matching animals.`;
   };
   
-  // Play intro speech when component mounts
+  // Start introducing animals when the component mounts
   useEffect(() => {
-    if (!introPlayed) {
+    // Use ref to ensure we only start one introduction sequence
+    if (!introductionStarted.current) {
+      introductionStarted.current = true;
+      
+      // Play the general intro speech once first
       const introSpeech = getCharacterIntro();
-      // Small delay to ensure component is fully mounted
-      setTimeout(() => {
-        playSpeech(introSpeech, 0.9, () => {
-          setIntroPlayed(true);
-          setShowIntro(false);
-          
-          // Start introducing each animal with a small delay
-          setTimeout(() => {
-            introduceAnimals();
-          }, 500);
-        });
-      }, 300);
+      playSpeech(introSpeech, 0.9, () => {
+        // After intro is done, start introducing animals with a short delay
+        setTimeout(introduceAnimals, 500);
+      });
     }
-  }, [introPlayed]);
+    
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
   
-  // Function to introduce animals one by one with TTS
+  // Function to introduce animals one by one with TTS - read each name twice
   const introduceAnimals = () => {
     let index = 0;
     
@@ -76,13 +75,20 @@ const GameplayScreen = ({
         const animal = animals[index];
         setHighlightedAnimal(animal.id);
         
+        // First reading of animal name
         playSpeech(animal.name, 0.9, () => {
-          // Move to next animal after a short pause
+          // Short pause between readings
           setTimeout(() => {
-            setHighlightedAnimal(null);
-            index++;
-            setTimeout(introduceNext, 300);
-          }, 800);
+            // Second reading of animal name
+            playSpeech(animal.name, 0.9, () => {
+              // Move to next animal after a short pause
+              setTimeout(() => {
+                setHighlightedAnimal(null);
+                index++;
+                setTimeout(introduceNext, 300);
+              }, 800);
+            });
+          }, 500);
         });
       } else {
         // All animals introduced, start the timer
@@ -109,13 +115,6 @@ const GameplayScreen = ({
       }, 1000);
     }
   };
-  
-  // Clean up timer on unmount
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, []);
   
   // Toggle animal selection
   const handleToggleSelect = (animal) => {

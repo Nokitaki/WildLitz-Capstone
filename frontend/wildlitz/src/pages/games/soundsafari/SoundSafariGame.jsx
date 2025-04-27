@@ -1,4 +1,4 @@
-// src/pages/games/soundsafari/SoundSafariGame.jsx <updated on 2025-04-27>
+// src/pages/games/soundsafari/SoundSafariGame.jsx <updated on 2025-04-28>
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -56,6 +56,9 @@ const SoundSafariGame = () => {
   const [showBubble, setShowBubble] = useState(false);
   const [bubbleMessage, setBubbleMessage] = useState("");
   
+  // Track if this is coming from SoundIntroScreen (to avoid duplicate speech)
+  const [fromIntroScreen, setFromIntroScreen] = useState(false);
+  
   /**
    * Handle starting a new game with the given configuration
    */
@@ -65,6 +68,7 @@ const SoundSafariGame = () => {
     setScore(0);
     setSoundsUsed([config.targetSound]);
     setGameState('loading');
+    setFromIntroScreen(false);
     
     // Prepare first round
     prepareNewRound(config.targetSound, config.difficulty);
@@ -72,6 +76,15 @@ const SoundSafariGame = () => {
     // Simulate loading time
     setTimeout(() => {
       setGameState('intro');
+      // Show introduction message in the bubble when entering intro screen
+      const introMessage = `Today we're learning about the "${config.targetSound}" sound. Listen and find it in animal names!`;
+      setBubbleMessage(introMessage);
+      setShowBubble(true);
+      
+      // Hide the bubble after 8 seconds
+      setTimeout(() => {
+        setShowBubble(false);
+      }, 8000);
     }, 2000);
   };
   
@@ -153,8 +166,14 @@ const SoundSafariGame = () => {
    * Handle continuing from intro to gameplay
    */
   const handleContinueFromIntro = () => {
+    setFromIntroScreen(true); // Set flag to indicate coming from intro screen
     setGameState('gameplay');
-    setBubbleMessage(`Find animals with the "${gameConfig.targetSound}" sound!`);
+    
+    // Get position text
+    const positionText = getPositionText();
+    
+    // Set gameplay instruction in the bubble
+    setBubbleMessage(`Find animals with the "${gameConfig.targetSound}" sound ${positionText} of their names!`);
     setShowBubble(true);
     
     // Hide the bubble after 5 seconds
@@ -163,11 +182,32 @@ const SoundSafariGame = () => {
     }, 5000);
   };
   
+  // Get position text
+  const getPositionText = () => {
+    switch(gameConfig.soundPosition) {
+      case 'beginning': return 'at the beginning';
+      case 'middle': return 'in the middle';
+      case 'ending': return 'at the end';
+      default: return 'anywhere';
+    }
+  };
+  
   /**
    * Handle continuing from loading to intro
    */
   const handleContinueFromLoading = () => {
     setGameState('intro');
+    setFromIntroScreen(false);
+    
+    // Show introduction message in the bubble
+    const introMessage = `Today we're learning about the "${gameConfig.targetSound}" sound. Listen and find it in animal names!`;
+    setBubbleMessage(introMessage);
+    setShowBubble(true);
+    
+    // Hide the bubble after 8 seconds
+    setTimeout(() => {
+      setShowBubble(false);
+    }, 8000);
   };
   
   /**
@@ -207,6 +247,7 @@ const SoundSafariGame = () => {
       setGameState('complete');
     } else {
       setCurrentRound(prev => prev + 1);
+      setFromIntroScreen(false);
       
       // Select a new target sound for the next round
       const newSound = selectNewTargetSound();
@@ -219,6 +260,16 @@ const SoundSafariGame = () => {
       // Simulate loading time
       setTimeout(() => {
         setGameState('intro');
+        
+        // Show introduction message for the new sound
+        const introMessage = `Now let's learn about the "${newSound}" sound. Listen and find it in animal names!`;
+        setBubbleMessage(introMessage);
+        setShowBubble(true);
+        
+        // Hide the bubble after 8 seconds
+        setTimeout(() => {
+          setShowBubble(false);
+        }, 8000);
       }, 2000);
     }
   };
@@ -228,6 +279,17 @@ const SoundSafariGame = () => {
    */
   const handleTryAgain = () => {
     setGameState('intro');
+    setFromIntroScreen(false);
+    
+    // Show introduction message in the bubble again
+    const introMessage = `Let's try again with the "${gameConfig.targetSound}" sound. Listen and find it in animal names!`;
+    setBubbleMessage(introMessage);
+    setShowBubble(true);
+    
+    // Hide the bubble after 8 seconds
+    setTimeout(() => {
+      setShowBubble(false);
+    }, 8000);
   };
   
   /**
@@ -236,6 +298,7 @@ const SoundSafariGame = () => {
   const handlePlayAgain = () => {
     setCurrentRound(1);
     setScore(0);
+    setFromIntroScreen(false);
     
     // Choose a new sound
     const newSound = selectNewTargetSound();
@@ -248,6 +311,16 @@ const SoundSafariGame = () => {
     // Simulate loading time
     setTimeout(() => {
       setGameState('intro');
+      
+      // Show introduction message for the new game
+      const introMessage = `Welcome back! Today we're learning about the "${newSound}" sound. Listen and find it in animal names!`;
+      setBubbleMessage(introMessage);
+      setShowBubble(true);
+      
+      // Hide the bubble after 8 seconds
+      setTimeout(() => {
+        setShowBubble(false);
+      }, 8000);
     }, 2000);
   };
   
@@ -257,6 +330,7 @@ const SoundSafariGame = () => {
   const handleChangeDifficulty = () => {
     // Reset to config screen
     setGameState('config');
+    setFromIntroScreen(false);
   };
   
   /**
@@ -395,6 +469,7 @@ const SoundSafariGame = () => {
                 soundPosition={gameConfig.soundPosition}
                 onSubmit={handleSubmitAnswers}
                 timeLimit={DIFFICULTY_LEVELS[gameConfig.difficulty].timeLimit}
+                skipIntro={!fromIntroScreen} // Skip the intro if NOT coming from intro screen
               />
             </motion.div>
           )}

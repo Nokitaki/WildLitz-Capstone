@@ -13,40 +13,12 @@ import { playSpeech } from '../../../utils/soundUtils';
 const SoundIntroScreen = ({ targetSound, onContinue }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeExample, setActiveExample] = useState(null);
-  const [introPlayed, setIntroPlayed] = useState(false);
   
   // Get description and examples for this target sound
   const soundDescription = SOUND_DESCRIPTIONS[targetSound] || 
     'Listen carefully for this sound in words';
   
   const examples = SOUND_EXAMPLES[targetSound] || [];
-  
-  // Generate character intro speech
-  const getCharacterIntro = () => {
-    return `Hi there! Today we're going to learn about the "${targetSound}" sound. Listen carefully to how it sounds and try to find it in different words.`;
-  };
-  
-  // Play intro speech when component mounts
-  useEffect(() => {
-    if (!introPlayed) {
-      // Small delay to ensure component is fully mounted
-      setTimeout(() => {
-        playSpeech(getCharacterIntro(), 0.9, () => {
-          setIntroPlayed(true);
-          
-          // Short pause then play the sound itself
-          setTimeout(() => {
-            playSound();
-            
-            // After playing the sound, explain how to make it
-            setTimeout(() => {
-              playSpeech(soundDescription, 0.9);
-            }, 1500);
-          }, 500);
-        });
-      }, 300);
-    }
-  }, []);
   
   // Play the target sound
   const playSound = () => {

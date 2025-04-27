@@ -186,7 +186,7 @@
 
 .animalResult {
   background-color: #e8f4f1;
-  height: 50%;
+  height: 90px; /* Changed from 50% to a fixed height */
   border-radius: 8px;
   padding: 8px 6px;
   display: flex;
