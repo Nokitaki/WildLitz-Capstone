@@ -1,434 +1,473 @@
 /* GameCompleteScreen.module.css */
+/* Redesigned for horizontal layout and visual consistency with other screens */
 
 .completeContainer {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 1rem;
-    box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+.completeCard {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Confetti animation */
+.confettiContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+
+.confettiPiece {
+  position: absolute;
+  border-radius: 3px;
+}
+
+/* Complete Header */
+.completeHeader {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.completeTitle {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #333;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.titleEmoji {
+  font-size: 1.7rem;
+}
+
+/* Content layout */
+.completeContent {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.completeColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Left Column - Trophy & Achievement */
+.trophyContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.trophyIcon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 3rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2),
+              0 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.achievementTitle {
+  margin-top: 12px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.achievementDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.achievementDetail {
+  background-color: #f5f9f8;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+}
+
+.detailIcon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  color: #296b63;
+}
+
+.detailContent {
+  flex: 1;
+}
+
+.detailContent h3 {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+  color: #296b63;
+}
+
+.detailContent p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #333;
+  line-height: 1.4;
+}
+
+/* Center Column - Score Circle & Feedback */
+.finalScoreContainer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.scoreCircle {
+  position: relative;
+  width: 150px;
+  height: 150px;
+}
+
+.scoreCircleSvg {
+  width: 100%;
+  height: 100%;
+}
+
+.scoreValue {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.feedbackContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.feedbackMessage {
+  background-color: #e8f4f1;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+.feedbackMessage p {
+  margin: 0;
+  font-size: 1rem;
+  color: #296b63;
+  font-weight: 600;
+}
+
+.tipContainer {
+  background-color: #fff8e1;
+  border-radius: 12px;
+  padding: 12px;
+  border-left: 4px solid #fcae3e;
+}
+
+.tipHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tipIcon {
+  font-size: 1.2rem;
+}
+
+.tipHeader h3 {
+  margin: 0;
+  color: #f57c00;
+  font-size: 1rem;
+}
+
+.tipContainer p {
+  margin: 0;
+  color: #333;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.shareContainer {
+  background-color: #e3f2fd;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: auto;
+  border-left: 4px solid #2196f3;
+}
+
+.shareContainer h3 {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  color: #1976d2;
+}
+
+.shareMessage {
+  background-color: white;
+  border-radius: 8px;
+  padding: 10px;
+  border: 1px dashed #90caf9;
+}
+
+.shareMessage p {
+  margin: 0;
+  color: #333;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Right Column - Actions */
+.actionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  height: 100%;
+}
+
+.actionExplanation {
+  background-color: #f5f9f8;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+}
+
+.actionExplanation h3 {
+  margin: 0 0 6px 0;
+  font-size: 1.1rem;
+  color: #296b63;
+}
+
+.actionExplanation p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #333;
+  line-height: 1.4;
+}
+
+.actionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.playAgainButton, .changeDifficultyButton {
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.playAgainButton {
+  background-color: #81c9c0;
+  color: white;
+  box-shadow: 0 4px 10px rgba(129, 201, 192, 0.3);
+}
+
+.playAgainButton:hover {
+  background-color: #6dbdb3;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(129, 201, 192, 0.4);
+}
+
+.changeDifficultyButton {
+  background-color: #fcae3e;
+  color: white;
+  box-shadow: 0 4px 10px rgba(252, 174, 62, 0.3);
+}
+
+.changeDifficultyButton:hover {
+  background-color: #f99e1c;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(252, 174, 62, 0.4);
+}
+
+.buttonIcon {
+  font-size: 1.2rem;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 1024px) {
+  .completeContent {
+    gap: 12px;
   }
   
-  .completeCard {
-    width: 100%;
-    max-width: 1600px;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 24px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px);
-    position: relative;
-    overflow: hidden;
+  .trophyIcon {
+    width: 90px;
+    height: 90px;
+    font-size: 2.7rem;
   }
   
-  /* Confetti animation */
-  .confettiContainer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 5;
-    overflow: hidden;
+  .achievementTitle {
+    font-size: 1.3rem;
   }
   
-  .confettiPiece {
-    position: absolute;
-    border-radius: 3px;
+  .detailIcon {
+    font-size: 1.6rem;
   }
   
-  /* Complete Header */
-  .completeHeader {
-    text-align: center;
-    margin-bottom: 20px;
+  .scoreCircle {
+    width: 130px;
+    height: 130px;
   }
   
-  .completeTitle {
+  .scoreValue {
     font-size: 2.2rem;
-    font-weight: 800;
-    color: #333;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  }
+  
+  .feedbackMessage p {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .completeContent {
+    flex-direction: column;
     gap: 10px;
   }
   
+  .completeCard {
+    padding: 12px;
+  }
+  
+  .completeTitle {
+    font-size: 1.5rem;
+  }
+  
+  .trophyIcon {
+    width: 80px;
+    height: 80px;
+    font-size: 2.4rem;
+  }
+  
+  .achievementTitle {
+    font-size: 1.2rem;
+    margin-top: 8px;
+  }
+  
+  .achievementDetails {
+    flex-direction: row;
+    overflow-x: auto;
+    margin-bottom: 10px;
+  }
+  
+  .achievementDetail {
+    min-width: 180px;
+    flex-shrink: 0;
+  }
+  
+  .scoreCircle {
+    width: 110px;
+    height: 110px;
+  }
+  
+  .scoreValue {
+    font-size: 2rem;
+  }
+  
+  .playAgainButton, .changeDifficultyButton {
+    padding: 12px;
+    font-size: 0.95rem;
+  }
+}
+
+/* For large displays */
+@media (min-width: 1440px) {
+  .completeCard {
+    max-width: 1400px;
+    padding: 20px;
+  }
+  
+  .completeTitle {
+    font-size: 2rem;
+  }
+  
   .titleEmoji {
-    font-size: 2.2rem;
-  }
-  
-  /* Content layout */
-  .completeContent {
-    display: flex;
-    gap: 20px;
-  }
-  
-  .completeColumn {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  /* Left Column - Trophy & Achievement */
-  .trophyContainer {
-    text-align: center;
-    margin-bottom: 20px;
+    font-size: 2rem;
   }
   
   .trophyIcon {
     width: 120px;
     height: 120px;
-    margin: 0 auto;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 3.5rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2),
-                0 0 0 10px rgba(255, 255, 255, 0.5);
+    font-size: 3.6rem;
   }
   
   .achievementTitle {
-    margin-top: 15px;
-    font-size: 1.8rem;
-    font-weight: 700;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .achievementDetails {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .achievementDetail {
-    background-color: #f5f9f8;
-    border-radius: 12px;
-    padding: 15px;
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  }
-  
-  .detailIcon {
-    font-size: 2rem;
-    flex-shrink: 0;
-    color: #296b63;
-  }
-  
-  .detailContent {
-    flex: 1;
+    font-size: 1.6rem;
   }
   
   .detailContent h3 {
-    margin: 0 0 5px 0;
     font-size: 1.1rem;
-    color: #296b63;
   }
   
   .detailContent p {
-    margin: 0;
     font-size: 0.95rem;
-    color: #333;
-    line-height: 1.4;
-  }
-  
-  /* Center Column - Score Circle & Feedback */
-  .finalScoreContainer {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
   }
   
   .scoreCircle {
-    position: relative;
-    width: 180px;
-    height: 180px;
-  }
-  
-  .scoreCircleSvg {
-    width: 100%;
-    height: 100%;
+    width: 170px;
+    height: 170px;
   }
   
   .scoreValue {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 3rem;
-    font-weight: 700;
-    color: #333;
+    font-size: 2.8rem;
   }
-  
-  .feedbackMessage {
-    background-color: #e8f4f1;
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 20px;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* For extra wide displays */
+@media (min-width: 1800px) {
+  .completeCard {
+    max-width: 1600px;
   }
-  
-  .feedbackMessage p {
-    margin: 0;
-    font-size: 1.1rem;
-    color: #296b63;
-    font-weight: 600;
-  }
-  
-  .tipContainer {
-    background-color: #fff8e1;
-    border-radius: 12px;
-    padding: 15px;
-    border-left: 4px solid #fcae3e;
-  }
-  
-  .tipHeader {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-  
-  .tipIcon {
-    font-size: 1.2rem;
-  }
-  
-  .tipHeader h3 {
-    margin: 0;
-    color: #f57c00;
-    font-size: 1.1rem;
-  }
-  
-  .tipContainer p {
-    margin: 0;
-    color: #333;
-    font-size: 1rem;
-    line-height: 1.4;
-  }
-  
-  /* Right Column - Actions */
-  .actionsContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    height: 100%;
-  }
-  
-  .actionExplanation {
-    background-color: #f5f9f8;
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  }
-  
-  .actionExplanation h3 {
-    margin: 0 0 10px 0;
-    font-size: 1.2rem;
-    color: #296b63;
-  }
-  
-  .actionExplanation p {
-    margin: 0;
-    font-size: 1rem;
-    color: #333;
-    line-height: 1.4;
-  }
-  
-  .actionButtons {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .playAgainButton, .changeDifficultyButton {
-    background-color: #81c9c0;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    padding: 15px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(129, 201, 192, 0.3);
-  }
-  
-  .playAgainButton:hover, .changeDifficultyButton:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(129, 201, 192, 0.4);
-  }
-  
-  .changeDifficultyButton {
-    background-color: #fcae3e;
-    box-shadow: 0 4px 12px rgba(252, 174, 62, 0.3);
-  }
-  
-  .changeDifficultyButton:hover {
-    box-shadow: 0 8px 20px rgba(252, 174, 62, 0.4);
-  }
-  
-  .buttonIcon {
-    font-size: 1.3rem;
-  }
-  
-  .shareContainer {
-    background-color: #e3f2fd;
-    border-radius: 12px;
-    padding: 15px;
-    margin-top: auto;
-    border-left: 4px solid #2196f3;
-  }
-  
-  .shareContainer h3 {
-    margin: 0 0 10px 0;
-    font-size: 1.1rem;
-    color: #1976d2;
-  }
-  
-  .shareMessage {
-    background-color: white;
-    border-radius: 8px;
-    padding: 12px;
-    border: 1px dashed #90caf9;
-  }
-  
-  .shareMessage p {
-    margin: 0;
-    color: #333;
-    font-size: 0.95rem;
-    line-height: 1.4;
-    text-align: center;
-    font-style: italic;
-  }
-  
-  /* Media queries for responsive design */
-  @media (max-width: 1200px) {
-    .completeContent {
-      flex-direction: column;
-    }
-    
-    .trophyIcon {
-      width: 100px;
-      height: 100px;
-      font-size: 3rem;
-    }
-    
-    .achievementTitle {
-      font-size: 1.5rem;
-    }
-    
-    .scoreCircle {
-      width: 150px;
-      height: 150px;
-    }
-    
-    .scoreValue {
-      font-size: 2.5rem;
-    }
-    
-    .actionButtons {
-      flex-direction: row;
-      gap: 10px;
-    }
-    
-    .playAgainButton, .changeDifficultyButton {
-      flex: 1;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .completeCard {
-      padding: 15px;
-    }
-    
-    .completeTitle {
-      font-size: 1.8rem;
-    }
-    
-    .trophyIcon {
-      width: 80px;
-      height: 80px;
-      font-size: 2.5rem;
-    }
-    
-    .achievementTitle {
-      font-size: 1.3rem;
-    }
-    
-    .scoreCircle {
-      width: 120px;
-      height: 120px;
-    }
-    
-    .scoreValue {
-      font-size: 2rem;
-    }
-    
-    .feedbackMessage p {
-      font-size: 1rem;
-    }
-    
-    .actionButtons {
-      flex-direction: column;
-    }
-  }
-  
-  /* For very large screens */
-  @media (min-width: 1800px) {
-    .completeCard {
-      max-width: 1800px;
-    }
-    
-    .completeTitle {
-      font-size: 2.5rem;
-    }
-    
-    .trophyIcon {
-      width: 150px;
-      height: 150px;
-      font-size: 4.5rem;
-    }
-    
-    .achievementTitle {
-      font-size: 2.2rem;
-    }
-    
-    .scoreCircle {
-      width: 220px;
-      height: 220px;
-    }
-    
-    .scoreValue {
-      font-size: 3.5rem;
-    }
-    
-    .detailContent h3 {
-      font-size: 1.3rem;
-    }
-    
-    .detailContent p {
-      font-size: 1.1rem;
-    }
-    
-    .playAgainButton, .changeDifficultyButton {
-      padding: 18px;
-      font-size: 1.3rem;
-    }
-  }
+}

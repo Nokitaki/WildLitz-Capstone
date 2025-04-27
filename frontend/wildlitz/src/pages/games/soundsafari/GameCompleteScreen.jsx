@@ -1,4 +1,4 @@
-// src/pages/games/soundsafari/GameCompleteScreen.jsx<updated on 2025-04-25>
+// src/pages/games/soundsafari/GameCompleteScreen.jsx<updated on 2025-04-27>
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -7,7 +7,7 @@ import { playCelebrationSound } from '../../../utils/soundUtils';
 
 /**
  * Game completion screen component
- * Redesigned with horizontal layout and no overflow/scroll
+ * Redesigned with horizontal layout and improved visual consistency with other screens
  */
 const GameCompleteScreen = ({ 
   score,
@@ -95,10 +95,11 @@ const GameCompleteScreen = ({
             transition={{ duration: 0.6, type: 'spring' }}
           >
             <span className={styles.titleEmoji}>🎉</span>
-            Safari Complete!
+            Sound Safari Complete!
           </motion.h2>
         </div>
         
+        {/* Main content area with 3-column layout */}
         <div className={styles.completeContent}>
           {/* Left Column - Trophy & Achievement */}
           <div className={styles.completeColumn}>
@@ -108,7 +109,6 @@ const GameCompleteScreen = ({
               animate={{ scale: 1 }}
               transition={{ duration: 0.8, delay: 0.3, type: 'spring' }}
             >
-              {/* Trophy icon with achievement level */}
               <motion.div 
                 className={styles.trophyIcon} 
                 style={{ backgroundColor: achievement.color }}
@@ -131,8 +131,8 @@ const GameCompleteScreen = ({
               <div className={styles.achievementDetail}>
                 <div className={styles.detailIcon}>🎯</div>
                 <div className={styles.detailContent}>
-                  <h3>Your Progress</h3>
-                  <p>You've completed all {totalRounds} sound challenges!</p>
+                  <h3>Your Adventure</h3>
+                  <p>You completed {totalRounds} sound safari challenges</p>
                 </div>
               </div>
               
@@ -140,7 +140,7 @@ const GameCompleteScreen = ({
                 <div className={styles.detailIcon}>👂</div>
                 <div className={styles.detailContent}>
                   <h3>Sound Recognition</h3>
-                  <p>You're getting better at identifying sounds in words!</p>
+                  <p>You've improved at identifying sounds in words</p>
                 </div>
               </div>
               
@@ -148,7 +148,7 @@ const GameCompleteScreen = ({
                 <div className={styles.detailIcon}>🧠</div>
                 <div className={styles.detailContent}>
                   <h3>Phonemic Awareness</h3>
-                  <p>Your ability to recognize sound patterns is improving!</p>
+                  <p>Your ability to recognize sound patterns is growing</p>
                 </div>
               </div>
             </div>
@@ -189,32 +189,41 @@ const GameCompleteScreen = ({
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1.3 }}
                   >
-                    {score}%
+                    {Math.round(score)}%
                   </motion.span>
                 </div>
               </div>
             </motion.div>
             
             <motion.div 
-              className={styles.feedbackMessage}
+              className={styles.feedbackContainer}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.5 }}
             >
-              <p>{getFeedbackMessage()}</p>
+              <div className={styles.feedbackMessage}>
+                <p>{getFeedbackMessage()}</p>
+              </div>
+              
+              <div className={styles.tipContainer}>
+                <div className={styles.tipHeader}>
+                  <span className={styles.tipIcon}>💡</span>
+                  <h3>Pro Tip:</h3>
+                </div>
+                <p>{getTip()}</p>
+              </div>
             </motion.div>
             
             <motion.div 
-              className={styles.tipContainer}
+              className={styles.shareContainer}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.8 }}
             >
-              <div className={styles.tipHeader}>
-                <span className={styles.tipIcon}>💡</span>
-                <h3>Pro Tip:</h3>
+              <h3>Share Your Achievement:</h3>
+              <div className={styles.shareMessage}>
+                <p>I earned the "{achievement.title}" badge in Sound Safari with a score of {Math.round(score)}%!</p>
               </div>
-              <p>{getTip()}</p>
             </motion.div>
           </div>
           
@@ -252,13 +261,6 @@ const GameCompleteScreen = ({
                   Change Difficulty
                 </motion.button>
               </motion.div>
-              
-              <div className={styles.shareContainer}>
-                <h3>Share Your Achievement:</h3>
-                <div className={styles.shareMessage}>
-                  <p>I earned the "{achievement.title}" badge in Sound Safari with a score of {score}%!</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
