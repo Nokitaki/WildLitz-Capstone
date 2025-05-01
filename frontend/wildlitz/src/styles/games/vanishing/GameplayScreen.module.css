@@ -1,0 +1,334 @@
+/* src/styles/games/vanishing/GameplayScreen.module.css */
+
+.gameplayContainer {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem;
+    box-sizing: border-box;
+  }
+  
+  .gameplayCard {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+  }
+  
+  .gameHeader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .gameInfo {
+    text-align: center;
+  }
+  
+  .gameTitle {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 8px 0;
+  }
+  
+  .vanishingWarning {
+    color: #e53935;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    animation: pulse 1.5s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+  }
+  
+  .timerBarContainer {
+    width: 100%;
+    height: 8px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+  
+  .timerBar {
+    height: 100%;
+    background-color: #ff9800;
+    border-radius: 4px;
+  }
+  
+  .wordDisplayArea {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: 20px;
+    position: relative;
+  }
+  
+  .wordContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: 20px;
+  }
+  
+  .wordCard {
+    background-color: #e8f5e9;
+    padding: 30px 50px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 200px;
+    min-height: 120px;
+    transition: all 0.3s ease;
+  }
+  
+  .wordText {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #333;
+    text-align: center;
+  }
+  
+  .highlightedPattern {
+    color: #e53935;
+    font-weight: 800;
+  }
+  
+  .timeLeftIndicator {
+    margin: 20px 0;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .timeLeftBadge {
+    background-color: #90caf9;
+    color: #0d47a1;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .wordPrompt {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .controlButtonsContainer {
+    display: flex;
+    justify-content: center;
+    margin-top: auto;
+  }
+  
+  .controlButtons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .controlButton {
+    background-color: #e0e0e0;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .controlButton:hover {
+    background-color: #d0d0d0;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .responseButton {
+    background-color: #7cb342;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(124, 179, 66, 0.3);
+  }
+  
+  .responseButton:hover {
+    background-color: #689f38;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(124, 179, 66, 0.4);
+  }
+  
+  .secondaryButton {
+    background-color: #9e9e9e;
+    box-shadow: 0 4px 10px rgba(158, 158, 158, 0.3);
+  }
+  
+  .secondaryButton:hover {
+    background-color: #757575;
+    box-shadow: 0 6px 14px rgba(158, 158, 158, 0.4);
+  }
+  
+  .gameSettings {
+    font-size: 0.75rem;
+    color: #757575;
+    text-align: center;
+    margin-top: 15px;
+  }
+  
+  /* Media queries for responsive design */
+  @media (max-width: 1024px) {
+    .gameplayCard {
+      padding: 15px;
+    }
+    
+    .gameTitle {
+      font-size: 1.2rem;
+    }
+    
+    .vanishingWarning {
+      font-size: 0.9rem;
+    }
+    
+    .wordCard {
+      padding: 25px 40px;
+      min-height: 100px;
+    }
+    
+    .wordText {
+      font-size: 2.5rem;
+    }
+    
+    .wordPrompt {
+      font-size: 1.1rem;
+    }
+    
+    .responseButton {
+      padding: 8px 20px;
+      font-size: 0.9rem;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .gamePlayCard {
+      padding: 10px;
+    }
+    
+    .gameTitle {
+      font-size: 1.1rem;
+    }
+    
+    .wordDisplayArea {
+      padding: 10px;
+    }
+    
+    .wordCard {
+      padding: 20px 30px;
+      min-width: 150px;
+      min-height: 80px;
+    }
+    
+    .wordText {
+      font-size: 2rem;
+    }
+    
+    .timeLeftBadge {
+      padding: 5px 12px;
+      font-size: 0.8rem;
+    }
+    
+    .wordPrompt {
+      font-size: 1rem;
+      margin-bottom: 15px;
+    }
+    
+    .controlButtons {
+      gap: 10px;
+    }
+    
+    .controlButton {
+      width: 40px;
+      height: 40px;
+      font-size: 1.1rem;
+    }
+    
+    .responseButton {
+      padding: 8px 16px;
+      font-size: 0.85rem;
+    }
+    
+    .gameSettings {
+      font-size: 0.7rem;
+    }
+  }
+  
+  /* For large displays */
+  @media (min-width: 1440px) {
+    .gameplayCard {
+      max-width: 1400px;
+      padding: 30px;
+    }
+    
+    .gameTitle {
+      font-size: 1.5rem;
+    }
+    
+    .vanishingWarning {
+      font-size: 1.1rem;
+    }
+    
+    .wordCard {
+      padding: 40px 70px;
+      min-height: 150px;
+    }
+    
+    .wordText {
+      font-size: 4rem;
+    }
+    
+    .timeLeftBadge {
+      padding: 8px 18px;
+      font-size: 1rem;
+    }
+    
+    .wordPrompt {
+      font-size: 1.4rem;
+    }
+    
+    .responseButton {
+      padding: 12px 30px;
+      font-size: 1.1rem;
+    }
+  }

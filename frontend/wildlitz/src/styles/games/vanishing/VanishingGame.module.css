@@ -1,0 +1,207 @@
+/* src/styles/games/vanishing/VanishingGame.module.css */
+
+.gameContainer {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    background: linear-gradient(135deg, #7cb342 0%, #558b2f 100%);
+  }
+  
+  .gameContent {
+    width: 90%;
+    height: 90%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+  
+  .screenContainer {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Ensure no scrolling */
+  }
+  
+  /* Fox Mascot Styling */
+  .foxMascot {
+    position: fixed; /* Fixed position instead of absolute */
+    bottom: 20px;
+    left: 20px;
+    width: 120px;
+    height: 120px;
+    z-index: 100; /* High z-index to appear on top */
+    pointer-events: none; /* Make sure it doesn't interfere with clicks */
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2)); /* Add drop shadow for better visibility */
+  }
+  
+  .foxImage {
+    width: 100%;
+    height: auto;
+  }
+  
+  /* Speech bubble styling */
+  .speechBubble {
+    position: absolute;
+    top: -70px; /* Positioned above the fox */
+    left: 60px;
+    background-color: white;
+    border-radius: 15px;
+    padding: 10px 14px;
+    min-width: 180px;
+    max-width: 220px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    font-size: 0.85rem;
+    color: #333;
+    text-align: center;
+    z-index: 101;
+    pointer-events: none; /* So clicks pass through */
+  }
+  
+  .speechBubble:after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 30px; /* Position the speech tail to point at the fox */
+    border-top: 10px solid white;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+  }
+  
+  /* Progress indicator */
+  .progressIndicator {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 8px 12px;
+    width: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    backdrop-filter: blur(5px);
+    z-index: 10;
+  }
+  
+  .progressLabel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+    font-size: 0.75rem;
+    margin-bottom: 5px;
+  }
+  
+  .progressNumbers {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  
+  .progressBar {
+    width: 100%;
+    height: 5px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  
+  .progressFill {
+    height: 100%;
+    background-color: white;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+  
+  /* Media queries for responsive design */
+  @media (max-width: 1200px) {
+    .gameContent {
+      width: 95%;
+    }
+    
+    .foxMascot {
+      width: 100px;
+      height: 100px;
+      bottom: 15px;
+      left: 15px;
+    }
+    
+    .speechBubble {
+      top: -60px;
+      left: 50px;
+      min-width: 160px;
+      max-width: 200px;
+      font-size: 0.8rem;
+      padding: 8px 12px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .gameContent {
+      width: 98%;
+      height: 98%;
+    }
+    
+    .progressIndicator {
+      width: 90px;
+      padding: 6px 10px;
+    }
+    
+    .progressNumbers {
+      font-size: 0.9rem;
+    }
+    
+    .foxMascot {
+      width: 80px;
+      height: 80px;
+      bottom: 10px;
+      left: 10px;
+    }
+    
+    .speechBubble {
+      top: -50px;
+      left: 40px;
+      min-width: 140px;
+      max-width: 180px;
+      font-size: 0.7rem;
+      padding: 6px 10px;
+    }
+  }
+  
+  /* For large displays */
+  @media (min-width: 1440px) {
+    .gameContent {
+      width: 80%;
+      height: 85%;
+    }
+    
+    .foxMascot {
+      width: 140px;
+      height: 140px;
+      bottom: 30px;
+      left: 30px;
+    }
+    
+    .speechBubble {
+      top: -80px;
+      left: 70px;
+      min-width: 220px;
+      max-width: 280px;
+      font-size: 1rem;
+    }
+  }
+  
+  /* For extra wide displays */
+  @media (min-width: 1800px) {
+    .gameContent {
+      width: 70%;
+    }
+  }

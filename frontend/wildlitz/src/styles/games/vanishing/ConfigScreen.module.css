@@ -1,0 +1,321 @@
+/* src/styles/games/vanishing/ConfigScreen.module.css */
+
+.configContainer {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    box-sizing: border-box;
+  }
+  
+  .configCard {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(230, 230, 230, 0.9);
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  }
+  
+  .gameHeader {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  
+  .gameTitle {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 5px 0;
+  }
+  
+  .gameSubtitle {
+    font-size: 1rem;
+    color: #555;
+    margin: 0;
+  }
+  
+  .quickStartContainer {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  
+  .quickStartButton {
+    background-color: #7cb342;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(124, 179, 66, 0.3);
+    transition: all 0.2s ease;
+  }
+  
+  .quickStartButton:hover {
+    background-color: #689f38;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 14px rgba(124, 179, 66, 0.4);
+  }
+  
+  .configSteps {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+  }
+  
+  .configStep {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .stepTitle {
+    font-size: 1.1rem;
+    color: #333;
+    margin: 0 0 12px 0;
+    font-weight: 600;
+  }
+  
+  .optionsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .optionButton {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .optionButton:hover {
+    background-color: #c8e6c9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .optionButton.selected {
+    background-color: #7cb342;
+    color: white;
+    box-shadow: 0 3px 6px rgba(124, 179, 66, 0.3);
+  }
+  
+  .examplesBox {
+    background-color: #f4f4f4;
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-top: 5px;
+    border-left: 4px solid #7cb342;
+  }
+  
+  .examplesTitle {
+    font-weight: 600;
+    color: #333;
+    margin-right: 8px;
+    display: inline;
+  }
+  
+  .examplesContent {
+    display: inline;
+    color: #555;
+  }
+  
+  .difficultyButtonsContainer {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  
+  .difficultyButton {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .difficultyButton:hover {
+    background-color: #c8e6c9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .difficultyButton.selected {
+    background-color: #7cb342;
+    color: white;
+    box-shadow: 0 3px 6px rgba(124, 179, 66, 0.3);
+  }
+  
+  .advancedOptionsButton {
+    background-color: #e0e0e0;
+    color: #757575;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .advancedOptionsButton:hover {
+    background-color: #d0d0d0;
+    transform: translateY(-2px);
+  }
+  
+  .actionButtons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 15px;
+  }
+  
+  .backButton {
+    background-color: #e0e0e0;
+    color: #333;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+  }
+  
+  .backButton:hover {
+    background-color: #d0d0d0;
+    transform: translateY(-2px);
+  }
+  
+  .startButton {
+    background-color: #7cb342;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(124, 179, 66, 0.3);
+    min-width: 120px;
+  }
+  
+  .startButton:hover {
+    background-color: #689f38;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(124, 179, 66, 0.4);
+  }
+  
+  /* Media queries for responsive design */
+  @media (max-width: 1024px) {
+    .gameTitle {
+      font-size: 1.6rem;
+    }
+    
+    .configStep {
+      padding: 12px;
+    }
+    
+    .stepTitle {
+      font-size: 1rem;
+    }
+    
+    .optionsGrid {
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .optionButton, .difficultyButton, .advancedOptionsButton {
+      padding: 10px;
+      font-size: 0.85rem;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .configCard {
+      padding: 15px;
+    }
+    
+    .gameTitle {
+      font-size: 1.4rem;
+    }
+    
+    .gameSubtitle {
+      font-size: 0.9rem;
+    }
+    
+    .quickStartButton {
+      padding: 8px 16px;
+      font-size: 0.9rem;
+    }
+    
+    .configSteps {
+      gap: 10px;
+    }
+    
+    .difficultyButtonsContainer {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .actionButtons {
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .backButton, .startButton {
+      width: 100%;
+      max-width: 200px;
+    }
+  }
+  
+  /* For large displays */
+  @media (min-width: 1440px) {
+    .configCard {
+      max-width: 1400px;
+    }
+    
+    .gameTitle {
+      font-size: 2.2rem;
+    }
+    
+    .gameSubtitle {
+      font-size: 1.2rem;
+    }
+    
+    .quickStartButton {
+      padding: 12px 30px;
+      font-size: 1.2rem;
+    }
+    
+    .stepTitle {
+      font-size: 1.3rem;
+    }
+    
+    .optionButton, .difficultyButton {
+      padding: 15px;
+      font-size: 1rem;
+    }
+  }

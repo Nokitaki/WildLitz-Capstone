@@ -6,7 +6,7 @@ import HomePage from '../src/pages/hompage/Homepage';
 import SyllableClappingGame from '../src/pages/games/syllable/SyllableClappingGame';
 import SoundSafariGame from '../src/pages/games/soundsafari/SoundSafariGame';
 import VanishingGame from '../src/pages/games/vanishing/VanishingGame';
-import CrosswordPuzzleGame from '../src/pages/games/crossword/CrosswordPuzzleGame';
+import CrosswordGame from '../src/pages/games/crossword/CrosswordGame';
 
 function App() {
   return (
@@ -20,7 +20,7 @@ function App() {
           <Route path="/games/syllable-clapping" element={<SyllableClappingGame />} />
           <Route path="/games/sound-safari" element={<SoundSafariGame />} />
           <Route path="/games/vanishing-game" element={<VanishingGame />} />
-          <Route path="/games/crossword-puzzle" element={<CrosswordPuzzleGame />} />
+          <Route path="/games/crossword-puzzle" element={<CrosswordGame />} />
           
           {/* Fallback route */}
           <Route path="*" element={<Navigate to="/" />} />
