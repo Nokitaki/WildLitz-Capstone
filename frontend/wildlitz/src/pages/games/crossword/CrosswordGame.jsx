@@ -6,130 +6,248 @@ import styles from '../../../styles/games/crossword/CrosswordGame.module.css';
 // Import game screens
 import IntroScreen from './IntroScreen';
 import GameplayScreen from './GameplayScreen';
-import SummaryScreen from './SummaryScreen';
 import SentenceBuilderScreen from './SentenceBuilderScreen';
+import SummaryScreen from './SummaryScreen';
 
 // Import mock data
-import { CROSSWORD_PUZZLES, THEMES } from '../../../mock/crosswordGameData';
+import { THEMES, CROSSWORD_PUZZLES } from '../../../mock/crosswordGameData';
 
 /**
- * Main Crossword Puzzle Game component that manages game state and flow
+ * Main CrosswordGame component that manages game state and flow
  */
 const CrosswordGame = () => {
-  // Game states: 'intro', 'gameplay', 'summary', 'sentence-builder'
+  // Game states: 'intro', 'gameplay', 'sentences', 'summary'
   const [gameState, setGameState] = useState('intro');
   
   // Game configuration
   const [gameConfig, setGameConfig] = useState({
     theme: 'animals',
-    difficulty: 'easy'
+    difficulty: 'easy',
+    puzzleId: null
   });
   
   // Game data
-  const [currentPuzzle, setCurrentPuzzle] = useState(null);
-  const [solvedWords, setSolvedWords] = useState([]);
-  const [timeSpent, setTimeSpent] = useState(0);
+  const [puzzleData, setPuzzleData] = useState(null);
+  const [processedGrid, setProcessedGrid] = useState(null);
+  const [currentClues, setCurrentClues] = useState({ across: [], down: [] });
   
-  // Timer
+  // Game progress
+  const [solvedWords, setSolvedWords] = useState([]);
+  const [currentProgress, setCurrentProgress] = useState(0);
+  const [gameScore, setGameScore] = useState(0);
+  const [timeElapsed, setTimeElapsed] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
   
-  // Start timer when in gameplay mode
-  useEffect(() => {
-    let timer;
-    if (timerActive && gameState === 'gameplay') {
-      timer = setInterval(() => {
-        setTimeSpent(prev => prev + 1);
-      }, 1000);
-    }
-    
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [timerActive, gameState]);
+  // Selected words for sentence building
+  const [selectedWords, setSelectedWords] = useState([]);
   
   /**
-   * Handle starting the game with selected configuration
+   * Start a new game with the given configuration
    */
   const handleStartGame = (config) => {
     setGameConfig(config);
     
-    // Get puzzle based on theme and difficulty
+    // Find a puzzle that matches the config
     const puzzles = CROSSWORD_PUZZLES[config.theme] || [];
-    const filteredPuzzles = puzzles.filter(puzzle => puzzle.difficulty === config.difficulty);
+    const matchingPuzzles = puzzles.filter(p => p.difficulty === config.difficulty);
     
-    if (filteredPuzzles.length > 0) {
-      // Randomly select a puzzle
-      const randomIndex = Math.floor(Math.random() * filteredPuzzles.length);
-      setCurrentPuzzle(filteredPuzzles[randomIndex]);
-      
-      // Reset game state
-      setSolvedWords([]);
-      setTimeSpent(0);
-      setTimerActive(true);
-      
-      // Move to gameplay screen
-      setGameState('gameplay');
+    if (matchingPuzzles.length === 0) {
+      // Fall back to any puzzle from the theme
+      if (puzzles.length > 0) {
+        loadPuzzle(puzzles[0]);
+      } else {
+        // If no puzzles available, show error (in a real app)
+        console.error("No puzzles available for this theme.");
+        return;
+      }
     } else {
-      // Handle case where no puzzles match criteria
-      console.error('No puzzles available for the selected configuration');
+      // Choose a random puzzle from matching puzzles
+      const randomIndex = Math.floor(Math.random() * matchingPuzzles.length);
+      loadPuzzle(matchingPuzzles[randomIndex]);
+    }
+    
+    // Reset game state
+    setSolvedWords([]);
+    setCurrentProgress(0);
+    setGameScore(0);
+    setTimeElapsed(0);
+    setSelectedWords([]);
+    
+    // Start the game
+    setGameState('gameplay');
+    setTimerActive(true);
+  };
+  
+  /**
+   * Load a puzzle and prepare it for gameplay
+   */
+  const loadPuzzle = (puzzle) => {
+    if (!puzzle) {
+      console.error("No valid puzzle data found");
+      return;
+    }
+    
+    setPuzzleData(puzzle);
+    
+    // Process the grid data to convert from 1D to 2D
+    const gridWidth = puzzle.size?.width || 5;
+    const gridHeight = puzzle.size?.height || 5;
+    
+    // Check if grid data exists
+    if (!puzzle.grid || !Array.isArray(puzzle.grid)) {
+      console.error("Invalid grid data in puzzle");
+      // Create a placeholder grid
+      const placeholderGrid = Array(gridHeight).fill().map(() => 
+        Array(gridWidth).fill().map(() => ({ value: null, number: null, userInput: null, isCorrect: false }))
+      );
+      setProcessedGrid(placeholderGrid);
+    } else {
+      const processedGrid = processGrid(puzzle.grid, gridWidth, gridHeight);
+      setProcessedGrid(processedGrid);
+    }
+    
+    // Process clues
+    if (!puzzle.words || !Array.isArray(puzzle.words)) {
+      console.error("Invalid words data in puzzle");
+      setCurrentClues({ across: [], down: [] });
+    } else {
+      const { across, down } = processClues(puzzle.words);
+      setCurrentClues({ across, down });
     }
   };
   
   /**
-   * Handle word solved in crossword
+   * Process grid data from 1D to 2D
    */
-  const handleWordSolved = (word, definition, example) => {
-    // Add to solved words
-    setSolvedWords(prev => [
-      ...prev, 
-      {
-        word,
-        definition,
-        example,
-        timestamp: new Date()
-      }
-    ]);
+  const processGrid = (gridData, width, height) => {
+    // Create a 2D grid
+    const grid = Array(height).fill().map(() => 
+      Array(width).fill().map(() => ({ value: null, number: null, userInput: null, isCorrect: false }))
+    );
     
-    // Check if puzzle is complete
-    if (currentPuzzle && solvedWords.length + 1 >= currentPuzzle.wordCount) {
-      // Stop timer
+    // Fill in the grid based on 1D array
+    for (let i = 0; i < gridData.length; i++) {
+      const row = Math.floor(i / width);
+      const col = i % width;
+      
+      if (row < height && col < width) {
+        grid[row][col] = {
+          ...gridData[i],
+          userInput: null,
+          isCorrect: false
+        };
+      }
+    }
+    
+    return grid;
+  };
+  
+  /**
+   * Process clues into across and down categories
+   */
+  const processClues = (words) => {
+    const across = [];
+    const down = [];
+    
+    words.forEach(word => {
+      if (word.direction === 'across') {
+        across.push(word);
+      } else if (word.direction === 'down') {
+        down.push(word);
+      }
+    });
+    
+    // Sort clues by number
+    across.sort((a, b) => a.number - b.number);
+    down.sort((a, b) => a.number - b.number);
+    
+    return { across, down };
+  };
+  
+  /**
+   * Handle word solved event
+   */
+  const handleWordSolved = (word) => {
+    // Add word to solved words
+    setSolvedWords(prev => {
+      // Avoid duplicates
+      if (prev.some(w => w.number === word.number && w.direction === word.direction)) {
+        return prev;
+      }
+      return [...prev, word];
+    });
+    
+    // Update progress
+    const totalWords = (currentClues.across.length + currentClues.down.length);
+    const newProgress = Math.round(((solvedWords.length + 1) / totalWords) * 100);
+    setCurrentProgress(newProgress);
+    
+    // Update score - award more points for longer words
+    setGameScore(prev => prev + (word.answer.length * 10));
+    
+    // Check if all words are solved
+    if (solvedWords.length + 1 >= totalWords) {
+      // Game complete - move to sentence builder
       setTimerActive(false);
       
-      // Move to summary screen
+      // Choose words for sentence building
+      const wordsForSentences = selectWordsForSentences();
+      setSelectedWords(wordsForSentences);
+      
       setTimeout(() => {
-        setGameState('summary');
-      }, 1000);
+        setGameState('sentences');
+      }, 1500);
     }
   };
   
   /**
-   * Handle going to sentence builder
+   * Select words for sentence building screen
    */
-  const handleGoToSentenceBuilder = () => {
-    setGameState('sentence-builder');
+  const selectWordsForSentences = () => {
+    // In a real implementation, this would select words based on educational value
+    // For this example, select up to 5 words
+    const allWords = [...currentClues.across, ...currentClues.down];
+    
+    // Sort by word length (prefer longer words)
+    const sortedWords = [...allWords].sort((a, b) => b.answer.length - a.answer.length);
+    
+    // Take the top 5 (or fewer if there aren't 5)
+    return sortedWords.slice(0, Math.min(5, sortedWords.length));
   };
   
   /**
-   * Handle returning to main menu
+   * Handle sentence building completion
    */
-  const handleReturnToMenu = () => {
-    setGameState('intro');
+  const handleSentencesComplete = () => {
+    setGameState('summary');
   };
   
   /**
    * Handle playing again
    */
   const handlePlayAgain = () => {
-    // Reset game state
-    setSolvedWords([]);
-    setTimeSpent(0);
-    
-    // Move back to intro screen for new configuration
     setGameState('intro');
   };
   
   /**
-   * Format time display (mm:ss)
+   * Timer effect
+   */
+  useEffect(() => {
+    let interval;
+    
+    if (timerActive) {
+      interval = setInterval(() => {
+        setTimeElapsed(prev => prev + 1);
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [timerActive]);
+  
+  /**
+   * Format time for display
    */
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -150,13 +268,13 @@ const CrosswordGame = () => {
               className={styles.screenContainer}
             >
               <IntroScreen 
-                onStartGame={handleStartGame} 
                 themes={THEMES}
+                onStartGame={handleStartGame}
               />
             </motion.div>
           )}
           
-          {gameState === 'gameplay' && currentPuzzle && (
+          {gameState === 'gameplay' && processedGrid && puzzleData && (
             <motion.div
               key="gameplay"
               initial={{ opacity: 0 }}
@@ -165,11 +283,43 @@ const CrosswordGame = () => {
               className={styles.screenContainer}
             >
               <GameplayScreen 
-                puzzle={currentPuzzle}
-                theme={gameConfig.theme}
+                grid={processedGrid}
+                clues={currentClues}
+                theme={THEMES[gameConfig.theme].name}
+                timer={formatTime(timeElapsed)}
                 onWordSolved={handleWordSolved}
                 solvedWords={solvedWords}
-                timeFormatted={formatTime(timeSpent)}
+                puzzleData={puzzleData}
+              />
+            </motion.div>
+          )}
+          
+          {gameState === 'gameplay' && (!processedGrid || !puzzleData) && (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={styles.screenContainer}
+            >
+              <div className={styles.loadingScreen}>
+                <h2>Loading Crossword Puzzle...</h2>
+                <p>Preparing your {THEMES[gameConfig.theme].name} themed puzzle</p>
+              </div>
+            </motion.div>
+          )}
+          
+          {gameState === 'sentences' && (
+            <motion.div
+              key="sentences"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={styles.screenContainer}
+            >
+              <SentenceBuilderScreen 
+                words={selectedWords}
+                onComplete={handleSentencesComplete}
               />
             </motion.div>
           )}
@@ -183,30 +333,13 @@ const CrosswordGame = () => {
               className={styles.screenContainer}
             >
               <SummaryScreen 
-                solvedWords={solvedWords}
-                timeSpent={timeSpent}
-                timeFormatted={formatTime(timeSpent)}
-                theme={gameConfig.theme}
+                words={selectedWords}
+                score={gameScore}
+                timeElapsed={formatTime(timeElapsed)}
+                solvedWords={solvedWords.length}
+                totalWords={currentClues.across.length + currentClues.down.length}
+                theme={THEMES[gameConfig.theme].name}
                 onPlayAgain={handlePlayAgain}
-                onBuildSentences={handleGoToSentenceBuilder}
-                onReturnToMenu={handleReturnToMenu}
-                totalWords={currentPuzzle ? currentPuzzle.wordCount : 0}
-              />
-            </motion.div>
-          )}
-          
-          {gameState === 'sentence-builder' && (
-            <motion.div
-              key="sentence-builder"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={styles.screenContainer}
-            >
-              <SentenceBuilderScreen 
-                words={solvedWords}
-                onReturnToSummary={() => setGameState('summary')}
-                onReturnToMenu={handleReturnToMenu}
               />
             </motion.div>
           )}
