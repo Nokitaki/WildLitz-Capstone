@@ -1,2 +1,3 @@
 backend/wildlitz/.env
 *.pyc
+backend/wildlitz/sentence_formation/migrations/*.pyc
