@@ -1,334 +1,761 @@
 /* src/styles/games/vanishing/GameplayScreen.module.css */
 
+/* Reset everything first */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
 .gameplayContainer {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0.5rem;
-    box-sizing: border-box;
-  }
-  
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.gameplayCard {
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Teacher Controls Bar */
+.teacherControlBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #2c3e50;
+  border-radius: 15px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  color: white;
+}
+
+.teacherControls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.teacherButton {
+  background-color: #34495e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.teacherButton:hover {
+  background-color: #3498db;
+  transform: translateY(-2px);
+}
+
+.speedControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #34495e;
+  border-radius: 8px;
+  padding: 5px;
+}
+
+.speedControl button {
+  background-color: transparent;
+  color: white;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.speedControl button:hover {
+  background-color: #3498db;
+}
+
+.speedControl span {
+  min-width: 40px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Energy Meter - Fixed */
+.energyMeter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 220px;
+}
+
+.energyLabel {
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: white;
+}
+
+.energyBar {
+  width: 100%;
+  height: 10px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.energyFill {
+  height: 100%;
+  transition: all 0.3s ease;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
+}
+
+.energyStats {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 0.8rem;
+  color: white;
+}
+
+.energyStats span {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Game Header */
+.gameHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.gameInfo {
+  text-align: center;
+}
+
+.gameTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 8px 0;
+}
+
+.vanishingWarning {
+  color: #e74c3c;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 70%, 100% { opacity: 1; }
+  35% { opacity: 0.7; }
+}
+
+/* Timer Bar */
+.timerBarContainer {
+  width: 100%;
+  height: 12px;
+  background-color: #ecf0f1;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.timerBar {
+  height: 100%;
+  background: linear-gradient(90deg, #2ecc71, #f39c12, #e74c3c);
+  border-radius: 6px;
+  transition: width 0.1s linear;
+}
+
+/* Word Display Area */
+.wordDisplayArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 20px;
+  position: relative;
+}
+
+.wordContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+.wordCard {
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  padding: 40px 60px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 300px;
+  min-height: 150px;
+  transition: all 0.3s ease;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+}
+
+.wordText {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.highlightedPattern {
+  font-weight: 800;
+  transition: all 0.3s ease;
+}
+
+/* Vanishing Effects */
+.wordText.fade {
+  transition: opacity 0.1s linear;
+}
+
+.wordText.blur {
+  transition: filter 0.1s linear;
+}
+
+.wordText.puzzle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wordText.letterDrop {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.wordText.syllable {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Letter Drop Effect */
+.letterDrop {
+  display: inline-block;
+  transition: all 0.8s ease-in;
+}
+
+.letterDrop.dropped {
+  transform: translateY(50px) rotate(180deg);
+  opacity: 0;
+}
+
+/* Syllable Vanish Effect */
+.syllableVanish {
+  display: inline-block;
+  transition: all 0.5s ease-out;
+}
+
+.syllableVanish.syllable-vanished {
+  opacity: 0;
+  transform: scale(0.8) translateY(-10px);
+}
+
+.hyphen {
+  color: #7f8c8d;
+  margin: 0 3px;
+  font-weight: normal;
+}
+
+/* Puzzle Effect */
+.puzzleContainer {
+  display: inline-block;
+  position: relative;
+}
+
+.puzzlePiece {
+  display: inline-block;
+  position: relative;
+}
+
+/* UI Elements */
+.syllableHint {
+  font-size: 1.4rem;
+  color: #7f8c8d;
+  margin-top: 15px;
+  font-style: italic;
+  letter-spacing: 3px;
+  font-weight: 500;
+}
+
+.vanishStyleIndicator {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #3498db;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.phonicsPatternHint {
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #e74c3c;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  animation: highlight-pulse 0.5s ease-in-out;
+}
+
+.readyCue {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 25px 45px;
+  border-radius: 20px;
+  font-size: 1.8rem;
+  font-weight: 700;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.countdown {
+  text-align: center;
+  animation: readyPulse 1s ease-in-out infinite;
+}
+
+@keyframes readyPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.audioIndicator {
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #3498db;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  animation: pulse 1.5s infinite;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.teacherHint {
+  position: absolute;
+  top: -70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #9b59b6;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+}
+
+/* Response Phase Indicators */
+.responsePhase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  padding: 20px 30px;
+  border-radius: 20px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+}
+
+.phaseIcon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.phaseText {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+.phaseTimer {
+  font-size: 1.1rem;
+  font-weight: 700;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 5px 15px;
+  border-radius: 15px;
+}
+
+/* Time Left Indicator */
+.timeLeftIndicator {
+  margin: 15px 0;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.timeLeftBadge {
+  background: linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%);
+  color: white;
+  border-radius: 25px;
+  padding: 8px 20px;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Word Prompt */
+.wordPrompt {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Celebration Effects */
+.celebrationOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.celebrationText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  font-weight: 700;
+  color: #e74c3c;
+  animation: celebrationBounce 1s ease-out;
+}
+
+@keyframes celebrationBounce {
+  0% { transform: translate(-50%, -50%) scale(0); }
+  50% { transform: translate(-50%, -50%) scale(1.2); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+.confetti {
+  font-size: 1.5rem;
+}
+
+/* Encouragement Message */
+.encouragementMessage {
+  position: absolute;
+  bottom: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+  color: white;
+  padding: 15px 25px;
+  border-radius: 20px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 300px;
+}
+
+/* Control Buttons */
+.controlButtonsContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+  margin-bottom: 20px;
+}
+
+.controlButtons {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.responseButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+  min-width: 130px;
+}
+
+.responseButton:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+}
+
+.responseButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.secondaryButton {
+  background: linear-gradient(135deg, #9CA8B3 0%, #6C7B7F 100%);
+  box-shadow: 0 6px 12px rgba(156, 168, 179, 0.3);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  box-shadow: 0 8px 16px rgba(156, 168, 179, 0.4);
+}
+
+/* Game Settings */
+.gameSettings {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  text-align: center;
+  margin-bottom: 10px;
+  padding: 8px 16px;
+  background-color: #f8f9fa;
+  border-radius: 15px;
+}
+
+/* Teacher Instructions */
+.teacherInstructions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 10px;
+  background-color: #2c3e50;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.instructionItem {
+  color: white;
+  font-size: 0.8rem;
+  background-color: #34495e;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+/* Animations */
+@keyframes highlight-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
   .gameplayCard {
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 20px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px);
+    padding: 15px;
   }
   
-  .gameHeader {
-    display: flex;
+  .teacherControlBar {
     flex-direction: column;
-    align-items: center;
-    margin-bottom: 15px;
+    gap: 10px;
+    padding: 10px;
   }
   
-  .gameInfo {
-    text-align: center;
+  .teacherControls {
+    gap: 10px;
   }
   
   .gameTitle {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #333;
-    margin: 0 0 8px 0;
-  }
-  
-  .vanishingWarning {
-    color: #e53935;
-    font-size: 1rem;
-    font-weight: 600;
-    margin: 0;
-    animation: pulse 1.5s infinite;
-  }
-  
-  @keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.6; }
-    100% { opacity: 1; }
-  }
-  
-  .timerBarContainer {
-    width: 100%;
-    height: 8px;
-    background-color: #e0e0e0;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 20px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
-  }
-  
-  .timerBar {
-    height: 100%;
-    background-color: #ff9800;
-    border-radius: 4px;
-  }
-  
-  .wordDisplayArea {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    padding: 20px;
-    position: relative;
-  }
-  
-  .wordContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    gap: 20px;
+    font-size: 1.2rem;
   }
   
   .wordCard {
-    background-color: #e8f5e9;
-    padding: 30px 50px;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-width: 200px;
+    padding: 30px 40px;
     min-height: 120px;
-    transition: all 0.3s ease;
   }
   
   .wordText {
-    font-size: 3rem;
-    font-weight: 700;
-    color: #333;
-    text-align: center;
-  }
-  
-  .highlightedPattern {
-    color: #e53935;
-    font-weight: 800;
-  }
-  
-  .timeLeftIndicator {
-    margin: 20px 0;
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .timeLeftBadge {
-    background-color: #90caf9;
-    color: #0d47a1;
-    border-radius: 20px;
-    padding: 6px 14px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .wordPrompt {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #333;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .controlButtonsContainer {
-    display: flex;
-    justify-content: center;
-    margin-top: auto;
-  }
-  
-  .controlButtons {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  
-  .controlButton {
-    background-color: #e0e0e0;
-    border: none;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  
-  .controlButton:hover {
-    background-color: #d0d0d0;
-    transform: translateY(-2px);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    font-size: 2.8rem;
   }
   
   .responseButton {
-    background-color: #7cb342;
-    color: white;
-    border: none;
-    padding: 10px 24px;
-    border-radius: 30px;
-    font-weight: 600;
+    padding: 10px 20px;
     font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 10px rgba(124, 179, 66, 0.3);
+    min-width: 110px;
+  }
+}
+
+@media (max-width: 768px) {
+  .gameplayCard {
+    padding: 10px;
   }
   
-  .responseButton:hover {
-    background-color: #689f38;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(124, 179, 66, 0.4);
+  .teacherControlBar {
+    padding: 8px;
   }
   
-  .secondaryButton {
-    background-color: #9e9e9e;
-    box-shadow: 0 4px 10px rgba(158, 158, 158, 0.3);
+  .energyMeter {
+    min-width: 150px;
   }
   
-  .secondaryButton:hover {
-    background-color: #757575;
-    box-shadow: 0 6px 14px rgba(158, 158, 158, 0.4);
+  .gameTitle {
+    font-size: 1.1rem;
   }
   
-  .gameSettings {
-    font-size: 0.75rem;
-    color: #757575;
+  .vanishingWarning {
+    font-size: 1rem;
+  }
+  
+  .wordDisplayArea {
+    padding: 10px;
+  }
+  
+  .wordCard {
+    padding: 20px 30px;
+    min-width: 250px;
+    min-height: 100px;
+  }
+  
+  .wordText {
+    font-size: 2.2rem;
+  }
+  
+  .syllableHint {
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+  }
+  
+  .readyCue {
+    padding: 20px 35px;
+    font-size: 1.5rem;
+  }
+  
+  .responsePhase {
+    padding: 15px 20px;
+  }
+  
+  .phaseText {
+    font-size: 1rem;
+  }
+  
+  .controlButtons {
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .responseButton {
+    width: 100%;
+    max-width: 200px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+  }
+  
+  .teacherInstructions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .instructionItem {
     text-align: center;
-    margin-top: 15px;
+  }
+}
+
+/* High-DPI displays */
+@media (min-width: 1440px) {
+  .gameplayCard {
+    max-width: 1400px;
+    padding: 30px;
   }
   
-  /* Media queries for responsive design */
-  @media (max-width: 1024px) {
-    .gameplayCard {
-      padding: 15px;
-    }
-    
-    .gameTitle {
-      font-size: 1.2rem;
-    }
-    
-    .vanishingWarning {
-      font-size: 0.9rem;
-    }
-    
-    .wordCard {
-      padding: 25px 40px;
-      min-height: 100px;
-    }
-    
-    .wordText {
-      font-size: 2.5rem;
-    }
-    
-    .wordPrompt {
-      font-size: 1.1rem;
-    }
-    
-    .responseButton {
-      padding: 8px 20px;
-      font-size: 0.9rem;
-    }
+  .gameTitle {
+    font-size: 1.6rem;
   }
   
-  @media (max-width: 768px) {
-    .gamePlayCard {
-      padding: 10px;
-    }
-    
-    .gameTitle {
-      font-size: 1.1rem;
-    }
-    
-    .wordDisplayArea {
-      padding: 10px;
-    }
-    
-    .wordCard {
-      padding: 20px 30px;
-      min-width: 150px;
-      min-height: 80px;
-    }
-    
-    .wordText {
-      font-size: 2rem;
-    }
-    
-    .timeLeftBadge {
-      padding: 5px 12px;
-      font-size: 0.8rem;
-    }
-    
-    .wordPrompt {
-      font-size: 1rem;
-      margin-bottom: 15px;
-    }
-    
-    .controlButtons {
-      gap: 10px;
-    }
-    
-    .controlButton {
-      width: 40px;
-      height: 40px;
-      font-size: 1.1rem;
-    }
-    
-    .responseButton {
-      padding: 8px 16px;
-      font-size: 0.85rem;
-    }
-    
-    .gameSettings {
-      font-size: 0.7rem;
-    }
+  .vanishingWarning {
+    font-size: 1.2rem;
   }
   
-  /* For large displays */
-  @media (min-width: 1440px) {
-    .gameplayCard {
-      max-width: 1400px;
-      padding: 30px;
-    }
-    
-    .gameTitle {
-      font-size: 1.5rem;
-    }
-    
-    .vanishingWarning {
-      font-size: 1.1rem;
-    }
-    
-    .wordCard {
-      padding: 40px 70px;
-      min-height: 150px;
-    }
-    
-    .wordText {
-      font-size: 4rem;
-    }
-    
-    .timeLeftBadge {
-      padding: 8px 18px;
-      font-size: 1rem;
-    }
-    
-    .wordPrompt {
-      font-size: 1.4rem;
-    }
-    
-    .responseButton {
-      padding: 12px 30px;
-      font-size: 1.1rem;
-    }
+  .wordCard {
+    padding: 50px 80px;
+    min-height: 180px;
   }
+  
+  .wordText {
+    font-size: 4rem;
+  }
+  
+  .syllableHint {
+    font-size: 1.6rem;
+    letter-spacing: 4px;
+  }
+  
+  .readyCue {
+    padding: 30px 55px;
+    font-size: 2rem;
+  }
+  
+  .responseButton {
+    padding: 15px 35px;
+    font-size: 1.2rem;
+    min-width: 150px;
+  }
+}

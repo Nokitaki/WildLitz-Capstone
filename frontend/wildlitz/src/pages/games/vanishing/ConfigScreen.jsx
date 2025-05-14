@@ -1,35 +1,32 @@
 // src/pages/games/vanishing/ConfigScreen.jsx
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/vanishing/ConfigScreen.module.css';
 
 /**
- * Configuration screen for the Vanishing Game
- * Allows selecting challenge level, learning focus, and difficulty
+ * Enhanced Configuration screen for the Vanishing Game
+ * Features modern design, smooth animations, and intuitive user experience
  */
 const ConfigScreen = ({ onStartGame }) => {
-  // Game configuration state
-  const [challengeLevel, setChallengeLevel] = useState('simple_words');
-  const [learningFocus, setLearningFocus] = useState('short_vowels');
-  const [difficulty, setDifficulty] = useState('easy');
+  // Game configuration state - Start with no selections
+  const [challengeLevel, setChallengeLevel] = useState('');
+  const [learningFocus, setLearningFocus] = useState('');
+  const [difficulty, setDifficulty] = useState('');
   const [highlightTarget, setHighlightTarget] = useState(true);
   const [vanishSpeed, setVanishSpeed] = useState('normal');
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   
-  // Example words state - displayed based on selection
-  const [exampleWords, setExampleWords] = useState([]);
+  // Configuration progress
+  const [configProgress, setConfigProgress] = useState(0);
   
-  // Update example words when learning focus changes
+  // Calculate configuration progress
   useEffect(() => {
-    // In a real app, this would come from a database or API
-    const examples = {
-      short_vowels: ['Hop', 'Cat', 'Bed', 'Sun'],
-      long_vowels: ['Meet', 'Cake', 'Bike', 'Hope'],
-      blends: ['Stop', 'Flag', 'Bring', 'Clap'],
-      digraphs: ['Ship', 'Chat', 'This', 'When']
-    };
-    
-    setExampleWords(examples[learningFocus] || []);
-  }, [learningFocus]);
+    let progress = 0;
+    if (challengeLevel) progress += 33.33;
+    if (learningFocus) progress += 33.33;
+    if (difficulty) progress += 33.34;
+    setConfigProgress(progress);
+  }, [challengeLevel, learningFocus, difficulty]);
   
   // Handle quick start with default settings
   const handleQuickStart = () => {
@@ -46,8 +43,13 @@ const ConfigScreen = ({ onStartGame }) => {
     }
   };
   
+  // Check if all required fields are selected
+  const isConfigComplete = challengeLevel && learningFocus && difficulty;
+
   // Handle start game with custom settings
   const handleStartGame = () => {
+    if (!isConfigComplete) return;
+    
     const config = {
       challengeLevel,
       learningFocus,
@@ -61,217 +63,384 @@ const ConfigScreen = ({ onStartGame }) => {
     }
   };
   
-  // Get the learning focus display name
-  const getLearningFocusName = (focus) => {
-    const names = {
-      short_vowels: 'Short Vowels',
-      long_vowels: 'Long Vowels',
-      blends: 'Blends',
-      digraphs: 'Digraphs'
+  // Get the learning focus display name and icon
+  const getLearningFocusInfo = (focus) => {
+    const info = {
+      short_vowels: { name: 'Short Vowels', icon: '🗣️', description: 'a, e, i, o, u sounds' },
+      long_vowels: { name: 'Long Vowels', icon: '📏', description: 'ā, ē, ī, ō, ū sounds' },
+      blends: { name: 'Blends', icon: '🔄', description: 'bl, cr, st, etc.' },
+      digraphs: { name: 'Digraphs', icon: '🤝', description: 'ch, sh, th, etc.' }
     };
     
-    return names[focus] || focus;
+    return info[focus] || { name: focus, icon: '📖', description: '' };
   };
   
-  // Get the challenge level display name
-  const getChallengeLevelName = (level) => {
-    const names = {
-      simple_words: 'Simple Words',
-      compound_words: 'Compound Words',
-      phrases: 'Phrases',
-      simple_sentences: 'Simple Sentences'
+  // Get the challenge level display name and icon
+  const getChallengeLevelInfo = (level) => {
+    const info = {
+      simple_words: { name: 'Simple Words', icon: '🔤', description: 'Single words like "cat", "sun"' },
+      compound_words: { name: 'Compound Words', icon: '🏢', description: 'Combined words like "playground"' },
+      phrases: { name: 'Phrases', icon: '💭', description: 'Short phrases like "red car"' },
+      simple_sentences: { name: 'Simple Sentences', icon: '📝', description: 'Complete sentences' }
     };
     
-    return names[level] || level;
+    return info[level] || { name: level, icon: '📖', description: '' };
   };
-  
+
+  // Get difficulty info
+  const getDifficultyInfo = (level) => {
+    const info = {
+      easy: { name: 'Easy', icon: '🟢', description: '6 seconds to read', time: '6s' },
+      medium: { name: 'Medium', icon: '🟡', description: '4 seconds to read', time: '4s' },
+      hard: { name: 'Hard', icon: '🔴', description: '3 seconds to read', time: '3s' }
+    };
+    
+    return info[level] || { name: level, icon: '⚪', description: '', time: '' };
+  };
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.6,
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
+  const buttonVariants = {
+    idle: { scale: 1, y: 0 },
+    hover: { scale: 1.05, y: -3 },
+    tap: { scale: 0.98, y: 0 }
+  };
+
   return (
     <div className={styles.configContainer}>
-      <div className={styles.configCard}>
-        {/* Game header */}
-        <div className={styles.gameHeader}>
-          <h1 className={styles.gameTitle}>WildLitz - Enhanced Vanishing Game</h1>
-          <p className={styles.gameSubtitle}>Read the content before it disappears!</p>
-        </div>
+      <motion.div 
+        className={styles.configCard}
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Enhanced header with progress */}
+        <motion.div className={styles.gameHeader} variants={itemVariants}>
+          <div className={styles.logoContainer}>
+            <h1 className={styles.gameTitle}>WildLitz Vanishing Game</h1>
+            <p className={styles.gameSubtitle}>Configure your reading adventure!</p>
+          </div>
+          
+          {/* Progress indicator */}
+          <div className={styles.progressContainer}>
+            <div className={styles.progressLabel}>Setup Progress</div>
+            <div className={styles.progressBar}>
+              <motion.div 
+                className={styles.progressFill}
+                initial={{ width: 0 }}
+                animate={{ width: `${configProgress}%` }}
+                transition={{ duration: 0.5 }}
+              />
+            </div>
+            <div className={styles.progressText}>{Math.round(configProgress)}% Complete</div>
+          </div>
+        </motion.div>
         
-        {/* Quick start button */}
-        <div className={styles.quickStartContainer}>
+        {/* Quick start section */}
+        <motion.div className={styles.quickStartSection} variants={itemVariants}>
+          <h3>🚀 Ready to Jump In?</h3>
           <motion.button 
             className={styles.quickStartButton}
+            variants={buttonVariants}
+            initial="idle"
+            whileHover="hover"
+            whileTap="tap"
             onClick={handleQuickStart}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
+            <span className={styles.buttonIcon}>⚡</span>
             Quick Start
+            <span className={styles.buttonSubtext}>Default settings</span>
           </motion.button>
-        </div>
+          <div className={styles.divider}>
+            <span>or customize your experience</span>
+          </div>
+        </motion.div>
         
         {/* Configuration steps */}
         <div className={styles.configSteps}>
           {/* Step 1: Challenge Level */}
-          <div className={styles.configStep}>
-            <h3 className={styles.stepTitle}>Step 1: Select Challenge Level:</h3>
-            <div className={styles.optionsGrid}>
-              <motion.button 
-                className={`${styles.optionButton} ${challengeLevel === 'simple_words' ? styles.selected : ''}`}
-                onClick={() => setChallengeLevel('simple_words')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Simple Words
-              </motion.button>
-              
-              <motion.button 
-                className={`${styles.optionButton} ${challengeLevel === 'compound_words' ? styles.selected : ''}`}
-                onClick={() => setChallengeLevel('compound_words')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Compound Words
-              </motion.button>
-              
-              <motion.button 
-                className={`${styles.optionButton} ${challengeLevel === 'phrases' ? styles.selected : ''}`}
-                onClick={() => setChallengeLevel('phrases')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Phrases
-              </motion.button>
-              
-              <motion.button 
-                className={`${styles.optionButton} ${challengeLevel === 'simple_sentences' ? styles.selected : ''}`}
-                onClick={() => setChallengeLevel('simple_sentences')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Simple Sentences
-              </motion.button>
+          <motion.div className={styles.configStep} variants={itemVariants}>
+            <div className={styles.stepHeader}>
+              <span className={styles.stepNumber}>1</span>
+              <h3 className={styles.stepTitle}>Choose Your Challenge</h3>
             </div>
-          </div>
+            
+            <div className={styles.optionsGrid}>
+              {['simple_words', 'compound_words', 'phrases', 'simple_sentences'].map((level) => {
+                const info = getChallengeLevelInfo(level);
+                return (
+                  <motion.button
+                    key={level}
+                    className={`${styles.optionCard} ${challengeLevel === level ? styles.selected : ''}`}
+                    variants={buttonVariants}
+                    initial="idle"
+                    whileHover="hover"
+                    whileTap="tap"
+                    onClick={() => setChallengeLevel(level)}
+                  >
+                    <div className={styles.cardIcon}>{info.icon}</div>
+                    <div className={styles.cardTitle}>{info.name}</div>
+                    <div className={styles.cardDescription}>{info.description}</div>
+                    {challengeLevel === level && (
+                      <motion.div 
+                        className={styles.selectedIndicator}
+                        layoutId="challengeLevel"
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      >
+                        ✓
+                      </motion.div>
+                    )}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </motion.div>
           
           {/* Step 2: Learning Focus */}
-          <div className={styles.configStep}>
-            <h3 className={styles.stepTitle}>Step 2: Select Learning Focus:</h3>
-            <div className={styles.optionsGrid}>
-              <motion.button 
-                className={`${styles.optionButton} ${learningFocus === 'short_vowels' ? styles.selected : ''}`}
-                onClick={() => setLearningFocus('short_vowels')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Short Vowels
-              </motion.button>
-              
-              <motion.button 
-                className={`${styles.optionButton} ${learningFocus === 'long_vowels' ? styles.selected : ''}`}
-                onClick={() => setLearningFocus('long_vowels')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Long Vowels
-              </motion.button>
-              
-              <motion.button 
-                className={`${styles.optionButton} ${learningFocus === 'blends' ? styles.selected : ''}`}
-                onClick={() => setLearningFocus('blends')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Blends
-              </motion.button>
-              
-              <motion.button 
-                className={`${styles.optionButton} ${learningFocus === 'digraphs' ? styles.selected : ''}`}
-                onClick={() => setLearningFocus('digraphs')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Digraphs
-              </motion.button>
+          <motion.div className={styles.configStep} variants={itemVariants}>
+            <div className={styles.stepHeader}>
+              <span className={styles.stepNumber}>2</span>
+              <h3 className={styles.stepTitle}>Select Learning Focus</h3>
             </div>
             
-            {/* Examples of current selection */}
-            <div className={styles.examplesBox}>
-              <div className={styles.examplesTitle}>
-                Examples Words: 
-              </div>
-              <div className={styles.examplesContent}>
-                {exampleWords.join(', ')}
-                {learningFocus === 'short_vowels' && ' (with highlighted short vowels)'}
-              </div>
+            <div className={styles.optionsGrid}>
+              {['short_vowels', 'long_vowels', 'blends', 'digraphs'].map((focus) => {
+                const info = getLearningFocusInfo(focus);
+                return (
+                  <motion.button
+                    key={focus}
+                    className={`${styles.optionCard} ${learningFocus === focus ? styles.selected : ''}`}
+                    variants={buttonVariants}
+                    initial="idle"
+                    whileHover="hover"
+                    whileTap="tap"
+                    onClick={() => setLearningFocus(focus)}
+                  >
+                    <div className={styles.cardIcon}>{info.icon}</div>
+                    <div className={styles.cardTitle}>{info.name}</div>
+                    <div className={styles.cardDescription}>{info.description}</div>
+                    {learningFocus === focus && (
+                      <motion.div 
+                        className={styles.selectedIndicator}
+                        layoutId="learningFocus"
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      >
+                        ✓
+                      </motion.div>
+                    )}
+                  </motion.button>
+                );
+              })}
             </div>
-          </div>
+          </motion.div>
           
           {/* Step 3: Difficulty */}
-          <div className={styles.configStep}>
-            <h3 className={styles.stepTitle}>Step 3: Difficulty:</h3>
-            <div className={styles.difficultyButtonsContainer}>
-              <motion.button 
-                className={`${styles.difficultyButton} ${difficulty === 'easy' ? styles.selected : ''}`}
-                onClick={() => setDifficulty('easy')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Easy
-              </motion.button>
-              
-              <motion.button 
-                className={`${styles.difficultyButton} ${difficulty === 'medium' ? styles.selected : ''}`}
-                onClick={() => setDifficulty('medium')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Medium
-              </motion.button>
-              
-              <motion.button 
-                className={`${styles.difficultyButton} ${difficulty === 'hard' ? styles.selected : ''}`}
-                onClick={() => setDifficulty('hard')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Hard
-              </motion.button>
-              
-              <motion.button 
-                className={styles.advancedOptionsButton}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  // Toggle options visibility in a real app
-                }}
-              >
-                Advanced options +
-              </motion.button>
+          <motion.div className={styles.configStep} variants={itemVariants}>
+            <div className={styles.stepHeader}>
+              <span className={styles.stepNumber}>3</span>
+              <h3 className={styles.stepTitle}>Set Difficulty Level</h3>
             </div>
-          </div>
-          
-          {/* Action buttons */}
-          <div className={styles.actionButtons}>
-            <motion.button 
-              className={styles.backButton}
-              onClick={() => {
-                // Handle back action in real app
-                window.history.back();
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            
+            <div className={styles.difficultyGrid}>
+              {['easy', 'medium', 'hard'].map((level) => {
+                const info = getDifficultyInfo(level);
+                return (
+                  <motion.button
+                    key={level}
+                    className={`${styles.difficultyCard} ${difficulty === level ? styles.selected : ''}`}
+                    variants={buttonVariants}
+                    initial="idle"
+                    whileHover="hover"
+                    whileTap="tap"
+                    onClick={() => setDifficulty(level)}
+                  >
+                    <div className={styles.difficultyIcon}>{info.icon}</div>
+                    <div className={styles.difficultyName}>{info.name}</div>
+                    <div className={styles.difficultyTime}>{info.time}</div>
+                    <div className={styles.difficultyDescription}>{info.description}</div>
+                    {difficulty === level && (
+                      <motion.div 
+                        className={styles.selectedIndicator}
+                        layoutId="difficulty"
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      >
+                        ✓
+                      </motion.div>
+                    )}
+                  </motion.button>
+                );
+              })}
+            </div>
+            
+            {/* Advanced options toggle */}
+            <motion.button
+              className={styles.advancedToggle}
+              onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+              variants={buttonVariants}
+              initial="idle"
+              whileHover="hover"
+              whileTap="tap"
             >
-              Back
+              <span className={styles.toggleIcon}>
+                {showAdvancedOptions ? '▼' : '▶'}
+              </span>
+              Advanced Options
+              <span className={styles.optionalBadge}>Optional</span>
             </motion.button>
             
-            <motion.button 
-              className={styles.startButton}
-              onClick={handleStartGame}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Begin Game
-            </motion.button>
-          </div>
+            {/* Advanced options panel */}
+            <AnimatePresence>
+              {showAdvancedOptions && (
+                <motion.div
+                  className={styles.advancedOptions}
+                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginTop: 20 }}
+                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className={styles.advancedHeader}>
+                    <span className={styles.advancedIcon}>⚙️</span>
+                    <h4>Fine-tune Your Experience</h4>
+                  </div>
+                  
+                  <div className={styles.advancedRow}>
+                    <div className={styles.toggleGroup}>
+                      <label className={styles.toggleLabel}>
+                        <span>Highlight Patterns</span>
+                        <span className={styles.toggleDescription}>Visual emphasis on target sounds</span>
+                      </label>
+                      <motion.button
+                        className={`${styles.toggle} ${highlightTarget ? styles.active : ''}`}
+                        onClick={() => setHighlightTarget(!highlightTarget)}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <motion.div
+                          className={styles.toggleHandle}
+                          animate={{ x: highlightTarget ? 24 : 0 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        />
+                      </motion.button>
+                    </div>
+                  </div>
+                  
+                  <div className={styles.advancedRow}>
+                    <div className={styles.sliderGroup}>
+                      <label className={styles.sliderLabel}>
+                        <span>Vanish Speed</span>
+                        <span className={styles.sliderDescription}>How quickly words disappear</span>
+                      </label>
+                      <div className={styles.speedSelector}>
+                        {['slow', 'normal', 'fast'].map((speed) => (
+                          <motion.button
+                            key={speed}
+                            className={`${styles.speedOption} ${vanishSpeed === speed ? styles.active : ''}`}
+                            onClick={() => setVanishSpeed(speed)}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            {speed.charAt(0).toUpperCase() + speed.slice(1)}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         </div>
-      </div>
+        
+        {/* Action buttons */}
+        <motion.div className={styles.actionButtons} variants={itemVariants}>
+          <motion.button 
+            className={styles.backButton}
+            variants={buttonVariants}
+            initial="idle"
+            whileHover="hover"
+            whileTap="tap"
+            onClick={() => window.history.back()}
+          >
+            <span className={styles.buttonIcon}>←</span>
+            Back
+          </motion.button>
+          
+          <motion.button 
+            className={`${styles.startButton} ${!isConfigComplete ? styles.disabled : ''}`}
+            variants={buttonVariants}
+            initial="idle"
+            whileHover={isConfigComplete ? "hover" : "idle"}
+            whileTap={isConfigComplete ? "tap" : "idle"}
+            onClick={handleStartGame}
+            disabled={!isConfigComplete}
+          >
+            <span className={styles.buttonIcon}>🎮</span>
+            {isConfigComplete ? 'Begin Adventure' : 'Select All Options'}
+            {isConfigComplete && (
+              <motion.div 
+                className={styles.buttonGlow}
+                animate={{ 
+                  opacity: [0.5, 1, 0.5],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{ 
+                  duration: 2, 
+                  repeat: Infinity, 
+                  ease: "easeInOut" 
+                }}
+              />
+            )}
+          </motion.button>
+        </motion.div>
+        
+        {/* Configuration summary - Only show when at least one option is selected */}
+        {(challengeLevel || learningFocus || difficulty) && (
+          <motion.div className={styles.configSummary} variants={itemVariants}>
+            <h4>🎯 Your Configuration:</h4>
+            <div className={styles.summaryItems}>
+              {challengeLevel && (
+                <div className={styles.summaryItem}>
+                  <span className={styles.summaryLabel}>Challenge:</span>
+                  <span className={styles.summaryValue}>
+                    {getChallengeLevelInfo(challengeLevel).name}
+                  </span>
+                </div>
+              )}
+              {learningFocus && (
+                <div className={styles.summaryItem}>
+                  <span className={styles.summaryLabel}>Focus:</span>
+                  <span className={styles.summaryValue}>
+                    {getLearningFocusInfo(learningFocus).name}
+                  </span>
+                </div>
+              )}
+              {difficulty && (
+                <div className={styles.summaryItem}>
+                  <span className={styles.summaryLabel}>Difficulty:</span>
+                  <span className={styles.summaryValue}>
+                    {getDifficultyInfo(difficulty).name} ({getDifficultyInfo(difficulty).time})
+                  </span>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </motion.div>
     </div>
   );
 };
