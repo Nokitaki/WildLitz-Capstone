@@ -10,6 +10,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/syllabification/', include('syllabification.urls')),
     path('api/phonics/', include('phonics.urls')),  # Add phonics URLs
+    path('api/phonemics/', include('phonemics.urls')),
 ]
 
 if settings.DEBUG:

@@ -24,6 +24,14 @@ import {
   ENVIRONMENTS 
 } from '../../../mock/soundSafariData';
 
+// Import API functions
+import { 
+  fetchSafariAnimals, 
+  fetchRandomSound, 
+  fetchSoundExamples,
+  submitGameResults 
+} from '../../../services/soundSafariApi';
+
 /**
  * Main Sound Safari Game component that manages game state and flow
  * Redesigned with horizontal layout, no overflow/scrolling, and compact layout

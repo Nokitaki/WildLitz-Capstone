@@ -277,7 +277,27 @@ const GameplayScreen = ({
                   }}
                 >
                   <div className={styles.animalImage}>
-                    {animal.image}
+                    {animal.image && animal.image.startsWith('http') ? (
+                      <img 
+                        src={animal.image} 
+                        alt={animal.name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          borderRadius: '10px'
+                        }}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'block';
+                        }}
+                      />
+                    ) : (
+                      <span>{animal.image || '🐾'}</span>
+                    )}
+                    {animal.image && animal.image.startsWith('http') && (
+                      <span style={{ display: 'none' }}>{animal.image || '🐾'}</span>
+                    )}
                   </div>
                   <div className={styles.animalInfo}>
                     <div className={styles.animalName}>
