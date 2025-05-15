@@ -12,11 +12,11 @@ import GameCompleteScreen from './GameCompleteScreen';
 // Import mascot
 import WildLitzFox from '../../../assets/img/wildlitz-idle.png';
 
-// Import mock data for development
-import { WORD_SETS, PHONICS_PATTERNS } from '../../../mock/vanishingGameData';
+// Import AI word generation service
+import { generateVanishingGameWords } from '../../../services/vanishingGameService';
 
 /**
- * Enhanced VanishingGame component with full classroom features
+ * Enhanced VanishingGame component with AI-generated content
  */
 const VanishingGame = () => {
   // Game states: 'config', 'gameplay', 'feedback', 'complete'
@@ -38,6 +38,10 @@ const VanishingGame = () => {
   const [wordData, setWordData] = useState([]);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [lastResult, setLastResult] = useState(null);
+  
+  // Add loading state for word generation
+  const [loadingWords, setLoadingWords] = useState(false);
+  const [wordGenerationError, setWordGenerationError] = useState(null);
   
   // Character speech bubble
   const [showBubble, setShowBubble] = useState(false);
@@ -71,9 +75,9 @@ const VanishingGame = () => {
   const [gameStartTime, setGameStartTime] = useState(null);
   
   /**
-   * Handle starting a new game with the given configuration
+   * Handle starting a new game with AI-generated words
    */
-  const handleStartGame = (config) => {
+  const handleStartGame = async (config) => {
     setGameConfig(config);
     setCurrentRound(1);
     setScore(0);
@@ -81,88 +85,81 @@ const VanishingGame = () => {
     setLastResult(null);
     setSessionStartTime(Date.now());
     setGameStartTime(Date.now());
+    setLoadingWords(true);
+    setWordGenerationError(null);
     
-    // Fetch appropriate words based on config
-    const words = getWordsForConfig(config);
-    setWordData(words);
-    setTotalRounds(Math.min(words.length, 10));
-    
-    // Initialize enhanced stats
-    setGameStats({
-      wordsAttempted: 0,
-      wordsRecognized: 0,
-      successRate: 0,
-      patternStats: {
-        [config.learningFocus]: { attempted: 0, correct: 0, averageTime: 0 }
-      },
-      streakCount: 0,
-      maxStreak: 0,
-      averageResponseTime: 0,
-      difficultyProgression: [],
-      timeSpent: 0,
-      participationMetrics: {
-        handsRaised: 0,
-        discussionTime: 0,
-        hintsUsed: 0,
-        pauseCount: 0
-      }
-    });
-    
-    // Move to gameplay state
-    setGameState('gameplay');
-    
-    // Show enhanced welcome message
-    const welcomeMessages = {
-      simple_words: "Let's practice reading simple words!",
-      compound_words: "Time to tackle compound words!",
-      phrases: "Ready to read some phrases?",
-      simple_sentences: "Let's work on reading sentences!"
-    };
-    
-    setBubbleMessage(welcomeMessages[config.challengeLevel] || "Ready to practice reading?");
-    setShowBubble(true);
-    
-    // Hide bubble after 5 seconds
-    setTimeout(() => {
-      setShowBubble(false);
-    }, 5000);
-  };
-
-  /**
-   * Get appropriate words based on game configuration
-   */
-  const getWordsForConfig = (config) => {
-    const { challengeLevel, learningFocus } = config;
-    
-    // Enhanced word selection with difficulty adaptation
-    if (WORD_SETS[challengeLevel] && WORD_SETS[challengeLevel][learningFocus]) {
-      let words = [...WORD_SETS[challengeLevel][learningFocus]];
+    try {
+      // Generate words using AI instead of mock data
+      setBubbleMessage("Generating unique words for your session...");
+      setShowBubble(true);
       
-      // Shuffle words for variety
-      words = words.sort(() => Math.random() - 0.5);
+      const words = await generateVanishingGameWords(config, 15); // Generate 15 words
       
-      // Add metadata for enhanced tracking
-      words = words.map((wordItem, index) => ({
+      // Add metadata to each word
+      const enhancedWords = words.map((wordItem, index) => ({
         ...wordItem,
-        id: `${challengeLevel}_${learningFocus}_${index}`,
-        challengeLevel,
-        learningFocus,
-        difficulty: config.difficulty,
+        id: `ai_generated_${index}`,
         wordIndex: index
       }));
       
-      return words;
+      setWordData(enhancedWords);
+      setTotalRounds(Math.min(enhancedWords.length, 10));
+      
+      // Initialize enhanced stats
+      setGameStats({
+        wordsAttempted: 0,
+        wordsRecognized: 0,
+        successRate: 0,
+        patternStats: {
+          [config.learningFocus]: { attempted: 0, correct: 0, averageTime: 0 }
+        },
+        streakCount: 0,
+        maxStreak: 0,
+        averageResponseTime: 0,
+        difficultyProgression: [],
+        timeSpent: 0,
+        participationMetrics: {
+          handsRaised: 0,
+          discussionTime: 0,
+          hintsUsed: 0,
+          pauseCount: 0
+        },
+        wordsPlayed: enhancedWords.map(w => w.word) // Track the actual words played
+      });
+      
+      // Move to gameplay state
+      setGameState('gameplay');
+      
+      // Show enhanced welcome message
+      const welcomeMessages = {
+        simple_words: "Let's practice reading simple words!",
+        compound_words: "Time to tackle compound words!",
+        phrases: "Ready to read some phrases?",
+        simple_sentences: "Let's work on reading sentences!"
+      };
+      
+      setTimeout(() => {
+        setBubbleMessage(welcomeMessages[config.challengeLevel] || "Ready to practice reading?");
+        
+        // Hide bubble after 5 seconds
+        setTimeout(() => {
+          setShowBubble(false);
+        }, 5000);
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Error generating words:', error);
+      setWordGenerationError('Failed to generate words. Please try again.');
+      setBubbleMessage("Oops! Let's try that again.");
+      
+      // Hide error after 3 seconds and return to config
+      setTimeout(() => {
+        setWordGenerationError(null);
+        setShowBubble(false);
+      }, 3000);
+    } finally {
+      setLoadingWords(false);
     }
-    
-    // Fallback with enhanced structure
-    return WORD_SETS.simple_words.short_vowels.map((wordItem, index) => ({
-      ...wordItem,
-      id: `fallback_${index}`,
-      challengeLevel: 'simple_words',
-      learningFocus: 'short_vowels',
-      difficulty: config.difficulty,
-      wordIndex: index
-    }));
   };
 
   /**
@@ -423,7 +420,11 @@ const VanishingGame = () => {
               exit={{ opacity: 0, y: -20 }}
               className={styles.screenContainer}
             >
-              <ConfigScreen onStartGame={handleStartGame} />
+              <ConfigScreen 
+                onStartGame={handleStartGame}
+                loading={loadingWords}
+                error={wordGenerationError}
+              />
             </motion.div>
           )}
           

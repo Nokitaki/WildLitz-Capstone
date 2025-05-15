@@ -7,7 +7,7 @@ import styles from '../../../styles/games/vanishing/ConfigScreen.module.css';
  * Enhanced Configuration screen for the Vanishing Game
  * Features modern design, smooth animations, and intuitive user experience
  */
-const ConfigScreen = ({ onStartGame }) => {
+const ConfigScreen = ({ onStartGame, loading = false, error = null }) => {
   // Game configuration state - Start with no selections
   const [challengeLevel, setChallengeLevel] = useState('');
   const [learningFocus, setLearningFocus] = useState('');
@@ -48,7 +48,7 @@ const ConfigScreen = ({ onStartGame }) => {
 
   // Handle start game with custom settings
   const handleStartGame = () => {
-    if (!isConfigComplete) return;
+    if (!isConfigComplete || loading) return;
     
     const config = {
       challengeLevel,
@@ -162,6 +162,7 @@ const ConfigScreen = ({ onStartGame }) => {
             whileHover="hover"
             whileTap="tap"
             onClick={handleQuickStart}
+            disabled={loading}
           >
             <span className={styles.buttonIcon}>⚡</span>
             Quick Start
@@ -193,6 +194,7 @@ const ConfigScreen = ({ onStartGame }) => {
                     whileHover="hover"
                     whileTap="tap"
                     onClick={() => setChallengeLevel(level)}
+                    disabled={loading}
                   >
                     <div className={styles.cardIcon}>{info.icon}</div>
                     <div className={styles.cardTitle}>{info.name}</div>
@@ -231,6 +233,7 @@ const ConfigScreen = ({ onStartGame }) => {
                     whileHover="hover"
                     whileTap="tap"
                     onClick={() => setLearningFocus(focus)}
+                    disabled={loading}
                   >
                     <div className={styles.cardIcon}>{info.icon}</div>
                     <div className={styles.cardTitle}>{info.name}</div>
@@ -269,6 +272,7 @@ const ConfigScreen = ({ onStartGame }) => {
                     whileHover="hover"
                     whileTap="tap"
                     onClick={() => setDifficulty(level)}
+                    disabled={loading}
                   >
                     <div className={styles.difficultyIcon}>{info.icon}</div>
                     <div className={styles.difficultyName}>{info.name}</div>
@@ -296,6 +300,7 @@ const ConfigScreen = ({ onStartGame }) => {
               initial="idle"
               whileHover="hover"
               whileTap="tap"
+              disabled={loading}
             >
               <span className={styles.toggleIcon}>
                 {showAdvancedOptions ? '▼' : '▶'}
@@ -329,6 +334,7 @@ const ConfigScreen = ({ onStartGame }) => {
                         className={`${styles.toggle} ${highlightTarget ? styles.active : ''}`}
                         onClick={() => setHighlightTarget(!highlightTarget)}
                         whileTap={{ scale: 0.95 }}
+                        disabled={loading}
                       >
                         <motion.div
                           className={styles.toggleHandle}
@@ -353,6 +359,7 @@ const ConfigScreen = ({ onStartGame }) => {
                             onClick={() => setVanishSpeed(speed)}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
+                            disabled={loading}
                           >
                             {speed.charAt(0).toUpperCase() + speed.slice(1)}
                           </motion.button>
@@ -375,23 +382,27 @@ const ConfigScreen = ({ onStartGame }) => {
             whileHover="hover"
             whileTap="tap"
             onClick={() => window.history.back()}
+            disabled={loading}
           >
             <span className={styles.buttonIcon}>←</span>
             Back
           </motion.button>
           
           <motion.button 
-            className={`${styles.startButton} ${!isConfigComplete ? styles.disabled : ''}`}
+            className={`${styles.startButton} ${!isConfigComplete || loading ? styles.disabled : ''}`}
             variants={buttonVariants}
             initial="idle"
-            whileHover={isConfigComplete ? "hover" : "idle"}
-            whileTap={isConfigComplete ? "tap" : "idle"}
+            whileHover={isConfigComplete && !loading ? "hover" : "idle"}
+            whileTap={isConfigComplete && !loading ? "tap" : "idle"}
             onClick={handleStartGame}
-            disabled={!isConfigComplete}
+            disabled={!isConfigComplete || loading}
           >
-            <span className={styles.buttonIcon}>🎮</span>
-            {isConfigComplete ? 'Begin Adventure' : 'Select All Options'}
-            {isConfigComplete && (
+            <span className={styles.buttonIcon}>
+              {loading ? '⏳' : '🎮'}
+            </span>
+            {loading ? 'Generating Words...' :
+             !isConfigComplete ? 'Select All Options' : 'Begin Adventure'}
+            {isConfigComplete && !loading && (
               <motion.div 
                 className={styles.buttonGlow}
                 animate={{ 
@@ -438,6 +449,18 @@ const ConfigScreen = ({ onStartGame }) => {
                 </div>
               )}
             </div>
+            {loading && (
+              <div className={styles.loadingMessage}>
+                <span className={styles.loadingIcon}>🤖</span>
+                AI is generating unique words for your session...
+              </div>
+            )}
+            {error && (
+              <div className={styles.errorMessage}>
+                <span className={styles.errorIcon}>⚠️</span>
+                {error}
+              </div>
+            )}
           </motion.div>
         )}
       </motion.div>

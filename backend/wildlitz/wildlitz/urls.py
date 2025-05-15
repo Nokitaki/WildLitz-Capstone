@@ -9,6 +9,7 @@ urlpatterns = [
     path('', views.home_view, name='home'),  # Root URL
     path('admin/', admin.site.urls),
     path('api/syllabification/', include('syllabification.urls')),
+    path('api/phonics/', include('phonics.urls')),  # Add phonics URLs
 ]
 
 if settings.DEBUG:
