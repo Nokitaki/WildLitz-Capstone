@@ -28,7 +28,8 @@ const VanishingGame = () => {
     learningFocus: 'short_vowels',
     difficulty: 'easy',
     highlightTarget: true,
-    vanishSpeed: 'normal'
+    vanishSpeed: 'normal',
+    numberOfQuestions: 10
   });
   
   // Game progress
@@ -78,6 +79,8 @@ const VanishingGame = () => {
    * Handle starting a new game with AI-generated words
    */
   const handleStartGame = async (config) => {
+    console.log('Starting game with config:', config); // Debug log
+    
     setGameConfig(config);
     setCurrentRound(1);
     setScore(0);
@@ -88,12 +91,16 @@ const VanishingGame = () => {
     setLoadingWords(true);
     setWordGenerationError(null);
     
+    // FIXED: Use the actual numberOfQuestions from config
+    const questionsToGenerate = config.numberOfQuestions || 10;
+    setTotalRounds(questionsToGenerate);
+    
     try {
-      // Generate words using AI instead of mock data
-      setBubbleMessage("Generating unique words for your session...");
+      // Generate words using AI with the correct number
+      setBubbleMessage(`Generating ${questionsToGenerate} unique words for your session...`);
       setShowBubble(true);
       
-      const words = await generateVanishingGameWords(config, 15); // Generate 15 words
+      const words = await generateVanishingGameWords(config, questionsToGenerate);
       
       // Add metadata to each word
       const enhancedWords = words.map((wordItem, index) => ({
@@ -102,8 +109,12 @@ const VanishingGame = () => {
         wordIndex: index
       }));
       
+      console.log(`Generated ${enhancedWords.length} words for ${questionsToGenerate} questions`); // Debug log
+      
       setWordData(enhancedWords);
-      setTotalRounds(Math.min(enhancedWords.length, 10));
+      
+      // FIXED: Set total rounds to exactly the number of questions requested
+      setTotalRounds(questionsToGenerate);
       
       // Initialize enhanced stats
       setGameStats({
@@ -124,7 +135,7 @@ const VanishingGame = () => {
           hintsUsed: 0,
           pauseCount: 0
         },
-        wordsPlayed: enhancedWords.map(w => w.word) // Track the actual words played
+        wordsPlayed: enhancedWords.slice(0, questionsToGenerate).map(w => w.word) // Only track the words we'll actually play
       });
       
       // Move to gameplay state
@@ -241,10 +252,15 @@ const VanishingGame = () => {
   };
 
   /**
-   * Handle moving to next word
+   * Handle moving to next word - FIXED
    */
   const handleNextWord = () => {
-    if (currentWordIndex >= wordData.length - 1 || currentWordIndex >= totalRounds - 1) {
+    console.log(`Current round: ${currentRound}, Total rounds: ${totalRounds}`); // Debug log
+    console.log(`Current word index: ${currentWordIndex}, Word data length: ${wordData.length}`); // Debug log
+    
+    // FIXED: Check against totalRounds (not array length)
+    if (currentRound >= totalRounds) {
+      console.log('Game should end now'); // Debug log
       // End of game
       endGameSession();
     } else {
@@ -316,9 +332,10 @@ const VanishingGame = () => {
   };
 
   /**
-   * Render the current word for gameplay
+   * Render the current word for gameplay - FIXED
    */
   const getCurrentWord = () => {
+    // FIXED: Check bounds properly
     if (wordData.length === 0 || currentWordIndex >= wordData.length) {
       return { 
         word: '', 

@@ -1,404 +1,433 @@
-/* src/styles/games/vanishing/FeedbackScreen.module.css */
+/* src/styles/games/vanishing/FeedbackScreen.module.css - FIXED LAYOUT */
 
 .feedbackContainer {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0.5rem;
-    box-sizing: border-box;
-  }
-  
+  width: 100%;
+  height: 100vh; /* Use full viewport height */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow: hidden; /* Prevent scrolling */
+}
+
+.feedbackCard {
+  width: 100%;
+  height: 100%;
+  max-height: 90vh; /* Ensure it doesn't exceed viewport */
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Success animation container */
+.successAnimationContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+/* Feedback content layout - FIXED */
+.feedbackContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  z-index: 10;
+  height: 100%;
+  justify-content: space-between; /* Distribute content evenly */
+}
+
+/* Feedback bubble */
+.feedbackBubble {
+  background-color: #7cb342;
+  color: white;
+  border-radius: 30px;
+  padding: 10px 20px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 12px rgba(124, 179, 66, 0.3);
+  text-align: center;
+}
+
+/* Word card - REDUCED SIZE */
+.wordCardContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.wordCard {
+  background-color: #e8f5e9;
+  padding: 20px 30px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 200px;
+  min-height: 80px; /* Reduced from 120px */
+}
+
+.wordText {
+  font-size: 2.5rem; /* Reduced from 3rem */
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+}
+
+.highlightedPattern {
+  color: #e53935;
+  font-weight: 800;
+}
+
+/* Information grid layout - COMPACT */
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px; /* Reduced from 20px */
+  width: 100%;
+  margin-bottom: 20px; /* Reduced from 30px */
+  flex: 1;
+}
+
+/* Examples section */
+.examplesSection {
+  background-color: #f5f5f5;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.examplesButton {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 12px; /* Reduced from 15px */
+  text-align: center;
+  font-size: 0.95rem; /* Reduced from 1rem */
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px; /* Reduced from 10px */
+}
+
+.buttonIndicator {
+  background-color: #e0e0e0;
+  padding: 4px 12px; /* Reduced from 5px 15px */
+  border-radius: 30px;
+  font-size: 0.75rem; /* Reduced from 0.8rem */
+  font-weight: 500;
+  color: #757575;
+  transition: all 0.2s ease;
+}
+
+.examplesButton:hover .buttonIndicator {
+  background-color: #bdbdbd;
+  color: #424242;
+}
+
+/* Phonics rule section */
+.phonicsRuleSection {
+  background-color: #e8f5e9;
+  border-radius: 12px;
+  padding: 12px; /* Reduced from 15px */
+  display: flex;
+  flex-direction: column;
+}
+
+.phonicsRuleHeader {
+  margin-bottom: 8px; /* Reduced from 10px */
+}
+
+.phonicsRuleTitle {
+  font-size: 1rem; /* Reduced from 1.1rem */
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+.phonicsRuleContent {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  padding: 8px; /* Reduced from 10px */
+  flex: 1;
+}
+
+.phonicsRuleContent p {
+  margin: 0 0 6px 0; /* Reduced from 8px */
+  font-size: 0.85rem; /* Reduced from 0.9rem */
+  color: #333;
+  line-height: 1.4;
+}
+
+.phonicsRuleContent p:last-child {
+  margin: 0;
+}
+
+/* Progress section */
+.progressSection {
+  background-color: #f5f5f5;
+  border-radius: 12px;
+  padding: 12px; /* Reduced from 15px */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.progressTitle {
+  font-size: 0.95rem; /* Reduced from 1rem */
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px; /* Reduced from 10px */
+}
+
+.progressValue {
+  font-size: 1.6rem; /* Reduced from 1.8rem */
+  font-weight: 700;
+  color: #7cb342;
+  margin-bottom: 4px; /* Reduced from 5px */
+}
+
+.progressLabel {
+  font-size: 0.85rem; /* Reduced from 0.9rem */
+  color: #757575;
+}
+
+/* Action buttons - FIXED TO ALWAYS BE VISIBLE */
+.actionButtons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: auto; /* Push to bottom */
+  padding-top: 15px;
+  padding-bottom: 10px; /* Ensure space from bottom */
+  border-top: 1px solid rgba(0, 0, 0, 0.1); /* Visual separator */
+  background-color: rgba(255, 255, 255, 0.9); /* Slight background */
+  border-radius: 0 0 20px 20px; /* Match card radius */
+}
+
+.tryAgainButton {
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  padding: 10px 20px; /* Reduced from 12px 24px */
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 0.95rem; /* Reduced from 1rem */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px; /* Ensure minimum width */
+}
+
+.tryAgainButton:hover {
+  background-color: #bdbdbd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nextWordButton {
+  background-color: #7cb342;
+  color: white;
+  border: none;
+  padding: 10px 20px; /* Reduced from 12px 24px */
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 0.95rem; /* Reduced from 1rem */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(124, 179, 66, 0.3);
+  min-width: 100px; /* Ensure minimum width */
+}
+
+.nextWordButton:hover {
+  background-color: #689f38;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(124, 179, 66, 0.4);
+}
+
+/* Media queries for responsive design */
+@media (max-width: 1024px) {
   .feedbackCard {
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 20px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px);
-    position: relative;
-    overflow: hidden;
+    padding: 12px;
+    max-height: 95vh;
   }
   
-  /* Success animation container */
-  .successAnimationContainer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 5;
-  }
-  
-  .confetti {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    border-radius: 3px;
-  }
-  
-  /* Feedback content layout */
-  .feedbackContent {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex: 1;
-    position: relative;
-    z-index: 10;
-  }
-  
-  /* Feedback bubble */
   .feedbackBubble {
-    background-color: #7cb342;
-    color: white;
-    border-radius: 30px;
-    padding: 12px 25px;
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 12px rgba(124, 179, 66, 0.3);
-    text-align: center;
-  }
-  
-  /* Word card */
-  .wordCardContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 30px;
+    padding: 8px 16px;
+    font-size: 1rem;
+    margin-bottom: 12px;
   }
   
   .wordCard {
-    background-color: #e8f5e9;
-    padding: 30px 50px;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: center;
+    padding: 15px 25px;
+    min-height: 70px;
+  }
+  
+  .wordText {
+    font-size: 2rem;
+  }
+  
+  .infoGrid {
+    gap: 12px;
+    margin-bottom: 15px;
+  }
+  
+  .actionButtons {
+    gap: 15px;
+    padding-top: 12px;
+  }
+  
+  .tryAgainButton, .nextWordButton {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    min-width: 90px;
+  }
+}
+
+@media (max-width: 768px) {
+  .feedbackCard {
+    padding: 10px;
+    max-height: 98vh;
+  }
+  
+  .feedbackBubble {
+    padding: 6px 14px;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+  }
+  
+  .wordCard {
+    padding: 10px 20px;
+    min-width: 150px;
+    min-height: 60px;
+  }
+  
+  .wordText {
+    font-size: 1.8rem;
+  }
+  
+  .infoGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .actionButtons {
+    flex-direction: column;
+    gap: 10px;
     align-items: center;
-    min-width: 200px;
-    min-height: 120px;
+    padding-top: 10px;
+  }
+  
+  .tryAgainButton, .nextWordButton {
+    width: 100%;
+    max-width: 200px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Ensure content doesn't overflow on very small screens */
+@media (max-height: 600px) {
+  .feedbackCard {
+    padding: 8px;
+    max-height: 100vh;
+  }
+  
+  .feedbackBubble {
+    margin-bottom: 8px;
+    padding: 5px 12px;
+    font-size: 0.9rem;
+  }
+  
+  .wordCard {
+    padding: 8px 15px;
+    min-height: 50px;
+  }
+  
+  .wordText {
+    font-size: 1.5rem;
+  }
+  
+  .infoGrid {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  
+  .examplesButton, .phonicsRuleSection, .progressSection {
+    padding: 8px;
+  }
+  
+  .actionButtons {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    gap: 12px;
+  }
+  
+  .tryAgainButton, .nextWordButton {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+  }
+}
+
+/* For large displays */
+@media (min-width: 1440px) {
+  .feedbackCard {
+    max-width: 1200px;
+    padding: 25px;
+  }
+  
+  .feedbackBubble {
+    padding: 12px 25px;
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+  }
+  
+  .wordCard {
+    padding: 25px 40px;
+    min-height: 100px;
   }
   
   .wordText {
     font-size: 3rem;
-    font-weight: 700;
-    color: #333;
-    text-align: center;
   }
   
-  .highlightedPattern {
-    color: #e53935;
-    font-weight: 800;
-  }
-  
-  /* Information grid layout */
   .infoGrid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
-    width: 100%;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
   }
   
-  /* Examples section */
-  .examplesSection {
-    background-color: #f5f5f5;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  
-  .examplesButton {
-    width: 100%;
-    background: none;
-    border: none;
-    padding: 15px;
-    text-align: center;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #333;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .buttonIndicator {
-    background-color: #e0e0e0;
-    padding: 5px 15px;
-    border-radius: 30px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: #757575;
-    transition: all 0.2s ease;
-  }
-  
-  .examplesButton:hover .buttonIndicator {
-    background-color: #bdbdbd;
-    color: #424242;
-  }
-  
-  /* Phonics rule section */
-  .phonicsRuleSection {
-    background-color: #e8f5e9;
-    border-radius: 12px;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .phonicsRuleHeader {
-    margin-bottom: 10px;
-  }
-  
-  .phonicsRuleTitle {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #2e7d32;
-  }
-  
-  .phonicsRuleContent {
-    background-color: rgba(255, 255, 255, 0.5);
-    border-radius: 8px;
-    padding: 10px;
-    flex: 1;
-  }
-  
-  .phonicsRuleContent p {
-    margin: 0 0 8px 0;
-    font-size: 0.9rem;
-    color: #333;
-    line-height: 1.4;
-  }
-  
-  .phonicsRuleContent p:last-child {
-    margin: 0;
-  }
-  
-  /* Progress section */
-  .progressSection {
-    background-color: #f5f5f5;
-    border-radius: 12px;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .progressTitle {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 10px;
-  }
-  
-  .progressValue {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #7cb342;
-    margin-bottom: 5px;
-  }
-  
-  .progressLabel {
-    font-size: 0.9rem;
-    color: #757575;
-  }
-  
-  /* Action buttons */
   .actionButtons {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-top: auto;
+    gap: 25px;
+    padding-top: 20px;
   }
   
-  .tryAgainButton {
-    background-color: #e0e0e0;
-    color: #333;
-    border: none;
+  .tryAgainButton, .nextWordButton {
     padding: 12px 24px;
-    border-radius: 30px;
-    font-weight: 600;
     font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    min-width: 120px;
   }
-  
-  .tryAgainButton:hover {
-    background-color: #bdbdbd;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .nextWordButton {
-    background-color: #7cb342;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 30px;
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 10px rgba(124, 179, 66, 0.3);
-  }
-  
-  .nextWordButton:hover {
-    background-color: #689f38;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(124, 179, 66, 0.4);
-  }
-  
-  /* Media queries for responsive design */
-  @media (max-width: 1024px) {
-    .feedbackCard {
-      padding: 15px;
-    }
-    
-    .feedbackBubble {
-      padding: 10px 20px;
-      font-size: 1.1rem;
-      margin-bottom: 15px;
-    }
-    
-    .wordCard {
-      padding: 25px 40px;
-      min-height: 100px;
-    }
-    
-    .wordText {
-      font-size: 2.5rem;
-    }
-    
-    .infoGrid {
-      gap: 15px;
-    }
-    
-    .phonicsRuleContent p {
-      font-size: 0.85rem;
-    }
-    
-    .progressValue {
-      font-size: 1.6rem;
-    }
-    
-    .progressLabel {
-      font-size: 0.85rem;
-    }
-    
-    .actionButtons {
-      gap: 15px;
-    }
-    
-    .tryAgainButton, .nextWordButton {
-      padding: 10px 20px;
-      font-size: 0.95rem;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .feedbackCard {
-      padding: 12px;
-    }
-    
-    .feedbackBubble {
-      padding: 8px 18px;
-      font-size: 1rem;
-      margin-bottom: 15px;
-    }
-    
-    .wordCard {
-      padding: 20px 30px;
-      min-width: 150px;
-      min-height: 80px;
-    }
-    
-    .wordText {
-      font-size: 2rem;
-    }
-    
-    .infoGrid {
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-    
-    .phonicsRuleTitle, .progressTitle {
-      font-size: 1rem;
-    }
-    
-    .progressValue {
-      font-size: 1.5rem;
-    }
-    
-    .actionButtons {
-      flex-direction: column;
-      gap: 10px;
-      align-items: center;
-    }
-    
-    .tryAgainButton, .nextWordButton {
-      width: 100%;
-      max-width: 200px;
-      padding: 10px 0;
-      font-size: 0.9rem;
-    }
-  }
-  
-  /* For large displays */
-  @media (min-width: 1440px) {
-    .feedbackCard {
-      max-width: 1400px;
-      padding: 30px;
-    }
-    
-    .feedbackBubble {
-      padding: 15px 30px;
-      font-size: 1.4rem;
-      margin-bottom: 25px;
-    }
-    
-    .wordCard {
-      padding: 40px 60px;
-      min-height: 150px;
-    }
-    
-    .wordText {
-      font-size: 3.5rem;
-    }
-    
-    .infoGrid {
-      gap: 25px;
-    }
-    
-    .phonicsRuleTitle, .progressTitle {
-      font-size: 1.2rem;
-    }
-    
-    .phonicsRuleContent p {
-      font-size: 1rem;
-    }
-    
-    .progressValue {
-      font-size: 2rem;
-    }
-    
-    .progressLabel {
-      font-size: 1rem;
-    }
-    
-    .actionButtons {
-      gap: 30px;
-    }
-    
-    .tryAgainButton, .nextWordButton {
-      padding: 15px 30px;
-      font-size: 1.1rem;
-    }
-  }
+}

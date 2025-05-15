@@ -225,3 +225,182 @@ def create_fallback_words(challenge_level, learning_focus, word_count):
         formatted_words.append(formatted_word)
     
     return formatted_words
+
+
+
+# Enhanced AI prompt for better syllable breakdown
+# Add this to phonics/views.py
+
+def create_word_generation_prompt(challenge_level, learning_focus, difficulty, word_count):
+    """
+    Create a detailed prompt for AI word generation with improved syllable breakdown
+    """
+    
+    # Define what each learning focus means
+    focus_descriptions = {
+        'short_vowels': 'short vowel sounds (a as in cat, e as in bed, i as in sit, o as in hot, u as in sun)',
+        'long_vowels': 'long vowel sounds (a as in cake, e as in feet, i as in bike, o as in rope, u as in cute)',
+        'blends': 'consonant blends (bl, cr, fl, st, tr, etc.)',
+        'digraphs': 'consonant digraphs (ch, sh, th, wh, ph, etc.)'
+    }
+    
+    # Define challenge level descriptions
+    level_descriptions = {
+        'simple_words': 'single, simple words (3-6 letters)',
+        'compound_words': 'compound words (two words combined like "sunflower" or "playground")',
+        'phrases': 'short phrases (2-4 words like "red car" or "big blue sky")',
+        'simple_sentences': 'simple complete sentences (5-8 words)'
+    }
+    
+    # Adjust word complexity based on difficulty
+    difficulty_notes = {
+        'easy': 'Use simpler, more common words. Focus on basic vocabulary.',
+        'medium': 'Use moderately challenging words. Mix common and less common vocabulary.',
+        'hard': 'Use more challenging words. Include advanced vocabulary appropriate for the level.'
+    }
+    
+    prompt = f"""
+Generate {word_count} educational {level_descriptions[challenge_level]} that focus on {focus_descriptions[learning_focus]}.
+
+Requirements:
+- Challenge Level: {challenge_level}
+- Learning Focus: {learning_focus}  
+- Difficulty: {difficulty}
+- {difficulty_notes[difficulty]}
+
+CRITICAL SYLLABLE BREAKDOWN RULES:
+1. Break syllables at natural speech boundaries
+2. Keep consonant blends together (bl, cr, st, etc.)
+3. Keep vowel teams together (ai, ea, ou, etc.)
+4. Split between double consonants (but-ter, let-ter)
+5. Keep prefixes and suffixes together when possible
+
+Examples of CORRECT syllable breakdown:
+- rainbow → rain-bow (NOT rai-nbow)
+- elephant → el-e-phant
+- butterfly → but-ter-fly
+- playground → play-ground
+- basketball → bas-ket-ball
+- computer → com-pu-ter
+
+For each word/phrase/sentence, you must:
+1. Clearly identify the target phonics pattern
+2. Specify where the pattern appears (beginning, middle, or ending)
+3. Provide a simple phonics rule explanation
+4. Break compound words and longer words into syllables using hyphens CORRECTLY
+5. Count the syllables accurately
+6. Categorize appropriately (Animals, Food, Colors, etc.)
+
+Return ONLY a JSON object in this exact format:
+{{
+  "words": [
+    {{
+      "word": "example word/phrase/sentence",
+      "pattern": "target pattern (like 'a', 'ch', 'st')",
+      "patternPosition": "beginning|middle|ending",
+      "phonicsRule": "Simple explanation of the phonics rule",
+      "syllableBreakdown": "correct-syl-la-ble breakdown",
+      "syllableCount": number,
+      "category": "Animals|Colors|Food|Actions|Objects|General"
+    }}
+  ]
+}}
+
+Additional guidelines:
+- For short vowels: Focus on CVC patterns (cat, bed, sit, etc.)
+- For long vowels: Include silent e patterns and vowel teams
+- For blends: Ensure the target blend is clearly present
+- For digraphs: Make sure the digraph is prominent in the word
+- For phrases: Each word should contain the target pattern
+- For sentences: Include multiple instances of the target pattern
+- Keep age-appropriate vocabulary (elementary school level)
+- Ensure words are spelled correctly
+- Make syllable breakdowns accurate and follow natural speech patterns
+- Double-check syllable counts match the breakdown
+"""
+    
+    return prompt
+
+# Add this helper function for validating syllable breakdowns
+def validate_syllable_breakdown(word, syllable_breakdown, syllable_count):
+    """
+    Validate and potentially fix syllable breakdowns
+    """
+    if not syllable_breakdown or syllable_breakdown == word:
+        return word, 1
+    
+    # Count actual syllables in breakdown
+    syllables = syllable_breakdown.split('-')
+    actual_count = len(syllables)
+    
+    # Join syllables back and compare with original word
+    joined_word = ''.join(syllables).lower()
+    original_word = word.lower().replace(' ', '')
+    
+    # If they don't match, use the original word
+    if joined_word != original_word:
+        return word, 1
+    
+    # Validate common patterns
+    validated_breakdown = syllable_breakdown
+    validated_count = actual_count
+    
+    # Common compound words and their correct breakdowns
+    compound_fixes = {
+        'rainbow': 'rain-bow',
+        'playground': 'play-ground',
+        'basketball': 'bas-ket-ball',
+        'butterfly': 'but-ter-fly',
+        'elephant': 'el-e-phant',
+        'computer': 'com-pu-ter',
+        'telephone': 'tel-e-phone',
+        'newspaper': 'news-pa-per',
+        'bedroom': 'bed-room',
+        'sunshine': 'sun-shine',
+        'football': 'foot-ball',
+        'birthday': 'birth-day',
+        'homework': 'home-work',
+        'classroom': 'class-room',
+        'toothbrush': 'tooth-brush'
+    }
+    
+    # Check if word needs fixing
+    if word.lower() in compound_fixes:
+        validated_breakdown = compound_fixes[word.lower()]
+        validated_count = len(validated_breakdown.split('-'))
+    
+    return validated_breakdown, validated_count
+
+# Updated format function to include validation
+def format_word_response(words_data, challenge_level, learning_focus, difficulty):
+    """
+    Format and validate the word response from AI
+    """
+    formatted_words = []
+    
+    for word_item in words_data.get('words', []):
+        word = word_item.get('word', '')
+        syllable_breakdown = word_item.get('syllableBreakdown', word)
+        syllable_count = word_item.get('syllableCount', 1)
+        
+        # Validate syllable breakdown
+        validated_breakdown, validated_count = validate_syllable_breakdown(
+            word, syllable_breakdown, syllable_count
+        )
+        
+        formatted_word = {
+            'word': word,
+            'pattern': word_item.get('pattern', ''),
+            'patternPosition': word_item.get('patternPosition', 'middle'),
+            'phonicsRule': word_item.get('phonicsRule', ''),
+            'syllableBreakdown': validated_breakdown,
+            'syllableCount': validated_count,
+            'category': word_item.get('category', 'General'),
+            'challengeLevel': challenge_level,
+            'learningFocus': learning_focus,
+            'difficulty': difficulty,
+            'isAiGenerated': True
+        }
+        formatted_words.append(formatted_word)
+        
+    return formatted_words

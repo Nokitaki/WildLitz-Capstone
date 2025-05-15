@@ -77,49 +77,134 @@
   }
   
   /* Progress indicator */
+  /* Enhanced Progress Indicator Styling - Better Visibility */
+
+.progressIndicator {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background-color: rgba(255, 255, 255, 0.95); /* Made more opaque */
+  border-radius: 20px;
+  padding: 12px 16px;
+  width: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 2px solid rgba(124, 179, 66, 0.3);
+}
+
+.progressLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #2c3e50; /* Dark blue-gray for better visibility */
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.progressNumbers {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2c3e50; /* Dark blue-gray for better visibility */
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.progressBar {
+  width: 100%;
+  height: 6px;
+  background-color: rgba(220, 220, 220, 0.8);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #7cb342, #8bc34a);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  box-shadow: 0 1px 3px rgba(124, 179, 66, 0.3);
+}
+
+.progressStats {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  font-size: 0.7rem;
+  gap: 3px;
+  text-align: center;
+}
+
+.progressStats span {
+  background-color: rgba(124, 179, 66, 0.1);
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(124, 179, 66, 0.3);
+  color: #2e5d32; /* Dark green for better visibility */
+  font-weight: 600;
+}
+
+.streakBadge {
+  background: linear-gradient(135deg, #ff9800, #f57c00) !important;
+  color: white !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+}
+
+/* Enhanced responsiveness */
+@media (max-width: 1024px) {
   .progressIndicator {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    padding: 8px 12px;
-    width: 110px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    backdrop-filter: blur(5px);
-    z-index: 10;
-  }
-  
-  .progressLabel {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: white;
-    font-size: 0.75rem;
-    margin-bottom: 5px;
+    width: 120px;
+    padding: 10px 12px;
+    top: 10px;
+    right: 10px;
   }
   
   .progressNumbers {
     font-size: 1rem;
-    font-weight: 700;
+  }
+  
+  .progressStats {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .progressIndicator {
+    width: 100px;
+    padding: 8px 10px;
+    top: 10px;
+    right: 10px;
+  }
+  
+  .progressLabel {
+    font-size: 0.7rem;
+    margin-bottom: 6px;
+  }
+  
+  .progressNumbers {
+    font-size: 0.9rem;
   }
   
   .progressBar {
-    width: 100%;
     height: 5px;
-    background-color: rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
-    overflow: hidden;
+    margin-bottom: 6px;
   }
   
-  .progressFill {
-    height: 100%;
-    background-color: white;
-    border-radius: 3px;
-    transition: width 0.5s ease;
+  .progressStats {
+    font-size: 0.6rem;
+    gap: 2px;
   }
+  
+  .progressStats span {
+    padding: 2px 6px;
+  }
+}
   
   /* Media queries for responsive design */
   @media (max-width: 1200px) {
