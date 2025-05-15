@@ -14,6 +14,7 @@ const ConfigScreen = ({ onStartGame, loading = false, error = null }) => {
   const [difficulty, setDifficulty] = useState('');
   const [highlightTarget, setHighlightTarget] = useState(true);
   const [vanishSpeed, setVanishSpeed] = useState('normal');
+  const [numberOfQuestions, setNumberOfQuestions] = useState(10); // New state for number of questions
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   
   // Configuration progress
@@ -35,7 +36,8 @@ const ConfigScreen = ({ onStartGame, loading = false, error = null }) => {
       learningFocus: 'short_vowels',
       difficulty: 'easy',
       highlightTarget: true,
-      vanishSpeed: 'normal'
+      vanishSpeed: 'normal',
+      numberOfQuestions: 10
     };
     
     if (onStartGame) {
@@ -55,7 +57,8 @@ const ConfigScreen = ({ onStartGame, loading = false, error = null }) => {
       learningFocus,
       difficulty,
       highlightTarget,
-      vanishSpeed
+      vanishSpeed,
+      numberOfQuestions
     };
     
     if (onStartGame) {
@@ -324,6 +327,33 @@ const ConfigScreen = ({ onStartGame, loading = false, error = null }) => {
                     <h4>Fine-tune Your Experience</h4>
                   </div>
                   
+                  {/* Number of Questions Setting */}
+                  <div className={styles.advancedRow}>
+                    <div className={styles.numberInputGroup}>
+                      <label className={styles.numberInputLabel}>
+                        <span>Number of Questions</span>
+                        <span className={styles.numberInputDescription}>How many words/questions to practice</span>
+                      </label>
+                      <div className={styles.numberInputContainer}>
+                        <button 
+                          className={styles.numberButton}
+                          onClick={() => setNumberOfQuestions(Math.max(5, numberOfQuestions - 1))}
+                          disabled={loading || numberOfQuestions <= 5}
+                        >
+                          −
+                        </button>
+                        <span className={styles.numberDisplay}>{numberOfQuestions}</span>
+                        <button 
+                          className={styles.numberButton}
+                          onClick={() => setNumberOfQuestions(Math.min(20, numberOfQuestions + 1))}
+                          disabled={loading || numberOfQuestions >= 20}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div className={styles.advancedRow}>
                     <div className={styles.toggleGroup}>
                       <label className={styles.toggleLabel}>
@@ -400,8 +430,8 @@ const ConfigScreen = ({ onStartGame, loading = false, error = null }) => {
             <span className={styles.buttonIcon}>
               {loading ? '⏳' : '🎮'}
             </span>
-            {loading ? 'Generating Words...' :
-             !isConfigComplete ? 'Select All Options' : 'Begin Adventure'}
+            {loading ? `Generating ${numberOfQuestions} Words...` :
+             !isConfigComplete ? 'Select All Options' : `Begin Adventure (${numberOfQuestions} Questions)`}
             {isConfigComplete && !loading && (
               <motion.div 
                 className={styles.buttonGlow}
@@ -448,11 +478,15 @@ const ConfigScreen = ({ onStartGame, loading = false, error = null }) => {
                   </span>
                 </div>
               )}
+              <div className={styles.summaryItem}>
+                <span className={styles.summaryLabel}>Questions:</span>
+                <span className={styles.summaryValue}>{numberOfQuestions}</span>
+              </div>
             </div>
             {loading && (
               <div className={styles.loadingMessage}>
                 <span className={styles.loadingIcon}>🤖</span>
-                AI is generating unique words for your session...
+                AI is generating {numberOfQuestions} unique words for your session...
               </div>
             )}
             {error && (
