@@ -1,0 +1,147 @@
+/* src/styles/games/syllable/SyllableLoadingScreen.module.css */
+
+.loadingScreenContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  background-color: #f8f9fa;
+  font-family: 'Arial', sans-serif;
+}
+
+.loadingContent {
+  width: 100%;
+  max-width: 800px;
+  padding: 20px;
+}
+
+.loadingCard {
+  background-color: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.gameHeader {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.gameHeader h1 {
+  font-size: 28px;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.loadingBarContainer {
+  height: 12px;
+  background-color: #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.loadingBar {
+  height: 100%;
+  border-radius: 10px;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.progressText {
+  display: block;
+  text-align: right;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.aiBadge {
+  background-color: #e3f2fd;
+  color: #0d47a1;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.loadingTitle {
+  font-size: 24px;
+  margin-bottom: 28px;
+  color: #333;
+}
+
+.loadingDotsContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 36px;
+  height: 40px;
+}
+
+.loadingDot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.infoBox {
+  background-color: #f8f9fa;
+  padding: 15px 20px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.infoBox p {
+  margin: 0;
+  font-size: 16px;
+  color: #495057;
+}
+
+.readyButton {
+  background-color: #4dabf7;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 14px 28px;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 20px 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.readyButton:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.readyButton:active {
+  transform: scale(0.98);
+}
+
+.tipsBox {
+  background-color: #fff8e1;
+  padding: 15px 20px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 450px;
+  color: #856404;
+  margin-top: 12px;
+  font-size: 15px;
+  border-left: 4px solid #ffc107;
+}

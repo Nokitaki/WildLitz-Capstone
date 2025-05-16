@@ -4,11 +4,16 @@ import '../../styles/homepage.css';
 import wildLitzLogo from '../../assets/img/wildlitz-logo.png';
 import syllableClappingImg from '../../assets/img/syllable-clapping-game.jpg';
 import soundSafariImg from '../../assets/img/sound-safari-game.jpg';
-import vanishingGameImg from '../../assets/img/vanishing-game.jpg';
+// Remove the static vanishing game image import
+// import vanishingGameImg from '../../assets/img/vanishing-game.jpg';
 import crosswordGameImg from '../../assets/img/crossword-game.png';
 import { motion } from 'framer-motion';
 import GameTipsModal from '../../components/modals/GameTipsModal';
 import syllableClappingCharacter from '../../assets/img/syllable-clapping-character.svg';
+
+// Import the new animation component
+import VanishingGameAnimation from '../../components/animations/VanishingGameAnimation';
+
 function HomePage() {
   const navigate = useNavigate();
   
@@ -143,6 +148,7 @@ function HomePage() {
               </div>
             </motion.div>
             
+            {/* Updated Vanishing Game card with animation */}
             <motion.div 
               className="game-card"
               whileHover={{ 
@@ -151,7 +157,8 @@ function HomePage() {
               }}
               onClick={() => handleGameSelect('vanishing-game')}
             >
-              <img src={vanishingGameImg} alt="Vanishing Game" className="game-image" />
+              {/* Replace the static image with the animation component */}
+              <VanishingGameAnimation />
               <div className="game-info">
                 <h3>Vanishing Game</h3>
                 <p>Phonics</p>

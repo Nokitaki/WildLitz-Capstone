@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import '../../styles/components/GameTipsModal.css';
 import syllableClappingCharacter from '../../assets/img/syllable-clapping-character.svg';
 
+// Import our colorful vanishing game animation
+import VanishingGameAnimation from '../animations/VanishingGameAnimation';
+
 function GameTipsModal({ isOpen, onClose, game, onStartGame }) {
     // Modal content based on game type
     const getGameContent = () => {
@@ -17,7 +20,8 @@ function GameTipsModal({ isOpen, onClose, game, onStartGame }) {
               'Say the word out loud while clapping',
               'Count the number of claps to identify syllable count'
             ],
-            image: syllableClappingCharacter // Using the imported SVG here
+            image: syllableClappingCharacter,
+            useAnimation: false
           };
         case 'sound-safari':
           return {
@@ -29,7 +33,8 @@ function GameTipsModal({ isOpen, onClose, game, onStartGame }) {
               'Pay attention to the position of sounds (beginning, middle, or end)',
               'Raise your hand when you hear the target sound in a word'
             ],
-            image: '/assets/img/sound-safari-game.jpg'
+            image: '/assets/img/sound-safari-game.jpg',
+            useAnimation: false
           };
         case 'vanishing-game':
           return {
@@ -41,7 +46,8 @@ function GameTipsModal({ isOpen, onClose, game, onStartGame }) {
               'Say the word out loud after it disappears',
               'Look for familiar word parts to help recognition'
             ],
-            image: '/assets/img/vanishing-game.jpg'
+            image: null, // We'll use animation instead
+            useAnimation: true // Flag to use our custom animation
           };
         case 'crossword-puzzle':
           return {
@@ -53,14 +59,16 @@ function GameTipsModal({ isOpen, onClose, game, onStartGame }) {
               'Use letter intersections to help figure out difficult words',
               'Think about words that match both the clue and the available spaces'
             ],
-            image: '/assets/img/crossword-game.png'
+            image: '/assets/img/crossword-game.png',
+            useAnimation: false
           };
         default:
           return {
             title: 'Game Tips',
             description: 'Get ready to play!',
             tips: ['Have fun!'],
-            image: null
+            image: null,
+            useAnimation: false
           };
       }
     };
@@ -128,16 +136,38 @@ function GameTipsModal({ isOpen, onClose, game, onStartGame }) {
                 </div>
   
                 <div className="modal-body">
-                  {content.image && (
-                    <div className="image-container">
-                      <motion.img 
-                        src={content.image} 
-                        alt={content.title}
+                  {/* Conditional rendering: Animation for Vanishing Game, Image for others */}
+                  {content.useAnimation ? (
+                    <div className="animation-container">
+                      <motion.div
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.3 }}
-                      />
+                        style={{
+                          width: '100%',
+                          maxWidth: '350px',
+                          height: '220px',
+                          borderRadius: '15px',
+                          overflow: 'hidden',
+                          boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)',
+                          border: '3px solid #FFD700'
+                        }}
+                      >
+                        <VanishingGameAnimation />
+                      </motion.div>
                     </div>
+                  ) : (
+                    content.image && (
+                      <div className="image-container">
+                        <motion.img 
+                          src={content.image} 
+                          alt={content.title}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.3 }}
+                        />
+                      </div>
+                    )
                   )}
   
                   <div className="tips-container">

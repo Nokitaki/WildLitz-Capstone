@@ -1,0 +1,389 @@
+/* src/styles/games/safari/SoundSafariConfig.module.css */
+/* Redesigned for horizontal layout with no overflow/scroll */
+
+.configContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+.configCardWrapper {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.configHeader {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.configTitle {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #333;
+  margin: 0 0 4px 0;
+}
+
+.configTitle span {
+  color: #4caf50;
+}
+
+.configSubtitle {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+.configContent {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  height: calc(100% - 60px);
+}
+
+.configColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.configSection {
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.configSection h2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1.1rem;
+  color: #333;
+  margin: 0 0 10px 0;
+}
+
+.sectionEmoji {
+  font-size: 1.2rem;
+}
+
+.buttonGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.optionButton {
+  background-color: #f5f5f5;
+  color: #333;
+  border: none;
+  border-radius: 10px;
+  padding: 9px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.optionButton:hover {
+  background-color: #eeeeee;
+  transform: translateY(-2px);
+}
+
+.optionButton.selected {
+  background-color: #4caf50;
+  color: white;
+  box-shadow: 0 3px 6px rgba(76, 175, 80, 0.3);
+}
+
+.difficultyButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.difficultyButton {
+  background-color: #f5f5f5;
+  color: #333;
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.difficultyButton:hover {
+  background-color: #eeeeee;
+  transform: translateY(-2px);
+}
+
+.difficultyButton.selected {
+  background-color: #4caf50;
+  color: white;
+  box-shadow: 0 3px 6px rgba(76, 175, 80, 0.3);
+}
+
+.difficultyTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.difficultyDetails {
+  display: flex;
+  justify-content: space-around;
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.environmentGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+  flex: 1;
+}
+
+.environmentButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.environmentButton:hover {
+  transform: translateY(-2px);
+}
+
+.environmentButton.selected {
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  font-weight: 600;
+}
+
+.jungleEnv {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.jungleEnv.selected {
+  background-color: #4caf50;
+  color: white;
+}
+
+.savannaEnv {
+  background-color: #fff8e1;
+  color: #ff8f00;
+}
+
+.savannaEnv.selected {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.oceanEnv {
+  background-color: #e3f2fd;
+  color: #0d47a1;
+}
+
+.oceanEnv.selected {
+  background-color: #2196f3;
+  color: white;
+}
+
+.arcticEnv {
+  background-color: #f3f8fc;
+  color: #1976d2;
+}
+
+.arcticEnv.selected {
+  background-color: #90caf9;
+  color: #333;
+}
+
+.envEmoji {
+  font-size: 1.5rem;
+}
+
+.startButtonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.startButton {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+  transition: all 0.2s ease;
+  width: auto;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.startButton:hover {
+  background-color: #388e3c;
+  box-shadow: 0 5px 12px rgba(76, 175, 80, 0.4);
+  transform: translateY(-2px);
+}
+
+.gameInfoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.infoBox {
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 10px;
+  padding: 10px;
+  flex: 1;
+}
+
+.infoBox h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  color: #333;
+  margin: 0 0 5px 0;
+}
+
+.infoBox p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #555;
+  line-height: 1.3;
+}
+
+.infoEmoji {
+  font-size: 1rem;
+}
+
+.buttonEmoji {
+  font-size: 1rem;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 1024px) {
+  .configContent {
+    gap: 10px;
+  }
+  
+  .environmentGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .infoBox p {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .configContent {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .configCardWrapper {
+    padding: 12px;
+  }
+  
+  .configTitle {
+    font-size: 1.5rem;
+  }
+  
+  .configSubtitle {
+    font-size: 0.8rem;
+  }
+  
+  .configSection {
+    padding: 8px;
+  }
+  
+  .configSection h2 {
+    font-size: 1rem;
+  }
+  
+  .buttonGrid, .environmentGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .optionButton, .difficultyButton, .environmentButton {
+    padding: 6px;
+    font-size: 0.75rem;
+  }
+  
+  .envEmoji {
+    font-size: 1.2rem;
+  }
+  
+  .startButton {
+    padding: 8px 15px;
+    font-size: 0.85rem;
+  }
+}
+
+/* For large displays */
+@media (min-width: 1440px) {
+  .configCardWrapper {
+    max-width: 1400px;
+    padding: 20px;
+  }
+  
+  .configTitle {
+    font-size: 2.2rem;
+  }
+  
+  .configSubtitle {
+    font-size: 1rem;
+  }
+}
+
+/* For extra wide displays */
+@media (min-width: 1800px) {
+  .configCardWrapper {
+    max-width: 1600px;
+  }
+}

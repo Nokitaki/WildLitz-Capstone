@@ -1,619 +1,314 @@
-# In syllabification/views.py - FIXED VERSION
-
-from django.http import JsonResponse
+# backend/wildlitz/syllabification/views.py
+from django.http import JsonResponse 
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.http import HttpResponse
 import json
 import random
-import re
-from .services import ChatGPTService
-from .models import SyllabificationWord
+from supabase import create_client
+from django.conf import settings
+import logging
 
-# Initialize service
-chatgpt_service = ChatGPTService()
+# Import the AI service
+from .services_ai import AIContentGenerator
 
-def get_syllabification_word(request):
-    """Get a random word for syllabification practice"""
+logger = logging.getLogger(__name__)
+
+# Create Supabase client using settings
+supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+
+# Initialize AI content generator
+ai_generator = AIContentGenerator()
+
+def get_syllabification_word_from_supabase(request):
+    """Get a random word for syllabification practice from Supabase"""
     difficulty = request.GET.get('difficulty', 'medium')
     categories = request.GET.getlist('categories[]', [])  # Get categories as list
+    exclude_words = request.GET.getlist('exclude[]', [])  # Get words to exclude
     
-    # Base query
-    words_query = SyllabificationWord.objects.filter(difficulty_level=difficulty)
-    
-    # Apply category filter if provided
-    if categories:
-        words_query = words_query.filter(category__in=categories)
-    
-    if words_query.exists():
-        # Get a random word
-        word = random.choice(words_query)
-        return JsonResponse({
-            'word': word.word,
-            'syllables': word.syllable_breakdown,
-            'count': word.syllable_count,
-            'category': word.category  # Include category in the response
-        })
-    else:
-        # Generate new word if none exist
-        generated_words = chatgpt_service.generate_syllabification_words(
-            difficulty, 
-            1, 
-            categories=categories  # Pass categories to the generation service
-        )
-        if generated_words:
-            word_data = generated_words[0]
-            # Save to database with category
-            SyllabificationWord.objects.create(
-                word=word_data['word'],
-                syllable_breakdown=word_data['syllables'],
-                syllable_count=word_data['count'],
-                difficulty_level=difficulty,
-                category=word_data.get('category', categories[0] if categories else 'General')
-            )
-            return JsonResponse(word_data)
-        
-        return JsonResponse({'error': 'Failed to generate word'}, status=500)
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def check_syllable_clapping(request):
-    """Check if the user clapped the correct number of times for a word"""
     try:
-        data = json.loads(request.body)
-        word = data.get('word')
-        user_clap_count = data.get('clap_count')
-        is_custom = data.get('is_custom', False)
-        provided_syllable_breakdown = data.get('syllable_breakdown')
+        # Use the table in the public schema
+        query = supabase.table('syllable_words').select('*')
         
-        # If this is a custom word with provided syllable breakdown, use that directly
-        if is_custom and provided_syllable_breakdown:
-            syllable_breakdown = provided_syllable_breakdown
+        # Apply difficulty filter
+        if difficulty:
+            query = query.eq('difficulty_level', difficulty)
+        
+        # Apply category filter if provided
+        if categories:
+            query = query.in_('category', categories)
+        
+        # Execute the query
+        logger.info(f"Executing Supabase query with difficulty: {difficulty}, categories: {categories}")
+        response = query.execute()
+        
+        # Check if we got any results
+        words = response.data
+        logger.info(f"Number of words found: {len(words) if words else 0}")
+        
+        if words and len(words) > 0:
+            # Filter out excluded words
+            if exclude_words:
+                words = [w for w in words if w['word'] not in exclude_words]
+            
+            # If no words left after filtering, return all words (start over)
+            if not words:
+                logger.warning("All words have been used, starting over")
+                response = query.execute()
+                words = response.data
+            
+            # Get a random word
+            word = random.choice(words)
+            logger.info(f"Selected word: {word['word']}")
+            
+            # Generate a fun fact using AI
+            fun_fact = ai_generator.generate_fun_fact(word['word'], word['category'])
+            
+            # Generate an intro message
+            intro_message = ai_generator.generate_character_message(word['word'], 'intro', difficulty)
+            
+            # Add this debug logging right before returning the response
+            pronunciation_guide = word.get('pronunciation_guide', word['syllable_breakdown'])
+            logger.info(f"Word: {word['word']}, Syllables: {word['syllable_breakdown']}, Pronunciation Guide: {pronunciation_guide}")
+            
+            # Then return the response
+            response_data = {
+                'word': word['word'],
+                'syllables': word['syllable_breakdown'],
+                'count': word['syllable_count'],
+                'category': word['category'],
+                'image_url': word.get('image_url', ''),
+                'pronunciation_guide': pronunciation_guide,  # Make sure this is included
+                'fun_fact': fun_fact,
+                'intro_message': intro_message
+            }
+            
+            # Add more debugging info in the response during development
+            # Remove this in production
+            # response_data['debug'] = {
+            #     'raw_word_data': word,
+            #     'pronunciation_available': 'pronunciation_guide' in word,
+            # }
+            
+            return JsonResponse(response_data)
         else:
-            # Find the word in the database - handle duplicates
-            try:
-                # Get the first matching word instead of assuming there's only one
-                word_obj = SyllabificationWord.objects.filter(word=word).first()
-                
-                if word_obj:
-                    syllable_breakdown = word_obj.syllable_breakdown
-                elif provided_syllable_breakdown:
-                    # Use the provided breakdown if word not found
-                    syllable_breakdown = provided_syllable_breakdown
-                else:
-                    # Fallback syllabification if word not found and no breakdown provided
-                    syllable_breakdown = '-'.join(word)
-            except Exception as e:
-                # Fallback syllabification if any error occurs
-                print(f"Error finding word: {e}")
-                if provided_syllable_breakdown:
-                    syllable_breakdown = provided_syllable_breakdown
-                else:
-                    syllable_breakdown = '-'.join(word)
-        
-        # Get feedback from ChatGPT service
-        feedback = chatgpt_service.generate_syllable_clapping_feedback(
-            word, syllable_breakdown, user_clap_count
-        )
-        
-        return JsonResponse(feedback)
+            logger.warning("No words found matching criteria")
+            return JsonResponse({'error': 'No words found with the specified criteria'}, status=404)
+            
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-@csrf_exempt
-def generate_new_challenge(request):
-    """Generate a new syllabification word challenge"""
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            difficulty = data.get('difficulty', 'medium')
-            previous_words = data.get('previous_words', [])
-            categories = data.get('categories', [])  # Get categories from request
-            
-            # Try to get a word that wasn't used before and matches the categories
-            words_query = SyllabificationWord.objects.filter(
-                difficulty_level=difficulty
-            ).exclude(word__in=previous_words)
-            
-            # Apply category filter if provided
-            if categories:
-                words_query = words_query.filter(category__in=categories)
-            
-            if words_query.exists():
-                word = random.choice(words_query)
-                challenge = {
-                    'word': word.word,
-                    'syllables': word.syllable_breakdown,
-                    'count': word.syllable_count,
-                    'category': word.category,  # Include category in the response
-                    'hint': f"This word has {word.syllable_count} syllables"
-                }
-            else:
-                # Generate new words if we've used all available ones
-                generated_words = chatgpt_service.generate_syllabification_words(
-                    difficulty, 
-                    5, 
-                    categories=categories  # Pass categories to the generation service
-                )
-                if generated_words:
-                    for word_data in generated_words:
-                        # Extract category from word data or use first selected category
-                        category = word_data.get('category', categories[0] if categories else 'General')
-                        SyllabificationWord.objects.create(
-                            word=word_data['word'],
-                            syllable_breakdown=word_data['syllables'],
-                            syllable_count=word_data['count'],
-                            difficulty_level=difficulty,
-                            category=category
-                        )
-                    
-                    word_data = generated_words[0]
-                    challenge = {
-                        'word': word_data['word'],
-                        'syllables': word_data['syllables'],
-                        'count': word_data['count'],
-                        'category': word_data.get('category', categories[0] if categories else 'General'),
-                        'hint': f"This word has {word_data['count']} syllables"
-                    }
-                else:
-                    return JsonResponse({'error': 'Failed to generate new words'}, status=500)
-            
-            return JsonResponse({'challenge': challenge})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
-    
-    return JsonResponse({'error': 'Only POST method is allowed'}, status=405)
-
-def get_syllable_sounds(request):
-    """Get detailed explanation of syllable sounds for a word"""
-    word = request.GET.get('word')
-    if not word:
-        return JsonResponse({'error': 'Word parameter is required'}, status=400)
-    
-    try:
-        # Find the word in the database
-        word_obj = SyllabificationWord.objects.get(word=word)
-        syllable_breakdown = word_obj.syllable_breakdown
-    except SyllabificationWord.DoesNotExist:
-        # Default syllabification if word not found
-        import pyphen
-        dic = pyphen.Pyphen(lang='en_US')
-        syllable_breakdown = dic.inserted(word)
-    
-    # Get explanation from ChatGPT service
-    explanation = chatgpt_service.generate_syllable_sound_explanation(
-        word, syllable_breakdown
-    )
-    
-    return JsonResponse(explanation)
+        import traceback
+        logger.error(f"Error fetching from Supabase: {str(e)}")
+        logger.error(traceback.format_exc())  # Print the full traceback
+        return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def text_to_speech(request):
-    """Convert text to speech and return audio data without storing files"""
-    try:
-        data = json.loads(request.body)
-        text = data.get('text')
-        voice = data.get('voice', 'nova')  # Default voice suitable for children
-        
-        if not text:
-            return JsonResponse({'error': 'Text parameter is required'}, status=400)
-        
-        # Get audio from OpenAI TTS
-        tts_response = chatgpt_service.text_to_speech(text, voice)
-        
-        return JsonResponse(tts_response)
-    
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-@csrf_exempt
-@require_http_methods(["GET", "POST"])
-def pronounce_word(request):
-    """Get pronunciation audio for a word without storing files"""
-    if request.method == 'GET':
-        word = request.GET.get('word')
-        if not word:
-            return JsonResponse({'error': 'Word parameter is required'}, status=400)
-        
-        # Generate audio using TTS
-        tts_response = chatgpt_service.text_to_speech(word)
-        
-        return JsonResponse({
-            'word': word,
-            'audio': tts_response
-        })
-    
-    elif request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            word = data.get('word')
-            
-            if not word:
-                return JsonResponse({'error': 'Word parameter is required'}, status=400)
-            
-            # Find the word's syllable breakdown
-            try:
-                word_obj = SyllabificationWord.objects.get(word=word)
-                syllable_breakdown = word_obj.syllable_breakdown
-            except SyllabificationWord.DoesNotExist:
-                # Default syllabification if word not found
-                import pyphen
-                dic = pyphen.Pyphen(lang='en_US')
-                syllable_breakdown = dic.inserted(word)
-            
-            # Create audio for each syllable
-            syllables = syllable_breakdown.split('-')
-            result = {
-                'word': word,
-                'syllable_breakdown': syllable_breakdown,
-                'complete_word_audio': chatgpt_service.text_to_speech(word),
-                'syllables': []
-            }
-            
-            for syllable in syllables:
-                syllable_audio = chatgpt_service.text_to_speech(syllable)
-                result['syllables'].append({
-                    'syllable': syllable,
-                    'audio': syllable_audio
-                })
-            
-            return JsonResponse(result)
-        
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
-
-def test_tts(request):
-    """Simple test view for Text-to-Speech functionality"""
-    word = request.GET.get('word', 'apple')
-    
-    # Get audio from the TTS service
-    tts_response = chatgpt_service.text_to_speech(word)
-    
-    if tts_response.get('success', False):
-        # Create a simple HTML response with an audio player
-        audio_url = tts_response.get('audio_url')
-        base64_audio = tts_response.get('audio_data')
-        
-        html_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>TTS Test for "{word}"</title>
-            <style>
-                body {{ font-family: Arial, sans-serif; margin: 20px; }}
-                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }}
-                h1 {{ color: #4a4a4a; }}
-                .word {{ font-size: 32px; margin: 20px 0; color: #2c3e50; }}
-                .player {{ margin: 20px 0; }}
-                button {{ 
-                    background-color: #3498db; 
-                    color: white; 
-                    border: none; 
-                    padding: 10px 20px; 
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 16px;
-                }}
-                button:hover {{ background-color: #2980b9; }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>TTS Test Page</h1>
-                <div class="word">{word}</div>
-                
-                <div class="player">
-                    <h3>Play using URL (backend file):</h3>
-                    <audio controls>
-                        <source src="{audio_url}" type="audio/mp3">
-                        Your browser does not support the audio element.
-                    </audio>
-                </div>
-                
-                <div class="player">
-                    <h3>Play using Base64 data:</h3>
-                    <audio controls>
-                        <source src="data:audio/mp3;base64,{base64_audio}" type="audio/mp3">
-                        Your browser does not support the audio element.
-                    </audio>
-                </div>
-                
-                <div>
-                    <h3>Test another word:</h3>
-                    <form action="" method="get">
-                        <input type="text" name="word" placeholder="Enter a word" value="{word}">
-                        <button type="submit">Generate Audio</button>
-                    </form>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-        
-        return HttpResponse(html_content)
-    else:
-        error_message = tts_response.get('error', 'Unknown error')
-        return HttpResponse(f"<h1>Error generating TTS</h1><p>{error_message}</p>", status=500)
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def generate_syllabification_words(request):
-    """API endpoint to generate new syllabification words using ChatGPT"""
-    try:
-        data = json.loads(request.body)
-        difficulty = data.get('difficulty', 'medium')
-        count = data.get('count', 10)
-        categories = data.get('categories', [])
-        # Get words to exclude (custom words or previously seen)
-        previous_words = data.get('previous_words', [])
-        
-        # Get words from ChatGPT with category filtering
-        generated_words = chatgpt_service.generate_syllabification_words(
-            difficulty, 
-            count * 2,  # Generate more than needed to allow for filtering
-            categories=categories
-        )
-        
-        # Filter out any words that were already used
-        if previous_words:
-            # Convert previous_words to lowercase for case-insensitive matching
-            previous_words_lower = [w.lower() for w in previous_words]
-            generated_words = [
-                word for word in generated_words 
-                if word['word'].lower() not in previous_words_lower
-            ]
-        
-        # Ensure we don't have more words than requested
-        generated_words = generated_words[:count]
-        
-        # Save to database for future use
-        for word_data in generated_words:
-            # Check if the word already exists
-            if not SyllabificationWord.objects.filter(word__iexact=word_data['word']).exists():
-                # Determine the category for the word
-                category = word_data.get('category')
-                if not category and categories:
-                    category = categories[0]
-                
-                SyllabificationWord.objects.create(
-                    word=word_data['word'],
-                    syllable_breakdown=word_data['syllables'],
-                    syllable_count=word_data['count'],
-                    difficulty_level=difficulty,
-                    category=category or 'General'
-                )
-        
-        return JsonResponse({'words': generated_words})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def analyze_word(request):
-    """Analyze a word and return its category, syllable breakdown, and count"""
+def check_syllable_answer(request):
+    """Check syllable clapping answer and provide AI feedback"""
     try:
         data = json.loads(request.body)
         word = data.get('word')
-        audio_data = data.get('audioData')  # This could be None for typed words
+        syllables = data.get('syllables')
+        user_clap_count = data.get('clapCount')
+        correct_count = data.get('correctCount')
+        
+        # Determine if answer is correct
+        is_correct = user_clap_count == correct_count
+        
+        # Generate appropriate feedback message
+        context = 'correct' if is_correct else 'incorrect'
+        feedback_message = ai_generator.generate_character_message(word, context)
+        
+        return JsonResponse({
+            'is_correct': is_correct,
+            'feedback_message': feedback_message
+        })
+    
+    except Exception as e:
+        logger.error(f"Error checking syllable answer: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=400)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def get_syllable_pronunciation(request):
+    """Get pronunciation guidance for a word and its syllables"""
+    try:
+        data = json.loads(request.body)
+        word = data.get('word')
+        syllable_breakdown = data.get('syllables')
+        
+        if not word or not syllable_breakdown:
+            return JsonResponse({'error': 'Word and syllable breakdown are required'}, status=400)
+        
+        # Generate pronunciation guidance
+        pronunciation_guide = ai_generator.generate_pronunciation_guide(word, syllable_breakdown)
+        
+        # Add a character message for the demo
+        demo_message = ai_generator.generate_character_message(word, 'demo')
+        pronunciation_guide['character_message'] = demo_message
+        
+        return JsonResponse(pronunciation_guide)
+    
+    except Exception as e:
+        logger.error(f"Error generating pronunciation guidance: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=400)
+
+# Add this endpoint to the urls.py file later
+@csrf_exempt
+@require_http_methods(["POST"])
+def generate_ai_content(request):
+    """General endpoint for generating various AI content"""
+    try:
+        data = json.loads(request.body)
+        content_type = data.get('type')  # 'fun_fact', 'character_message', or 'pronunciation'
+        word = data.get('word')
+        category = data.get('category', '')
+        context = data.get('context', 'intro')  # For character messages
+        syllable_breakdown = data.get('syllables', '')
         
         if not word:
             return JsonResponse({'error': 'Word parameter is required'}, status=400)
         
-        # Clean the word - remove any punctuation and extra spaces
-        word = re.sub(r'[^\w\s]', '', word).strip().lower()
+        if content_type == 'fun_fact':
+            content = ai_generator.generate_fun_fact(word, category)
+        elif content_type == 'character_message':
+            content = ai_generator.generate_character_message(word, context)
+        elif content_type == 'pronunciation':
+            content = ai_generator.generate_pronunciation_guide(word, syllable_breakdown)
+        else:
+            return JsonResponse({'error': 'Invalid content type'}, status=400)
         
-        # First try to get word information from the database
-        try:
-            word_obj = SyllabificationWord.objects.filter(word__iexact=word).first()
-            if word_obj:
-                # Return the existing word data
-                return JsonResponse({
-                    'word': word_obj.word,
-                    'category': word_obj.category,
-                    'syllable_breakdown': word_obj.syllable_breakdown,
-                    'syllable_count': word_obj.syllable_count
-                })
-        except Exception as e:
-            print(f"Error querying database: {e}")
-        
-        # If word not found in database, use ChatGPT to analyze it
-        try:
-            # Set up the prompt for ChatGPT
-            prompt = f"""
-            Analyze the English word "{word}" and provide the following information:
-            1. The correct spelling (if the word appears to be misspelled)
-            2. The most appropriate category from this list: Animals, Colors, Food Items, Action Words, Places, Feelings, Common Objects, Numbers, General
-            3. The syllable breakdown with hyphens (e.g., "el-e-phant")
-            4. The number of syllables
-            
-            Format your response as a JSON object with the keys: word, category, syllable_breakdown, syllable_count
-            """
-            
-            response = chatgpt_service.client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are an educational assistant for syllabification analysis."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.2
-            )
-            
-            # Try to extract JSON from the response
-            response_text = response.choices[0].message.content
-            
-            # Extract JSON
-            start_idx = response_text.find('{')
-            end_idx = response_text.rfind('}') + 1
-            if start_idx >= 0 and end_idx > 0:
-                json_str = response_text[start_idx:end_idx]
-                result = json.loads(json_str)
-            else:
-                # If JSON extraction fails, use a simpler approach
-                result = {
-                    'word': word,
-                    'category': _determine_category(word),
-                    'syllable_breakdown': _generate_syllable_breakdown(word),
-                    'syllable_count': _count_syllables(word)
-                }
-            
-            # Store the analyzed word in the database for future use
-            try:
-                SyllabificationWord.objects.create(
-                    word=result['word'],
-                    syllable_breakdown=result['syllable_breakdown'],
-                    syllable_count=result['syllable_count'],
-                    category=result['category'],
-                    is_ai_generated=True
-                )
-            except Exception as e:
-                print(f"Error saving word to database: {e}")
-            
-            # Return the result
-            return JsonResponse(result)
-        
-        except Exception as e:
-            print(f"Error analyzing word with ChatGPT: {e}")
-            # Fall back to basic analysis if ChatGPT fails
-            result = {
-                'word': word,
-                'category': _determine_category(word),
-                'syllable_breakdown': _generate_syllable_breakdown(word),
-                'syllable_count': _count_syllables(word)
-            }
-            return JsonResponse(result)
+        return JsonResponse({'content': content})
     
     except Exception as e:
+        logger.error(f"Error generating AI content: {str(e)}")
         return JsonResponse({'error': str(e)}, status=400)
 
-# Helper functions for fallback word analysis
-
-def _determine_category(word):
-    """Simple category determination based on common word lists"""
-    word = word.lower()
+def get_word_batch(request):
+    """Get a batch of words for syllabification practice with AI-generated content"""
+    difficulty = request.GET.get('difficulty', 'medium')
+    categories = request.GET.getlist('categories[]', [])  # Get categories as list
+    count = int(request.GET.get('count', 10))  # Number of words to fetch
     
-    # Example word lists for different categories
-    animal_words = ['cat', 'dog', 'bird', 'fish', 'lion', 'tiger', 'bear', 'elephant', 'zebra', 
-                    'giraffe', 'monkey', 'turtle', 'snake', 'frog', 'mouse', 'rabbit']
-    
-    color_words = ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'black', 'white', 
-                   'pink', 'brown', 'gray', 'gold', 'silver', 'violet', 'indigo']
-    
-    food_words = ['apple', 'banana', 'orange', 'pizza', 'burger', 'rice', 'bread', 'cheese',
-                  'pasta', 'soup', 'cake', 'candy', 'cookie', 'milk', 'water', 'juice']
-    
-    action_words = ['run', 'jump', 'walk', 'eat', 'sleep', 'play', 'write', 'read', 'dance',
-                    'sing', 'swim', 'climb', 'talk', 'laugh', 'cry', 'smile']
-    
-    place_words = ['house', 'school', 'park', 'store', 'beach', 'mountain', 'city', 'country',
-                  'room', 'building', 'garden', 'forest', 'river', 'lake', 'ocean']
-    
-    feeling_words = ['happy', 'sad', 'angry', 'scared', 'excited', 'tired', 'bored', 'surprised',
-                     'calm', 'worried', 'proud', 'silly', 'shy', 'lonely']
-    
-    object_words = ['chair', 'table', 'desk', 'bed', 'door', 'window', 'book', 'pen', 'pencil',
-                   'phone', 'computer', 'car', 'ball', 'toy', 'clock']
-    
-    number_words = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
-                    'eleven', 'twelve', 'hundred', 'thousand', 'million', 'first', 'second']
-    
-    if word in animal_words:
-        return 'Animals'
-    elif word in color_words:
-        return 'Colors'
-    elif word in food_words:
-        return 'Food Items'
-    elif word in action_words:
-        return 'Action Words'
-    elif word in place_words:
-        return 'Places'
-    elif word in feeling_words:
-        return 'Feelings'
-    elif word in object_words:
-        return 'Common Objects'
-    elif word in number_words:
-        return 'Numbers'
-    
-    # Default category
-    return 'General'
-
-def _count_syllables(word):
-    """Improved syllable counting with special cases"""
-    # Special cases dictionary
-    special_cases = {
-        "yellow": 2,
-        "orange": 2,
-        # Add other problematic words here
-    }
-    
-    # Check if word is in special cases
-    word = word.lower()
-    if word in special_cases:
-        return special_cases[word]
-    
-    # Regular syllable counting logic 
-    vowels = 'aeiouy'
-    count = 0
-    prev_is_vowel = False
-    
-    for char in word:
-        is_vowel = char in vowels
-        if is_vowel and not prev_is_vowel:
-            count += 1
-        prev_is_vowel = is_vowel
-    
-    # Handle special cases
-    if count == 0:
-        count = 1  # Every word has at least one syllable
-    
-    # Handle silent e at the end
-    if word.endswith('e') and len(word) > 2 and word[-2] not in vowels:
-        count = max(1, count - 1)
-    
-    return count
-
-def _generate_syllable_breakdown(word):
-    """Generate a simple syllable breakdown"""
-    syllable_count = _count_syllables(word)
-    
-    if syllable_count == 1 or len(word) <= 3:
-        return word
-    
-    # Simple approach: try to break at vowel-consonant boundaries
-    vowels = 'aeiouy'
-    word = word.lower()
-    result = []
-    current = ""
-    
-    for i, char in enumerate(word):
-        current += char
+    try:
+        # Log the input parameters for debugging
+        logger.info(f"Batch request - Difficulty: {difficulty}, Categories: {categories}, Count: {count}")
         
-        # Try to break after vowel + consonant patterns
-        if (i > 0 and 
-            i < len(word) - 1 and 
-            word[i-1] in vowels and 
-            char not in vowels):
-            
-            # Don't break if the next char is also a consonant (unless it's the last character)
-            if i < len(word) - 2 and word[i+1] not in vowels:
-                continue
+        # Use the table in the public schema
+        query = supabase.table('syllable_words').select('*')
+        
+        # Apply difficulty filter
+        if difficulty:
+            query = query.eq('difficulty_level', difficulty)
+        
+        # Apply category filter if provided and categories is not empty
+        if categories and len(categories) > 0:
+            # Try to find matching categories - some flexibility in naming
+            db_categories = []
+            for cat in categories:
+                # Add the category as is (if it's an exact match)
+                db_categories.append(cat)
                 
-            result.append(current)
-            current = ""
-    
-    # Add any remaining characters
-    if current:
-        result.append(current)
-    
-    # If we didn't get enough syllables, try a simpler approach
-    if len(result) != syllable_count:
-        # Divide word evenly by syllable count
-        chars_per_syllable = len(word) // syllable_count
-        result = []
+                # Add potential variations (e.g., "School Supplies" might be stored as "SchoolSupplies" or "School_Supplies")
+                if ' ' in cat:
+                    db_categories.append(cat.replace(' ', ''))
+                    db_categories.append(cat.replace(' ', '_'))
+            
+            # Apply the IN filter with all possible category variations
+            query = query.in_('category', db_categories)
         
-        for i in range(syllable_count):
-            start = i * chars_per_syllable
-            end = start + chars_per_syllable if i < syllable_count - 1 else len(word)
-            result.append(word[start:end])
+        # Execute the query
+        logger.info(f"Executing Supabase batch query with params")
+        response = query.execute()
+        
+        # Check if we got any results
+        all_words = response.data
+        logger.info(f"Number of words found: {len(all_words) if all_words else 0}")
+        
+        # If no words found with categories, try without category filter as fallback
+        if not all_words or len(all_words) == 0:
+            logger.warning(f"No words found with the specified categories. Falling back to difficulty only.")
+            query = supabase.table('syllable_words').select('*')
+            
+            # Apply difficulty filter
+            if difficulty:
+                query = query.eq('difficulty_level', difficulty)
+                
+            response = query.execute()
+            all_words = response.data
+            logger.info(f"Fallback search found {len(all_words) if all_words else 0} words")
+        
+        if all_words and len(all_words) > 0:
+            # Ensure we have unique words
+            unique_words = []
+            word_set = set()
+            
+            for word in all_words:
+                if word['word'] not in word_set:
+                    word_set.add(word['word'])
+                    unique_words.append(word)
+            
+            logger.info(f"Filtered to {len(unique_words)} unique words (removed {len(all_words) - len(unique_words)} duplicates)")
+            
+            # If we don't have enough words, repeat some to meet the count
+            if len(unique_words) < count:
+                logger.warning(f"Not enough unique words ({len(unique_words)}), will duplicate some to meet count {count}")
+                # Duplicate the words until we have enough
+                while len(unique_words) < count:
+                    unique_words.extend(unique_words[:count - len(unique_words)])
+            
+            # Randomly select the requested number of words
+            selected_words = random.sample(unique_words, count)
+            
+            # Prepare the batch of words with AI-generated content
+            words_with_content = []
+            processed_words = set()  # Track words to ensure no duplicates
+            
+            for word in selected_words:
+                # Skip if we've already processed this word
+                if word['word'] in processed_words:
+                    continue
+                    
+                processed_words.add(word['word'])
+                
+                # Generate AI content for each word
+                fun_fact = ai_generator.generate_fun_fact(word['word'], word['category'])
+                intro_message = ai_generator.generate_character_message(word['word'], 'intro', difficulty)
+                
+                words_with_content.append({
+                    'word': word['word'],
+                    'syllables': word['syllable_breakdown'],
+                    'count': word['syllable_count'],
+                    'category': word['category'],
+                    'image_url': word.get('image_url', ''),
+                    'pronunciation_guide': word.get('pronunciation_guide', word['syllable_breakdown']),
+                    'fun_fact': fun_fact,
+                    'intro_message': intro_message
+                })
+            
+            logger.info(f"Returning {len(words_with_content)} words with AI-generated content")
+            return JsonResponse({'words': words_with_content})
+        else:
+            logger.warning("No words found matching criteria")
+            return JsonResponse({'error': 'No words found with the specified criteria'}, status=404)
+            
+    except Exception as e:
+        import traceback
+        logger.error(f"Error fetching word batch from Supabase: {str(e)}")
+        logger.error(traceback.format_exc())  # Print the full traceback
+        return JsonResponse({'error': str(e)}, status=500)
     
-    return "-".join(result)
+@csrf_exempt
+@require_http_methods(["GET"])
+def get_syllable_tip(request):
+    """Get a random educational tip about syllables"""
+    try:
+        difficulty = request.GET.get('difficulty', 'medium')
+        
+        # Generate a syllable tip using the AI content generator
+        tip = ai_generator.generate_syllable_tip(difficulty)
+        
+        return JsonResponse({'tip': tip})
+    
+    except Exception as e:
+        logger.error(f"Error generating syllable tip: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=400)
