@@ -1,4 +1,4 @@
-// src/pages/games/soundsafari/SoundSafariGame.jsx <updated on 2025-04-28>
+// src/pages/games/soundsafari/SoundSafariGame.jsx <updated on 2025-05-16>
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,16 +15,7 @@ import GameplayScreen from './GameplayScreen';
 import ResultsScreen from './ResultScreen';
 import GameCompleteScreen from './GameCompleteScreen';
 
-// Import mock data
-import { 
-  ANIMALS_DATA, 
-  SOUND_DESCRIPTIONS, 
-  SOUND_POSITIONS, 
-  DIFFICULTY_LEVELS,
-  ENVIRONMENTS 
-} from '../../../mock/soundSafariData';
-
-// Import API functions
+// Import API functions instead of mock data
 import { 
   fetchSafariAnimals, 
   fetchRandomSound, 
@@ -32,9 +23,17 @@ import {
   submitGameResults 
 } from '../../../services/soundSafariApi';
 
+// Import only necessary constants for UI
+import { 
+  SOUND_DESCRIPTIONS, 
+  SOUND_POSITIONS, 
+  DIFFICULTY_LEVELS,
+  ENVIRONMENTS 
+} from '../../../mock/soundSafariData';
+
 /**
  * Main Sound Safari Game component that manages game state and flow
- * Redesigned with horizontal layout, no overflow/scrolling, and compact layout
+ * Updated to use Supabase data instead of mock data
  */
 const SoundSafariGame = () => {
   // Game states: 'config', 'loading', 'intro', 'gameplay', 'results', 'complete'
@@ -60,6 +59,10 @@ const SoundSafariGame = () => {
   // Keep track of used sounds to avoid repetition
   const [soundsUsed, setSoundsUsed] = useState([]);
   
+  // Loading states
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
   // Character speech bubble
   const [showBubble, setShowBubble] = useState(false);
   const [bubbleMessage, setBubbleMessage] = useState("");
@@ -70,16 +73,17 @@ const SoundSafariGame = () => {
   /**
    * Handle starting a new game with the given configuration
    */
-  const handleStartGame = (config) => {
+  const handleStartGame = async (config) => {
     setGameConfig(config);
     setCurrentRound(1);
     setScore(0);
     setSoundsUsed([config.targetSound]);
     setGameState('loading');
     setFromIntroScreen(false);
+    setError(null);
     
-    // Prepare first round
-    prepareNewRound(config.targetSound, config.difficulty);
+    // Prepare first round using Supabase data
+    await prepareNewRound(config.targetSound, config.difficulty);
     
     // Simulate loading time
     setTimeout(() => {
@@ -97,77 +101,102 @@ const SoundSafariGame = () => {
   };
   
   /**
-   * Prepare a new round of the game
+   * Prepare a new round of the game using Supabase data
    */
-  const prepareNewRound = (targetSound = gameConfig.targetSound, difficulty = gameConfig.difficulty) => {
-    // Set sound position based on difficulty
-    const difficultySettings = DIFFICULTY_LEVELS[difficulty];
-    const positions = difficultySettings.soundPositions;
-    const soundPosition = positions[Math.floor(Math.random() * positions.length)];
+  const prepareNewRound = async (targetSound = gameConfig.targetSound, difficulty = gameConfig.difficulty) => {
+    setIsLoading(true);
+    setError(null);
     
-    // Update game config
-    setGameConfig(prev => ({
-      ...prev,
-      targetSound,
-      soundPosition
-    }));
-    
-    // Prepare animals for this round
-    prepareAnimals(targetSound, difficultySettings.numAnimals);
+    try {
+      // Set sound position based on difficulty
+      const difficultySettings = DIFFICULTY_LEVELS[difficulty];
+      const positions = difficultySettings.soundPositions;
+      const soundPosition = positions[Math.floor(Math.random() * positions.length)];
+      
+      // Update game config
+      setGameConfig(prev => ({
+        ...prev,
+        targetSound,
+        soundPosition
+      }));
+      
+      // Fetch animals from Supabase
+      const response = await fetchSafariAnimals({
+        sound: targetSound,
+        difficulty: difficulty,
+        environment: gameConfig.environment,
+        position: soundPosition
+      });
+      
+      if (response.animals && response.animals.length > 0) {
+        setRoundAnimals(response.animals);
+      } else {
+        throw new Error('No animals found for the specified criteria');
+      }
+      
+    } catch (error) {
+      console.error('Error preparing round:', error);
+      setError(`Failed to load animals: ${error.message}`);
+      
+      // Fallback: show error message or retry
+      setBubbleMessage(`Sorry, there was an error loading the animals. Please try again.`);
+      setShowBubble(true);
+      
+      setTimeout(() => {
+        setShowBubble(false);
+        setGameState('config'); // Go back to config screen
+      }, 3000);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   /**
    * Select a new target sound for the next round
    */
-  const selectNewTargetSound = () => {
-    // Get available sounds that haven't been used yet
-    const availableSounds = Object.keys(SOUND_DESCRIPTIONS).filter(
-      sound => !soundsUsed.includes(sound)
-    );
-    
-    // If we have available sounds, select one randomly
-    if (availableSounds.length > 0) {
+  const selectNewTargetSound = async () => {
+    try {
+      // Try to get a random sound from the API
+      const response = await fetchRandomSound();
+      
+      if (response.sound && !soundsUsed.includes(response.sound)) {
+        setSoundsUsed(prev => [...prev, response.sound]);
+        return response.sound;
+      }
+      
+      // If API sound was already used, get available sounds from the list
+      const availableSounds = response.available_sounds || Object.keys(SOUND_DESCRIPTIONS);
+      const unusedSounds = availableSounds.filter(sound => !soundsUsed.includes(sound));
+      
+      if (unusedSounds.length > 0) {
+        const newSound = unusedSounds[Math.floor(Math.random() * unusedSounds.length)];
+        setSoundsUsed(prev => [...prev, newSound]);
+        return newSound;
+      }
+      
+      // If all sounds used, reset and pick a random one
       const newSound = availableSounds[Math.floor(Math.random() * availableSounds.length)];
-      setSoundsUsed(prev => [...prev, newSound]);
+      setSoundsUsed([newSound]);
+      return newSound;
+      
+    } catch (error) {
+      console.error('Error selecting new sound:', error);
+      
+      // Fallback to local sound selection
+      const allSounds = Object.keys(SOUND_DESCRIPTIONS);
+      const availableSounds = allSounds.filter(sound => !soundsUsed.includes(sound));
+      
+      if (availableSounds.length > 0) {
+        const newSound = availableSounds[Math.floor(Math.random() * availableSounds.length)];
+        setSoundsUsed(prev => [...prev, newSound]);
+        return newSound;
+      }
+      
+      // Reset if all sounds used
+      const newSound = allSounds[Math.floor(Math.random() * allSounds.length)];
+      setSoundsUsed([newSound]);
       return newSound;
     }
-    
-    // If we've used all sounds, reset and pick a random one
-    const allSounds = Object.keys(SOUND_DESCRIPTIONS);
-    const newSound = allSounds[Math.floor(Math.random() * allSounds.length)];
-    setSoundsUsed([newSound]);
-    return newSound;
-  };
-  
-  /**
-   * Select animals for the round based on the target sound
-   */
-  const prepareAnimals = (sound, numAnimals) => {
-    // Get animals that have the target sound
-    const correctAnimals = ANIMALS_DATA.filter(animal => animal.hasSound === sound);
-    
-    // Get other animals without the target sound
-    const incorrectAnimals = ANIMALS_DATA.filter(animal => animal.hasSound !== sound);
-    
-    // Determine how many correct animals to include (40-60% of total)
-    const minCorrect = Math.max(2, Math.floor(numAnimals * 0.4));
-    const maxCorrect = Math.min(correctAnimals.length, Math.ceil(numAnimals * 0.6));
-    const numCorrect = Math.floor(Math.random() * (maxCorrect - minCorrect + 1)) + minCorrect;
-    
-    // Randomly select correct and incorrect animals
-    const selectedCorrect = [...correctAnimals]
-      .sort(() => 0.5 - Math.random())
-      .slice(0, numCorrect);
-      
-    const selectedIncorrect = [...incorrectAnimals]
-      .sort(() => 0.5 - Math.random())
-      .slice(0, numAnimals - numCorrect);
-    
-    // Combine and shuffle
-    const roundAnimals = [...selectedCorrect, ...selectedIncorrect]
-      .sort(() => 0.5 - Math.random());
-    
-    setRoundAnimals(roundAnimals);
   };
   
   /**
@@ -221,7 +250,7 @@ const SoundSafariGame = () => {
   /**
    * Handle submitting answers
    */
-  const handleSubmitAnswers = (selected) => {
+  const handleSubmitAnswers = async (selected) => {
     setSelectedAnimals(selected);
     
     // Calculate correct answers
@@ -245,12 +274,24 @@ const SoundSafariGame = () => {
     setTimeout(() => {
       setShowBubble(false);
     }, 5000);
+    
+    // Optionally submit results to the API
+    try {
+      await submitGameResults({
+        selected_animals: selected,
+        correct_animals: correctAnimals,
+        target_sound: gameConfig.targetSound
+      });
+    } catch (error) {
+      console.error('Error submitting game results:', error);
+      // Don't interrupt the game flow for this error
+    }
   };
   
   /**
    * Handle moving to next round
    */
-  const handleNextRound = () => {
+  const handleNextRound = async () => {
     if (currentRound >= totalRounds) {
       setGameState('complete');
     } else {
@@ -258,10 +299,10 @@ const SoundSafariGame = () => {
       setFromIntroScreen(false);
       
       // Select a new target sound for the next round
-      const newSound = selectNewTargetSound();
+      const newSound = await selectNewTargetSound();
       
       // Prepare next round with the new sound
-      prepareNewRound(newSound, gameConfig.difficulty);
+      await prepareNewRound(newSound, gameConfig.difficulty);
       
       setGameState('loading');
       
@@ -285,7 +326,10 @@ const SoundSafariGame = () => {
   /**
    * Handle trying the same round again
    */
-  const handleTryAgain = () => {
+  const handleTryAgain = async () => {
+    // Re-fetch animals for the same round
+    await prepareNewRound(gameConfig.targetSound, gameConfig.difficulty);
+    
     setGameState('intro');
     setFromIntroScreen(false);
     
@@ -303,16 +347,16 @@ const SoundSafariGame = () => {
   /**
    * Handle playing again after game completion
    */
-  const handlePlayAgain = () => {
+  const handlePlayAgain = async () => {
     setCurrentRound(1);
     setScore(0);
     setFromIntroScreen(false);
     
     // Choose a new sound
-    const newSound = selectNewTargetSound();
+    const newSound = await selectNewTargetSound();
     
     // Prepare new round with this sound
-    prepareNewRound(newSound, gameConfig.difficulty);
+    await prepareNewRound(newSound, gameConfig.difficulty);
     
     setGameState('loading');
     
@@ -370,12 +414,31 @@ const SoundSafariGame = () => {
     };
   };
   
-  /**
+  /** REMOVED FOR NOW [DONT CHANGE!!]
    * Render the progress indicator
-   */
+   
   const renderProgressIndicator = () => {
-    if (gameState === 'config' && gameConfig === 'intro') return null;
+    if (gameState === 'config') return null;
+    
+    return (
+      <div className={styles.progressIndicator}>
+        <div className={styles.progressLabel}>
+          <div className={styles.progressNumbers}>
+            {currentRound}/{totalRounds}
+          </div>
+          <div>Round</div>
+        </div>
+        <div className={styles.progressBar}>
+          <div 
+            className={styles.progressFill}
+            style={{ width: `${(currentRound / totalRounds) * 100}%` }}
+          />
+        </div>
+      </div>
+    );
   };
+
+  */
 
   /**
    * Determine if the mascot should be shown
@@ -384,10 +447,27 @@ const SoundSafariGame = () => {
     return gameState === 'intro' || gameState === 'gameplay';
   };
   
+  // Show loading state if fetching data
+  if (isLoading && gameState === 'config') {
+    return (
+      <div className={`${styles.gameContainer} ${getEnvironmentClass()}`}>
+        <div className={styles.gameContent}>
+          <div style={{ 
+            color: 'white', 
+            fontSize: '1.5rem', 
+            textAlign: 'center' 
+          }}>
+            Loading game...
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className={`${styles.gameContainer} ${getEnvironmentClass()}`}>
       <div className={styles.gameContent}>
-        {renderProgressIndicator()}
+     
         
         {/* Add Fox Mascot that only appears during intro and gameplay */}
         {shouldShowMascot() && (
@@ -463,7 +543,7 @@ const SoundSafariGame = () => {
             </motion.div>
           )}
           
-          {gameState === 'gameplay' && (
+          {gameState === 'gameplay' && roundAnimals.length > 0 && (
             <motion.div
               key="gameplay"
               initial={{ opacity: 0 }}
@@ -515,6 +595,46 @@ const SoundSafariGame = () => {
             </motion.div>
           )}
         </AnimatePresence>
+        
+        {/* Show error message if there's an error */}
+        {error && (
+          <motion.div
+            className={styles.errorOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              background: 'rgba(255, 255, 255, 0.95)',
+              padding: '20px',
+              borderRadius: '10px',
+              textAlign: 'center',
+              maxWidth: '400px',
+              zIndex: 1000
+            }}
+          >
+            <h3 style={{ color: '#f44336', margin: '0 0 10px 0' }}>Error</h3>
+            <p style={{ color: '#333', margin: '0 0 15px 0' }}>{error}</p>
+            <button
+              onClick={() => {
+                setError(null);
+                setGameState('config');
+              }}
+              style={{
+                backgroundColor: '#4caf50',
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                cursor: 'pointer'
+              }}
+            >
+              Try Again
+            </button>
+          </motion.div>
+        )}
       </div>
     </div>
   );

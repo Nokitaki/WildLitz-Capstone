@@ -1,24 +1,53 @@
-// src/pages/games/soundsafari/SoundIntroScreen.jsx <updated on 2025-04-27>
+// src/pages/games/soundsafari/SoundIntroScreen.jsx <updated on 2025-05-16>
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { SOUND_EXAMPLES, SOUND_DESCRIPTIONS } from '../../../mock/soundSafariData'; 
+import { fetchSoundExamples } from '../../../services/soundSafariApi';
 import styles from '../../../styles/games/safari/SoundIntroScreen.module.css';
 import { playSpeech } from '../../../utils/soundUtils';
 
 /**
  * Component for introducing the target sound to players
- * Redesigned with horizontal layout and no overflow/scroll
+ * Updated to use Supabase for sound examples when available
  */
 const SoundIntroScreen = ({ targetSound, onContinue }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeExample, setActiveExample] = useState(null);
+  const [examples, setExamples] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Get description and examples for this target sound
+  // Get description for this target sound
   const soundDescription = SOUND_DESCRIPTIONS[targetSound] || 
     'Listen carefully for this sound in words';
   
-  const examples = SOUND_EXAMPLES[targetSound] || [];
+  // Fetch sound examples from Supabase when component mounts
+  useEffect(() => {
+    const loadExamples = async () => {
+      setIsLoading(true);
+      try {
+        // Try to fetch examples from Supabase
+        const response = await fetchSoundExamples(targetSound);
+        
+        if (response.examples && response.examples.length > 0) {
+          setExamples(response.examples);
+        } else {
+          // Fallback to local examples
+          const localExamples = SOUND_EXAMPLES[targetSound] || [];
+          setExamples(localExamples);
+        }
+      } catch (error) {
+        console.error('Error fetching sound examples:', error);
+        // Fallback to local examples
+        const localExamples = SOUND_EXAMPLES[targetSound] || [];
+        setExamples(localExamples);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadExamples();
+  }, [targetSound]);
   
   // Play the target sound
   const playSound = () => {
@@ -151,43 +180,51 @@ const SoundIntroScreen = ({ targetSound, onContinue }) => {
                 <h3>Words with "{targetSound}" sound:</h3>
               </div>
               
-              <div className={styles.examplesGrid}>
-                {examples.slice(0, 6).map((word, index) => (
-                  <motion.div 
-                    key={index} 
-                    className={`${styles.exampleWord} ${activeExample === word ? styles.activeExample : ''}`}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => playExampleWord(word)}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 + (index * 0.1) }}
-                  >
-                    <span>{word}</span>
-                    <motion.div 
-                      className={styles.playIcon}
-                      animate={activeExample === word ? { 
-                        scale: [1, 1.2, 1],
-                        color: ['#4a9240', '#ffd600', '#4a9240'] 
-                      } : {}}
-                      transition={{ duration: 1, repeat: Infinity }}
-                    >
-                      🔊
-                    </motion.div>
-                  </motion.div>
-                ))}
-              </div>
-              
-              <div className={styles.wordDetails}>
-                <div className={styles.wordDetail}>
-                  <span className={styles.detailIcon}>🔍</span>
-                  <p>Notice how the "{targetSound}" sound appears in these words.</p>
+              {isLoading ? (
+                <div className={styles.loadingMessage}>
+                  <p>Loading examples...</p>
                 </div>
-                <div className={styles.wordDetail}>
-                  <span className={styles.detailIcon}>👆</span>
-                  <p>Tap any word to hear it pronounced.</p>
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div className={styles.examplesGrid}>
+                    {examples.slice(0, 6).map((word, index) => (
+                      <motion.div 
+                        key={index} 
+                        className={`${styles.exampleWord} ${activeExample === word ? styles.activeExample : ''}`}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => playExampleWord(word)}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 + (index * 0.1) }}
+                      >
+                        <span>{word}</span>
+                        <motion.div 
+                          className={styles.playIcon}
+                          animate={activeExample === word ? { 
+                            scale: [1, 1.2, 1],
+                            color: ['#4a9240', '#ffd600', '#4a9240'] 
+                          } : {}}
+                          transition={{ duration: 1, repeat: Infinity }}
+                        >
+                          🔊
+                        </motion.div>
+                      </motion.div>
+                    ))}
+                  </div>
+                  
+                  <div className={styles.wordDetails}>
+                    <div className={styles.wordDetail}>
+                      <span className={styles.detailIcon}>🔍</span>
+                      <p>Notice how the "{targetSound}" sound appears in these words.</p>
+                    </div>
+                    <div className={styles.wordDetail}>
+                      <span className={styles.detailIcon}>👆</span>
+                      <p>Tap any word to hear it pronounced.</p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

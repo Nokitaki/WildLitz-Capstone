@@ -1,5 +1,5 @@
 /* GameplayScreen.module.css */
-/* Redesigned for horizontal layout with no overflow/scroll */
+/* Redesigned for horizontal layout with no overflow/scroll and center stage */
 
 .gameplayContainer {
   width: 100%;
@@ -9,6 +9,8 @@
   align-items: center;
   padding: 0.5rem;
   box-sizing: border-box;
+  position: relative;
+  overflow: hidden; /* Prevent any overflow */
 }
 
 .gameplayCard {
@@ -22,6 +24,7 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
   overflow: hidden;
+  position: relative;
 }
 
 .gameHeader {
@@ -115,7 +118,7 @@
   font-size: 1rem;
 }
 
-/* Hint display for when the character is not showing the hint */
+/* Hint display */
 .hintDisplay {
   background-color: #fff8e1;
   border-radius: 10px;
@@ -244,20 +247,22 @@
   padding: 10px;
   overflow-y: auto;
   flex: 1;
+  position: relative;
 }
 
 .animalCard {
   background-color: white;
-  height: 40%;
+  height: 160px; /* Fixed height for consistency */
   border-radius: 10px;
   padding: 12px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start; /* This ensures proper spacing */
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   position: relative;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   border: 2px solid transparent;
 }
 
@@ -267,30 +272,46 @@
 }
 
 .animalCard.highlighted {
-  border: 3px solid #7c4dff;
-  background-color: #f2eeff;
-  z-index: 10;
+  border: 3px solid #ffb74d;
+  background-color: #fff8e1;
+  box-shadow: 0 6px 12px rgba(255, 183, 77, 0.3);
 }
 
 .animalImage {
-  font-size: 2.5rem;
-  margin-bottom: 6px;
+  font-size: 2.2rem;
+  margin-bottom: 4px;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+  flex-shrink: 0; /* Prevent shrinking */
+  height: 60px; /* Fixed height for consistency */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.animalImage img {
+  width: 60px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
 .animalInfo {
   width: 100%;
   text-align: center;
+  margin-top: 30px; /* adjusted it [dont change!!]*/
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .animalName {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #333;
   font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
+  min-height: 20px; /* Ensure consistent height */
+  line-height: 1.2;
 }
 
 .soundButton {
@@ -395,6 +416,121 @@
   font-size: 1rem;
 }
 
+/* Center Stage for Animal Introductions */
+.centerStage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+}
+
+.centerAnimalCard {
+  background-color: white;
+  border-radius: 25px;
+  padding: 40px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  position: relative;
+  max-width: 400px;
+  width: 90%;
+  border: 4px solid #ffb74d;
+  will-change: transform; /* Optimize for animations */
+}
+
+.centerAnimalImage {
+  font-size: 10rem;
+  margin-bottom: 25px;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
+  animation: breathe 2s ease-in-out infinite;
+  will-change: transform; /* Optimize for animations */
+}
+
+.centerAnimalImage img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.centerAnimalName {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 25px;
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  animation: nameGlow 2s ease-in-out infinite;
+  will-change: text-shadow; /* Optimize for animations */
+}
+
+.centerGlow {
+  position: absolute;
+  /* Adjust these values to make the glow bigger or smaller */
+  top: -20px;    /* Increase for bigger glow, decrease for smaller */
+  left: -20px;   /* Increase for bigger glow, decrease for smaller */
+  right: -20px;  /* Increase for bigger glow, decrease for smaller */
+  bottom: -20px; /* Increase for bigger glow, decrease for smaller */
+  background: linear-gradient(45deg, #ffb74d, #ffc107, #ff9800, #ffb74d);
+  border-radius: 35px; /* Adjust border-radius accordingly */
+  z-index: -1;
+  opacity: 0.7;
+  animation: centerPulse 2s ease-in-out infinite;
+  will-change: transform, opacity; /* Optimize for animations */
+}
+
+@keyframes centerPulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% { 
+    transform: scale(1.03);
+    opacity: 0.9;
+  }
+}
+
+@keyframes breathe {
+  0%, 100% { 
+    transform: scale(1);
+  }
+  50% { 
+    transform: scale(1.05);
+  }
+}
+
+@keyframes nameGlow {
+  0%, 100% { 
+    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  }
+  50% { 
+    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.1), 0 0 20px rgba(255, 183, 77, 0.5);
+  }
+}
+
+/* Smooth exit animation for center animals */
+.centerAnimalCard[data-exiting="true"] {
+  animation: exitAnimal 0.3s ease-out forwards;
+}
+
+@keyframes exitAnimal {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8) rotate(3deg);
+    opacity: 0;
+  }
+}
+
 @keyframes pulse {
   0% { opacity: 1; }
   50% { opacity: 0.6; }
@@ -451,14 +587,39 @@
   
   .animalCard {
     padding: 10px 6px;
+    height: 140px; /* Slightly smaller for smaller screens */
   }
   
   .animalImage {
-    font-size: 2.2rem;
+    font-size: 2rem;
+    height: 50px;
+  }
+  
+  .animalImage img {
+    width: 50px;
+    height: 50px;
   }
   
   .animalName {
     font-size: 0.75rem;
+  }
+  
+  .centerAnimalImage {
+    font-size: 8rem;
+  }
+  
+  .centerAnimalImage img {
+    width: 170px;
+    height: 170px;
+  }
+  
+  .centerAnimalName {
+    font-size: 2.2rem;
+  }
+  
+  .centerAnimalCard {
+    max-width: 350px;
+    padding: 35px;
   }
 }
 
@@ -502,8 +663,18 @@
     max-height: none;
   }
   
+  .animalCard {
+    height: 120px; /* Even smaller for mobile */
+  }
+  
   .animalImage {
-    font-size: 2rem;
+    font-size: 1.8rem;
+    height: 45px;
+  }
+  
+  .animalImage img {
+    width: 45px;
+    height: 45px;
   }
   
   .actionButtons {
@@ -514,6 +685,24 @@
   .clearButton, .submitButton {
     width: 100%;
     padding: 8px 12px;
+  }
+  
+  .centerAnimalCard {
+    padding: 25px;
+    max-width: 300px;
+  }
+  
+  .centerAnimalImage {
+    font-size: 6rem;
+  }
+  
+  .centerAnimalImage img {
+    width: 140px;
+    height: 140px;
+  }
+  
+  .centerAnimalName {
+    font-size: 1.8rem;
   }
 }
 
@@ -540,6 +729,24 @@
     font-size: 1rem;
     padding: 12px 16px;
     margin-bottom: 12px;
+  }
+  
+  .centerAnimalImage {
+    font-size: 12rem;
+  }
+  
+  .centerAnimalImage img {
+    width: 240px;
+    height: 240px;
+  }
+  
+  .centerAnimalName {
+    font-size: 3rem;
+  }
+  
+  .centerAnimalCard {
+    max-width: 450px;
+    padding: 50px;
   }
 }
 

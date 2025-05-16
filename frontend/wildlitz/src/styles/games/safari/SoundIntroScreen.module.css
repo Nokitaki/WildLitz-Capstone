@@ -178,6 +178,16 @@
   margin-bottom: 16px;
 }
 
+/* Loading message styling */
+.loadingMessage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #666;
+  font-style: italic;
+}
+
 .exampleWord {
   background-color: #e8f4f1;
   padding: 10px;
