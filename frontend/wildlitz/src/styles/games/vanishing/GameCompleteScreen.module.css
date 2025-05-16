@@ -493,3 +493,68 @@
     min-width: 150px;
   }
 }
+
+/* Team Results Section */
+.teamResultsSection {
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 10;
+}
+
+.teamResultsCard {
+  background: linear-gradient(135deg, #fff3e0, #fce4ec);
+  border-radius: 20px;
+  padding: 25px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border: 3px solid #ffb74d;
+}
+
+.tieResult, .winnerResult {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.tieIcon, .winnerIcon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.tieResult h3, .winnerResult h3 {
+  font-size: 1.8rem;
+  color: #e65100;
+  margin: 0;
+  font-weight: 700;
+}
+
+.finalScores {
+  display: flex;
+  gap: 20px;
+  margin: 10px 0;
+}
+
+.winnerScore {
+  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 15px;
+  font-weight: 700;
+  box-shadow: 0 3px 6px rgba(76, 175, 80, 0.3);
+}
+
+.loserScore {
+  background: linear-gradient(135deg, #90a4ae, #78909c);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 15px;
+  font-weight: 700;
+  box-shadow: 0 3px 6px rgba(144, 164, 174, 0.3);
+}
+
+.tieResult p, .winnerResult p {
+  color: #5d4037;
+  font-size: 1.1rem;
+  margin: 0;
+}

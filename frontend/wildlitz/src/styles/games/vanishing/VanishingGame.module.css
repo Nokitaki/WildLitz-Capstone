@@ -290,3 +290,69 @@
       width: 70%;
     }
   }
+
+  /* ADD THESE STYLES FOR TEAM SCOREBOARD: */
+
+/* Team Scoreboard Styling */
+.teamScoreBoard {
+  position: fixed;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 25px;
+  padding: 12px 20px;
+  gap: 20px;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 2px solid rgba(124, 179, 66, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.teamScore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 15px;
+  transition: all 0.3s ease;
+  min-width: 80px;
+  /* Add dark text color for visibility */
+  color: #2c3e50;
+}
+
+.teamScore.activeTeam {
+  background: linear-gradient(135deg, #7cb342, #8bc34a);
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(124, 179, 66, 0.3);
+}
+
+.teamName {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  /* Ensure text is dark when not active */
+  color: inherit;
+}
+
+.teamPoints {
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1;
+  /* Ensure text is dark when not active */
+  color: inherit;
+}
+
+.scoreDivider {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #7cb342;
+  padding: 8px;
+  background-color: rgba(124, 179, 66, 0.1);
+  border-radius: 50%;
+  min-width: 40px;
+  text-align: center;
+}

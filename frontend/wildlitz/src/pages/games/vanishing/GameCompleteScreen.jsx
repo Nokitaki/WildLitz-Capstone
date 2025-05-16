@@ -7,7 +7,26 @@ import styles from '../../../styles/games/vanishing/GameCompleteScreen.module.cs
  * GameCompleteScreen component shown at the end of a game session
  * Displays summary statistics and recommendations
  */
-const GameCompleteScreen = ({ stats, config, score, totalWords, onPlayAgain }) => {
+const GameCompleteScreen = ({ stats, config, score, totalWords, onPlayAgain, teamScores, teamNames }) => {
+  // Add team winner logic
+  const getTeamResults = () => {
+    if (!config.teamPlay || !teamScores) return null;
+    
+    const teamAScore = teamScores.teamA || 0;
+    const teamBScore = teamScores.teamB || 0;
+    const teamAName = teamNames?.teamA || 'Team A';
+    const teamBName = teamNames?.teamB || 'Team B';
+    
+    if (teamAScore > teamBScore) {
+      return { winner: teamAName, loser: teamBName, winnerScore: teamAScore, loserScore: teamBScore, tie: false };
+    } else if (teamBScore > teamAScore) {
+      return { winner: teamBName, loser: teamAName, winnerScore: teamBScore, loserScore: teamAScore, tie: false };
+    } else {
+      return { winner: null, loser: null, winnerScore: teamAScore, loserScore: teamBScore, tie: true };
+    }
+  };
+  
+  const teamResults = getTeamResults();
   // Calculate success rate
   const successRate = Math.round((score / totalWords) * 100);
   
@@ -162,28 +181,61 @@ const GameCompleteScreen = ({ stats, config, score, totalWords, onPlayAgain }) =
           </h2>
         </div>
         
-        {/* Completion message */}
-        <div className={styles.completionMessage}>
-          <motion.div 
-            className={styles.messageBox}
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h3 className={styles.messageTitle}>Great work! Session Complete</h3>
-            <p className={styles.messageText}>You practiced important phonics patterns today!</p>
-          </motion.div>
+      {/* Completion message */}
+<div className={styles.completionMessage}>
+  <motion.div 
+    className={styles.messageBox}
+    initial={{ scale: 0.9, opacity: 0 }}
+    animate={{ scale: 1, opacity: 1 }}
+    transition={{ duration: 0.5 }}
+  >
+    <h3 className={styles.messageTitle}>Great work! Session Complete</h3>
+    <p className={styles.messageText}>You practiced important phonics patterns today!</p>
+  </motion.div>
+</div>
+
+{/* PUT THE TEAM RESULTS CODE HERE */}
+{/* Team Results - Only show in team play mode */}
+{config.teamPlay && teamResults && (
+  <motion.div 
+    className={styles.teamResultsSection}
+    initial={{ y: 20, opacity: 0 }}
+    animate={{ y: 0, opacity: 1 }}
+    transition={{ duration: 0.5, delay: 0.3 }}
+  >
+    <div className={styles.teamResultsCard}>
+      {teamResults.tie ? (
+        <div className={styles.tieResult}>
+          <div className={styles.tieIcon}>🤝</div>
+          <h3>It's a Tie!</h3>
+          <p>Both teams scored {teamResults.winnerScore} points!</p>
+          <p>Great teamwork everyone! 🎉</p>
         </div>
-        
-        {/* Stats and recommendations area */}
-        <div className={styles.completeContent}>
-          {/* Left section - Game stats */}
-          <motion.div 
-            className={styles.statsSection}
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
+      ) : (
+        <div className={styles.winnerResult}>
+          <div className={styles.winnerIcon}>🏆</div>
+          <h3>{teamResults.winner} Wins!</h3>
+          <div className={styles.finalScores}>
+            <span className={styles.winnerScore}>{teamResults.winner}: {teamResults.winnerScore}</span>
+            <span className={styles.loserScore}>{teamResults.loser}: {teamResults.loserScore}</span>
+          </div>
+          <p>Congratulations! Well played by both teams! 🎊</p>
+        </div>
+      )}
+    </div>
+  </motion.div>
+)}
+{/* END OF TEAM RESULTS CODE */}
+
+{/* Stats and recommendations area */}
+<div className={styles.completeContent}>
+  {/* Left section - Game stats */}
+  <motion.div 
+    className={styles.statsSection}
+    initial={{ x: -20, opacity: 0 }}
+    animate={{ x: 0, opacity: 1 }}
+    transition={{ duration: 0.5, delay: 0.2 }}
+  >
             <div className={styles.sectionHeader}>
               Game Statistics
             </div>

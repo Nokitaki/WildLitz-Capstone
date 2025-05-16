@@ -404,3 +404,53 @@ def format_word_response(words_data, challenge_level, learning_focus, difficulty
         formatted_words.append(formatted_word)
         
     return formatted_words
+
+
+@csrf_exempt
+def text_to_speech_enhanced(request):
+    """Convert text to speech using OpenAI's TTS with kid-friendly voices"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Only POST method allowed'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        text = data.get('text', '')
+        voice_type = data.get('voice', 'alloy')
+        
+        print(f"TTS request - Text: {text}, Voice: {voice_type}")  # Debug log
+        
+        if not text:
+            return JsonResponse({'error': 'No text provided'}, status=400)
+        
+        client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+        
+        # Kid-friendly voice mapping
+        kid_friendly_voices = {
+            'happy': 'alloy',     # Bright, cheerful voice
+            'gentle': 'nova',     # Soft, warm voice  
+            'playful': 'fable',   # More animated voice
+            'friendly': 'shimmer' # Clear, pleasant voice
+        }
+        
+        selected_voice = kid_friendly_voices.get(voice_type, 'alloy')
+        print(f"Using OpenAI voice: {selected_voice}")  # Debug log
+        
+        response = client.audio.speech.create(
+            model="tts-1",
+            voice=selected_voice,
+            input=text
+        )
+        
+        audio_content = response.content
+        audio_base64 = base64.b64encode(audio_content).decode('utf-8')
+        
+        return JsonResponse({
+            'success': True,
+            'audio_data': audio_base64,
+            'voice_used': selected_voice,
+            'text': text
+        })
+        
+    except Exception as e:
+        print(f"TTS error: {str(e)}")  # Debug log
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

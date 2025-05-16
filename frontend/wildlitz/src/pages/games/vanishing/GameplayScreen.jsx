@@ -16,7 +16,12 @@ const GameplayScreen = ({
   gameStats,
   onStatsUpdate,
   classEnergy = 100,
-  onEnergyUpdate
+  onEnergyUpdate,
+  // ADD THESE NEW PROPS:
+  teamPlay = false,
+  currentTeam = 'teamA',
+  teamScores = { teamA: 0, teamB: 0 },
+  teamNames = { teamA: 'Team A', teamB: 'Team B' }
 }) => {
   // Destructure word data
   const { word, pattern, patternPosition } = wordData;
@@ -49,6 +54,11 @@ const GameplayScreen = ({
   const [energyLevel, setEnergyLevel] = useState(classEnergy || 100);
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(gameStats?.streakCount || 0);
   const [celebrationTriggered, setCelebrationTriggered] = useState(false);
+
+
+  const [showVisualFeedback, setShowVisualFeedback] = useState(false);
+  const [feedbackType, setFeedbackType] = useState(''); // 'correct' or 'incorrect'
+  const [audioPlaying, setAudioPlaying] = useState(false);
   
   // Update energy when prop changes
   useEffect(() => {
@@ -193,38 +203,48 @@ const GameplayScreen = ({
   
   // Enhanced preview sequence
   const startEnhancedPreview = () => {
-    // Phase 1: Initial display
-    setTimeout(() => {
-      setPreVanishPhase('preview');
-    }, 100);
-    
-    // Show phonics pattern highlight
-    setTimeout(() => {
-      setShowPhonicsHint(true);
-    }, 500);
-    
-    // Play audio if available
-    setTimeout(() => {
-      if (wordData.customAudio || wordData.usesCustomAudio) {
-        setPlayingAudio(true);
-        setTimeout(() => setPlayingAudio(false), 1500);
-      }
-    }, 800);
-    
-    // Phase 2: Get ready cue
-    setTimeout(() => {
-      setPreVanishPhase('ready');
-      setShowPhonicsHint(false);
-    }, 2500);
-    
-    // Phase 3: Start vanishing
-    setTimeout(() => {
-      setPreVanishPhase('vanishing');
-      if (!teacherPaused) {
-        startVanishingSequence();
-      }
-    }, 3500);
-  };
+  // Phase 1: Initial display
+  setTimeout(() => {
+    setPreVanishPhase('preview');
+  }, 100);
+  
+  // Show phonics pattern highlight
+  setTimeout(() => {
+    setShowPhonicsHint(true);
+  }, 500);
+  
+  // REPLACE THIS EXISTING SECTION:
+  // Play audio if available
+  setTimeout(() => {
+    if (wordData.customAudio || wordData.usesCustomAudio) {
+      setPlayingAudio(true);
+      setTimeout(() => setPlayingAudio(false), 1500);
+    }
+  }, 800);
+  
+  // WITH THIS NEW SECTION:
+  // Play audio if enabled
+ setTimeout(() => {
+  if (config.enableAudio && wordData.word) {
+    console.log('Playing preview audio for:', wordData.word); // Debug log
+    playWordAudio(wordData.word);
+  }
+}, 800);
+  
+  // Phase 2: Get ready cue
+  setTimeout(() => {
+    setPreVanishPhase('ready');
+    setShowPhonicsHint(false);
+  }, 2500);
+  
+  // Phase 3: Start vanishing
+  setTimeout(() => {
+    setPreVanishPhase('vanishing');
+    if (!teacherPaused) {
+      startVanishingSequence();
+    }
+  }, 3500);
+};
   
   // Start the vanishing sequence
   const startVanishingSequence = () => {
@@ -390,36 +410,55 @@ const GameplayScreen = ({
   };
   
   // Handle user responses - prevent multiple calls
-  const handleUserResponse = (recognized) => {
-    if (hasAnswered) return;
+ const handleUserResponse = (recognized) => {
+  if (hasAnswered) return;
+  
+  setHasAnswered(true);
+  clearAllTimers();
+  setResponsePhase('none');
+  setShowHandRaise(false);
+  setPhaseTimer(0);
+  setAttempts(prev => prev + 1);
+  
+  // Visual feedback
+  setFeedbackType(recognized ? 'correct' : 'incorrect');
+  setShowVisualFeedback(true);
+  
+  setTimeout(() => {
+    setShowVisualFeedback(false);
+  }, 1500);
     
-    // Immediately set answered state
-    setHasAnswered(true);
-    
-    // Clear all timers immediately
-    clearAllTimers();
-    
-    // Reset response phase
-    setResponsePhase('none');
-    setShowHandRaise(false);
-    setPhaseTimer(0);
-    
-    setAttempts(prev => prev + 1);
-    
-    // Update participation and energy
-    updateParticipationStats(recognized);
-    
-    // Show encouragement if struggling
-    if (!recognized && attempts > 0) {
-      setNeedsSupport(true);
-      showEncouragement();
+  // Update participation and energy
+  updateParticipationStats(recognized);
+  
+  // Show encouragement if struggling
+  if (!recognized && attempts > 0) {
+    setNeedsSupport(true);
+    showEncouragement();
+  }
+  
+  // Report result with delay for feedback
+  setTimeout(() => {
+    onResult(recognized, word);
+  }, 1000);
+};
+
+// NEW FUNCTION - Handle showing the word (preview only)
+const handleShowWord = () => {
+  if (hasAnswered) return;
+  
+  // Show the word temporarily without marking as incorrect
+  setVanishState('visible');
+  setPreVanishPhase('revealed');
+  
+  // Set a timer to hide it again after 3 seconds
+  setTimeout(() => {
+    if (!hasAnswered) {
+      setVanishState('vanished');
+      setPreVanishPhase('vanishing');
     }
-    
-    // Report result with delay for feedback
-    setTimeout(() => {
-      onResult(recognized, word);
-    }, 1000);
-  };
+  }, 3000);
+};
   
   // Update participation statistics
   const updateParticipationStats = (recognized) => {
@@ -960,6 +999,134 @@ const GameplayScreen = ({
     };
     return names[config.learningFocus] || config.learningFocus;
   };
+
+
+
+
+
+  const playWordAudio = async (text) => {
+  if (!text || !config.enableAudio) return;
+  
+  const textToRead = wordData.word || text;
+  console.log('Playing audio for:', textToRead);
+  console.log('Voice config:', config.voiceType); // Debug voice config
+  
+  setAudioPlaying(true);
+  setPlayingAudio(true);
+  
+  try {
+    console.log('Calling TTS API...'); // Debug log
+    const response = await fetch('/api/phonics/text-to-speech/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: textToRead,
+        voice: config.voiceType || 'happy'
+      })
+    });
+    
+    console.log('API response status:', response.status); // Debug log
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log('API response data:', data); // Debug log
+      
+      if (data.success && data.audio_data) {
+        console.log('Playing OpenAI audio with voice:', data.voice_used); // Debug log
+        const audio = new Audio(`data:audio/mp3;base64,${data.audio_data}`);
+        audio.onended = () => {
+          setAudioPlaying(false);
+          setPlayingAudio(false);
+        };
+        audio.onerror = (e) => {
+          console.error('Audio playback error:', e);
+          useBrowserTTS(textToRead);
+        };
+        await audio.play();
+        return;
+      } else {
+        console.log('API success false or no audio data, falling back to browser TTS');
+      }
+    } else {
+      console.log('API response not ok, status:', response.status);
+    }
+    
+    // If API fails, use browser TTS
+    useBrowserTTS(textToRead);
+    
+  } catch (error) {
+    console.error('TTS API error:', error);
+    useBrowserTTS(textToRead);
+  }
+};
+
+// Add helper function for browser TTS
+const useBrowserTTS = (text) => {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    
+    // Get available voices
+    const voices = window.speechSynthesis.getVoices();
+    console.log('Available browser voices:', voices.map(v => v.name)); // Debug log
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Try to select a better voice based on config
+    let preferredVoice = null;
+    
+    // Voice preferences based on config
+    const voicePreferences = {
+      'happy': ['Google US English Female', 'Microsoft Zira', 'Alex'],
+      'gentle': ['Google UK English Female', 'Microsoft Hazel', 'Victoria'],
+      'playful': ['Google US English Male', 'Microsoft David', 'Daniel'],
+      'friendly': ['Google UK English Male', 'Microsoft Mark', 'Tom']
+    };
+    
+    const currentVoiceType = config.voiceType || 'happy';
+    const preferredNames = voicePreferences[currentVoiceType] || voicePreferences['happy'];
+    
+    // Try to find one of the preferred voices
+    for (const prefName of preferredNames) {
+      preferredVoice = voices.find(voice => voice.name.includes(prefName));
+      if (preferredVoice) break;
+    }
+    
+    // Fallback to first English voice
+    if (!preferredVoice) {
+      preferredVoice = voices.find(voice => voice.lang.startsWith('en'));
+    }
+    
+    if (preferredVoice) {
+      console.log('Using browser voice:', preferredVoice.name); // Debug log
+      utterance.voice = preferredVoice;
+    }
+    
+    utterance.rate = 0.8;
+    utterance.volume = 1.0;
+    utterance.pitch = 1.0;
+    
+    utterance.onend = () => {
+      setAudioPlaying(false);
+      setPlayingAudio(false);
+    };
+    utterance.onerror = (e) => {
+      console.error('Speech synthesis error:', e);
+      setAudioPlaying(false);
+      setPlayingAudio(false);
+    };
+    
+    window.speechSynthesis.speak(utterance);
+  } else {
+    console.error('Speech synthesis not supported');
+    setAudioPlaying(false);
+    setPlayingAudio(false);
+  }
+};
+
+
+
   
   return (
     <div className={styles.gameplayContainer}>
@@ -967,40 +1134,53 @@ const GameplayScreen = ({
         {/* Teacher Controls Bar */}
         <div className={styles.teacherControlBar}>
           <div className={styles.teacherControls}>
-            <button 
-              className={styles.teacherButton}
-              onClick={handleTeacherPlayPause}
-              title="Spacebar: Play/Pause"
-            >
-              {teacherPaused ? '▶️' : '⏸️'}
-            </button>
-            <button 
-              className={styles.teacherButton}
-              onClick={handleInstantReveal}
-              title="R: Instant Reveal"
-            >
-              👁️
-            </button>
-            <button 
-              className={styles.teacherButton}
-              onClick={() => setShowHint(!showHint)}
-              title="H: Toggle Hint"
-            >
-              💡
-            </button>
-            <button 
-              className={styles.teacherButton}
-              onClick={toggleDiscussionMode}
-              title="D: Discussion Mode"
-            >
-              💬
-            </button>
-            <div className={styles.speedControl}>
-              <button onClick={() => adjustSpeed(-0.2)}>⬇️</button>
-              <span>{speedMultiplier.toFixed(1)}x</span>
-              <button onClick={() => adjustSpeed(0.2)}>⬆️</button>
-            </div>
-          </div>
+  <button 
+    className={styles.teacherButton}
+    onClick={handleTeacherPlayPause}
+    title="Spacebar: Play/Pause"
+  >
+    {teacherPaused ? '▶️' : '⏸️'}
+  </button>
+  <button 
+    className={styles.teacherButton}
+    onClick={handleInstantReveal}
+    title="R: Instant Reveal"
+  >
+    👁️
+  </button>
+  <button 
+    className={styles.teacherButton}
+    onClick={() => setShowHint(!showHint)}
+    title="H: Toggle Hint"
+  >
+    💡
+  </button>
+  <button 
+    className={styles.teacherButton}
+    onClick={toggleDiscussionMode}
+    title="D: Discussion Mode"
+  >
+    💬
+  </button>
+  
+  {/* ADD AUDIO BUTTON HERE */}
+  {config.enableAudio && (
+  <button 
+    className={styles.teacherButton}
+    onClick={() => playWordAudio(wordData.word)}
+    disabled={audioPlaying || !wordData.word}
+    title="Audio: Play Word"
+  >
+    {audioPlaying ? '🔊' : '🔈'}
+  </button>
+)}
+  
+  <div className={styles.speedControl}>
+    <button onClick={() => adjustSpeed(-0.2)}>⬇️</button>
+    <span>{speedMultiplier.toFixed(1)}x</span>
+    <button onClick={() => adjustSpeed(0.2)}>⬆️</button>
+  </div>
+</div>
           
           {/* Participation Energy Meter */}
           <div className={styles.energyMeter}>
@@ -1049,46 +1229,114 @@ const GameplayScreen = ({
         
         {/* Word Display Area */}
         <div className={styles.wordDisplayArea}>
-          <div className={styles.wordContainer}>
+
+         
+          
+          {/* Visual Feedback Overlay */}
+          <AnimatePresence>
+            {showVisualFeedback && (
+              <motion.div
+                className={styles.visualFeedbackOverlay}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+                transition={{ duration: 0.3 }}
+              >
+                <motion.div
+                  className={`${styles.feedbackIcon} ${styles[feedbackType]}`}
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    rotate: feedbackType === 'correct' ? [0, 15, -15, 0] : 0
+                  }}
+                  transition={{ duration: 0.6 }}
+                >
+                    {feedbackType === 'revealed' ? (
+                    <div className={styles.revealedFeedback}>
+                      <span className={styles.eyeMark}>👁️</span>
+                      <span className={styles.feedbackText}>Word revealed!</span>
+                    </div>
+                  ) : feedbackType === 'correct' ? (
+                    <div className={styles.successFeedback}>
+                      <span className={styles.checkMark}>✅</span>
+                      <span className={styles.feedbackText}>Correct!</span>
+                    </div>
+                  ) : (
+                    <div className={styles.errorFeedback}>
+                      <span className={styles.xMark}>❌</span>
+                      <span className={styles.feedbackText}>Try again!</span>
+                    </div>
+                  )}
+                </motion.div>
+                
+                {/* Flash effect */}
+                <motion.div
+                  className={`${styles.flashEffect} ${styles[feedbackType]}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0, 0.3, 0] }}
+                  transition={{ duration: 0.5 }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          
+          {/* Current Team Indicator for Team Play */}
+          {teamPlay && (
             <motion.div 
-              className={styles.wordCard}
-              animate={{ 
-                opacity: getVanishingOpacity(),
-                scale: preVanishPhase === 'preview' ? 1.05 : 1,
-                boxShadow: preVanishPhase === 'preview' 
-                  ? "0 0 20px rgba(124, 179, 66, 0.6)" 
-                  : "0 5px 15px rgba(0, 0, 0, 0.1)"
-              }}
+              className={styles.currentTeamIndicator}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <div className={`${styles.wordText} ${styles[vanishingStyle]}`}>
-                {renderEnhancedWordWithHighlight()}
-              </div>
-              
-              {/* Vanishing style indicator */}
-              {preVanishPhase === 'preview' && (
-                <motion.div 
-                  className={styles.vanishStyleIndicator}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  Effect: {vanishingStyle.charAt(0).toUpperCase() + vanishingStyle.slice(1)}
-                </motion.div>
-              )}
-              
-              {/* Syllable breakdown hint */}
-              {preVanishPhase === 'preview' && wordData.syllableBreakdown && (
-                <motion.div 
-                  className={styles.syllableHint}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                >
-                  {wordData.syllableBreakdown}
-                </motion.div>
-              )}
+              <span className={styles.teamTurnLabel}>Current Turn:</span>
+              <span className={styles.currentTeamName}>
+                {currentTeam === 'teamA' ? teamNames.teamA : teamNames.teamB}
+              </span>
             </motion.div>
+          )}
+          
+          You should put the audio button code in GameplayScreen.jsx right after the word card, still inside the wordContainer. Here's exactly where:
+javascript<div className={styles.wordContainer}>
+  <motion.div 
+    className={styles.wordCard}
+    animate={{ 
+      opacity: getVanishingOpacity(),
+      scale: preVanishPhase === 'preview' ? 1.05 : 1,
+      boxShadow: preVanishPhase === 'preview' 
+        ? "0 0 20px rgba(124, 179, 66, 0.6)" 
+        : "0 5px 15px rgba(0, 0, 0, 0.1)"
+    }}
+    transition={{ duration: 0.5 }}
+  >
+    <div className={`${styles.wordText} ${styles[vanishingStyle]}`}>
+      {renderEnhancedWordWithHighlight()}
+    </div>
+    
+    {/* Vanishing style indicator */}
+    {preVanishPhase === 'preview' && (
+      <motion.div 
+        className={styles.vanishStyleIndicator}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        Effect: {vanishingStyle.charAt(0).toUpperCase() + vanishingStyle.slice(1)}
+      </motion.div>
+    )}
+    
+    {/* Syllable breakdown hint */}
+    {preVanishPhase === 'preview' && wordData.syllableBreakdown && (
+      <motion.div 
+        className={styles.syllableHint}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+      >
+        {wordData.syllableBreakdown}
+      </motion.div>
+    )}
+  </motion.div>
+  
+ 
             
             {/* Enhanced phonics pattern highlight */}
             {showPhonicsHint && (
@@ -1117,14 +1365,21 @@ const GameplayScreen = ({
             )}
             
             {/* Audio playing indicator */}
-            {playingAudio && (
+            {(playingAudio || audioPlaying) && (
               <motion.div 
                 className={styles.audioIndicator}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
               >
-                🔊 Listen carefully...
+                <motion.div 
+                  className={styles.audioWave}
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ repeat: Infinity, duration: 0.8 }}
+                >
+                  🔊
+                </motion.div>
+                Listen carefully...
               </motion.div>
             )}
             
@@ -1152,7 +1407,7 @@ const GameplayScreen = ({
               >
                 <div className={styles.phaseIcon}>🤔</div>
                 <div className={styles.phaseText}>Think Time</div>
-                <div className={styles.phaseTimer}>{thinkingTimer}s</div>
+                <div className={styles.phaseTimer}>{phaseTimer}s</div>
               </motion.div>
             )}
             
@@ -1165,7 +1420,7 @@ const GameplayScreen = ({
               >
                 <div className={styles.phaseIcon}>🗣️</div>
                 <div className={styles.phaseText}>Whisper to your neighbor</div>
-                <div className={styles.phaseTimer}>{whisperTimer}s</div>
+                <div className={styles.phaseTimer}>{phaseTimer}s</div>
               </motion.div>
             )}
             
@@ -1254,7 +1509,7 @@ const GameplayScreen = ({
         
         {/* Control Buttons */}
         <div className={styles.controlButtonsContainer}>
-          <div className={styles.controlButtons}>
+            <div className={styles.controlButtons}>
             <motion.button 
               className={styles.responseButton}
               onClick={() => handleUserResponse(true)}
@@ -1266,26 +1521,37 @@ const GameplayScreen = ({
             </motion.button>
             
             <motion.button 
-              className={`${styles.responseButton} ${styles.secondaryButton}`}
-              onClick={() => handleUserResponse(false)}
+              className={`${styles.responseButton} ${styles.previewButton}`}
+              onClick={handleShowWord}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               disabled={hasAnswered || preVanishPhase !== 'vanishing' || vanishState !== 'vanished'}
             >
               Show me
             </motion.button>
-            
+
+
             <motion.button 
-              className={styles.responseButton}
-              onClick={handleSkip}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              disabled={hasAnswered}
-            >
-              Skip Word
-            </motion.button>
-          </div>
+            className={`${styles.responseButton} ${styles.giveUpButton}`}
+            onClick={() => handleUserResponse(false)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            disabled={hasAnswered || preVanishPhase !== 'vanishing' || vanishState !== 'vanished'}
+          >
+            Give up
+          </motion.button>
+            
+          <motion.button 
+            className={styles.responseButton}
+            onClick={handleSkip}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            disabled={hasAnswered}
+          >
+            Skip Word
+          </motion.button>
         </div>
+      </div>
         
         {/* Game Settings Info */}
         <div className={styles.gameSettings}>

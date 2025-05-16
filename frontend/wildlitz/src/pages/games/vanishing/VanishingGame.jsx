@@ -47,6 +47,10 @@ const VanishingGame = () => {
   // Character speech bubble
   const [showBubble, setShowBubble] = useState(false);
   const [bubbleMessage, setBubbleMessage] = useState("");
+
+  //team play
+  const [currentTeam, setCurrentTeam] = useState('teamA');
+  const [teamScores, setTeamScores] = useState({ teamA: 0, teamB: 0 });
   
   // Enhanced stats tracking with proper energy management
   const [gameStats, setGameStats] = useState({
@@ -79,7 +83,9 @@ const VanishingGame = () => {
    * Handle starting a new game with AI-generated words
    */
   const handleStartGame = async (config) => {
-    console.log('Starting game with config:', config); // Debug log
+  console.log('Game config received:', config); // Debug log
+  console.log('Voice configuration:', config.voiceType); // Debug voice specifically
+  
     
     setGameConfig(config);
     setCurrentRound(1);
@@ -90,6 +96,11 @@ const VanishingGame = () => {
     setGameStartTime(Date.now());
     setLoadingWords(true);
     setWordGenerationError(null);
+
+      if (config.teamPlay) {
+    setCurrentTeam('teamA');
+    setTeamScores({ teamA: 0, teamB: 0 });
+}
     
     // FIXED: Use the actual numberOfQuestions from config
     const questionsToGenerate = config.numberOfQuestions || 10;
@@ -177,8 +188,22 @@ const VanishingGame = () => {
    * Enhanced word result handling
    */
   const handleWordResult = (recognized, word) => {
-    const responseTime = Date.now() - gameStartTime;
-    setLastResult({ recognized, word, responseTime });
+  const responseTime = Date.now() - gameStartTime;
+  setLastResult({ recognized, word, responseTime });
+
+
+
+  if (gameConfig.teamPlay && recognized) {
+    setTeamScores(prevScores => ({
+      ...prevScores,
+      [currentTeam]: prevScores[currentTeam] + 1
+    }));
+  }
+  
+  // ADD TEAM SWITCHING:
+  if (gameConfig.teamPlay) {
+    setCurrentTeam(prevTeam => prevTeam === 'teamA' ? 'teamB' : 'teamA');
+  }
     
     // Update enhanced stats
     const newStats = { ...gameStats };
@@ -228,28 +253,24 @@ const VanishingGame = () => {
     
     // Enhanced feedback messages
     let feedbackMessage;
-    if (recognized) {
-      if (newStats.streakCount === 1) {
-        feedbackMessage = "Great job! You recognized that word correctly!";
-      } else if (newStats.streakCount === 3) {
-        feedbackMessage = "Amazing streak! You're on fire! 🔥";
-      } else if (newStats.streakCount >= 5) {
-        feedbackMessage = `Incredible! ${newStats.streakCount} words in a row! 🌟`;
+      if (recognized) {
+        if (gameConfig.teamPlay) {
+          const teamName = currentTeam === 'teamA' ? (gameConfig.teamAName || 'Team A') : (gameConfig.teamBName || 'Team B');
+          feedbackMessage = `Fantastic! +1 point for ${teamName}! 🎉`;
+        } else {
+          feedbackMessage = "Excellent! You got it right! 🎉";
+        }
       } else {
-        feedbackMessage = `Excellent! That's ${newStats.streakCount} correct in a row!`;
+        if (gameConfig.teamPlay) {
+          feedbackMessage = "That's okay! Let the other team give it a try!";
+        } else {
+          feedbackMessage = "That's okay! Every attempt helps you learn. Let's keep going!";
+        }
       }
-    } else {
-      feedbackMessage = "That's okay! Every attempt helps you learn. Let's keep going!";
-    }
-    
-    setBubbleMessage(feedbackMessage);
-    setShowBubble(true);
-    
-    // Hide bubble after 4 seconds
-    setTimeout(() => {
-      setShowBubble(false);
-    }, 4000);
-  };
+  
+  setBubbleMessage(feedbackMessage);
+  setShowBubble(true);
+};
 
   /**
    * Handle moving to next word - FIXED
@@ -367,36 +388,57 @@ const VanishingGame = () => {
   };
 
   return (
-    <div className={styles.gameContainer}>
-      <div className={styles.gameContent}>
-        {/* Enhanced Progress indicator - Fixed position */}
-        {gameState !== 'config' && (
-          <div className={styles.progressIndicator}>
-            <div className={styles.progressLabel}>
-              <span>Progress</span>
-              <div className={styles.progressNumbers}>
-                {currentRound}/{totalRounds}
-              </div>
-            </div>
-            <div className={styles.progressBar}>
-              <motion.div 
-                className={styles.progressFill}
-                initial={{ width: "0%" }}
-                animate={{ 
-                  width: `${getDetailedProgress().percentage}%` 
-                }}
-                transition={{ duration: 0.5 }}
-              />
-            </div>
-            <div className={styles.progressStats}>
-              <span>Score: {score}</span>
-              <span>Accuracy: {gameStats.successRate}%</span>
-              {gameStats.streakCount > 0 && (
-                <span className={styles.streakBadge}>Streak: {gameStats.streakCount}</span>
-              )}
+  <div className={styles.gameContainer}>
+    <div className={styles.gameContent}>
+      {/* Enhanced Progress indicator - Fixed position */}
+      {gameState !== 'config' && (
+        <div className={styles.progressIndicator}>
+          <div className={styles.progressLabel}>
+            <span>Progress</span>
+            <div className={styles.progressNumbers}>
+              {currentRound}/{totalRounds}
             </div>
           </div>
-        )}
+          <div className={styles.progressBar}>
+            <motion.div 
+              className={styles.progressFill}
+              initial={{ width: "0%" }}
+              animate={{ 
+                width: `${getDetailedProgress().percentage}%` 
+              }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
+          <div className={styles.progressStats}>
+            <span>Score: {score}</span>
+            <span>Accuracy: {gameStats.successRate}%</span>
+            {gameStats.streakCount > 0 && (
+              <span className={styles.streakBadge}>Streak: {gameStats.streakCount}</span>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* ADD THE TEAM SCOREBOARD RIGHT HERE: */}
+      {/* Team Score Display - Only show in team play mode */}
+      {gameState !== 'config' && gameConfig.teamPlay && (
+        <div className={styles.teamScoreBoard}>
+          <div className={`${styles.teamScore} ${currentTeam === 'teamA' ? styles.activeTeam : ''}`}>
+            <div className={styles.teamName}>{gameConfig.teamAName}</div>
+            <div className={styles.teamPoints}>{teamScores.teamA}</div>
+          </div>
+          <div className={styles.scoreDivider}>VS</div>
+          <div className={`${styles.teamScore} ${currentTeam === 'teamB' ? styles.activeTeam : ''}`}>
+            <div className={styles.teamName}>{gameConfig.teamBName}</div>
+            <div className={styles.teamPoints}>{teamScores.teamB}</div>
+          </div>
+        </div>
+      )}
+
+
+
+
+
         
         {/* Enhanced Fox Mascot - Fixed position */}
         {shouldShowMascot() && (
@@ -411,7 +453,8 @@ const VanishingGame = () => {
               rotate: { repeat: Infinity, duration: 2, ease: "easeInOut" }
             }}
           >
-            <img src={WildLitzFox} alt="WildLitz Fox" className={styles.foxImage} />
+           <img src={WildLitzFox} alt="WildLitz Fox" className={styles.foxImage} />
+            
             
             {showBubble && (
               <motion.div 
@@ -454,17 +497,24 @@ const VanishingGame = () => {
               className={styles.screenContainer}
               style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
             >
-              <GameplayScreen 
-                wordData={getCurrentWord()}
-                config={gameConfig}
-                onResult={handleWordResult}
-                round={currentRound}
-                totalRounds={totalRounds}
-                gameStats={gameStats}
-                onStatsUpdate={setGameStats}
-                classEnergy={classEnergy}
-                onEnergyUpdate={setClassEnergy}
-              />
+          <GameplayScreen 
+            wordData={getCurrentWord()}
+            config={gameConfig}
+            onResult={handleWordResult}
+            round={currentRound}
+            totalRounds={totalRounds}
+            gameStats={gameStats}
+            onStatsUpdate={setGameStats}
+            classEnergy={classEnergy}
+            onEnergyUpdate={setClassEnergy}
+            teamPlay={gameConfig.teamPlay}
+            currentTeam={currentTeam}
+            teamScores={teamScores}
+            teamNames={{
+              teamA: gameConfig.teamAName || 'Team A',
+              teamB: gameConfig.teamBName || 'Team B'
+            }}
+          />
             </motion.div>
           )}
           
@@ -502,6 +552,11 @@ const VanishingGame = () => {
                 score={score}
                 totalWords={totalRounds}
                 onPlayAgain={handlePlayAgain}
+                teamScores={teamScores}
+                teamNames={{
+                  teamA: gameConfig.teamAName || 'Team A',
+                  teamB: gameConfig.teamBName || 'Team B'
+                }}
                 sessionData={{
                   startTime: sessionStartTime,
                   endTime: Date.now(),
