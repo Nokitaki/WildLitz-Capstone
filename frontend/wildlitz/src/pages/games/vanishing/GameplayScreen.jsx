@@ -213,23 +213,7 @@ const GameplayScreen = ({
     setShowPhonicsHint(true);
   }, 500);
   
-  // REPLACE THIS EXISTING SECTION:
-  // Play audio if available
-  setTimeout(() => {
-    if (wordData.customAudio || wordData.usesCustomAudio) {
-      setPlayingAudio(true);
-      setTimeout(() => setPlayingAudio(false), 1500);
-    }
-  }, 800);
-  
-  // WITH THIS NEW SECTION:
-  // Play audio if enabled
- setTimeout(() => {
-  if (config.enableAudio && wordData.word) {
-    console.log('Playing preview audio for:', wordData.word); // Debug log
-    playWordAudio(wordData.word);
-  }
-}, 800);
+ 
   
   // Phase 2: Get ready cue
   setTimeout(() => {
@@ -1004,18 +988,18 @@ const handleShowWord = () => {
 
 
 
-  const playWordAudio = async (text) => {
+ const playWordAudio = async (text) => {
   if (!text || !config.enableAudio) return;
   
+  // Prevent multiple audio playbacks
+  if (audioPlaying) return;
+  
   const textToRead = wordData.word || text;
-  console.log('Playing audio for:', textToRead);
-  console.log('Voice config:', config.voiceType); // Debug voice config
   
   setAudioPlaying(true);
-  setPlayingAudio(true);
   
   try {
-    console.log('Calling TTS API...'); // Debug log
+    console.log('Calling TTS API...'); 
     const response = await fetch('/api/phonics/text-to-speech/', {
       method: 'POST',
       headers: {
@@ -1027,33 +1011,25 @@ const handleShowWord = () => {
       })
     });
     
-    console.log('API response status:', response.status); // Debug log
-    
     if (response.ok) {
       const data = await response.json();
-      console.log('API response data:', data); // Debug log
       
       if (data.success && data.audio_data) {
-        console.log('Playing OpenAI audio with voice:', data.voice_used); // Debug log
+        console.log('Playing audio with voice:', data.voice_used);
         const audio = new Audio(`data:audio/mp3;base64,${data.audio_data}`);
         audio.onended = () => {
           setAudioPlaying(false);
-          setPlayingAudio(false);
         };
         audio.onerror = (e) => {
           console.error('Audio playback error:', e);
-          useBrowserTTS(textToRead);
+          setAudioPlaying(false);
         };
         await audio.play();
         return;
-      } else {
-        console.log('API success false or no audio data, falling back to browser TTS');
       }
-    } else {
-      console.log('API response not ok, status:', response.status);
     }
     
-    // If API fails, use browser TTS
+    // Fallback to browser TTS if API fails
     useBrowserTTS(textToRead);
     
   } catch (error) {
@@ -1065,16 +1041,13 @@ const handleShowWord = () => {
 // Add helper function for browser TTS
 const useBrowserTTS = (text) => {
   if ('speechSynthesis' in window) {
+    // Cancel any ongoing speech first
     window.speechSynthesis.cancel();
-    
-    // Get available voices
-    const voices = window.speechSynthesis.getVoices();
-    console.log('Available browser voices:', voices.map(v => v.name)); // Debug log
     
     const utterance = new SpeechSynthesisUtterance(text);
     
-    // Try to select a better voice based on config
-    let preferredVoice = null;
+    // Get available voices
+    const voices = window.speechSynthesis.getVoices();
     
     // Voice preferences based on config
     const voicePreferences = {
@@ -1088,18 +1061,13 @@ const useBrowserTTS = (text) => {
     const preferredNames = voicePreferences[currentVoiceType] || voicePreferences['happy'];
     
     // Try to find one of the preferred voices
+    let preferredVoice = null;
     for (const prefName of preferredNames) {
       preferredVoice = voices.find(voice => voice.name.includes(prefName));
       if (preferredVoice) break;
     }
     
-    // Fallback to first English voice
-    if (!preferredVoice) {
-      preferredVoice = voices.find(voice => voice.lang.startsWith('en'));
-    }
-    
     if (preferredVoice) {
-      console.log('Using browser voice:', preferredVoice.name); // Debug log
       utterance.voice = preferredVoice;
     }
     
@@ -1109,19 +1077,14 @@ const useBrowserTTS = (text) => {
     
     utterance.onend = () => {
       setAudioPlaying(false);
-      setPlayingAudio(false);
     };
-    utterance.onerror = (e) => {
-      console.error('Speech synthesis error:', e);
+    utterance.onerror = () => {
       setAudioPlaying(false);
-      setPlayingAudio(false);
     };
     
     window.speechSynthesis.speak(utterance);
   } else {
-    console.error('Speech synthesis not supported');
     setAudioPlaying(false);
-    setPlayingAudio(false);
   }
 };
 
@@ -1366,22 +1329,22 @@ javascript<div className={styles.wordContainer}>
             
             {/* Audio playing indicator */}
             {(playingAudio || audioPlaying) && (
-              <motion.div 
-                className={styles.audioIndicator}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-              >
-                <motion.div 
-                  className={styles.audioWave}
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ repeat: Infinity, duration: 0.8 }}
-                >
-                  🔊
-                </motion.div>
-                Listen carefully...
-              </motion.div>
-            )}
+             <motion.div 
+    className={styles.audioIndicator}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: 20 }}
+  >
+    <motion.div 
+      className={styles.audioWave}
+      animate={{ scale: [1, 1.2, 1] }}
+      transition={{ repeat: Infinity, duration: 0.8 }}
+    >
+      🔊
+    </motion.div>
+    Listen carefully...
+  </motion.div>
+)}
             
             {/* Teacher hint display */}
             {showHint && (
