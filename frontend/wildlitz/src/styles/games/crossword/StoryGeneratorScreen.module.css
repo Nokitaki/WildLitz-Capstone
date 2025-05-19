@@ -386,3 +386,45 @@
   color: #757575; /* Medium gray for better visibility */
   opacity: 0.8;
 }
+
+/* Add these styles to src/styles/games/crossword/StoryGeneratorScreen.module.css */
+
+.warningMessage {
+  margin-top: 15px;
+  background-color: #fff3e0;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #ff9800;
+  width: 100%;
+  text-align: center;
+}
+
+.warningMessage p {
+  color: #e65100;
+  margin: 0;
+}
+
+.longOperationMessage {
+  margin-top: 20px;
+  background-color: #e3f2fd;
+  padding: 15px;
+  border-radius: 8px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.longOperationMessage p {
+  color: #0277bd;
+  margin: 0;
+}
+
+.errorActions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}

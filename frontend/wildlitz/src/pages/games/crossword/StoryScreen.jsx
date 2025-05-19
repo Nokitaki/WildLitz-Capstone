@@ -1,10 +1,10 @@
-// src/pages/games/crossword/StoryScreen.jsx
+// StoryScreen with individual sound buttons for each sentence
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/crossword/StoryScreen.module.css';
 
 /**
- * Story Screen component for displaying story passages before crossword puzzles
+ * Enhanced Story Screen with individual sound buttons for each sentence
  */
 const StoryScreen = ({ 
   storySegment, 
@@ -20,42 +20,35 @@ const StoryScreen = ({
   
   // State for reading aloud
   const [isReading, setIsReading] = useState(false);
-  const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
+  const [currentSentenceIndex, setCurrentSentenceIndex] = useState(null);
   const [sentences, setSentences] = useState([]);
-  const [highlightedText, setHighlightedText] = useState('');
+  const [visitedSentences, setVisitedSentences] = useState([]);
   
   // References
   const storyTextRef = useRef(null);
+  const sentenceRefs = useRef([]);
   
   // Check if speech synthesis is available
   const hasSpeech = typeof window !== 'undefined' && 'speechSynthesis' in window;
   const speechSynth = hasSpeech ? window.speechSynthesis : null;
   
-  // Process the story text to highlight vocabulary words
+  // Process the story text to extract sentences
   useEffect(() => {
-    if (storySegment && storySegment.text && wordsToPuzzle.length > 0) {
-      let text = storySegment.text;
-      
-      // Create a regex pattern for all words to highlight
-      const wordsPattern = wordsToPuzzle
-        .map(word => `\\b${word}\\b`)
-        .join('|');
-      
-      const regex = new RegExp(wordsPattern, 'gi');
-      const highlightedText = text.replace(regex, match => 
-        `<span class="${styles.highlightedWord}">${match}</span>`
-      );
-      
-      setHighlightedText(highlightedText);
-      
-      // Split text into sentences for reading aloud
+    if (storySegment && storySegment.text) {
+      // Split text into sentences
       const sentenceRegex = /[^.!?]+[.!?]+/g;
-      const extractedSentences = text.match(sentenceRegex) || [text];
+      const extractedSentences = storySegment.text.match(sentenceRegex) || [storySegment.text];
       setSentences(extractedSentences.map(s => s.trim()));
+      
+      // Initialize refs for each sentence
+      sentenceRefs.current = extractedSentences.map(() => React.createRef());
+      
+      // Reset visited sentences
+      setVisitedSentences([]);
     }
-  }, [storySegment, wordsToPuzzle]);
+  }, [storySegment]);
   
-  // Handle read aloud functionality
+  // Handle reading the full story aloud
   const handleReadAloud = () => {
     if (!hasSpeech || sentences.length === 0) return;
     
@@ -66,13 +59,14 @@ const StoryScreen = ({
     speechSynth.cancel();
     
     // Read sentences one by one
-    readNextSentence(0);
+    readSentence(0, true);
   };
   
-  // Read the next sentence
-  const readNextSentence = (index) => {
+  // Read a specific sentence
+  const readSentence = (index, continueReading = false) => {
     if (index >= sentences.length) {
       setIsReading(false);
+      setCurrentSentenceIndex(null);
       setHasReadStory(true);
       return;
     }
@@ -86,18 +80,35 @@ const StoryScreen = ({
     ) || voices.find(v => v.lang.includes('en')) || voices[0];
     
     utterance.voice = englishVoice;
-    utterance.rate = 0.9; // Slightly slower for kids
-    utterance.pitch = 1.1; // Slightly higher pitch
+    utterance.rate = 0.85; // Slightly slower for kids
+    utterance.pitch = 1.2; // Slightly higher pitch for engaging tone
     
     // Highlight the current sentence
     setCurrentSentenceIndex(index);
     
-    // When finished with this sentence, read the next one
+    // Add to visited sentences if not already visited
+    if (!visitedSentences.includes(index)) {
+      setVisitedSentences(prev => [...prev, index]);
+    }
+    
+    // Scroll to the current sentence
+    scrollToSentence(index);
+    
+    // When finished with this sentence
     utterance.onend = () => {
-      // Small delay before next sentence
-      setTimeout(() => {
-        readNextSentence(index + 1);
-      }, 500);
+      // If we should continue reading the next sentence
+      if (continueReading) {
+        // Small delay before next sentence
+        setTimeout(() => {
+          readSentence(index + 1, true);
+        }, 500);
+      } else {
+        // Just finish this single sentence
+        setCurrentSentenceIndex(null);
+        if (!isReading) {
+          speechSynth.cancel();
+        }
+      }
     };
     
     speechSynth.speak(utterance);
@@ -108,6 +119,28 @@ const StoryScreen = ({
     if (hasSpeech) {
       speechSynth.cancel();
       setIsReading(false);
+      setCurrentSentenceIndex(null);
+    }
+  };
+  
+  // Read an individual sentence (for preview buttons)
+  const handleReadSingleSentence = (index) => {
+    // If already reading, stop
+    if (isReading) {
+      handleStopReading();
+    }
+    
+    // Read just this one sentence
+    readSentence(index, false);
+  };
+  
+  // Scroll to a specific sentence
+  const scrollToSentence = (index) => {
+    if (sentenceRefs.current[index] && sentenceRefs.current[index].current) {
+      sentenceRefs.current[index].current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center'
+      });
     }
   };
   
@@ -157,7 +190,77 @@ const StoryScreen = ({
     }
   };
   
-  // Render the component
+  // Function to highlight vocabulary words in a sentence
+  const highlightVocabWords = (sentence) => {
+    if (!wordsToPuzzle || wordsToPuzzle.length === 0) return sentence;
+    
+    // Create a deep copy of the sentence to work with
+    let processedSentence = sentence;
+    
+    // Get rainbow colors for words
+    const colors = ['#FF5252', '#FF9E80', '#FFCA28', '#66BB6A', '#42A5F5', '#7E57C2'];
+    
+    // Replace vocabulary words with highlighted spans
+    wordsToPuzzle.forEach((word, index) => {
+      const wordRegex = new RegExp(`\\b${word}\\b`, 'gi');
+      if (wordRegex.test(processedSentence)) {
+        const color = colors[index % colors.length];
+        processedSentence = processedSentence.replace(wordRegex, match => 
+          `<span class="${styles.vocabWord}" style="background-color: ${color}; color: white;">${match}</span>`
+        );
+      }
+    });
+    
+    return processedSentence;
+  };
+  
+  // Render the story text with each sentence on its own line
+  const renderSentenceByLine = () => {
+    if (!sentences || sentences.length === 0) return null;
+    
+    return (
+      <div className={styles.sentenceLines}>
+        {sentences.map((sentence, index) => {
+          // Check if this is the current sentence being read
+          const isCurrentSentence = index === currentSentenceIndex;
+          
+          // Highlight vocabulary words in this sentence
+          const highlightedSentence = highlightVocabWords(sentence);
+          
+          return (
+            <motion.div
+              ref={sentenceRefs.current[index]}
+              key={index}
+              id={`sentence-${index}`}
+              className={`${styles.sentenceLine} ${isCurrentSentence ? styles.currentSentence : ''} ${visitedSentences.includes(index) ? styles.visitedSentence : ''}`}
+              initial={{ opacity: 0.9 }}
+              animate={{ 
+                opacity: isCurrentSentence ? 1 : 0.9,
+                backgroundColor: isCurrentSentence ? 'rgba(156, 39, 176, 0.1)' : 'transparent',
+                scale: isCurrentSentence ? 1.02 : 1
+              }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className={styles.sentenceNumber}>{index + 1}</div>
+              <div 
+                className={styles.sentenceContent}
+                dangerouslySetInnerHTML={{ __html: highlightedSentence }}
+              />
+              <button 
+                className={styles.sentenceSoundButton}
+                onClick={() => handleReadSingleSentence(index)}
+                disabled={!hasSpeech}
+                title="Read this sentence"
+              >
+                🔊
+              </button>
+            </motion.div>
+          );
+        })}
+      </div>
+    );
+  };
+  
   return (
     <div className={styles.storyContainer}>
       <div className={styles.storyCard}>
@@ -198,11 +301,13 @@ const StoryScreen = ({
             </div>
             
             <div className={styles.storyTextWrapper}>
+              {/* Story text with line-by-line sentences */}
               <div 
                 ref={storyTextRef}
                 className={`${styles.storyText} ${isReading ? styles.readingMode : ''}`}
-                dangerouslySetInnerHTML={{ __html: highlightedText }}
-              ></div>
+              >
+                {renderSentenceByLine()}
+              </div>
               
               {isReading && (
                 <div className={styles.readingProgress}>
@@ -222,11 +327,21 @@ const StoryScreen = ({
             <div className={styles.vocabularySection}>
               <h3 className={styles.vocabularyTitle}>Vocabulary Words:</h3>
               <div className={styles.vocabularyWords}>
-                {wordsToPuzzle.map((word, index) => (
-                  <div key={index} className={styles.vocabularyWord}>
-                    {word.toLowerCase()}
-                  </div>
-                ))}
+                {wordsToPuzzle.map((word, index) => {
+                  // Get a rainbow color for each word
+                  const colors = ['#FF5252', '#FF9E80', '#FFCA28', '#66BB6A', '#42A5F5', '#7E57C2'];
+                  const color = colors[index % colors.length];
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className={styles.vocabularyWord}
+                      style={{ backgroundColor: color }}
+                    >
+                      {word.toLowerCase()}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -294,15 +409,13 @@ const StoryScreen = ({
         
         {/* Continue button */}
         <div className={styles.continueButtonContainer}>
-          <motion.button
+          <button
             className={styles.continueButton}
             onClick={handleContinue}
             disabled={!hasReadStory && !isReading}
-            whileHover={{ scale: hasReadStory || isReading ? 1.05 : 1 }}
-            whileTap={{ scale: hasReadStory || isReading ? 0.95 : 1 }}
           >
             {getContinueButtonText()}
-          </motion.button>
+          </button>
           
           {!hasReadStory && !isReading && (
             <div className={styles.continueDisabledMessage}>

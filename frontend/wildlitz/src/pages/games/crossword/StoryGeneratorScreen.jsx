@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../../styles/games/crossword/StoryGeneratorScreen.module.css';
 
-const StoryGeneratorScreen = ({ onStoryGenerated }) => {
+const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   const navigate = useNavigate();
   
   // Form state
@@ -17,14 +17,18 @@ const StoryGeneratorScreen = ({ onStoryGenerated }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [error, setError] = useState(null);
+  const [timeoutWarning, setTimeoutWarning] = useState(false);
+  
+  // Timeout handling
+  const [timeoutId, setTimeoutId] = useState(null);
   
   // Available themes and skills
- const availableThemes = [
-  // Remove jungle and space since they already exist
-  { id: 'ocean', name: 'Ocean Discovery' },
-  { id: 'farm', name: 'Farm Life' },
-  { id: 'city', name: 'City Adventure' }
-];
+  const availableThemes = [
+    // Remove jungle and space since they already exist
+    { id: 'ocean', name: 'Ocean Discovery' },
+    { id: 'farm', name: 'Farm Life' },
+    { id: 'city', name: 'City Adventure' }
+  ];
   
   const availableSkills = [
     { id: 'sight-words', name: 'Sight Words' },
@@ -43,69 +47,150 @@ const StoryGeneratorScreen = ({ onStoryGenerated }) => {
       setFocusSkills([...focusSkills, skillId]);
     }
   };
+
+  // Clear timeout when component unmounts
+  useEffect(() => {
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [timeoutId]);
   
   // Generate story with AI
   const generateStory = async (e) => {
-  e.preventDefault();
-  setIsGenerating(true);
-  setGenerationProgress(0);
-  setError(null);
-  
-  // Simulated progress updates
-  const progressInterval = setInterval(() => {
-    setGenerationProgress(prev => {
-      if (prev >= 90) {
-        clearInterval(progressInterval);
-        return 90;
-      }
-      return prev + 10;
-    });
-  }, 1000);
-  
-  try {
-    const response = await fetch('/api/sentence_formation/generate-story/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        theme,
-        focusSkills,
-        characterNames: characterNames || undefined,
-        episodeCount,
-        gradeLevel: 3,
-        refresh: true  // This flag forces new content generation
-      })
-    });
-    
-    clearInterval(progressInterval);
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to generate story');
+    if (e && e.preventDefault) {
+      e.preventDefault();
     }
     
-    const data = await response.json();
-    setGenerationProgress(100);
+    setIsGenerating(true);
+    setGenerationProgress(0);
+    setError(null);
+    setTimeoutWarning(false);
     
-    // Add a slight delay to show 100% completion
-    setTimeout(() => {
-      if (onStoryGenerated) {
-        onStoryGenerated(data);
+    // Set a timeout warning after 30 seconds
+    const warningId = setTimeout(() => {
+      setTimeoutWarning(true);
+    }, 30000);
+    
+    setTimeoutId(warningId);
+    
+    // Simulated progress updates - slower to prevent reaching 90% too quickly
+    const progressInterval = setInterval(() => {
+      setGenerationProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return 90;
+        }
+        // Slower progress increments
+        return prev + (prev < 50 ? 4 : (prev < 80 ? 2 : 1));
+      });
+    }, 1000);
+    
+    try {
+      const controller = new AbortController();
+      // Set a longer timeout for the fetch request
+      const fetchTimeoutId = setTimeout(() => controller.abort(), 60000);
+      
+      const response = await fetch('/api/sentence_formation/generate-story/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          theme,
+          focusSkills,
+          characterNames: characterNames || undefined,
+          episodeCount,
+          gradeLevel: 3,
+          refresh: true  // This flag forces new content generation
+        }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(fetchTimeoutId);
+      clearInterval(progressInterval);
+      clearTimeout(warningId);
+      setTimeoutId(null);
+      
+      // Even if we get a 500 error, try to parse the response JSON
+      let data;
+      let errorMessage = null;
+      
+      try {
+        const textResponse = await response.text();
+        console.log("Response text:", textResponse.substring(0, 200) + "...");
+        
+        // Try to parse as JSON, if it fails, handle the error gracefully
+        try {
+          data = JSON.parse(textResponse);
+          
+          if (!response.ok) {
+            errorMessage = data.message || `Server error: ${response.status}`;
+            throw new Error(errorMessage);
+          }
+        } catch (jsonError) {
+          console.error("JSON parse error:", jsonError);
+          
+          if (!response.ok) {
+            throw new Error(`Server error (${response.status}): Unable to parse response`);
+          }
+          
+          // If we can't parse JSON but the response was OK, something's really wrong
+          throw new Error("Failed to parse server response");
+        }
+      } catch (responseError) {
+        console.error("Response processing error:", responseError);
+        throw responseError;
       }
-    }, 500);
+      
+      // If we got here, we have valid data
+      setGenerationProgress(100);
+      
+      // Add a slight delay to show 100% completion
+      setTimeout(() => {
+        if (onStoryGenerated) {
+          onStoryGenerated(data);
+        }
+      }, 500);
+      
+    } catch (err) {
+      clearInterval(progressInterval);
+      clearTimeout(warningId);
+      setTimeoutId(null);
+      
+      if (err.name === 'AbortError') {
+        setError('Request timed out. The server is taking too long to respond. Try with fewer episodes or a simpler theme.');
+      } else {
+        setError(err.message || 'An error occurred while generating the story');
+      }
+      setIsGenerating(false);
+      console.error('Error generating story:', err);
+    }
+  };
+  
+  // Retry with simpler settings
+  const handleRetry = () => {
+    // Simplify settings for retry
+    const simpleEpisodeCount = Math.max(1, episodeCount - 1);
+    const simpleFocusSkills = focusSkills.slice(0, 1); // Just use first skill
     
-  } catch (err) {
-    clearInterval(progressInterval);
-    setError(err.message || 'An error occurred while generating the story');
-    setIsGenerating(false);
-    console.error('Error generating story:', err);
-  }
-};
+    setEpisodeCount(simpleEpisodeCount);
+    setFocusSkills(simpleFocusSkills);
+    
+    // Generate with simplified settings
+    setTimeout(() => {
+      generateStory();
+    }, 500);
+  };
   
   // Cancel generation and go back
   const handleCancel = () => {
-    navigate('/games/crossword-puzzle');
+    if (onCancel) {
+      onCancel();
+    } else {
+      navigate('/games/crossword-puzzle');
+    }
   };
   
   return (
@@ -127,6 +212,13 @@ const StoryGeneratorScreen = ({ onStoryGenerated }) => {
                 ? `Creating your adventure (${generationProgress}%)...` 
                 : 'Story created successfully!'}
             </p>
+            
+            {timeoutWarning && generationProgress < 100 && (
+              <div className={styles.warningMessage}>
+                <p>This is taking longer than expected. Please be patient - AI story generation can take some time.</p>
+              </div>
+            )}
+            
             <div className={styles.generationSteps}>
               <div className={`${styles.stepItem} ${generationProgress >= 20 ? styles.completed : ''}`}>
                 <div className={styles.stepIcon}>📝</div>
@@ -152,11 +244,31 @@ const StoryGeneratorScreen = ({ onStoryGenerated }) => {
             {error && (
               <div className={styles.errorMessage}>
                 <p>{error}</p>
+                <div className={styles.errorActions}>
+                  <button 
+                    className={styles.retryButton}
+                    onClick={handleRetry}
+                  >
+                    Try with Simpler Settings
+                  </button>
+                  <button 
+                    className={styles.cancelButton}
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {generationProgress >= 90 && !error && (
+              <div className={styles.longOperationMessage}>
+                <p>Almost done! The AI is crafting the final details...</p>
                 <button 
-                  className={styles.retryButton}
-                  onClick={() => generateStory}
+                  className={styles.cancelButton}
+                  onClick={handleCancel}
                 >
-                  Try Again
+                  Cancel and Go Back
                 </button>
               </div>
             )}
