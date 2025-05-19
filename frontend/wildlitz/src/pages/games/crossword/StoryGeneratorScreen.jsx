@@ -19,13 +19,12 @@ const StoryGeneratorScreen = ({ onStoryGenerated }) => {
   const [error, setError] = useState(null);
   
   // Available themes and skills
-  const availableThemes = [
-    { id: 'jungle', name: 'Jungle Adventure' },
-    { id: 'space', name: 'Space Exploration' },
-    { id: 'ocean', name: 'Ocean Discovery' },
-    { id: 'farm', name: 'Farm Life' },
-    { id: 'city', name: 'City Adventure' }
-  ];
+ const availableThemes = [
+  // Remove jungle and space since they already exist
+  { id: 'ocean', name: 'Ocean Discovery' },
+  { id: 'farm', name: 'Farm Life' },
+  { id: 'city', name: 'City Adventure' }
+];
   
   const availableSkills = [
     { id: 'sight-words', name: 'Sight Words' },
@@ -47,60 +46,62 @@ const StoryGeneratorScreen = ({ onStoryGenerated }) => {
   
   // Generate story with AI
   const generateStory = async (e) => {
-    e.preventDefault();
-    setIsGenerating(true);
-    setGenerationProgress(0);
-    setError(null);
-    
-    // Simulated progress updates
-    const progressInterval = setInterval(() => {
-      setGenerationProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return 90;
-        }
-        return prev + 10;
-      });
-    }, 1000);
-    
-    try {
-      const response = await fetch('/api/generate-story', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          theme,
-          focusSkills,
-          characterNames: characterNames || undefined,
-          episodeCount,
-          gradeLevel: 3
-        })
-      });
-      
-      clearInterval(progressInterval);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to generate story');
+  e.preventDefault();
+  setIsGenerating(true);
+  setGenerationProgress(0);
+  setError(null);
+  
+  // Simulated progress updates
+  const progressInterval = setInterval(() => {
+    setGenerationProgress(prev => {
+      if (prev >= 90) {
+        clearInterval(progressInterval);
+        return 90;
       }
-      
-      const data = await response.json();
-      setGenerationProgress(100);
-      
-      // Add a slight delay to show 100% completion
-      setTimeout(() => {
-        if (onStoryGenerated) {
-          onStoryGenerated(data);
-        }
-      }, 500);
-      
-    } catch (err) {
-      clearInterval(progressInterval);
-      setError(err.message || 'An error occurred while generating the story');
-      setIsGenerating(false);
+      return prev + 10;
+    });
+  }, 1000);
+  
+  try {
+    const response = await fetch('/api/sentence_formation/generate-story/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        theme,
+        focusSkills,
+        characterNames: characterNames || undefined,
+        episodeCount,
+        gradeLevel: 3,
+        refresh: true  // This flag forces new content generation
+      })
+    });
+    
+    clearInterval(progressInterval);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to generate story');
     }
-  };
+    
+    const data = await response.json();
+    setGenerationProgress(100);
+    
+    // Add a slight delay to show 100% completion
+    setTimeout(() => {
+      if (onStoryGenerated) {
+        onStoryGenerated(data);
+      }
+    }, 500);
+    
+  } catch (err) {
+    clearInterval(progressInterval);
+    setError(err.message || 'An error occurred while generating the story');
+    setIsGenerating(false);
+    console.error('Error generating story:', err);
+  }
+};
   
   // Cancel generation and go back
   const handleCancel = () => {

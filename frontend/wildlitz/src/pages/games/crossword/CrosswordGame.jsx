@@ -102,31 +102,31 @@ const CrosswordGame = () => {
    * Handle newly generated story
    */
   const handleStoryGenerated = (data) => {
-    // Add the new story to the available stories
-    const newStories = {
-      ...gameStories,
-      [data.story.id]: data.story
-    };
-    
-    setGameStories(newStories);
-    
-    // Add the new puzzles to the available puzzles
-    const newPuzzles = {
-      ...gamePuzzles,
-      ...data.puzzles
-    };
-    
-    setGamePuzzles(newPuzzles);
-    
-    // Configure game to use the new story
-    setGameConfig({
-      storyMode: true,
-      adventureId: data.story.id
-    });
-    
-    // Redirect to intro screen to start the new story
-    setGameState('intro');
+  // Add the new story to the available stories
+  const newStories = {
+    ...gameStories,
+    [data.story.id]: data.story
   };
+  
+  setGameStories(newStories);
+  
+  // Add the new puzzles to the available puzzles
+  const newPuzzles = {
+    ...gamePuzzles,
+    ...data.puzzles
+  };
+  
+  setGamePuzzles(newPuzzles);
+  
+  // Configure game to use the new story
+  setGameConfig({
+    storyMode: true,
+    adventureId: data.story.id
+  });
+  
+  // Redirect to intro screen
+  setGameState('intro');
+};
   
   /**
    * Handle moving from story to puzzle

@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/syllabification/', include('syllabification.urls')),
     path('api/phonics/', include('phonics.urls')),  # Add phonics URLs
     path('api/phonemics/', include('phonemics.urls')),
+    path('api/sentence_formation/', include('sentence_formation.urls')),
 ]
 
 if settings.DEBUG:
