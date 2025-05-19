@@ -393,3 +393,36 @@
     font-size: 0.8rem;
   }
 }
+
+/* Add these styles to src/styles/games/crossword/GameplayScreen.module.css */
+
+.storyContextBanner {
+  background-color: #e8f5e9;
+  border-radius: 15px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.storyContextTitle {
+  font-weight: 600;
+  color: #2e7d32;
+  font-size: 0.9rem;
+}
+
+.storyContextHint {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 5px;
+}
+.adaptiveHintOverlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

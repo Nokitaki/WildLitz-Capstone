@@ -1,0 +1,472 @@
+/* src/styles/components/AIReadingCoach.module.css */
+
+.coachOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.coachContainer {
+  width: 90%;
+  max-width: 800px;
+  height: 80vh;
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.coachHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #7b1fa2;
+  color: white;
+}
+
+.characterInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.characterEmoji {
+  font-size: 2rem;
+}
+
+.characterName {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.coachControls {
+  display: flex;
+  gap: 10px;
+}
+
+.controlButton {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: white;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.controlButton:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.coachContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modeTabs {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.modeTab {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.modeTab:hover {
+  background-color: #f5f5f5;
+}
+
+.activeTab {
+  font-weight: 600;
+  color: #7b1fa2;
+}
+
+.activeTab::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #7b1fa2;
+}
+
+/* Help mode */
+.helpMode {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.readControls {
+  display: flex;
+  gap: 10px;
+}
+
+.readButton, .stopButton {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.readButton {
+  background-color: #7b1fa2;
+  color: white;
+}
+
+.readButton:hover {
+  background-color: #6a1b9a;
+}
+
+.stopButton {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.stopButton:hover {
+  background-color: #bdbdbd;
+}
+
+.instructions {
+  background-color: #f3e5f5;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.storyTextContainer {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 8px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.interactiveText {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #333;
+}
+
+.interactiveWord {
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 0 1px;
+  transition: all 0.1s ease;
+}
+
+.interactiveWord:hover {
+  background-color: #e1bee7;
+}
+
+.vocabWord {
+  color: #7b1fa2;
+  font-weight: 500;
+}
+
+.selectedWord {
+  background-color: #7b1fa2;
+  color: white;
+}
+
+/* Word mode */
+.wordMode {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.selectedWordHeading {
+  font-size: 1.5rem;
+  color: #7b1fa2;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e1bee7;
+  border-top: 4px solid #7b1fa2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.errorMessage {
+  padding: 15px;
+  background-color: #ffebee;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.retryButton {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 10px;
+}
+
+.retryButton:hover {
+  background-color: #e53935;
+}
+
+.wordInfoContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.definitionSection, .exampleSection {
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.definitionSection h4, .exampleSection h4 {
+  margin: 0 0 8px 0;
+  color: #7b1fa2;
+}
+
+.definitionSection p, .exampleSection p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.visualizationSection {
+  display: flex;
+  justify-content: center;
+}
+
+.wordImage {
+  width: 200px;
+  height: 200px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.backButton {
+  background-color: #7b1fa2;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: center;
+  margin-top: 10px;
+}
+
+.backButton:hover {
+  background-color: #6a1b9a;
+  transform: translateY(-2px);
+}
+
+.emptyState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: #757575;
+}
+
+/* Question mode */
+.questionMode {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.questionContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.questionCount {
+  font-size: 0.9rem;
+  color: #757575;
+  text-align: center;
+}
+
+.questionText {
+  font-size: 1.3rem;
+  color: #333;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.answerInput {
+  padding: 12px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  resize: none;
+  height: 100px;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.answerInput:focus {
+  outline: none;
+  border-color: #7b1fa2;
+}
+
+.checkAnswerButton, .generateButton {
+  background-color: #7b1fa2;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.checkAnswerButton:hover, .generateButton:hover {
+  background-color: #6a1b9a;
+}
+
+.checkAnswerButton:disabled {
+  background-color: #e0e0e0;
+  color: #9e9e9e;
+  cursor: not-allowed;
+}
+
+.feedbackContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.feedbackMessage {
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.correctFeedback {
+  background-color: #e8f5e9;
+  border-left: 4px solid #4caf50;
+  color: #2e7d32;
+}
+
+.improvementFeedback {
+  background-color: #fff3e0;
+  border-left: 4px solid #ff9800;
+  color: #e65100;
+}
+
+.nextButton {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nextButton:hover {
+  background-color: #43a047;
+}
+
+.generateButton {
+  margin-top: 10px;
+}
+
+@media (max-width: 600px) {
+  .coachContainer {
+    width: 95%;
+    height: 90vh;
+  }
+  
+  .characterEmoji {
+    font-size: 1.5rem;
+  }
+  
+  .characterName {
+    font-size: 1rem;
+  }
+  
+  .controlButton {
+    font-size: 1rem;
+    width: 25px;
+    height: 25px;
+  }
+  
+  .selectedWordHeading {
+    font-size: 1.3rem;
+  }
+  
+  .questionText {
+    font-size: 1.1rem;
+  }
+  
+  .wordImage {
+    width: 150px;
+    height: 150px;
+  }
+}

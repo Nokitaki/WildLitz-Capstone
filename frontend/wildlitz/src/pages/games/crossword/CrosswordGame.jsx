@@ -5,30 +5,50 @@ import styles from '../../../styles/games/crossword/CrosswordGame.module.css';
 
 // Import game screens
 import IntroScreen from './IntroScreen';
+import StoryScreen from './StoryScreen';
 import GameplayScreen from './GameplayScreen';
 import SummaryScreen from './SummaryScreen';
 import SentenceBuilderScreen from './SentenceBuilderScreen';
+import StoryGeneratorScreen from './StoryGeneratorScreen';
+
+// Import AI components
+import AIReadingCoach from '../../../components/crossword/AIReadingCoach';
+import AdaptiveHintSystem from '../../../components/crossword/AdaptiveHintSystem';
 
 // Import mock data
-import { CROSSWORD_PUZZLES, THEMES } from '../../../mock/crosswordGameData';
+import { STORY_ADVENTURES, STORY_PUZZLES } from '../../../mock/storyData';
 
 /**
  * Main Crossword Puzzle Game component that manages game state and flow
  */
 const CrosswordGame = () => {
-  // Game states: 'intro', 'gameplay', 'summary', 'sentence-builder'
+  // Game states: 'intro', 'story', 'gameplay', 'summary', 'sentence-builder', 'generate-story'
   const [gameState, setGameState] = useState('intro');
   
   // Game configuration
   const [gameConfig, setGameConfig] = useState({
-    theme: 'animals',
-    difficulty: 'easy'
+    storyMode: true,
+    adventureId: 'jungle_quest'
   });
   
+  // Story tracking
+  const [currentEpisode, setCurrentEpisode] = useState(0);
+  const [storyProgress, setStoryProgress] = useState({});
+  
   // Game data
+  const [gameStories, setGameStories] = useState({
+    ...STORY_ADVENTURES // Default stories
+  });
+  const [gamePuzzles, setGamePuzzles] = useState({
+    ...STORY_PUZZLES // Default puzzles
+  });
+  const [currentStorySegment, setCurrentStorySegment] = useState(null);
   const [currentPuzzle, setCurrentPuzzle] = useState(null);
   const [solvedWords, setSolvedWords] = useState([]);
   const [timeSpent, setTimeSpent] = useState(0);
+  
+  // Reading coach state
+  const [showReadingCoach, setShowReadingCoach] = useState(false);
   
   // Timer
   const [timerActive, setTimerActive] = useState(false);
@@ -53,26 +73,82 @@ const CrosswordGame = () => {
   const handleStartGame = (config) => {
     setGameConfig(config);
     
-    // Get puzzle based on theme and difficulty
-    const puzzles = CROSSWORD_PUZZLES[config.theme] || [];
-    const filteredPuzzles = puzzles.filter(puzzle => puzzle.difficulty === config.difficulty);
+    // Always story mode in this version
+    const adventure = gameStories[config.adventureId];
+    const firstEpisode = adventure.episodes[0];
+    setCurrentStorySegment(firstEpisode);
+    setCurrentEpisode(1);
     
-    if (filteredPuzzles.length > 0) {
-      // Randomly select a puzzle
-      const randomIndex = Math.floor(Math.random() * filteredPuzzles.length);
-      setCurrentPuzzle(filteredPuzzles[randomIndex]);
-      
-      // Reset game state
-      setSolvedWords([]);
-      setTimeSpent(0);
-      setTimerActive(true);
-      
-      // Move to gameplay screen
-      setGameState('gameplay');
-    } else {
-      // Handle case where no puzzles match criteria
-      console.error('No puzzles available for the selected configuration');
-    }
+    // Load corresponding puzzle
+    const puzzleData = gamePuzzles[firstEpisode.crosswordPuzzleId];
+    setCurrentPuzzle(puzzleData);
+    
+    // Move to story screen
+    setGameState('story');
+    
+    // Reset game state
+    setSolvedWords([]);
+    setTimeSpent(0);
+  };
+  
+  /**
+   * Handle starting the story generator
+   */
+  const handleStartStoryGeneration = () => {
+    setGameState('generate-story');
+  };
+  
+  /**
+   * Handle newly generated story
+   */
+  const handleStoryGenerated = (data) => {
+    // Add the new story to the available stories
+    const newStories = {
+      ...gameStories,
+      [data.story.id]: data.story
+    };
+    
+    setGameStories(newStories);
+    
+    // Add the new puzzles to the available puzzles
+    const newPuzzles = {
+      ...gamePuzzles,
+      ...data.puzzles
+    };
+    
+    setGamePuzzles(newPuzzles);
+    
+    // Configure game to use the new story
+    setGameConfig({
+      storyMode: true,
+      adventureId: data.story.id
+    });
+    
+    // Redirect to intro screen to start the new story
+    setGameState('intro');
+  };
+  
+  /**
+   * Handle moving from story to puzzle
+   */
+  const handleContinueToPuzzle = () => {
+    setTimerActive(true);
+    setGameState('gameplay');
+  };
+  
+  /**
+   * Toggle reading coach visibility
+   */
+  const toggleReadingCoach = () => {
+    setShowReadingCoach(prev => !prev);
+  };
+  
+  /**
+   * Get words that will appear in the puzzle from story
+   */
+  const getWordsFromPuzzle = () => {
+    if (!currentPuzzle) return [];
+    return currentPuzzle.words.map(word => word.answer);
   };
   
   /**
@@ -91,7 +167,7 @@ const CrosswordGame = () => {
     ]);
     
     // Check if puzzle is complete
-    if (currentPuzzle && solvedWords.length + 1 >= currentPuzzle.wordCount) {
+    if (currentPuzzle && solvedWords.length + 1 >= currentPuzzle.words.length) {
       // Stop timer
       setTimerActive(false);
       
@@ -99,6 +175,35 @@ const CrosswordGame = () => {
       setTimeout(() => {
         setGameState('summary');
       }, 1000);
+    }
+  };
+  
+  /**
+   * Handle proceeding to next episode
+   */
+  const handleNextEpisode = () => {
+    const adventure = gameStories[gameConfig.adventureId];
+    const nextEpisodeIndex = currentEpisode;
+    
+    if (nextEpisodeIndex < adventure.episodes.length) {
+      // Load next episode
+      const nextEpisode = adventure.episodes[nextEpisodeIndex];
+      setCurrentStorySegment(nextEpisode);
+      setCurrentEpisode(currentEpisode + 1);
+      
+      // Load corresponding puzzle
+      const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
+      setCurrentPuzzle(puzzleData);
+      
+      // Reset game state
+      setSolvedWords([]);
+      setTimeSpent(0);
+      
+      // Move to story screen
+      setGameState('story');
+    } else {
+      // End of adventure
+      setGameState('intro');
     }
   };
   
@@ -151,8 +256,52 @@ const CrosswordGame = () => {
             >
               <IntroScreen 
                 onStartGame={handleStartGame} 
-                themes={THEMES}
+                storyAdventures={gameStories}
+                onStartStoryGeneration={handleStartStoryGeneration}
               />
+            </motion.div>
+          )}
+          
+          {gameState === 'generate-story' && (
+            <motion.div
+              key="generate-story"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={styles.screenContainer}
+            >
+              <StoryGeneratorScreen 
+                onStoryGenerated={handleStoryGenerated}
+                onCancel={handleReturnToMenu}
+              />
+            </motion.div>
+          )}
+          
+          {gameState === 'story' && currentStorySegment && (
+            <motion.div
+              key="story"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={styles.screenContainer}
+            >
+              <StoryScreen 
+                storySegment={currentStorySegment}
+                onContinue={handleContinueToPuzzle}
+                wordsToPuzzle={getWordsFromPuzzle()}
+                currentEpisode={currentEpisode}
+                onToggleReadingCoach={toggleReadingCoach}
+              />
+              
+              {showReadingCoach && (
+                <AIReadingCoach
+                  storyText={currentStorySegment.text}
+                  isVisible={showReadingCoach}
+                  onClose={() => setShowReadingCoach(false)}
+                  vocabularyWords={getWordsFromPuzzle()}
+                  grade={3}
+                />
+              )}
             </motion.div>
           )}
           
@@ -166,10 +315,11 @@ const CrosswordGame = () => {
             >
               <GameplayScreen 
                 puzzle={currentPuzzle}
-                theme={gameConfig.theme}
+                theme={"story"}
                 onWordSolved={handleWordSolved}
                 solvedWords={solvedWords}
                 timeFormatted={formatTime(timeSpent)}
+                storyContext={currentStorySegment}
               />
             </motion.div>
           )}
@@ -186,11 +336,17 @@ const CrosswordGame = () => {
                 solvedWords={solvedWords}
                 timeSpent={timeSpent}
                 timeFormatted={formatTime(timeSpent)}
-                theme={gameConfig.theme}
-                onPlayAgain={handlePlayAgain}
+                theme={"story"}
+                onPlayAgain={handleNextEpisode}
                 onBuildSentences={handleGoToSentenceBuilder}
                 onReturnToMenu={handleReturnToMenu}
-                totalWords={currentPuzzle ? currentPuzzle.wordCount : 0}
+                totalWords={currentPuzzle ? currentPuzzle.words.length : 0}
+                isStoryMode={true}
+                nextEpisodeAvailable={currentEpisode < gameStories[gameConfig.adventureId]?.episodes.length}
+                currentEpisode={currentEpisode}
+                storyTitle={gameStories[gameConfig.adventureId]?.title}
+                storySegment={currentStorySegment}
+                onToggleReadingCoach={toggleReadingCoach}
               />
             </motion.div>
           )}
@@ -207,13 +363,32 @@ const CrosswordGame = () => {
                 words={solvedWords}
                 onReturnToSummary={() => setGameState('summary')}
                 onReturnToMenu={handleReturnToMenu}
+                storyContext={currentStorySegment}
               />
             </motion.div>
           )}
         </AnimatePresence>
       </div>
+      
+      {/* Fixed reading coach button */}
+      {(gameState === 'story' || gameState === 'summary') && (
+        <motion.button
+          className={styles.readingCoachButton}
+          onClick={toggleReadingCoach}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <span className={styles.coachEmoji}>🦉</span>
+          <span>Reading Helper</span>
+        </motion.button>
+      )}
     </div>
   );
 };
+
+
 
 export default CrosswordGame;

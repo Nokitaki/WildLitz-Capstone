@@ -14,10 +14,15 @@ const SummaryScreen = ({
   onPlayAgain,
   onBuildSentences,
   onReturnToMenu,
-  totalWords
+  totalWords,
+  isStoryMode = false,
+  nextEpisodeAvailable = false,
+  currentEpisode = 1,
+  storyTitle = '',
+  storySegment = null
 }) => {
   // Get theme name with proper capitalization
-  const themeName = theme.charAt(0).toUpperCase() + theme.slice(1);
+  const themeName = theme === "story" ? "Story Adventure" : theme.charAt(0).toUpperCase() + theme.slice(1);
   
   return (
     <div className={styles.summaryContainer}>
@@ -25,7 +30,12 @@ const SummaryScreen = ({
         {/* Header with theme info */}
         <div className={styles.summaryHeader}>
           <div className={styles.themeInfo}>
-            <span className={styles.themeLabel}>Theme: {themeName}</span>
+            <span className={styles.themeLabel}>
+              {isStoryMode 
+                ? `${storyTitle} - Episode ${currentEpisode}`
+                : `Theme: ${themeName}`
+              }
+            </span>
           </div>
         </div>
         
@@ -38,9 +48,29 @@ const SummaryScreen = ({
         >
           <h2 className={styles.messageTitle}>Great Job! You completed the puzzle!</h2>
           <p className={styles.messageSubtitle}>
-            You learned {solvedWords.length} new {theme} words today
+            {isStoryMode 
+              ? `You learned ${solvedWords.length} new words from the story!`
+              : `You learned ${solvedWords.length} new ${theme} words today`
+            }
           </p>
         </motion.div>
+        
+        {/* Story recap for story mode */}
+        {isStoryMode && storySegment && (
+          <div className={styles.storyRecap}>
+            <h3 className={styles.recapTitle}>Story Recap:</h3>
+            <p className={styles.recapText}>{storySegment.recap || storySegment.text.substring(0, 150) + '...'}</p>
+            
+            <div className={styles.recapQuestions}>
+              <h4>Comprehension Check:</h4>
+              <ul>
+                {storySegment.discussionQuestions && storySegment.discussionQuestions.slice(0, 2).map((question, index) => (
+                  <li key={index}>{question}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
         
         {/* Words learned section */}
         <div className={styles.wordsLearnedSection}>
@@ -99,7 +129,34 @@ const SummaryScreen = ({
             <span className={styles.statLabel}>Time Spent:</span>
             <span className={styles.statValue}>{timeFormatted}</span>
           </div>
+          {isStoryMode && (
+            <div className={styles.statItem}>
+              <span className={styles.statLabel}>Episode:</span>
+              <span className={styles.statValue}>{currentEpisode}</span>
+            </div>
+          )}
         </div>
+        
+        {/* Reading Extension Activities */}
+        {isStoryMode && (
+          <div className={styles.readingActivities}>
+            <h3 className={styles.activitiesTitle}>Reading Extension Activities:</h3>
+            <div className={styles.activitiesList}>
+              <div className={styles.activityItem}>
+                <h4>Vocabulary Review</h4>
+                <p>Review the words as a class. Ask students to use each word in their own sentence.</p>
+              </div>
+              <div className={styles.activityItem}>
+                <h4>Story Prediction</h4>
+                <p>Before continuing to the next episode, have students predict what might happen next in the story.</p>
+              </div>
+              <div className={styles.activityItem}>
+                <h4>Character Discussion</h4>
+                <p>Discuss how the characters felt during this episode and why they made certain choices.</p>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Action buttons */}
         <div className={styles.actionButtons}>
@@ -109,7 +166,21 @@ const SummaryScreen = ({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            Play Again
+            {isStoryMode 
+              ? nextEpisodeAvailable 
+                ? "Continue to Next Episode" 
+                : "Finish Adventure"
+              : "Play Again"
+            }
+          </motion.button>
+          
+          <motion.button
+            className={styles.sentenceBuilderButton}
+            onClick={onBuildSentences}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Build Sentences
           </motion.button>
           
           <motion.button
@@ -124,9 +195,32 @@ const SummaryScreen = ({
         
         {/* Teacher controls */}
         <div className={styles.teacherControls}>
-          <button className={styles.teacherButton} onClick={() => alert('Summary will be saved')}>Save Summary</button>
-          <button className={styles.teacherButton} onClick={() => alert('Summary will be printed')}>Print Summary</button>
-          <button className={styles.teacherButton} onClick={() => alert('Summary will be shared')}>Share with Class</button>
+          <button 
+            className={styles.teacherButton} 
+            onClick={() => alert('Summary will be saved')}
+          >
+            Save Summary
+          </button>
+          <button 
+            className={styles.teacherButton} 
+            onClick={() => alert('Summary will be printed')}
+          >
+            Print Summary
+          </button>
+          <button 
+            className={styles.teacherButton} 
+            onClick={() => alert('Summary will be shared')}
+          >
+            Share with Class
+          </button>
+          {isStoryMode && (
+            <button 
+              className={styles.teacherButton} 
+              onClick={() => alert('Student Reading Assessment will be generated')}
+            >
+              Reading Assessment
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -176,10 +270,34 @@ const getWordImage = (word, theme) => {
     'VOLLEYBALL': '🏐'
   };
   
+  const storyEmojis = {
+    'MAP': '🗺️',
+    'PATH': '🛤️',
+    'TREASURE': '💎',
+    'COMPASS': '🧭',
+    'JOURNEY': '🚶‍♂️',
+    'JUNGLE': '🌴',
+    'TIGER': '🐯',
+    'STRIPES': '🎨',
+    'ROAR': '🔊',
+    'CAREFUL': '⚠️',
+    'RIVER': '🌊',
+    'BRIDGE': '🌉',
+    'SYMBOLS': '🔣',
+    'WEIGHT': '⚖️',
+    'CLUE': '🔍',
+    'ACADEMY': '🏛️',
+    'PLANETS': '🪐',
+    'MISSION': '🚀',
+    'SAMPLES': '🧪',
+    'SOLAR': '☀️'
+  };
+  
   // Select emoji based on theme
   let emojis = animalEmojis;
   if (theme === 'space') emojis = spaceEmojis;
   if (theme === 'sports') emojis = sportsEmojis;
+  if (theme === 'story') emojis = storyEmojis;
   
   // Return emoji if available, otherwise a generic one
   return emojis[word.toUpperCase()] || '📚';

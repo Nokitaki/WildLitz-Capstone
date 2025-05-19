@@ -327,3 +327,151 @@
       font-size: 1.1rem;
     }
   }
+
+  /* Add these styles to src/styles/games/crossword/SummaryScreen.module.css */
+
+.storyRecap {
+  background-color: #f3e5f5;
+  border-radius: 15px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.recapTitle {
+  color: #9c27b0;
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.recapText {
+  color: #333;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.sentenceBuilderButton {
+  background-color: #9c27b0;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(156, 39, 176, 0.3);
+}
+
+.sentenceBuilderButton:hover {
+  background-color: #8e24aa;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(156, 39, 176, 0.4);
+}
+/* Additional styles for src/styles/games/crossword/SummaryScreen.module.css */
+
+.storyRecap {
+  background-color: #f3e5f5;
+  border-radius: 15px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.recapTitle {
+  color: #9c27b0;
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.recapText {
+  color: #333;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.recapQuestions {
+  margin-top: 12px;
+  border-top: 1px solid #e1bee7;
+  padding-top: 12px;
+}
+
+.recapQuestions h4 {
+  color: #7b1fa2;
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.recapQuestions ul {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.recapQuestions li {
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+.sentenceBuilderButton {
+  background-color: #9c27b0;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(156, 39, 176, 0.3);
+}
+
+.sentenceBuilderButton:hover {
+  background-color: #8e24aa;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(156, 39, 176, 0.4);
+}
+
+.readingActivities {
+  background-color: #e8f5e9;
+  border-radius: 15px;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-left: 4px solid #4caf50;
+}
+
+.activitiesTitle {
+  color: #2e7d32;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+.activitiesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.activityItem {
+  background-color: white;
+  border-radius: 8px;
+  padding: 10px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.activityItem h4 {
+  color: #4caf50;
+  margin-top: 0;
+  margin-bottom: 5px;
+  font-size: 0.95rem;
+}
+
+.activityItem p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666;
+}

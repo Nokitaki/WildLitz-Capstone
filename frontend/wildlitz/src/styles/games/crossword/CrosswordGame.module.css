@@ -59,3 +59,25 @@
     width: 70%;
   }
 }
+
+.readingCoachButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #7b1fa2;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 30px;
+  font-size: 1rem;
+  cursor: pointer;
+  z-index: 100;
+  box-shadow: 0 4px 10px rgba(123, 31, 162, 0.3);
+}
+
+.coachEmoji {
+  font-size: 1.5rem;
+}

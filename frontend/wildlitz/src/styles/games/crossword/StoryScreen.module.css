@@ -1,0 +1,407 @@
+/* src/styles/games/crossword/StoryScreen.module.css */
+
+.storyContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+.storyCard {
+  width: 100%;
+  max-width: 1200px;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.storyHeader {
+  background-color: #9c27b0;
+  color: white;
+  padding: 15px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.episodeTitle {
+  font-size: 1.6rem;
+  margin: 0;
+}
+
+.stageLabel {
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.storyContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Reading Pane */
+.readingPane {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.readingControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.readButton, .stopButton, .readingCoachButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.readButton {
+  background-color: #7b1fa2;
+  color: white;
+}
+
+.readButton:hover:not(.disabled) {
+  background-color: #6a1b9a;
+  transform: translateY(-2px);
+}
+
+.readButton.disabled {
+  background-color: #e1bee7;
+  cursor: not-allowed;
+}
+
+.stopButton {
+  background-color: #e53935;
+  color: white;
+}
+
+.stopButton:hover {
+  background-color: #d32f2f;
+  transform: translateY(-2px);
+}
+
+.readingCoachButton {
+  background-color: #ff9800;
+  color: white;
+  margin-left: auto;
+}
+
+.readingCoachButton:hover {
+  background-color: #f57c00;
+  transform: translateY(-2px);
+}
+
+.buttonIcon {
+  font-size: 1.2rem;
+}
+
+.storyTextWrapper {
+  background-color: #f5f5f5;
+  padding: 20px;
+  border-radius: 10px;
+  overflow-y: auto;
+  max-height: 300px;
+  position: relative;
+}
+
+.storyText {
+  font-size: 1.2rem;
+  line-height: 1.8;
+  color: #333;
+}
+
+.storyText.readingMode {
+  color: #757575;
+}
+
+.highlightedWord {
+  background-color: #ffeb3b;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-weight: 500;
+  color: #5d4037;
+}
+
+.readingProgress {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  margin-top: 15px;
+}
+
+.progressLabel {
+  font-size: 0.85rem;
+  margin-bottom: 5px;
+  color: #757575;
+  text-align: center;
+}
+
+.progressBar {
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: #7b1fa2;
+  transition: width 0.5s ease;
+}
+
+.vocabularySection {
+  background-color: #f3e5f5;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.vocabularyTitle {
+  font-size: 1.1rem;
+  color: #7b1fa2;
+  margin: 0 0 10px 0;
+}
+
+.vocabularyWords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.vocabularyWord {
+  background-color: #e1bee7;
+  color: #4a148c;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Discussion Pane */
+.discussionPane {
+  background-color: #e8f5e9;
+  padding: 15px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.discussionTitle {
+  font-size: 1.1rem;
+  color: #2e7d32;
+  margin: 0 0 10px 0;
+}
+
+.discussionQuestions {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 15px 0;
+}
+
+.discussionQuestion {
+  display: flex;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
+.questionNumber {
+  width: 24px;
+  height: 24px;
+  background-color: #4caf50;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.questionText {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+.teacherNote {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.teacherIcon {
+  font-size: 1.5rem;
+}
+
+.noteText {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+/* Puzzle Preparation Pane */
+.puzzlePreparationPane {
+  background-color: #e3f2fd;
+  padding: 15px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.preparationTitle {
+  font-size: 1.1rem;
+  color: #1565c0;
+  margin: 0 0 10px 0;
+}
+
+.preparationInstructions {
+  margin-bottom: 15px;
+}
+
+.preparationInstructions p {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+.highlightedWordExample {
+  background-color: #ffeb3b;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-weight: 500;
+  color: #5d4037;
+}
+
+.puzzleTips {
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.tipsTitle {
+  font-size: 1rem;
+  color: #1565c0;
+  margin: 0 0 8px 0;
+}
+
+.tipsList {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.tipsList li {
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+/* Continue Button */
+.continueButtonContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.continueButton {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.continueButton:hover:not(:disabled) {
+  background-color: #f57c00;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3);
+}
+
+.continueButton:disabled {
+  background-color: #ffe0b2;
+  color: #bdbdbd;
+  cursor: not-allowed;
+}
+
+.continueDisabledMessage {
+  font-size: 0.9rem;
+  color: #f57c00;
+  margin-top: 8px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .storyCard {
+    padding: 15px;
+  }
+  
+  .episodeTitle {
+    font-size: 1.3rem;
+  }
+  
+  .storyText {
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+  
+  .storyTextWrapper {
+    max-height: 250px;
+    padding: 15px;
+  }
+  
+  .readButton, .stopButton, .readingCoachButton {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+  
+  .buttonIcon {
+    font-size: 1rem;
+  }
+  
+  .vocabularyWord {
+    font-size: 0.8rem;
+    padding: 4px 10px;
+  }
+  
+  .continueButton {
+    padding: 10px 25px;
+    font-size: 1rem;
+  }
+}

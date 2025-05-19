@@ -2,12 +2,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/crossword/GameplayScreen.module.css';
-
+import AdaptiveHintSystem from '../../../components/crossword/AdaptiveHintSystem';
 /**
  * GameplayScreen component for Crossword Puzzle
  * Shows the crossword grid, clues, and input field
  */
-const GameplayScreen = ({ puzzle, theme, onWordSolved, solvedWords, timeFormatted }) => {
+const GameplayScreen = ({ puzzle, theme, onWordSolved, solvedWords, timeFormatted, storyContext }) => {
   // Current state
   const [currentInput, setCurrentInput] = useState('');
   const [selectedClue, setSelectedClue] = useState(null);
@@ -22,6 +22,26 @@ const GameplayScreen = ({ puzzle, theme, onWordSolved, solvedWords, timeFormatte
   // References
   const inputRef = useRef(null);
   
+
+  const [showAdaptiveHints, setShowAdaptiveHints] = useState(false);
+  const [hintHistory, setHintHistory] = useState([]);
+  const [incorrectAttempts, setIncorrectAttempts] = useState({});
+
+  
+ const handleAdaptiveHint = (hint) => {
+  setHintHistory(prev => [...prev, hint]);
+  
+  // Display the hint as a popup
+  setShowHint(true);
+  setLastHint(hint.text);
+  
+  // Hide hint after 3 seconds
+  setTimeout(() => {
+    setShowHint(false);
+  }, 3000);
+};
+
+
   // Initialize grid state when puzzle changes
   useEffect(() => {
     if (puzzle && puzzle.grid) {
@@ -419,15 +439,15 @@ const GameplayScreen = ({ puzzle, theme, onWordSolved, solvedWords, timeFormatte
           </ul>
         </div>
         
-        <motion.button
-          className={styles.hintButton}
-          onClick={handleUseHint}
-          disabled={hintsRemaining <= 0 || !selectedClue}
-          whileHover={{ scale: hintsRemaining > 0 && selectedClue ? 1.05 : 1 }}
-          whileTap={{ scale: hintsRemaining > 0 && selectedClue ? 0.95 : 1 }}
-        >
-          Use a Hint ({hintsRemaining} left)
-        </motion.button>
+       <motion.button
+  className={styles.hintButton}
+  onClick={() => setShowAdaptiveHints(true)}
+  disabled={!selectedClue}
+  whileHover={{ scale: selectedClue ? 1.05 : 1 }}
+  whileTap={{ scale: selectedClue ? 0.95 : 1 }}
+>
+  Smart Hints ({hintsRemaining} left)
+</motion.button>
       </div>
     );
   };
@@ -437,6 +457,26 @@ const GameplayScreen = ({ puzzle, theme, onWordSolved, solvedWords, timeFormatte
       <div className={styles.gameplayCard}>
         {/* Header with theme and timer */}
         <div className={styles.gameHeader}>
+
+            {storyContext && (
+          <div className={styles.storyContextBanner}>
+            <div className={styles.storyContextTitle}>
+              <span>Episode {storyContext.episodeNumber}: {storyContext.title}</span>
+            </div>
+            <div className={styles.storyContextHint}>
+              Remember the story you just read! The answers are in the story.
+            </div>
+          </div>
+        )}
+        
+        {/* Header with theme and timer */}
+        <div className={styles.gameHeader}>
+          <span className={styles.themeLabel}>
+            {theme === "story" ? "Story Adventure" : `Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)}`}
+          </span>
+          <span className={styles.timer}>{timeFormatted}</span>
+        </div>
+
           <span className={styles.themeLabel}>Theme: {theme.charAt(0).toUpperCase() + theme.slice(1)}</span>
           <span className={styles.timer}>{timeFormatted}</span>
         </div>
@@ -494,6 +534,21 @@ const GameplayScreen = ({ puzzle, theme, onWordSolved, solvedWords, timeFormatte
             </div>
           </motion.div>
         )}
+
+         {showAdaptiveHints && selectedClue && (
+        <div className={styles.adaptiveHintOverlay}>
+          <AdaptiveHintSystem
+            word={selectedClue.answer}
+            definition={selectedClue.definition}
+            clue={selectedClue.clue}
+            storyContext={storyContext ? storyContext.text : null}
+            previousHints={hintHistory}
+            attemptCount={incorrectAttempts[selectedClue.answer] || 0}
+            onClose={() => setShowAdaptiveHints(false)}
+            onUseHint={handleAdaptiveHint}
+          />
+        </div>
+      )}
         
       </div>
     </div>

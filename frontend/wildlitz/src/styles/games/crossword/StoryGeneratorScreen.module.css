@@ -1,0 +1,367 @@
+/* src/styles/games/crossword/StoryGeneratorScreen.module.css */
+
+.generatorContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.generatorCard {
+  width: 100%;
+  max-width: 800px;
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+.generatorTitle {
+  color: #6a1b9a;
+  font-size: 1.8rem;
+  margin: 0 0 5px 0;
+  text-align: center;
+}
+
+.generatorSubtitle {
+  color: #666;
+  font-size: 1rem;
+  margin: 0 0 25px 0;
+  text-align: center;
+}
+
+.generatorForm {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.formLabel {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.optionalHint {
+  font-size: 0.8rem;
+  font-weight: normal;
+  color: #666;
+}
+
+.themeOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.themeOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f5f5f5;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 15px;
+  width: calc(20% - 8px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.themeOption:hover {
+  background-color: #f0e4fa;
+  transform: translateY(-2px);
+}
+
+.themeOption.selected {
+  background-color: #e1bee7;
+  border-color: #9c27b0;
+}
+
+.themeIcon {
+  width: 50px;
+  height: 50px;
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 8px;
+}
+
+.jungleIcon {
+  background-image: url('https://cdn-icons-png.flaticon.com/512/628/628324.png');
+}
+
+.spaceIcon {
+  background-image: url('https://cdn-icons-png.flaticon.com/512/2385/2385703.png');
+}
+
+.oceanIcon {
+  background-image: url('https://cdn-icons-png.flaticon.com/512/3334/3334538.png');
+}
+
+.farmIcon {
+  background-image: url('https://cdn-icons-png.flaticon.com/512/2369/2369593.png');
+}
+
+.cityIcon {
+  background-image: url('https://cdn-icons-png.flaticon.com/512/3026/3026763.png');
+}
+
+.skillsOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.skillOption {
+  display: flex;
+  align-items: center;
+  background-color: #f5f5f5;
+  border: 2px solid #e0e0e0;
+  border-radius: 30px;
+  padding: 8px 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.skillOption:hover {
+  background-color: #f0e4fa;
+}
+
+.skillOption.selected {
+  background-color: #e1bee7;
+  border-color: #9c27b0;
+}
+
+.skillCheckbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #9c27b0;
+  margin-right: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #9c27b0;
+  font-weight: bold;
+}
+
+.textInput {
+  padding: 12px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.textInput:focus {
+  border-color: #9c27b0;
+  outline: none;
+}
+
+.episodeCountWrapper {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+}
+
+.countButton {
+  width: 40px;
+  height: 40px;
+  background-color: #f5f5f5;
+  border: 2px solid #e0e0e0;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.countButton:hover {
+  background-color: #f0e4fa;
+}
+
+.episodeCount {
+  width: 60px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.actionButtons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.cancelButton, .generateButton {
+  padding: 12px 25px;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.cancelButton {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 2px solid #e0e0e0;
+}
+
+.cancelButton:hover {
+  background-color: #e0e0e0;
+}
+
+.generateButton {
+  background-color: #9c27b0;
+  color: white;
+  padding: 14px 30px;
+}
+
+.generateButton:hover {
+  background-color: #7b1fa2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(156, 39, 176, 0.3);
+}
+
+/* Loading/Generating State */
+.generatingContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.progressContainer {
+  width: 100%;
+  height: 12px;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  background-color: #9c27b0;
+  transition: width 0.5s ease;
+}
+
+.progressText {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.generationSteps {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 10px 0;
+}
+
+.stepItem {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 15px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.stepItem.completed {
+  background-color: #e8f5e9;
+}
+
+.stepIcon {
+  font-size: 1.5rem;
+}
+
+.stepText {
+  font-size: 1rem;
+  color: #666;
+}
+
+.errorMessage {
+  margin-top: 20px;
+  background-color: #ffebee;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #f44336;
+  width: 100%;
+  text-align: center;
+}
+
+.errorMessage p {
+  color: #d32f2f;
+  margin: 0 0 10px 0;
+}
+
+.retryButton {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.retryButton:hover {
+  background-color: #d32f2f;
+}
+
+@media (max-width: 768px) {
+  .generatorCard {
+    padding: 20px;
+  }
+  
+  .themeOption {
+    width: calc(33.33% - 7px);
+  }
+  
+  .generatorTitle {
+    font-size: 1.5rem;
+  }
+  
+  .generatorSubtitle {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .themeOption {
+    width: calc(50% - 5px);
+  }
+  
+  .actionButtons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .cancelButton, .generateButton {
+    width: 100%;
+  }
+}
