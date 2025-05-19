@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/homepage.css';
 import wildLitzLogo from '../../assets/img/wildlitz-logo.png';
 import syllableClappingImg from '../../assets/img/syllable-clapping-game.jpg';
 import soundSafariImg from '../../assets/img/sound-safari-game.jpg';
-// Remove the static vanishing game image import
-// import vanishingGameImg from '../../assets/img/vanishing-game.jpg';
 import crosswordGameImg from '../../assets/img/crossword-game.png';
 import { motion } from 'framer-motion';
 import GameTipsModal from '../../components/modals/GameTipsModal';
@@ -14,7 +12,25 @@ import syllableClappingCharacter from '../../assets/img/syllable-clapping-charac
 // Import the new animation component
 import VanishingGameAnimation from '../../components/animations/VanishingGameAnimation';
 
+// Force scrolling with useEffect
 function HomePage() {
+  // Force scrolling styles
+  useEffect(() => {
+    // Force body to be scrollable
+    document.body.style.overflow = "auto";
+    document.body.style.height = "auto";
+    document.documentElement.style.overflow = "auto";
+    document.documentElement.style.height = "auto";
+    
+    return () => {
+      // Optional: Reset styles when component unmounts
+      document.body.style.overflow = "";
+      document.body.style.height = "";
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.height = "";
+    };
+  }, []);
+  
   const navigate = useNavigate();
   
   // State for managing modal visibility
@@ -51,7 +67,7 @@ function HomePage() {
   };
 
   return (
-    <div className="home-container">
+    <div className="home-container" style={{ overflow: "auto", height: "auto", minHeight: "100vh" }}>
       <header className="navbar">
         <div className="logo-container">
           <img src={wildLitzLogo} alt="WildLitz Logo" className="logo" />

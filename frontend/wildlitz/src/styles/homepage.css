@@ -1,6 +1,27 @@
-.body{
-  overflow: auto;
+/* Fix for scrolling issues */
+body {
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
 }
+
+html {
+  height: 100%;
+  overflow-y: scroll;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh; /* Changed from fixed height to min-height */
+}
+
+.App {
+  width: 100%;
+  min-height: 100%; /* Changed from fixed height to min-height */
+}
+
+/* Original homepage.css content with fixes */
 .home-container {
   width: 100%;
   min-height: 100vh;
@@ -8,6 +29,7 @@
   color: white;
   padding: 40px;
   font-family: 'Poppins', sans-serif;
+  overflow-y: auto; /* Added to ensure content is scrollable */
 }
 
 .navbar {
@@ -264,4 +286,3 @@
     font-size: 1rem;
   }
 }
-
