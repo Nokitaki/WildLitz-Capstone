@@ -24,6 +24,7 @@
   padding: 20px;
   overflow: auto;
   max-height: 95vh;
+  position: relative;
 }
 
 /* Teacher View Toggle */
@@ -95,10 +96,15 @@
   display: flex;
   flex-direction: row;
   gap: 20px;
+  align-items: flex-start;
+  height: 100%;
 }
 
 .gameArea {
   flex: 3;
+  display: flex;
+  flex-direction: column;
+  min-height: 600px; /* Ensure minimum height for game area */
 }
 
 .cluesArea {
@@ -176,39 +182,51 @@
 
 /* Crossword Grid */
 .gridContainer {
-  background-color: #f5f5f5; /* Light grey instead of black */
+  background-color: #f5f5f5;
   border-radius: 15px;
-  padding: 20px;
-  border: 3px solid #9c27b0; /* Purple border for fun */
+  padding: 15px;
+  border: 3px solid #9c27b0;
   box-shadow: 0 5px 15px rgba(156, 39, 176, 0.2);
+  display: flex;
+  width: 100%;
+  min-height: 400px; /* Ensure minimum height */
+  max-height: 500px; /* Cap the maximum height */
 }
 
 .emptyGridMessage {
-  color: #fff;
+  color: #666;
   font-size: 16px;
   font-style: italic;
   text-align: center;
+  padding: 20px;
 }
 
 .crosswordGrid {
   display: grid;
   gap: 1px;
-  background-color: #e0e0e0; /* Light grey grid lines */
+  background-color: #e0e0e0;
   border-radius: 8px;
-  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
 }
 
-.cell {
-  width: 45px; /* Larger cells */
-  height: 45px; /* Larger cells */
-  background-color: white;
-  position: relative;
+/* Make cells expand to fill the available space */
+.cell, .emptyCell {
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
+}
+
+.cell {
+  background-color: white;
+  border: 1px solid #aaa;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid #aaa;
+  font-size: clamp(14px, 2vw, 22px); /* Responsive font size */
 }
 
 .cell:hover {
@@ -219,13 +237,8 @@
 }
 
 .emptyCell {
-  width: 45px;
-  height: 45px;
-  background-color: #f0f0f0; /* Very light grey for empty cells */
+  background-color: #f0f0f0;
   border: 1px solid #e0e0e0;
-}
-
-.emptyCell {
   background-image: linear-gradient(45deg, #f0f0f0 25%, #e8e8e8 25%, #e8e8e8 50%, #f0f0f0 50%, #f0f0f0 75%, #e8e8e8 75%, #e8e8e8 100%);
   background-size: 10px 10px;
 }
@@ -234,12 +247,12 @@
   position: absolute;
   top: 2px;
   left: 2px;
-  font-size: 12px;
+  font-size: clamp(10px, 1vw, 12px);
   color: #333;
   font-weight: bold;
   background-color: rgba(255, 255, 255, 0.8);
-  width: 16px;
-  height: 16px;
+  width: clamp(14px, 1.2vw, 16px);
+  height: clamp(14px, 1.2vw, 16px);
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -621,4 +634,124 @@
   align-items: center;
   z-index: 1000;
   backdrop-filter: blur(5px);
+}
+
+/* AI Status indicators */
+.aiStatusIndicator {
+  background-color: #f5f5f5;
+  padding: 8px 16px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.aiGenerating {
+  display: flex;
+  align-items: center;
+  color: #9c27b0;
+}
+
+.aiReady {
+  display: flex;
+  align-items: center;
+  color: #4caf50;
+}
+
+.smallSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(156, 39, 176, 0.2);
+  border-top: 2px solid #9c27b0;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+/* Loading overlay */
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  border-radius: 20px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(156, 39, 176, 0.2);
+  border-top: 4px solid #9c27b0;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loadingOverlay p {
+  font-size: 1.2rem;
+  color: #9c27b0;
+  font-weight: 500;
+}
+
+/* Loading state for answer choices */
+.loadingChoices {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  gap: 12px;
+}
+
+.loadingChoices .spinner {
+  width: 30px;
+  height: 30px;
+}
+
+.loadingChoices p {
+  font-size: 1rem;
+  color: #666;
+}
+
+/* Media queries for mobile responsiveness */
+@media (max-width: 768px) {
+  .gameLayout {
+    flex-direction: column;
+  }
+  
+  .gridContainer {
+    padding: 10px;
+    min-height: 300px;
+  }
+  
+  .gameArea {
+    min-height: auto;
+  }
+  
+  .teacherButtons {
+    flex-direction: column;
+  }
+  
+  .choicesList {
+    grid-template-columns: 1fr;
+  }
+  
+  .cluesSection {
+    height: auto;
+    max-height: 300px;
+  }
 }

@@ -5,7 +5,7 @@ import AdaptiveHintSystem from '../../../components/crossword/AdaptiveHintSystem
 import styles from '../../../styles/games/crossword/GameplayScreen.module.css';
 
 /**
- * GameplayScreen component for Crossword Puzzle
+ * GameplayScreen component for Crossword Puzzle with improved hint system
  */
 const GameplayScreen = ({ 
   puzzle, 
@@ -28,17 +28,22 @@ const GameplayScreen = ({
   const [answerChoices, setAnswerChoices] = useState([]);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [feedback, setFeedback] = useState(null);
-  const [wordIntersections, setWordIntersections] = useState({}); // Track cell intersections
+  const [wordIntersections, setWordIntersections] = useState({});
   
-  // Local state to track solved clues between navigations
+  // Local state to track solved clues
   const [solvedClues, setSolvedClues] = useState({});
+  const [cluesMap, setCluesMap] = useState({});
+  const [isLoadingClues, setIsLoadingClues] = useState(false);
+  const [isLoadingChoices, setIsLoadingChoices] = useState(false);
   
-  // Create grid immediately when puzzle changes
+  // Create grid when puzzle changes
   useEffect(() => {
     if (puzzle && puzzle.size) {
       console.log("Creating grid with size:", puzzle.size);
+      console.log("Puzzle words:", puzzle.words);
       createGrid();
       findWordIntersections();
+      generateClues();
     }
   }, [puzzle]);
   
@@ -49,273 +54,6 @@ const GameplayScreen = ({
       updateGridWithSolvedWords();
     }
   }, [solvedWords]);
-
-
-
-
-
-
-
-const generateCellsForWord = (word, gridSize, existingWords = []) => {
-  if (word.cells && Array.isArray(word.cells)) {
-    return word.cells; // Return existing cells if present
-  }
-  
-  const answer = word.answer.toUpperCase();
-  const cells = [];
-  const maxRow = gridSize.height - 1;
-  const maxCol = gridSize.width - 1;
-  
-  // Create a more organized layout based on word number and direction
-  let startRow, startCol;
-  
-  if (word.direction === 'across') {
-    // Place across words along the left side, spaced vertically
-    startRow = Math.min(word.number * 2, maxRow);
-    startCol = 0; // Start from the left edge
-  } else { // down
-    // Place down words along the top, spaced horizontally
-    startRow = 0; // Start from the top
-    startCol = Math.min(word.number * 2, maxCol);
-  }
-  
-  // For words with the same number but different directions, try to create proper intersections
-  if (existingWords.length > 0) {
-    // Find potential intersection points with existing words
-    for (const existingWord of existingWords) {
-      // Only try to intersect words with different directions
-      if (existingWord.direction !== word.direction) {
-        for (let i = 0; i < answer.length; i++) {
-          const letterToIntersect = answer[i];
-          
-          // Find the same letter in the existing word
-          for (let j = 0; j < existingWord.answer.length; j++) {
-            if (existingWord.answer[j] === letterToIntersect) {
-              // Create an intersection at this point
-              if (word.direction === 'across') {
-                startRow = existingWord.cells[j].row;
-                startCol = existingWord.cells[j].col - i;
-              } else { // down
-                startRow = existingWord.cells[j].row - i;
-                startCol = existingWord.cells[j].col;
-              }
-              
-              // Validate the position to make sure it doesn't go out of bounds
-              if (startRow < 0 || startCol < 0) continue;
-              if (word.direction === 'across' && startCol + answer.length > maxCol) continue;
-              if (word.direction === 'down' && startRow + answer.length > maxRow) continue;
-              
-              // Found a valid intersection, break out of the inner loop
-              break;
-            }
-          }
-          
-          // If we found a valid intersection, break out of the outer loop
-          if ((word.direction === 'across' && startRow !== 0) || 
-              (word.direction === 'down' && startCol !== 0)) {
-            break;
-          }
-        }
-      }
-      
-      // If we found a valid intersection, break out of the existingWords loop
-      if ((word.direction === 'across' && startRow !== 0) || 
-          (word.direction === 'down' && startCol !== 0)) {
-        break;
-      }
-    }
-  }
-  
-  // Generate cells for each letter in the word
-  for (let i = 0; i < answer.length; i++) {
-    if (word.direction === 'across') {
-      cells.push({
-        row: startRow,
-        col: startCol + i
-      });
-    } else { // down
-      cells.push({
-        row: startRow + i,
-        col: startCol
-      });
-    }
-  }
-  
-  return cells;
-};
-
-
-
-
-
-  
-  // Find all cells where words intersect
- const findWordIntersections = () => {
-  if (!puzzle || !puzzle.words) return;
-  
-  const intersections = {};
-  const processedWords = [];
-  
-  // Process words in order to build proper intersections
-  if (puzzle.size) {
-    // Sort words by direction and number for better processing
-    // Process "across" words first, then "down" words
-    const sortedWords = [...puzzle.words].sort((a, b) => {
-      if (a.direction === b.direction) return a.number - b.number;
-      return a.direction === 'across' ? -1 : 1;
-    });
-    
-    // Generate cells for each word
-    sortedWords.forEach(word => {
-      if (!word.cells || !Array.isArray(word.cells)) {
-        console.log(`Generating cells for word: ${word.answer}`);
-        word.cells = generateCellsForWord(word, puzzle.size, processedWords);
-        processedWords.push(word);
-      }
-    });
-  }
-  
-  // Continue with the original intersection finding logic
-  puzzle.words.forEach(word => {
-    if (!word.cells || !Array.isArray(word.cells)) {
-      console.error("Word is missing cells array:", word);
-      return;
-    }
-  });
-  
-  // For each pair of words
-  for (let i = 0; i < puzzle.words.length; i++) {
-    for (let j = i + 1; j < puzzle.words.length; j++) {
-      const word1 = puzzle.words[i];
-      const word2 = puzzle.words[j];
-      
-      // Check if they share a cell
-      word1.cells.forEach(cell1 => {
-        word2.cells.forEach(cell2 => {
-          if (cell1.row === cell2.row && cell1.col === cell2.col) {
-            // This is an intersection
-            const key = `${cell1.row}-${cell1.col}`;
-            intersections[key] = true;
-          }
-        });
-      });
-    }
-  }
-  
-  setWordIntersections(intersections);
-};
-  
-  // Create the grid cells
-  const createGrid = () => {
-  if (!puzzle || !puzzle.size) {
-    console.error("Cannot create grid: puzzle or size missing");
-    return;
-  }
-  
-  // Process words to generate cells in the correct order
-  const processedWords = [];
-  
-  // Sort words by direction and number for better layout
-  const sortedWords = [...puzzle.words].sort((a, b) => {
-    if (a.direction === b.direction) return a.number - b.number;
-    return a.direction === 'across' ? -1 : 1;
-  });
-  
-  // Generate cells for words that don't have them
-  sortedWords.forEach(word => {
-    if (!word.cells || !Array.isArray(word.cells)) {
-      word.cells = generateCellsForWord(word, puzzle.size, processedWords);
-      processedWords.push(word);
-    } else {
-      processedWords.push(word);
-    }
-  });
-  
-  // Create grid with appropriate size
-  const { width, height } = puzzle.size;
-  console.log(`Creating ${width}x${height} grid`);
-  
-  // Create empty grid
-  const cells = [];
-  for (let row = 0; row < height; row++) {
-    for (let col = 0; col < width; col++) {
-      // Find if this cell has a number
-      const cellWithNumber = puzzle.words.find(word => 
-        word.cells && word.cells.length > 0 && 
-        word.cells[0].row === row && word.cells[0].col === col
-      );
-      
-      // Check if cell should be empty
-      const isEmptyCell = !puzzle.words.some(word => 
-        word.cells && word.cells.some(cell => 
-          cell.row === row && cell.col === col
-        )
-      );
-      
-      cells.push({
-        row,
-        col,
-        value: '',
-        revealed: false,
-        number: cellWithNumber?.number || null,
-        isEmpty: isEmptyCell
-      });
-    }
-  }
-  
-  setGridCells(cells);
-  console.log("Grid created with", cells.length, "cells");
-  
-  // If we have solved words, update the grid
-  if (solvedWords.length > 0) {
-    updateGridWithSolvedWords();
-  }
-};
-  
-  // Update grid with solved words
-  const updateGridWithSolvedWords = () => {
-    if (!puzzle || !puzzle.words || solvedWords.length === 0) return;
-    
-    // Create a map of solved words for easy lookup
-    const solvedWordsMap = solvedWords.reduce((map, word) => {
-      map[word.word.toUpperCase()] = true;
-      return map;
-    }, {});
-    
-    // Create a new grid with updated cells
-    const updatedCells = [...gridCells];
-    
-    // For each word in the puzzle
-    puzzle.words.forEach(word => {
-      // Check if this word is solved
-      if (solvedWordsMap[word.answer.toUpperCase()]) {
-        console.log("Found solved word:", word.answer);
-        
-        // Mark this word as solved in our tracking
-        setSolvedClues(prev => ({
-          ...prev,
-          [`${word.direction}-${word.number}`]: true
-        }));
-        
-        // Reveal all cells for this word
-        word.cells.forEach((cell, idx) => {
-          const cellIndex = updatedCells.findIndex(c => 
-            c.row === cell.row && c.col === cell.col
-          );
-          
-          if (cellIndex !== -1) {
-            updatedCells[cellIndex] = {
-              ...updatedCells[cellIndex],
-              value: word.answer[idx],
-              revealed: true
-            };
-          }
-        });
-      }
-    });
-    
-    setGridCells(updatedCells);
-  };
   
   // Set initial selected clue on component mount
   useEffect(() => {
@@ -331,47 +69,301 @@ const generateCellsForWord = (word, gridSize, existingWords = []) => {
   // Generate new answer choices when the selected clue changes
   useEffect(() => {
     if (selectedClue) {
-      generateChoicesForClue(selectedClue);
+      // Clear existing choices
+      setAnswerChoices([]);
       setSelectedAnswer(null);
       setFeedback(null);
+      
+      // Generate choices for the new clue
+      generateChoicesForClue(selectedClue);
     }
   }, [selectedClue]);
   
-  // Function to generate choices for a clue
+  // Generate clues for all words
+  const generateClues = () => {
+    if (!puzzle || !puzzle.words) return;
+    
+    setIsLoadingClues(true);
+    
+    try {
+      const newCluesMap = {};
+      
+      // Use clues directly from the puzzle data
+      puzzle.words.forEach(word => {
+        newCluesMap[word.answer] = word.clue || generateProperClue(word.answer, theme);
+      });
+      
+      setCluesMap(newCluesMap);
+    } catch (error) {
+      console.error("Error generating clues:", error);
+    } finally {
+      setIsLoadingClues(false);
+    }
+  };
+  
+  /**
+   * Get the appropriate clue for a word
+   */
+  const getClueForWord = (word) => {
+    // If we have clues, use those
+    if (cluesMap && cluesMap[word]) {
+      return cluesMap[word];
+    }
+    
+    // Fallback to clue generator
+    return generateProperClue(word, theme);
+  };
+  
+  /**
+   * Clue generator (fallback)
+   */
+  const generateProperClue = (word, theme) => {
+    // Dictionary of clues for common words
+    const clueMap = {
+      // Jungle themed clues
+      "MAP": "Drawing that shows locations and features of an area",
+      "TREASURE": "Collection of valuable items",
+      "PATH": "Track or route for walking",
+      "JOURNEY": "Travel from one place to another",
+      "COMPASS": "Instrument that shows directions",
+    };
+    
+    // Return specific clue if it exists
+    if (clueMap[word]) {
+      return clueMap[word];
+    }
+    
+    // Generate general clues based on word length and type
+    if (word.length <= 3) {
+      return `Short ${theme} word with ${word.length} letters`;
+    } else if (word.length <= 5) {
+      return `Medium ${theme} word that starts with '${word[0]}'`;
+    } else {
+      return `Longer ${theme} word (${word.length} letters) found in the story`;
+    }
+  };
+  
+  /**
+   * Answer choice generator
+   */
   const generateChoicesForClue = (clue) => {
     const correctAnswer = clue.answer;
     
-    // Simple algorithm to generate fake but plausible answers
-    const generateFakeAnswer = (real) => {
-      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      let fake = real.split('');
-      
-      // Change 1-2 letters
-      for (let i = 0; i < Math.min(2, real.length); i++) {
-        const pos = Math.floor(Math.random() * fake.length);
-        fake[pos] = letters[Math.floor(Math.random() * letters.length)];
-      }
-      
-      return fake.join('');
+    // Dictionary of related words to use as distractors
+    const relatedWordMap = {
+      "MAP": ["PLAN", "CHAT", "CAP"],
+      "PATH": ["ROAD", "WALK", "BATH"],
+      "TREASURE": ["PLEASURE", "MEASURE", "FEATURE"],
+      "COMPASS": ["COMPARE", "COMPOST", "COMPACT"],
+      "JOURNEY": ["TOURNEY", "HURRAY", "JOYFUL"]
     };
     
-    // Create 3 fake options
+    // Create array to hold choices
     let choices = [correctAnswer];
-    while (choices.length < 4) {
-      const fake = generateFakeAnswer(correctAnswer);
-      if (!choices.includes(fake) && fake !== correctAnswer) {
-        choices.push(fake);
+    
+    // Try to use related words from the map
+    const relatedWords = relatedWordMap[correctAnswer] || [];
+    for (const word of relatedWords) {
+      if (choices.length < 4 && word !== correctAnswer) {
+        choices.push(word);
       }
     }
     
-    // Shuffle the array
-    choices = choices.sort(() => Math.random() - 0.5);
+    // If we don't have enough choices, generate plausible words
+    while (choices.length < 4) {
+      const letterPool = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      let fakeWord = '';
+      
+      for (let i = 0; i < correctAnswer.length; i++) {
+        // 25% chance to keep the original letter
+        if (Math.random() < 0.25) {
+          fakeWord += correctAnswer[i];
+        } else {
+          fakeWord += letterPool[Math.floor(Math.random() * letterPool.length)];
+        }
+      }
+      
+      // Check if this fake word is unique and not the correct answer
+      if (!choices.includes(fakeWord) && fakeWord !== correctAnswer) {
+        choices.push(fakeWord);
+      }
+    }
     
-    // Set the choices in state
-    setAnswerChoices(choices);
+    // Shuffle the choices
+    setAnswerChoices(choices.sort(() => Math.random() - 0.5));
   };
   
-  // Check if a word has been solved
+  /**
+   * Find all cells where words intersect
+   */
+  const findWordIntersections = () => {
+    if (!puzzle || !puzzle.words) return;
+    
+    const intersections = {};
+    
+    // For each pair of words
+    for (let i = 0; i < puzzle.words.length; i++) {
+      for (let j = i + 1; j < puzzle.words.length; j++) {
+        const word1 = puzzle.words[i];
+        const word2 = puzzle.words[j];
+        
+        if (!word1.cells || !word2.cells) continue;
+        
+        // Check if they share a cell
+        word1.cells.forEach(cell1 => {
+          word2.cells.forEach(cell2 => {
+            if (cell1.row === cell2.row && cell1.col === cell2.col) {
+              // This is an intersection
+              const key = `${cell1.row}-${cell1.col}`;
+              intersections[key] = true;
+            }
+          });
+        });
+      }
+    }
+    
+    setWordIntersections(intersections);
+  };
+  
+  /**
+   * Create the crossword grid
+   */
+  const createGrid = () => {
+  if (!puzzle || !puzzle.words) {
+    console.error("Cannot create grid: puzzle or words missing");
+    return;
+  }
+  
+  console.log("Creating grid with puzzle:", puzzle);
+  
+  // Determine actual grid size from the word cells
+  let maxRow = 0;
+  let maxCol = 0;
+  
+  // Calculate maximum row and column from all word cells
+  puzzle.words.forEach(word => {
+    if (word.cells && word.cells.length > 0) {
+      word.cells.forEach(cell => {
+        maxRow = Math.max(maxRow, cell.row);
+        maxCol = Math.max(maxCol, cell.col);
+      });
+    }
+  });
+  
+  // Add 1 to get the grid dimensions (since rows/cols are 0-based)
+  const gridHeight = maxRow + 1;
+  const gridWidth = maxCol + 1;
+  
+  console.log(`Calculated grid size: ${gridWidth}x${gridHeight}`);
+  
+  // Create a matrix to track which cells have content
+  const cellMatrix = Array(gridHeight).fill().map(() => Array(gridWidth).fill(false));
+  
+  // Mark cells that contain letters
+  puzzle.words.forEach(word => {
+    if (word.cells && word.cells.length > 0) {
+      word.cells.forEach(cell => {
+        if (cell.row >= 0 && cell.row < gridHeight && cell.col >= 0 && cell.col < gridWidth) {
+          cellMatrix[cell.row][cell.col] = true;
+        }
+      });
+    }
+  });
+  
+  // Create cells array for the grid
+  const cells = [];
+  for (let row = 0; row < gridHeight; row++) {
+    for (let col = 0; col < gridWidth; col++) {
+      // Check if any word has a number at this position
+      const wordsStartingHere = puzzle.words.filter(word => 
+        word.cells && 
+        word.cells.length > 0 && 
+        word.cells[0].row === row && 
+        word.cells[0].col === col
+      );
+      
+      const cellNumber = wordsStartingHere.length > 0 ? wordsStartingHere[0].number : null;
+      
+      // Check if this is an empty cell (no letter)
+      const isEmpty = !cellMatrix[row][col];
+      
+      cells.push({
+        row,
+        col,
+        value: '',
+        revealed: false,
+        number: cellNumber,
+        isEmpty
+      });
+    }
+  }
+  
+  // Update grid size in puzzle for rendering
+  if (puzzle.size) {
+    puzzle.size.width = gridWidth;
+    puzzle.size.height = gridHeight;
+  } else {
+    puzzle.size = { width: gridWidth, height: gridHeight };
+  }
+  
+  setGridCells(cells);
+  
+  // If we have solved words, update the grid
+  if (solvedWords.length > 0) {
+    updateGridWithSolvedWords();
+  }
+};
+  
+  /**
+   * Update grid with solved words
+   */
+  const updateGridWithSolvedWords = () => {
+    if (!puzzle || !puzzle.words || solvedWords.length === 0) return;
+    
+    // Create a map of solved words for easy lookup
+    const solvedWordsMap = solvedWords.reduce((map, word) => {
+      map[word.word.toUpperCase()] = true;
+      return map;
+    }, {});
+    
+    // Create a new grid with updated cells
+    const updatedCells = [...gridCells];
+    
+    // For each word in the puzzle
+    puzzle.words.forEach(word => {
+      // Check if this word is solved
+      if (solvedWordsMap[word.answer]) {
+        // Mark this word as solved in our tracking
+        setSolvedClues(prev => ({
+          ...prev,
+          [`${word.direction}-${word.number}`]: true
+        }));
+        
+        // Reveal all cells for this word
+        if (word.cells) {
+          word.cells.forEach((cell, idx) => {
+            const cellIndex = updatedCells.findIndex(c => 
+              c.row === cell.row && c.col === cell.col
+            );
+            
+            if (cellIndex !== -1) {
+              updatedCells[cellIndex] = {
+                ...updatedCells[cellIndex],
+                value: word.answer[idx],
+                revealed: true
+              };
+            }
+          });
+        }
+      }
+    });
+    
+    setGridCells(updatedCells);
+  };
+  
+  /**
+   * Check if a word has been solved
+   */
   const isWordSolved = (word) => {
     if (!word) return false;
     
@@ -385,15 +377,18 @@ const generateCellsForWord = (word, gridSize, existingWords = []) => {
     );
   };
   
-  // Handle clue selection
+  /**
+   * Handle clue selection
+   */
   const handleSelectClue = (clue) => {
     if (clue) {
-      console.log("Selecting clue:", clue);
       setSelectedClue(clue);
     }
   };
   
-  // Get context sentence for teacher view based on selected clue
+  /**
+   * Get context sentence for teacher view based on selected clue
+   */
   const getContextForClue = () => {
     if (!storyContext || !storyContext.text || !selectedClue) return "";
     
@@ -403,18 +398,19 @@ const generateCellsForWord = (word, gridSize, existingWords = []) => {
     // Try to find a sentence containing the selected clue answer
     const answer = selectedClue.answer.toLowerCase();
     const matchingSentence = sentences.find(sentence => 
-      sentence.toLowerCase().includes(answer)
+      sentence.toLowerCase().includes(answer.toLowerCase())
     );
     
     return matchingSentence || sentences[0]; // Return matching or first sentence
   };
   
-  // Mark word as solved when answer is correct
+  /**
+   * Mark word as solved when answer is correct
+   */
   const handleMarkSolved = () => {
     if (!selectedClue) return;
     
-    const correctAnswer = selectedClue.answer.toUpperCase();
-    console.log("Marking as solved:", correctAnswer);
+    const correctAnswer = selectedClue.answer;
     
     // Update our local tracking of solved clues
     const key = `${selectedClue.direction}-${selectedClue.number}`;
@@ -449,7 +445,7 @@ const generateCellsForWord = (word, gridSize, existingWords = []) => {
       onWordSolved(
         correctAnswer,
         selectedClue.definition || "No definition available",
-        selectedClue.example || `The ${correctAnswer.toLowerCase()} is an interesting word.`
+        selectedClue.example || `The ${correctAnswer.toLowerCase()} is an important word in the story.`
       );
     }
     
@@ -458,21 +454,25 @@ const generateCellsForWord = (word, gridSize, existingWords = []) => {
     setFeedback({ type: 'success', message: 'Correct! Word added to the crossword.' });
     
     // Auto-select the next unsolved clue after a delay
-    const nextClue = findNextUnsolved();
-    if (nextClue) {
-      setTimeout(() => {
+    setTimeout(() => {
+      const nextClue = findNextUnsolved();
+      if (nextClue) {
         setSelectedClue(nextClue);
-      }, 800);
-    }
+      }
+    }, 800);
   };
 
-  // Handle answer selection
+  /**
+   * Handle answer selection
+   */
   const handleSelectAnswer = (choice) => {
     setSelectedAnswer(choice);
     setFeedback(null); // Reset feedback when new answer is selected
   };
 
-  // Handle answer submission
+  /**
+   * Handle answer submission
+   */
   const handleSubmitAnswer = () => {
     if (!selectedAnswer || !selectedClue) return;
     
@@ -499,15 +499,162 @@ const generateCellsForWord = (word, gridSize, existingWords = []) => {
     }
   };
 
-  // Render answer choices from state
+  /**
+   * IMPROVED - Handle showing a hint by revealing a random letter
+   */
+  const handleShowHint = () => {
+    if (hintsRemaining > 0 && selectedClue) {
+      setHintsRemaining(prev => prev - 1);
+      
+      // Get the currently selected word's cells
+      const wordCells = selectedClue.cells || [];
+      if (wordCells.length === 0) return;
+      
+      // Find unrevealed cells for this word
+      const unrevealedCells = wordCells.filter((cell, index) => {
+        const cellIndex = gridCells.findIndex(c => 
+          c.row === cell.row && c.col === cell.col
+        );
+        
+        return cellIndex !== -1 && !gridCells[cellIndex].revealed;
+      });
+      
+      // If all cells are revealed, show message
+      if (unrevealedCells.length === 0) {
+        setShowHint(true);
+        setLastHint("All letters for this word are already revealed!");
+        setTimeout(() => setShowHint(false), 3000);
+        return;
+      }
+      
+      // Choose a random unrevealed cell
+      const randomIndex = Math.floor(Math.random() * unrevealedCells.length);
+      const cellToReveal = unrevealedCells[randomIndex];
+      
+      // Find the position of this cell in the word
+      const letterPosition = wordCells.findIndex(c => 
+        c.row === cellToReveal.row && c.col === cellToReveal.col
+      );
+      
+      // Get the letter at this position
+      const letterToReveal = selectedClue.answer[letterPosition];
+      
+      // Create a hint message
+      setLastHint(`Revealing the letter "${letterToReveal}" in position ${letterPosition + 1}`);
+      setShowHint(true);
+      
+      // Update the grid to reveal this letter
+      const updatedCells = [...gridCells];
+      const cellIndex = updatedCells.findIndex(c => 
+        c.row === cellToReveal.row && c.col === cellToReveal.col
+      );
+      
+      if (cellIndex !== -1) {
+        updatedCells[cellIndex] = {
+          ...updatedCells[cellIndex],
+          value: letterToReveal,
+          revealed: true
+        };
+        
+        setGridCells(updatedCells);
+      }
+      
+      // Hide hint after 3 seconds
+      setTimeout(() => {
+        setShowHint(false);
+      }, 3000);
+    }
+  };
+  
+  /**
+   * Handle adaptive hint
+   */
+  const handleAdaptiveHint = (hint) => {
+    setHintHistory(prev => [...prev, hint]);
+    
+    // Display the hint as a popup
+    setShowHint(true);
+    setLastHint(hint.text);
+    
+    // If this is a letter reveal hint, update the grid
+    if (hint.type === 'letter_reveal' && selectedClue) {
+      const letterIndex = hint.letterIndex;
+      const letter = hint.letter;
+      
+      // Find the cell corresponding to this letter position
+      if (selectedClue.cells && letterIndex < selectedClue.cells.length) {
+        const cell = selectedClue.cells[letterIndex];
+        
+        // Update the grid
+        const updatedCells = [...gridCells];
+        const cellIndex = updatedCells.findIndex(c => 
+          c.row === cell.row && c.col === cell.col
+        );
+        
+        if (cellIndex !== -1) {
+          updatedCells[cellIndex] = {
+            ...updatedCells[cellIndex],
+            value: letter,
+            revealed: true
+          };
+          
+          setGridCells(updatedCells);
+        }
+      }
+    }
+    
+    // If this is a full reveal hint, reveal all letters
+    if (hint.type === 'full_reveal' && selectedClue) {
+      const updatedCells = [...gridCells];
+      
+      selectedClue.cells.forEach((cell, idx) => {
+        const cellIndex = updatedCells.findIndex(c => 
+          c.row === cell.row && c.col === cell.col
+        );
+        
+        if (cellIndex !== -1) {
+          updatedCells[cellIndex] = {
+            ...updatedCells[cellIndex],
+            value: selectedClue.answer[idx],
+            revealed: true
+          };
+        }
+      });
+      
+      setGridCells(updatedCells);
+    }
+    
+    // Hide hint after 3 seconds
+    setTimeout(() => {
+      setShowHint(false);
+    }, 3000);
+  };
+  
+  /**
+   * Render answer choices from state
+   */
   const renderAnswerChoices = () => {
-    if (!selectedClue || answerChoices.length === 0) return null;
+    if (!selectedClue) return null;
     
     // Check if the current clue is already solved
     const key = `${selectedClue.direction}-${selectedClue.number}`;
     const isSolved = solvedClues[key] || 
       solvedWords.some(word => word.word.toUpperCase() === selectedClue.answer.toUpperCase());
     
+    // Show loading state if generating choices
+    if (isLoadingChoices && answerChoices.length === 0) {
+      return (
+        <div className={styles.answerChoices}>
+          <h3 className={styles.choicesTitle}>Answer Choices:</h3>
+          <div className={styles.loadingChoices}>
+            <div className={styles.spinner}></div>
+            <p>Generating answer choices...</p>
+          </div>
+        </div>
+      );
+    }
+    
+    // Show answer choices once they're ready
     return (
       <div className={styles.answerChoices}>
         <h3 className={styles.choicesTitle}>Answer Choices:</h3>
@@ -542,7 +689,9 @@ const generateCellsForWord = (word, gridSize, existingWords = []) => {
     );
   };
 
-  // Find the next unsolved clue
+  /**
+   * Find the next unsolved clue
+   */
   const findNextUnsolved = () => {
     if (!puzzle || !puzzle.words) return null;
 
@@ -567,7 +716,9 @@ const generateCellsForWord = (word, gridSize, existingWords = []) => {
     return null;
   };
   
-  // Highlight the selected word in the context
+  /**
+   * Highlight the selected word in the context
+   */
   const highlightContextWord = () => {
     if (!selectedClue) return getContextForClue();
     
@@ -583,117 +734,117 @@ const generateCellsForWord = (word, gridSize, existingWords = []) => {
     );
   };
   
-  // Handle showing a hint
-  const handleShowHint = () => {
-    if (hintsRemaining > 0 && selectedClue) {
-      setHintsRemaining(prev => prev - 1);
-      setShowHint(true);
-      setLastHint(`The word starts with "${selectedClue.answer[0]}"`);
-      
-      // Hide hint after 3 seconds
-      setTimeout(() => {
-        setShowHint(false);
-      }, 3000);
-    }
-  };
-  
-  // Handle adaptive hint
-  const handleAdaptiveHint = (hint) => {
-    setHintHistory(prev => [...prev, hint]);
-    
-    // Display the hint as a popup
-    setShowHint(true);
-    setLastHint(hint.text);
-    
-    // Hide hint after 3 seconds
-    setTimeout(() => {
-      setShowHint(false);
-    }, 3000);
-  };
-  
-  // Render crossword grid
+  /**
+   * Render crossword grid
+   */
   const renderCrosswordGrid = () => {
-    if (!puzzle || !puzzle.size || gridCells.length === 0) {
-      console.warn("Cannot render grid - missing data");
-      return <div className={styles.emptyGridMessage}>Loading crossword grid...</div>;
-    }
-    
-    const { width, height } = puzzle.size;
-    
-    // Ensure the grid is rendered with proper dimensions
-    const gridStyle = {
-  gridTemplateColumns: `repeat(${width}, 45px)`,
-  gridTemplateRows: `repeat(${height}, 45px)`,
-  backgroundColor: '#f9f9f9', // Change from black to a light, friendly background
-  padding: '20px',
-  borderRadius: '15px',
-};
-    
-    return (
-      <div className={styles.crosswordGrid} style={gridStyle}>
-        {gridCells.map((cell, index) => {
-          // Skip empty cells
-          if (cell.isEmpty) {
-            return (
-              <div 
-                key={`${cell.row}-${cell.col}`} 
-                className={styles.emptyCell}
-              />
-            );
-          }
-          
-          // Check if this is an intersection cell
-          const isIntersection = wordIntersections[`${cell.row}-${cell.col}`];
-          
-          // Find if this cell belongs to the selected clue
-          const isSelected = selectedClue && 
-            selectedClue.cells && 
-            selectedClue.cells.some(c => c.row === cell.row && c.col === cell.col);
-          
+  if (!puzzle || !puzzle.size || gridCells.length === 0) {
+    return <div className={styles.emptyGridMessage}>Loading crossword grid...</div>;
+  }
+  
+  const width = puzzle.size.width;
+  const height = puzzle.size.height;
+  
+  // Ensure the grid is rendered with proper dimensions
+  const gridStyle = {
+    gridTemplateColumns: `repeat(${width}, 45px)`,
+    gridTemplateRows: `repeat(${height}, 45px)`,
+    backgroundColor: '#f9f9f9',
+    padding: '20px',
+    borderRadius: '15px',
+    display: 'grid',
+    gap: '1px',
+    margin: '0 auto', // Center the grid horizontally
+    maxWidth: 'fit-content' // Make grid only as wide as needed
+  };
+  
+  return (
+    <div className={styles.crosswordGrid} style={gridStyle}>
+      {gridCells.map((cell, index) => {
+        // Empty cells should have a different style
+        if (cell.isEmpty) {
           return (
             <div 
               key={`${cell.row}-${cell.col}`} 
-              className={`
-                ${styles.cell}
-                ${isSelected ? styles.selectedCell : ''} 
-                ${cell.revealed ? styles.solvedCell : ''} 
-                ${isIntersection ? styles.intersectionCell : ''}
-              `}
-              onClick={() => {
-                // Find word that this cell belongs to
-                const clickedWord = puzzle.words.find(word => 
-                  word.cells && word.cells.some(c => c.row === cell.row && c.col === cell.col)
-                );
-                if (clickedWord) handleSelectClue(clickedWord);
-              }}
-            >
-              {cell.number && <span className={styles.cellNumber}>{cell.number}</span>}
-              <span className={styles.cellValue}>
-                {cell.revealed ? cell.value : ''}
-              </span>
-            </div>
+              className={styles.emptyCell}
+            />
           );
-        })}
-      </div>
-    );
-  };
+        }
+        
+        // Check if this is an intersection cell
+        const isIntersection = wordIntersections[`${cell.row}-${cell.col}`];
+        
+        // Find if this cell belongs to the selected clue
+        const isSelected = selectedClue && 
+          selectedClue.cells && 
+          selectedClue.cells.some(c => c.row === cell.row && c.col === cell.col);
+        
+        return (
+          <div 
+            key={`${cell.row}-${cell.col}`} 
+            className={`
+              ${styles.cell}
+              ${isSelected ? styles.selectedCell : ''} 
+              ${cell.revealed ? styles.solvedCell : ''} 
+              ${isIntersection ? styles.intersectionCell : ''}
+            `}
+            onClick={() => {
+              // Find word that this cell belongs to
+              const clickedWord = puzzle.words.find(word => 
+                word.cells && word.cells.some(c => c.row === cell.row && c.col === cell.col)
+              );
+              if (clickedWord) handleSelectClue(clickedWord);
+            }}
+          >
+            {cell.number && <span className={styles.cellNumber}>{cell.number}</span>}
+            <span className={styles.cellValue}>
+              {cell.revealed ? cell.value : ''}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
-  // Check if all clues of a certain direction are solved
-  const areAllCluesSolved = (direction) => {
-    if (!puzzle || !puzzle.words) return false;
-    
-    const directionClues = puzzle.words.filter(word => word.direction === direction);
-    return directionClues.every(clue => {
+  /**
+   * Render the clue list for a specific direction
+   */
+  const renderClueList = (direction) => {
+    return puzzle?.words?.filter(word => word.direction === direction).map(clue => {
       const key = `${clue.direction}-${clue.number}`;
-      return solvedClues[key] || 
+      const isSolved = solvedClues[key] || 
         solvedWords.some(word => word.word.toUpperCase() === clue.answer.toUpperCase());
-    });
+      
+      return (
+        <li 
+          key={`${direction}-${clue.number}`}
+          className={`
+            ${styles.clueItem} 
+            ${selectedClue && selectedClue.number === clue.number && selectedClue.direction === clue.direction ? styles.active : ''} 
+            ${isSolved ? styles.solved : ''}
+          `}
+          onClick={() => handleSelectClue(clue)}
+        >
+          <span className={`
+            ${styles.clueNumber} 
+            ${isSolved ? styles.solvedNumber : ''}
+          `}>
+            {clue.number}
+          </span>
+          <span className={styles.clueText}>
+            {isLoadingClues && !cluesMap[clue.answer] 
+              ? "Generating clue..." 
+              : getClueForWord(clue.answer)}
+          </span>
+        </li>
+      );
+    }) || [];
   };
 
   return (
     <div className={styles.crosswordContainer}>
       <div className={styles.crosswordCard}>
-        
         {/* Teacher View with Toggle */}
         <div className={styles.teacherControls}>
           <button 
@@ -717,7 +868,7 @@ const generateCellsForWord = (word, gridSize, existingWords = []) => {
           <div className={styles.gameArea}>
             <div className={styles.episodeBanner}>
               <p className={styles.episodeNumber}>Episode {storyContext?.episodeNumber || 1}</p>
-              <h2 className={styles.episodeTitle}>{storyContext?.title || "The Space Academy"}</h2>
+              <h2 className={styles.episodeTitle}>{storyContext?.title || "The Story Adventure"}</h2>
               <p className={styles.episodeHint}>Remember the story you just read! The answers are in the story.</p>
             </div>
             
@@ -744,7 +895,11 @@ const generateCellsForWord = (word, gridSize, existingWords = []) => {
               {selectedClue && (
                 <div className={styles.selectedWordInfo}>
                   <h3 className={styles.selectedWordLabel}>Selected Word: {selectedClue.answer.length} letters</h3>
-                  <p className={styles.selectedWordClue}>{selectedClue.clue}</p>
+                  <p className={styles.selectedWordClue}>
+                    {isLoadingClues && !cluesMap[selectedClue.answer] 
+                      ? "Generating clue..." 
+                      : getClueForWord(selectedClue.answer)}
+                  </p>
                 </div>
               )}
               
@@ -755,7 +910,7 @@ const generateCellsForWord = (word, gridSize, existingWords = []) => {
                 <button 
                   className={styles.markSolvedButton}
                   onClick={handleMarkSolved}
-                  disabled={!selectedClue || isWordSolved(selectedClue.answer)}
+                  disabled={!selectedClue || isWordSolved(selectedClue?.answer)}
                 >
                   Mark as Solved
                 </button>
@@ -765,7 +920,7 @@ const generateCellsForWord = (word, gridSize, existingWords = []) => {
                   onClick={handleShowHint}
                   disabled={!selectedClue || hintsRemaining <= 0}
                 >
-                  Show Hint ({hintsRemaining} left)
+                  Reveal a Letter ({hintsRemaining} left)
                 </button>
               </div>
             </div>
@@ -780,61 +935,13 @@ const generateCellsForWord = (word, gridSize, existingWords = []) => {
                 {/* Across Clues */}
                 <h3 className={styles.clueCategory}>Across:</h3>
                 <ul className={styles.clueList}>
-                  {puzzle?.words?.filter(word => word.direction === 'across').map(clue => {
-                    const key = `${clue.direction}-${clue.number}`;
-                    const isSolved = solvedClues[key] || 
-                      solvedWords.some(word => word.word.toUpperCase() === clue.answer.toUpperCase());
-                    
-                    return (
-                      <li 
-                        key={`across-${clue.number}`}
-                        className={`
-                          ${styles.clueItem} 
-                          ${selectedClue && selectedClue.number === clue.number && selectedClue.direction === clue.direction ? styles.active : ''} 
-                          ${isSolved ? styles.solved : ''}
-                        `}
-                        onClick={() => handleSelectClue(clue)}
-                      >
-                        <span className={`
-                          ${styles.clueNumber} 
-                          ${isSolved ? styles.solvedNumber : ''}
-                        `}>
-                          {clue.number}
-                        </span>
-                        <span className={styles.clueText}>{clue.clue}</span>
-                      </li>
-                    );
-                  })}
+                  {renderClueList('across')}
                 </ul>
                 
                 {/* Down Clues */}
                 <h3 className={styles.clueCategory}>Down:</h3>
                 <ul className={styles.clueList}>
-                  {puzzle?.words?.filter(word => word.direction === 'down').map(clue => {
-                    const key = `${clue.direction}-${clue.number}`;
-                    const isSolved = solvedClues[key] || 
-                      solvedWords.some(word => word.word.toUpperCase() === clue.answer.toUpperCase());
-                    
-                    return (
-                      <li 
-                        key={`down-${clue.number}`}
-                        className={`
-                          ${styles.clueItem} 
-                          ${selectedClue && selectedClue.number === clue.number && selectedClue.direction === clue.direction ? styles.active : ''} 
-                          ${isSolved ? styles.solved : ''}
-                        `}
-                        onClick={() => handleSelectClue(clue)}
-                      >
-                        <span className={`
-                          ${styles.clueNumber} 
-                          ${isSolved ? styles.solvedNumber : ''}
-                        `}>
-                          {clue.number}
-                        </span>
-                        <span className={styles.clueText}>{clue.clue}</span>
-                      </li>
-                    );
-                  })}
+                  {renderClueList('down')}
                 </ul>
                 
                 {/* Smart Hints Button */}
@@ -870,7 +977,7 @@ const generateCellsForWord = (word, gridSize, existingWords = []) => {
           <AdaptiveHintSystem
             word={selectedClue.answer}
             definition={selectedClue.definition}
-            clue={selectedClue.clue}
+            clue={getClueForWord(selectedClue.answer)}
             storyContext={storyContext ? storyContext.text : null}
             previousHints={hintHistory}
             attemptCount={incorrectAttempts[selectedClue.answer] || 0}

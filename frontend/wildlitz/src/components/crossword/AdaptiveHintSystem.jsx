@@ -1,4 +1,4 @@
-// src/components/AdaptiveHintSystem.jsx
+// src/components/crossword/AdaptiveHintSystem.jsx
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/components/AdaptiveHintSystem.module.css';
@@ -20,7 +20,7 @@ const AdaptiveHintSystem = ({
   const [currentHintIndex, setCurrentHintIndex] = useState(0);
   const [availableHints, setAvailableHints] = useState(3);
   
-  // Fetch adaptive hints when component mounts
+  // Generate hints when component mounts
   useEffect(() => {
     if (word && availableHints > 0) {
       generateHints();
@@ -33,31 +33,75 @@ const AdaptiveHintSystem = ({
     setError(null);
     
     try {
-      const response = await fetch('/api/generate-hint', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          word,
-          definition,
-          clue,
-          storyContext,
-          previousHints,
-          attemptCount,
-          grade: 3
-        })
-      });
+      // Create hints that reveal random letters in the word
+      let unrevealedIndices = [...Array(word.length).keys()]; // indices 0 to word.length-1
+      let generatedHints = [];
       
-      if (!response.ok) {
-        throw new Error('Failed to generate hints');
+      // First hint - reveal one random letter
+      if (unrevealedIndices.length > 0) {
+        const randomIndex = Math.floor(Math.random() * unrevealedIndices.length);
+        const letterIndex = unrevealedIndices[randomIndex];
+        
+        // Create hint text that shows the position of the letter
+        let hintDisplay = '';
+        for (let i = 0; i < word.length; i++) {
+          if (i === letterIndex) {
+            hintDisplay += word[i];
+          } else {
+            hintDisplay += '_ ';
+          }
+        }
+        
+        generatedHints.push({
+          level: 1,
+          text: `Revealing letter "${word[letterIndex]}" at position ${letterIndex + 1}: ${hintDisplay}`,
+          type: "letter_reveal",
+          letterIndex: letterIndex,
+          letter: word[letterIndex]
+        });
+        
+        // Remove the revealed index
+        unrevealedIndices.splice(randomIndex, 1);
       }
       
-      const data = await response.json();
-      setHints(data.hints);
+      // Second hint - reveal another random letter
+      if (unrevealedIndices.length > 0) {
+        const randomIndex = Math.floor(Math.random() * unrevealedIndices.length);
+        const letterIndex = unrevealedIndices[randomIndex];
+        
+        // Create hint text that shows all revealed letters so far
+        let hintDisplay = '';
+        for (let i = 0; i < word.length; i++) {
+          if (i === letterIndex || word[i] === generatedHints[0].letter) {
+            hintDisplay += word[i] + ' ';
+          } else {
+            hintDisplay += '_ ';
+          }
+        }
+        
+        generatedHints.push({
+          level: 2,
+          text: `Revealing letter "${word[letterIndex]}" at position ${letterIndex + 1}: ${hintDisplay}`,
+          type: "letter_reveal",
+          letterIndex: letterIndex,
+          letter: word[letterIndex]
+        });
+        
+        // Remove the revealed index
+        unrevealedIndices.splice(randomIndex, 1);
+      }
+      
+      // Third hint - reveal the whole word
+      generatedHints.push({
+        level: 3,
+        text: `The answer is "${word}": ${word.split('').join(' ')}`,
+        type: "full_reveal"
+      });
+      
+      setHints(generatedHints);
       
     } catch (err) {
-      setError(err.message);
+      setError("Could not generate hints. Please try again.");
       console.error('Error generating hints:', err);
     } finally {
       setIsLoading(false);
@@ -148,14 +192,14 @@ const AdaptiveHintSystem = ({
                     className={styles.useHintButton}
                     onClick={useHint}
                   >
-                    Use a Hint
+                    Reveal a Letter
                   </button>
                   <p className={styles.hintDescription}>
                     {currentHintIndex === 0
-                      ? "This will give you a small clue about the word."
+                      ? "This will reveal a random letter in the word."
                       : currentHintIndex === 1
-                      ? "This will show you the first letter of the word."
-                      : "This will show you a picture that represents the word."
+                      ? "This will reveal another letter in the word."
+                      : "This will reveal the entire word."
                     }
                   </p>
                 </motion.div>
