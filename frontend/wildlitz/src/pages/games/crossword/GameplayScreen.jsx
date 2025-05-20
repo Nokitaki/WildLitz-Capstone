@@ -49,14 +49,133 @@ const GameplayScreen = ({
       updateGridWithSolvedWords();
     }
   }, [solvedWords]);
+
+
+
+
+
+
+
+const generateCellsForWord = (word, gridSize, existingWords = []) => {
+  if (word.cells && Array.isArray(word.cells)) {
+    return word.cells; // Return existing cells if present
+  }
+  
+  const answer = word.answer.toUpperCase();
+  const cells = [];
+  const maxRow = gridSize.height - 1;
+  const maxCol = gridSize.width - 1;
+  
+  // Create a more organized layout based on word number and direction
+  let startRow, startCol;
+  
+  if (word.direction === 'across') {
+    // Place across words along the left side, spaced vertically
+    startRow = Math.min(word.number * 2, maxRow);
+    startCol = 0; // Start from the left edge
+  } else { // down
+    // Place down words along the top, spaced horizontally
+    startRow = 0; // Start from the top
+    startCol = Math.min(word.number * 2, maxCol);
+  }
+  
+  // For words with the same number but different directions, try to create proper intersections
+  if (existingWords.length > 0) {
+    // Find potential intersection points with existing words
+    for (const existingWord of existingWords) {
+      // Only try to intersect words with different directions
+      if (existingWord.direction !== word.direction) {
+        for (let i = 0; i < answer.length; i++) {
+          const letterToIntersect = answer[i];
+          
+          // Find the same letter in the existing word
+          for (let j = 0; j < existingWord.answer.length; j++) {
+            if (existingWord.answer[j] === letterToIntersect) {
+              // Create an intersection at this point
+              if (word.direction === 'across') {
+                startRow = existingWord.cells[j].row;
+                startCol = existingWord.cells[j].col - i;
+              } else { // down
+                startRow = existingWord.cells[j].row - i;
+                startCol = existingWord.cells[j].col;
+              }
+              
+              // Validate the position to make sure it doesn't go out of bounds
+              if (startRow < 0 || startCol < 0) continue;
+              if (word.direction === 'across' && startCol + answer.length > maxCol) continue;
+              if (word.direction === 'down' && startRow + answer.length > maxRow) continue;
+              
+              // Found a valid intersection, break out of the inner loop
+              break;
+            }
+          }
+          
+          // If we found a valid intersection, break out of the outer loop
+          if ((word.direction === 'across' && startRow !== 0) || 
+              (word.direction === 'down' && startCol !== 0)) {
+            break;
+          }
+        }
+      }
+      
+      // If we found a valid intersection, break out of the existingWords loop
+      if ((word.direction === 'across' && startRow !== 0) || 
+          (word.direction === 'down' && startCol !== 0)) {
+        break;
+      }
+    }
+  }
+  
+  // Generate cells for each letter in the word
+  for (let i = 0; i < answer.length; i++) {
+    if (word.direction === 'across') {
+      cells.push({
+        row: startRow,
+        col: startCol + i
+      });
+    } else { // down
+      cells.push({
+        row: startRow + i,
+        col: startCol
+      });
+    }
+  }
+  
+  return cells;
+};
+
+
+
+
+
   
   // Find all cells where words intersect
-  const findWordIntersections = () => {
+ const findWordIntersections = () => {
   if (!puzzle || !puzzle.words) return;
   
   const intersections = {};
+  const processedWords = [];
   
-  // Make sure each word's cells array is properly defined
+  // Process words in order to build proper intersections
+  if (puzzle.size) {
+    // Sort words by direction and number for better processing
+    // Process "across" words first, then "down" words
+    const sortedWords = [...puzzle.words].sort((a, b) => {
+      if (a.direction === b.direction) return a.number - b.number;
+      return a.direction === 'across' ? -1 : 1;
+    });
+    
+    // Generate cells for each word
+    sortedWords.forEach(word => {
+      if (!word.cells || !Array.isArray(word.cells)) {
+        console.log(`Generating cells for word: ${word.answer}`);
+        word.cells = generateCellsForWord(word, puzzle.size, processedWords);
+        processedWords.push(word);
+      }
+    });
+  }
+  
+  // Continue with the original intersection finding logic
   puzzle.words.forEach(word => {
     if (!word.cells || !Array.isArray(word.cells)) {
       console.error("Word is missing cells array:", word);
@@ -88,49 +207,70 @@ const GameplayScreen = ({
   
   // Create the grid cells
   const createGrid = () => {
-    if (!puzzle || !puzzle.size) {
-      console.error("Cannot create grid: puzzle or size missing");
-      return;
+  if (!puzzle || !puzzle.size) {
+    console.error("Cannot create grid: puzzle or size missing");
+    return;
+  }
+  
+  // Process words to generate cells in the correct order
+  const processedWords = [];
+  
+  // Sort words by direction and number for better layout
+  const sortedWords = [...puzzle.words].sort((a, b) => {
+    if (a.direction === b.direction) return a.number - b.number;
+    return a.direction === 'across' ? -1 : 1;
+  });
+  
+  // Generate cells for words that don't have them
+  sortedWords.forEach(word => {
+    if (!word.cells || !Array.isArray(word.cells)) {
+      word.cells = generateCellsForWord(word, puzzle.size, processedWords);
+      processedWords.push(word);
+    } else {
+      processedWords.push(word);
     }
-    
-    const { width, height } = puzzle.size;
-    console.log(`Creating ${width}x${height} grid`);
-    
-    // Create empty grid
-    const cells = [];
-    for (let row = 0; row < height; row++) {
-      for (let col = 0; col < width; col++) {
-        // Find if this cell has a number
-        const cellData = puzzle.grid.find(cell => 
+  });
+  
+  // Create grid with appropriate size
+  const { width, height } = puzzle.size;
+  console.log(`Creating ${width}x${height} grid`);
+  
+  // Create empty grid
+  const cells = [];
+  for (let row = 0; row < height; row++) {
+    for (let col = 0; col < width; col++) {
+      // Find if this cell has a number
+      const cellWithNumber = puzzle.words.find(word => 
+        word.cells && word.cells.length > 0 && 
+        word.cells[0].row === row && word.cells[0].col === col
+      );
+      
+      // Check if cell should be empty
+      const isEmptyCell = !puzzle.words.some(word => 
+        word.cells && word.cells.some(cell => 
           cell.row === row && cell.col === col
-        );
-        
-        // Check if cell should be empty
-        const isEmptyCell = !puzzle.words.some(word => 
-          word.cells && word.cells.some(cell => 
-            cell.row === row && cell.col === col
-          )
-        );
-        
-        cells.push({
-          row,
-          col,
-          value: '',
-          revealed: false,
-          number: cellData?.number || null,
-          isEmpty: isEmptyCell
-        });
-      }
+        )
+      );
+      
+      cells.push({
+        row,
+        col,
+        value: '',
+        revealed: false,
+        number: cellWithNumber?.number || null,
+        isEmpty: isEmptyCell
+      });
     }
-    
-    setGridCells(cells);
-    console.log("Grid created with", cells.length, "cells");
-    
-    // If we have solved words, update the grid
-    if (solvedWords.length > 0) {
-      updateGridWithSolvedWords();
-    }
-  };
+  }
+  
+  setGridCells(cells);
+  console.log("Grid created with", cells.length, "cells");
+  
+  // If we have solved words, update the grid
+  if (solvedWords.length > 0) {
+    updateGridWithSolvedWords();
+  }
+};
   
   // Update grid with solved words
   const updateGridWithSolvedWords = () => {
