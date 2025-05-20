@@ -67,6 +67,15 @@ const CrosswordGame = () => {
     };
   }, [timerActive, gameState]);
   
+  // Debug logging
+  useEffect(() => {
+    console.log("Current game state:", gameState);
+    console.log("Solved words:", solvedWords);
+    if (currentPuzzle) {
+      console.log("Current puzzle:", currentPuzzle.id);
+    }
+  }, [gameState, solvedWords, currentPuzzle]);
+  
   /**
    * Handle starting the game with selected configuration
    */
@@ -102,31 +111,31 @@ const CrosswordGame = () => {
    * Handle newly generated story
    */
   const handleStoryGenerated = (data) => {
-  // Add the new story to the available stories
-  const newStories = {
-    ...gameStories,
-    [data.story.id]: data.story
+    // Add the new story to the available stories
+    const newStories = {
+      ...gameStories,
+      [data.story.id]: data.story
+    };
+    
+    setGameStories(newStories);
+    
+    // Add the new puzzles to the available puzzles
+    const newPuzzles = {
+      ...gamePuzzles,
+      ...data.puzzles
+    };
+    
+    setGamePuzzles(newPuzzles);
+    
+    // Configure game to use the new story
+    setGameConfig({
+      storyMode: true,
+      adventureId: data.story.id
+    });
+    
+    // Redirect to intro screen
+    setGameState('intro');
   };
-  
-  setGameStories(newStories);
-  
-  // Add the new puzzles to the available puzzles
-  const newPuzzles = {
-    ...gamePuzzles,
-    ...data.puzzles
-  };
-  
-  setGamePuzzles(newPuzzles);
-  
-  // Configure game to use the new story
-  setGameConfig({
-    storyMode: true,
-    adventureId: data.story.id
-  });
-  
-  // Redirect to intro screen
-  setGameState('intro');
-};
   
   /**
    * Handle moving from story to puzzle
@@ -155,23 +164,30 @@ const CrosswordGame = () => {
    * Handle word solved in crossword
    */
   const handleWordSolved = (word, definition, example) => {
-    // Add to solved words
-    setSolvedWords(prev => [
-      ...prev, 
-      {
-        word,
-        definition,
-        example,
-        timestamp: new Date()
-      }
-    ]);
+    console.log("Word solved:", word);
+    
+    // Check if word is already in solvedWords to avoid duplicates
+    if (!solvedWords.some(solved => solved.word === word)) {
+      // Add to solved words
+      setSolvedWords(prev => [
+        ...prev, 
+        {
+          word,
+          definition,
+          example,
+          timestamp: new Date()
+        }
+      ]);
+    } else {
+      console.log("Word already solved, skipping add:", word);
+    }
     
     // Check if puzzle is complete
     if (currentPuzzle && solvedWords.length + 1 >= currentPuzzle.words.length) {
       // Stop timer
       setTimerActive(false);
       
-      // Move to summary screen
+      // Move to summary screen after a short delay
       setTimeout(() => {
         setGameState('summary');
       }, 1000);
@@ -388,7 +404,5 @@ const CrosswordGame = () => {
     </div>
   );
 };
-
-
 
 export default CrosswordGame;

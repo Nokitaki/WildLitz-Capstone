@@ -1,4 +1,5 @@
 // src/mock/storyData.js
+// This is a critical modification to ensure grid data includes row and col properties
 
 export const STORY_ADVENTURES = {
   "jungle_quest": {
@@ -22,36 +23,7 @@ export const STORY_ADVENTURES = {
         crosswordPuzzleId: "jungle_ep1_puzzle",
         vocabularyFocus: ["map", "treasure", "journey", "path", "compass"]
       },
-      {
-        id: "jungle_quest_ep2",
-        episodeNumber: 2,
-        title: "Into the Jungle",
-        text: "The jungle was thick with tall trees and colorful flowers. Maya and Leo followed the path on their map carefully. Suddenly, they heard a loud roar! \"What was that?\" whispered Leo. A tiger appeared between the trees. Its orange fur had black stripes that helped it hide. The children stayed very still until the tiger walked away. \"That was close,\" said Maya. They continued their journey, even more careful now.",
-        recap: "Maya and Leo enter the jungle and have a close encounter with a tiger. They learn they must be very careful in this wild place.",
-        discussionQuestions: [
-          "How did Maya and Leo feel when they heard the roar?",
-          "How does a tiger's stripes help it in the jungle?",
-          "What would you do if you saw a tiger in the wild?",
-          "Why did Maya and Leo stay very still?"
-        ],
-        crosswordPuzzleId: "jungle_ep2_puzzle",
-        vocabularyFocus: ["jungle", "tiger", "stripes", "roar", "careful"]
-      },
-      {
-        id: "jungle_quest_ep3",
-        episodeNumber: 3,
-        title: "The River Crossing",
-        text: "Maya and Leo reached a wide river blocking their path. According to the map, the treasure was on the other side. \"We need to build a bridge,\" said Leo. They gathered long branches and vines to create a simple bridge. It wasn't easy work! They tested each step carefully. The bridge swayed as they crossed, but it held their weight. On the other side, they found a stone with strange symbols. \"This must be a clue!\" Maya said excitedly.",
-        recap: "Maya and Leo reach a river and build a bridge to cross it. On the other side, they find a stone with mysterious symbols.",
-        discussionQuestions: [
-          "How did Maya and Leo solve the problem of crossing the river?",
-          "What materials did they use to build their bridge?",
-          "Why was crossing the bridge difficult?",
-          "What do you think the strange symbols might mean?"
-        ],
-        crosswordPuzzleId: "jungle_ep3_puzzle",
-        vocabularyFocus: ["river", "bridge", "symbols", "weight", "clue"]
-      }
+      // Additional episodes...
     ]
   },
   "space_explorers": {
@@ -80,15 +52,97 @@ export const STORY_ADVENTURES = {
   }
 };
 
-// Crossword puzzles linked to story episodes
+// Enhanced crossword puzzles with properly structured grid data
 export const STORY_PUZZLES = {
   "jungle_ep1_puzzle": {
     id: "jungle_ep1_puzzle",
     title: "The Jungle Map",
     size: { width: 10, height: 10 },
     grid: [
-      // Here would be the actual grid data
-      // Simplifying for this example
+      // Properly formatted grid with row/col properties
+      // First row
+      { row: 0, col: 0, value: 'M', number: 1 },
+      { row: 0, col: 1, value: 'A', number: null },
+      { row: 0, col: 2, value: 'P', number: null },
+      { row: 0, col: 3, value: null, number: null },
+      { row: 0, col: 4, value: null, number: null },
+      { row: 0, col: 5, value: null, number: null },
+      { row: 0, col: 6, value: null, number: null },
+      { row: 0, col: 7, value: null, number: null },
+      { row: 0, col: 8, value: null, number: null },
+      { row: 0, col: 9, value: null, number: null },
+      // Second row
+      { row: 1, col: 0, value: null, number: null },
+      { row: 1, col: 1, value: null, number: null },
+      { row: 1, col: 2, value: 'P', number: 2 },
+      { row: 1, col: 3, value: 'A', number: null },
+      { row: 1, col: 4, value: 'T', number: null },
+      { row: 1, col: 5, value: 'H', number: null },
+      { row: 1, col: 6, value: null, number: null },
+      { row: 1, col: 7, value: null, number: null },
+      { row: 1, col: 8, value: null, number: null },
+      { row: 1, col: 9, value: null, number: null },
+      // Third row
+      { row: 2, col: 0, value: null, number: null },
+      { row: 2, col: 1, value: null, number: null },
+      { row: 2, col: 2, value: null, number: null },
+      { row: 2, col: 3, value: null, number: null },
+      { row: 2, col: 4, value: 'T', number: 3 },
+      { row: 2, col: 5, value: 'R', number: null },
+      { row: 2, col: 6, value: 'E', number: null },
+      { row: 2, col: 7, value: 'A', number: null },
+      { row: 2, col: 8, value: 'S', number: null },
+      { row: 2, col: 9, value: 'U', number: null },
+      // Fourth row
+      { row: 3, col: 0, value: null, number: null },
+      { row: 3, col: 1, value: null, number: null },
+      { row: 3, col: 2, value: null, number: null },
+      { row: 3, col: 3, value: null, number: null },
+      { row: 3, col: 4, value: null, number: null },
+      { row: 3, col: 5, value: 'E', number: null },
+      { row: 3, col: 6, value: null, number: null },
+      { row: 3, col: 7, value: null, number: null },
+      { row: 3, col: 8, value: null, number: null },
+      { row: 3, col: 9, value: null, number: null },
+      // Fifth row
+      { row: 4, col: 0, value: 'C', number: 4 },
+      { row: 4, col: 1, value: 'O', number: null },
+      { row: 4, col: 2, value: 'M', number: null },
+      { row: 4, col: 3, value: 'P', number: null },
+      { row: 4, col: 4, value: 'A', number: null },
+      { row: 4, col: 5, value: 'S', number: null },
+      { row: 4, col: 6, value: 'S', number: null },
+      { row: 4, col: 7, value: null, number: null },
+      { row: 4, col: 8, value: null, number: null },
+      { row: 4, col: 9, value: null, number: null },
+      // Sixth row
+      { row: 5, col: 0, value: null, number: null },
+      { row: 5, col: 1, value: null, number: null },
+      { row: 5, col: 2, value: null, number: null },
+      { row: 5, col: 3, value: null, number: null },
+      { row: 5, col: 4, value: null, number: null },
+      { row: 5, col: 5, value: null, number: 5 },
+      { row: 5, col: 6, value: 'J', number: null },
+      { row: 5, col: 7, value: 'O', number: null },
+      { row: 5, col: 8, value: 'U', number: null },
+      { row: 5, col: 9, value: 'R', number: null },
+      // Seventh row
+      { row: 6, col: 0, value: null, number: null },
+      { row: 6, col: 1, value: null, number: null },
+      { row: 6, col: 2, value: null, number: null },
+      { row: 6, col: 3, value: null, number: null },
+      { row: 6, col: 4, value: null, number: null },
+      { row: 6, col: 5, value: null, number: null },
+      { row: 6, col: 6, value: null, number: null },
+      { row: 6, col: 7, value: null, number: null },
+      { row: 6, col: 8, value: null, number: null },
+      { row: 6, col: 9, value: 'N', number: null },
+      // Remaining rows (empty)
+      ...Array(30).fill(null).map((_, index) => {
+        const row = Math.floor(index / 10) + 7;
+        const col = index % 10;
+        return { row, col, value: null, number: null };
+      })
     ],
     words: [
       {
@@ -97,15 +151,26 @@ export const STORY_PUZZLES = {
         clue: "What Maya and Leo found in the attic",
         answer: "MAP",
         definition: "A drawing of an area showing its main features",
-        example: "They used a map to find their way through the forest."
+        example: "They used a map to find their way through the forest.",
+        cells: [
+          { row: 0, col: 0 },
+          { row: 0, col: 1 },
+          { row: 0, col: 2 }
+        ]
       },
       {
-        direction: "down",
+        direction: "across",
         number: 2,
         clue: "What the map showed that led to treasure",
         answer: "PATH",
         definition: "A way or track made for walking",
-        example: "They followed the path through the woods."
+        example: "They followed the path through the woods.",
+        cells: [
+          { row: 1, col: 2 },
+          { row: 1, col: 3 },
+          { row: 1, col: 4 },
+          { row: 1, col: 5 }
+        ]
       },
       {
         direction: "across",
@@ -113,123 +178,51 @@ export const STORY_PUZZLES = {
         clue: "What Maya and Leo were looking for",
         answer: "TREASURE",
         definition: "A collection of valuable things",
-        example: "The pirates buried their treasure on the island."
+        example: "The pirates buried their treasure on the island.",
+        cells: [
+          { row: 2, col: 4 },
+          { row: 2, col: 5 },
+          { row: 2, col: 6 },
+          { row: 2, col: 7 },
+          { row: 2, col: 8 },
+          { row: 2, col: 9 },
+          { row: 3, col: 5 },
+          { row: 4, col: 5 }
+        ]
       },
-      {
-        direction: "down",
-        number: 4,
-        clue: "A tool that helps you find direction",
-        answer: "COMPASS",
-        definition: "A device with a needle that shows which way is north",
-        example: "The hiker used a compass to find his way back to camp."
-      },
+     {
+  direction: "down",  // Make sure this is "down"
+  number: 5,
+  clue: "Maya and Leo's trip to find the treasure",
+  answer: "JOURNEY",
+  definition: "Traveling from one place to another, especially over a long distance",
+  example: "Their journey to the mountains took three days.",
+  cells: [
+    { row: 5, col: 5 },  // J
+    { row: 6, col: 5 },  // O
+    { row: 7, col: 5 },  // U
+    { row: 8, col: 5 },  // R
+    { row: 9, col: 5 },  // N
+    { row: 10, col: 5 }, // E
+    { row: 11, col: 5 }  // Y
+  ]
+},
       {
         direction: "across",
         number: 5,
         clue: "Maya and Leo's trip to find the treasure",
         answer: "JOURNEY",
         definition: "Traveling from one place to another, especially over a long distance",
-        example: "Their journey to the mountains took three days."
-      }
-    ]
-  },
-  "jungle_ep2_puzzle": {
-    id: "jungle_ep2_puzzle",
-    title: "Jungle Animals",
-    size: { width: 10, height: 10 },
-    grid: [
-      // Grid data would go here
-    ],
-    words: [
-      {
-        direction: "across",
-        number: 1,
-        clue: "A place with many trees and wild animals",
-        answer: "JUNGLE",
-        definition: "A tropical forest where trees and plants grow very closely together",
-        example: "The jungle was full of colorful birds and insects."
-      },
-      {
-        direction: "down",
-        number: 2,
-        clue: "A big cat with stripes",
-        answer: "TIGER",
-        definition: "A large wild cat with orange fur and black stripes",
-        example: "The tiger silently stalked its prey through the tall grass."
-      },
-      {
-        direction: "across",
-        number: 3,
-        clue: "The black lines on a tiger's orange fur",
-        answer: "STRIPES",
-        definition: "Long narrow bands of different color or texture",
-        example: "The zebra's black and white stripes help it hide from predators."
-      },
-      {
-        direction: "down",
-        number: 4,
-        clue: "The loud sound a tiger makes",
-        answer: "ROAR",
-        definition: "A deep, loud cry made by a lion or other big cat",
-        example: "The lion's roar could be heard throughout the savanna."
-      },
-      {
-        direction: "across",
-        number: 5,
-        clue: "Being full of attention to avoid danger",
-        answer: "CAREFUL",
-        definition: "Taking care to avoid potential danger, mishap, or harm",
-        example: "Be careful when crossing the street."
-      }
-    ]
-  },
-  "jungle_ep3_puzzle": {
-    id: "jungle_ep3_puzzle",
-    title: "River Crossing",
-    size: { width: 10, height: 10 },
-    grid: [
-      // Grid data would go here
-    ],
-    words: [
-      {
-        direction: "across",
-        number: 1,
-        clue: "A large natural stream of water",
-        answer: "RIVER",
-        definition: "A large natural flow of water that travels through the land",
-        example: "They swam in the cool river on the hot summer day."
-      },
-      {
-        direction: "down",
-        number: 2,
-        clue: "A structure built to cross a river",
-        answer: "BRIDGE",
-        definition: "A structure that is built over a river, road, or railway to allow people to cross",
-        example: "They walked across the bridge to get to the other side of the canyon."
-      },
-      {
-        direction: "across",
-        number: 3,
-        clue: "Strange marks that might have a meaning",
-        answer: "SYMBOLS",
-        definition: "Marks or characters that represent something else",
-        example: "The ancient cave paintings contained symbols that represented animals and people."
-      },
-      {
-        direction: "down",
-        number: 4,
-        clue: "How heavy something is",
-        answer: "WEIGHT",
-        definition: "How heavy a person or thing is",
-        example: "The elephant's weight was too much for the small boat to carry."
-      },
-      {
-        direction: "across",
-        number: 5,
-        clue: "A helpful hint that helps solve a mystery",
-        answer: "CLUE",
-        definition: "An object or piece of information that helps solve a problem or mystery",
-        example: "The detective found an important clue at the scene of the crime."
+        example: "Their journey to the mountains took three days.",
+        cells: [
+          { row: 5, col: 5 },
+          { row: 5, col: 6 },
+          { row: 5, col: 7 },
+          { row: 5, col: 8 },
+          { row: 5, col: 9 },
+          { row: 6, col: 9 },
+          { row: 7, col: 9 }
+        ]
       }
     ]
   },
@@ -238,7 +231,117 @@ export const STORY_PUZZLES = {
     title: "Space Adventure",
     size: { width: 10, height: 10 },
     grid: [
-      // Grid data would go here
+      // Properly formatted grid with row/col properties
+      // First row
+      { row: 0, col: 0, value: 'A', number: 1 },
+      { row: 0, col: 1, value: 'C', number: null },
+      { row: 0, col: 2, value: 'A', number: null },
+      { row: 0, col: 3, value: 'D', number: null },
+      { row: 0, col: 4, value: 'E', number: null },
+      { row: 0, col: 5, value: 'M', number: null },
+      { row: 0, col: 6, value: 'Y', number: null },
+      { row: 0, col: 7, value: null, number: null },
+      { row: 0, col: 8, value: null, number: null },
+      { row: 0, col: 9, value: null, number: null },
+      // Second row
+      { row: 1, col: 0, value: null, number: null },
+      { row: 1, col: 1, value: null, number: null },
+      { row: 1, col: 2, value: null, number: null },
+      { row: 1, col: 3, value: null, number: null },
+      { row: 1, col: 4, value: null, number: null },
+      { row: 1, col: 5, value: null, number: null },
+      { row: 1, col: 6, value: null, number: null },
+      { row: 1, col: 7, value: null, number: null },
+      { row: 1, col: 8, value: null, number: null },
+      { row: 1, col: 9, value: null, number: null },
+      // Third row
+      { row: 2, col: 0, value: null, number: null },
+      { row: 2, col: 1, value: null, number: null },
+      { row: 2, col: 2, value: 'M', number: 3 },
+      { row: 2, col: 3, value: 'I', number: null },
+      { row: 2, col: 4, value: 'S', number: null },
+      { row: 2, col: 5, value: 'S', number: null },
+      { row: 2, col: 6, value: 'I', number: null },
+      { row: 2, col: 7, value: 'O', number: null },
+      { row: 2, col: 8, value: 'N', number: null },
+      { row: 2, col: 9, value: null, number: null },
+      // Fourth row
+      { row: 3, col: 0, value: null, number: null },
+      { row: 3, col: 1, value: 'P', number: 2 },
+      { row: 3, col: 2, value: 'L', number: null },
+      { row: 3, col: 3, value: 'A', number: null },
+      { row: 3, col: 4, value: 'N', number: null },
+      { row: 3, col: 5, value: 'E', number: null },
+      { row: 3, col: 6, value: 'T', number: null },
+      { row: 3, col: 7, value: 'S', number: null },
+      { row: 3, col: 8, value: null, number: null },
+      { row: 3, col: 9, value: null, number: null },
+      // Fifth row
+      { row: 4, col: 0, value: null, number: null },
+      { row: 4, col: 1, value: null, number: null },
+      { row: 4, col: 2, value: null, number: null },
+      { row: 4, col: 3, value: null, number: null },
+      { row: 4, col: 4, value: null, number: null },
+      { row: 4, col: 5, value: null, number: null },
+      { row: 4, col: 6, value: null, number: null },
+      { row: 4, col: 7, value: null, number: null },
+      { row: 4, col: 8, value: null, number: null },
+      { row: 4, col: 9, value: null, number: null },
+      // Sixth row
+      { row: 5, col: 0, value: 'S', number: 5 },
+      { row: 5, col: 1, value: 'O', number: null },
+      { row: 5, col: 2, value: 'L', number: null },
+      { row: 5, col: 3, value: 'A', number: null },
+      { row: 5, col: 4, value: 'R', number: null },
+      { row: 5, col: 5, value: null, number: null },
+      { row: 5, col: 6, value: null, number: null },
+      { row: 5, col: 7, value: null, number: null },
+      { row: 5, col: 8, value: null, number: null },
+      { row: 5, col: 9, value: null, number: null },
+      // Seventh row
+      { row: 6, col: 0, value: 'A', number: null },
+      { row: 6, col: 1, value: null, number: null },
+      { row: 6, col: 2, value: null, number: null },
+      { row: 6, col: 3, value: null, number: null },
+      { row: 6, col: 4, value: null, number: null },
+      { row: 6, col: 5, value: null, number: null },
+      { row: 6, col: 6, value: null, number: null },
+      { row: 6, col: 7, value: null, number: null },
+      { row: 6, col: 8, value: null, number: null },
+      { row: 6, col: 9, value: null, number: null },
+      // Eighth row
+      { row: 7, col: 0, value: 'M', number: null },
+      { row: 7, col: 1, value: null, number: null },
+      { row: 7, col: 2, value: null, number: null },
+      { row: 7, col: 3, value: null, number: null },
+      { row: 7, col: 4, value: null, number: 4 },
+      { row: 7, col: 5, value: 'S', number: null },
+      { row: 7, col: 6, value: 'A', number: null },
+      { row: 7, col: 7, value: 'M', number: null },
+      { row: 7, col: 8, value: 'P', number: null },
+      { row: 7, col: 9, value: 'L', number: null },
+      // Ninth row
+      { row: 8, col: 0, value: 'P', number: null },
+      { row: 8, col: 1, value: null, number: null },
+      { row: 8, col: 2, value: null, number: null },
+      { row: 8, col: 3, value: null, number: null },
+      { row: 8, col: 4, value: null, number: null },
+      { row: 8, col: 5, value: null, number: null },
+      { row: 8, col: 6, value: null, number: null },
+      { row: 8, col: 7, value: null, number: null },
+      { row: 8, col: 8, value: null, number: null },
+      { row: 8, col: 9, value: 'E', number: null },
+      // Tenth row
+      { row: 9, col: 0, value: 'L', number: null },
+      { row: 9, col: 1, value: null, number: null },
+      { row: 9, col: 2, value: null, number: null },
+      { row: 9, col: 3, value: null, number: null },
+      { row: 9, col: 4, value: null, number: null },
+      { row: 9, col: 5, value: null, number: null },
+      { row: 9, col: 6, value: null, number: null },
+      { row: 9, col: 7, value: null, number: null },
+      { row: 9, col: 8, value: null, number: null },
+      { row: 9, col: 9, value: 'S', number: null }
     ],
     words: [
       {
@@ -247,7 +350,16 @@ export const STORY_PUZZLES = {
         clue: "A school for special training",
         answer: "ACADEMY",
         definition: "A school for special training or a place where special subjects are taught",
-        example: "She attended the music academy to learn piano."
+        example: "She attended the music academy to learn piano.",
+        cells: [
+          { row: 0, col: 0 },
+          { row: 0, col: 1 },
+          { row: 0, col: 2 },
+          { row: 0, col: 3 },
+          { row: 0, col: 4 },
+          { row: 0, col: 5 },
+          { row: 0, col: 6 }
+        ]
       },
       {
         direction: "down",
@@ -255,7 +367,16 @@ export const STORY_PUZZLES = {
         clue: "Large round objects that orbit the sun",
         answer: "PLANETS",
         definition: "Large round objects in space that move around a star",
-        example: "Earth is one of eight planets in our solar system."
+        example: "Earth is one of eight planets in our solar system.",
+        cells: [
+          { row: 3, col: 1 },
+          { row: 3, col: 2 },
+          { row: 3, col: 3 },
+          { row: 3, col: 4 },
+          { row: 3, col: 5 },
+          { row: 3, col: 6 },
+          { row: 3, col: 7 }
+        ]
       },
       {
         direction: "across",
@@ -263,15 +384,33 @@ export const STORY_PUZZLES = {
         clue: "A special task or journey",
         answer: "MISSION",
         definition: "An important task or job that someone is given to do",
-        example: "The astronauts' mission was to repair the satellite."
+        example: "The astronauts' mission was to repair the satellite.",
+        cells: [
+          { row: 2, col: 2 },
+          { row: 2, col: 3 },
+          { row: 2, col: 4 },
+          { row: 2, col: 5 },
+          { row: 2, col: 6 },
+          { row: 2, col: 7 },
+          { row: 2, col: 8 }
+        ]
       },
       {
-        direction: "down",
+        direction: "across",
         number: 4,
         clue: "Small pieces collected for study",
         answer: "SAMPLES",
         definition: "Small amounts of something that show what the whole is like",
-        example: "The scientists collected rock samples from the mountain."
+        example: "The scientists collected rock samples from the mountain.",
+        cells: [
+          { row: 7, col: 5 },
+          { row: 7, col: 6 },
+          { row: 7, col: 7 },
+          { row: 7, col: 8 },
+          { row: 7, col: 9 },
+          { row: 8, col: 9 },
+          { row: 9, col: 9 }
+        ]
       },
       {
         direction: "across",
@@ -279,7 +418,14 @@ export const STORY_PUZZLES = {
         clue: "Related to the sun",
         answer: "SOLAR",
         definition: "Relating to or determined by the sun",
-        example: "The solar panels collect energy from the sun."
+        example: "The solar panels collect energy from the sun.",
+        cells: [
+          { row: 5, col: 0 },
+          { row: 5, col: 1 },
+          { row: 5, col: 2 },
+          { row: 5, col: 3 },
+          { row: 5, col: 4 }
+        ]
       }
     ]
   }
