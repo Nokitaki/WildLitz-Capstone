@@ -28,7 +28,8 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
     { id: 'ocean', name: 'Ocean Discovery', icon: '🌊', description: 'Dive into underwater worlds and discover marine life.' },
     { id: 'farm', name: 'Farm Life', icon: '🚜', description: 'Experience life on a farm with animals and crops.' },
     { id: 'space', name: 'Space Journey', icon: '🚀', description: 'Travel among the stars and explore distant planets.' },
-    { id: 'city', name: 'City Adventure', icon: '🏙️', description: 'Navigate bustling streets and exciting urban landscapes.' }
+    { id: 'city', name: 'City Adventure', icon: '🏙️', description: 'Navigate bustling streets and exciting urban landscapes.' },
+    { id: 'fairytale', name: 'Fairy Tale Kingdom', icon: '🏰', description: 'Discover magical castles and meet enchanted creatures.' }
   ];
   
   const availableSkills = [
@@ -231,7 +232,9 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
       <div className={styles.generatorCard}>
         <div className={styles.headerSection}>
           <h1 className={styles.generatorTitle}>Reading Adventures: Crossword Quest</h1>
-          <p className={styles.generatorSubtitle}>Set your preferences to generate a custom story with crossword puzzles!</p>
+          <div className={styles.subtitleContainer}>
+            <p className={styles.generatorSubtitle}>Set your preferences to generate a custom story with crossword puzzles!</p>
+          </div>
         </div>
         
         {isGenerating ? (
@@ -340,21 +343,26 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Focus Skills: <span className={styles.optionalHint}>(select up to 3)</span></label>
               <div className={styles.skillsOptions}>
-                {availableSkills.map(skill => (
-                  <motion.div 
-                    key={skill.id}
-                    className={`${styles.skillOption} ${focusSkills.includes(skill.id) ? styles.selected : ''}`}
-                    onClick={() => handleSkillToggle(skill.id)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    disabled={!focusSkills.includes(skill.id) && focusSkills.length >= 3}
-                  >
-                    <div className={styles.skillCheckbox}>
-                      {focusSkills.includes(skill.id) ? skill.icon : ''}
-                    </div>
-                    <span>{skill.name}</span>
-                  </motion.div>
-                ))}
+                {availableSkills.map(skill => {
+                  // Check if this skill can be selected (not already 3 selected)
+                  const canSelect = focusSkills.includes(skill.id) || focusSkills.length < 3;
+                  
+                  return (
+                    <motion.div 
+                      key={skill.id}
+                      className={`${styles.skillOption} ${focusSkills.includes(skill.id) ? styles.selected : ''}`}
+                      onClick={() => canSelect && handleSkillToggle(skill.id)}
+                      whileHover={{ scale: canSelect ? 1.05 : 1 }}
+                      whileTap={{ scale: canSelect ? 0.95 : 1 }}
+                      disabled={!canSelect}
+                    >
+                      <div className={styles.skillCheckbox}>
+                        {focusSkills.includes(skill.id) ? skill.icon : ''}
+                      </div>
+                      <span>{skill.name}</span>
+                    </motion.div>
+                  );
+                })}
               </div>
             </div>
             
@@ -404,22 +412,11 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
                   type="range"
                   min="1"
                   max="10"
+                  step="1"
                   value={episodeCount}
                   onChange={(e) => setEpisodeCount(parseInt(e.target.value))}
                   className={styles.slider}
                 />
-                <div className={styles.sliderMarkers}>
-                  <span>1</span>
-                  <span>2</span>
-                  <span>3</span>
-                  <span>4</span>
-                  <span>5</span>
-                  <span>6</span>
-                  <span>7</span>
-                  <span>8</span>
-                  <span>9</span>
-                  <span>10</span>
-                </div>
               </div>
             </div>
             
