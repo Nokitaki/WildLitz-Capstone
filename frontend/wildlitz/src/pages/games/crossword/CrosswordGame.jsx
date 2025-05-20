@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/crossword/CrosswordGame.module.css';
 
 // Import game screens
-import IntroScreen from './IntroScreen';
 import StoryScreen from './StoryScreen';
 import GameplayScreen from './GameplayScreen';
 import SummaryScreen from './SummaryScreen';
@@ -20,10 +19,12 @@ import { STORY_ADVENTURES, STORY_PUZZLES } from '../../../mock/storyData';
 
 /**
  * Main Crossword Puzzle Game component that manages game state and flow
+ * Modified to go directly to story generation screen
  */
 const CrosswordGame = () => {
   // Game states: 'intro', 'story', 'gameplay', 'summary', 'sentence-builder', 'generate-story'
-  const [gameState, setGameState] = useState('intro');
+  // Set initial state to 'generate-story' to bypass intro screen
+  const [gameState, setGameState] = useState('generate-story');
   
   // Game configuration
   const [gameConfig, setGameConfig] = useState({
@@ -67,15 +68,6 @@ const CrosswordGame = () => {
     };
   }, [timerActive, gameState]);
   
-  // Debug logging
-  useEffect(() => {
-    console.log("Current game state:", gameState);
-    console.log("Solved words:", solvedWords);
-    if (currentPuzzle) {
-      console.log("Current puzzle:", currentPuzzle.id);
-    }
-  }, [gameState, solvedWords, currentPuzzle]);
-  
   /**
    * Handle starting the game with selected configuration
    */
@@ -98,13 +90,6 @@ const CrosswordGame = () => {
     // Reset game state
     setSolvedWords([]);
     setTimeSpent(0);
-  };
-  
-  /**
-   * Handle starting the story generator
-   */
-  const handleStartStoryGeneration = () => {
-    setGameState('generate-story');
   };
   
   /**
@@ -133,8 +118,21 @@ const CrosswordGame = () => {
       adventureId: data.story.id
     });
     
-    // Redirect to intro screen
-    setGameState('intro');
+    // Move to story screen directly with the first episode
+    const firstEpisode = data.story.episodes[0];
+    setCurrentStorySegment(firstEpisode);
+    setCurrentEpisode(1);
+    
+    // Load corresponding puzzle
+    const puzzleData = data.puzzles[firstEpisode.crosswordPuzzleId];
+    setCurrentPuzzle(puzzleData);
+    
+    // Reset game state
+    setSolvedWords([]);
+    setTimeSpent(0);
+    
+    // Go directly to story screen
+    setGameState('story');
   };
   
   /**
@@ -218,8 +216,8 @@ const CrosswordGame = () => {
       // Move to story screen
       setGameState('story');
     } else {
-      // End of adventure
-      setGameState('intro');
+      // End of adventure - go back to story generator
+      setGameState('generate-story');
     }
   };
   
@@ -234,7 +232,7 @@ const CrosswordGame = () => {
    * Handle returning to main menu
    */
   const handleReturnToMenu = () => {
-    setGameState('intro');
+    setGameState('generate-story');
   };
   
   /**
@@ -245,8 +243,8 @@ const CrosswordGame = () => {
     setSolvedWords([]);
     setTimeSpent(0);
     
-    // Move back to intro screen for new configuration
-    setGameState('intro');
+    // Move directly to story generator screen
+    setGameState('generate-story');
   };
   
   /**
@@ -258,26 +256,17 @@ const CrosswordGame = () => {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
   
+  // Handle the cancel action from story generator
+  const handleGeneratorCancel = () => {
+    // Since there's no intro screen to go back to, 
+    // just keep the user on the generator screen
+    setGameState('generate-story');
+  };
+  
   return (
     <div className={styles.gameContainer}>
       <div className={styles.gameContent}>
         <AnimatePresence mode="wait">
-          {gameState === 'intro' && (
-            <motion.div
-              key="intro"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={styles.screenContainer}
-            >
-              <IntroScreen 
-                onStartGame={handleStartGame} 
-                storyAdventures={gameStories}
-                onStartStoryGeneration={handleStartStoryGeneration}
-              />
-            </motion.div>
-          )}
-          
           {gameState === 'generate-story' && (
             <motion.div
               key="generate-story"
@@ -288,7 +277,7 @@ const CrosswordGame = () => {
             >
               <StoryGeneratorScreen 
                 onStoryGenerated={handleStoryGenerated}
-                onCancel={handleReturnToMenu}
+                onCancel={handleGeneratorCancel}
               />
             </motion.div>
           )}

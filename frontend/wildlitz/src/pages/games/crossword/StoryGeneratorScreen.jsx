@@ -1,6 +1,6 @@
 // src/pages/games/crossword/StoryGeneratorScreen.jsx
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../../styles/games/crossword/StoryGeneratorScreen.module.css';
 
@@ -22,21 +22,22 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   // Timeout handling
   const [timeoutId, setTimeoutId] = useState(null);
   
-  // Available themes and skills
+  // Available themes and skills - expanded to 5 themes
   const availableThemes = [
-    // Remove jungle and space since they already exist
-    { id: 'ocean', name: 'Ocean Discovery' },
-    { id: 'farm', name: 'Farm Life' },
-    { id: 'city', name: 'City Adventure' }
+    { id: 'jungle', name: 'Jungle Adventure', icon: '🌴', description: 'Explore lush rainforests filled with wildlife and mystery.' },
+    { id: 'ocean', name: 'Ocean Discovery', icon: '🌊', description: 'Dive into underwater worlds and discover marine life.' },
+    { id: 'farm', name: 'Farm Life', icon: '🚜', description: 'Experience life on a farm with animals and crops.' },
+    { id: 'space', name: 'Space Journey', icon: '🚀', description: 'Travel among the stars and explore distant planets.' },
+    { id: 'city', name: 'City Adventure', icon: '🏙️', description: 'Navigate bustling streets and exciting urban landscapes.' }
   ];
   
   const availableSkills = [
-    { id: 'sight-words', name: 'Sight Words' },
-    { id: 'phonics-sh', name: 'Phonics: SH Sound' },
-    { id: 'phonics-ch', name: 'Phonics: CH Sound' },
-    { id: 'long-vowels', name: 'Long Vowel Sounds' },
-    { id: 'compound-words', name: 'Compound Words' },
-    { id: 'action-verbs', name: 'Action Verbs' }
+    { id: 'sight-words', name: 'Sight Words', icon: '👁️' },
+    { id: 'phonics-sh', name: 'Phonics: SH Sound', icon: '🔈' },
+    { id: 'phonics-ch', name: 'Phonics: CH Sound', icon: '🎵' },
+    { id: 'long-vowels', name: 'Long Vowel Sounds', icon: '🔤' },
+    { id: 'compound-words', name: 'Compound Words', icon: '🔗' },
+    { id: 'action-verbs', name: 'Action Verbs', icon: '🏃‍♂️' }
   ];
   
   // Handle skill selection
@@ -59,113 +60,75 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   
   // Generate story with AI
   const generateStory = async (e) => {
-  if (e && e.preventDefault) {
-    e.preventDefault();
-  }
-  
-  setIsGenerating(true);
-  setGenerationProgress(0);
-  setError(null);
-  setTimeoutWarning(false);
-  
-  // Set a timeout warning after 30 seconds
-  const warningId = setTimeout(() => {
-    setTimeoutWarning(true);
-  }, 30000);
-  
-  setTimeoutId(warningId);
-  
-  // Simulated progress updates
-  const progressInterval = setInterval(() => {
-    setGenerationProgress(prev => {
-      if (prev >= 90) {
-        clearInterval(progressInterval);
-        return 90;
-      }
-      // Slower progress increments
-      return prev + (prev < 50 ? 4 : (prev < 80 ? 2 : 1));
-    });
-  }, 1000);
-  
-  try {
-    const controller = new AbortController();
-    // Set a longer timeout for the fetch request
-    const fetchTimeoutId = setTimeout(() => controller.abort(), 60000);
-    
-    // Create a simplified request body
-    const requestBody = {
-      theme,
-      focusSkills: focusSkills.slice(0, 3), // Limit to 3 skills to reduce complexity
-      characterNames: characterNames || undefined,
-      episodeCount: Math.min(episodeCount, 3), // Limit to 3 episodes to reduce complexity
-      gradeLevel: 3,
-    };
-    
-    console.log("Sending request with data:", requestBody);
-    
-    const response = await fetch('/api/sentence_formation/generate-story/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody),
-      signal: controller.signal
-    });
-    
-    clearTimeout(fetchTimeoutId);
-    clearInterval(progressInterval);
-    clearTimeout(warningId);
-    setTimeoutId(null);
-    
-    // Check if the request was aborted
-    if (controller.signal.aborted) {
-      throw new Error("Request timed out after 60 seconds");
+    if (e && e.preventDefault) {
+      e.preventDefault();
     }
     
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      // If response is JSON, parse it directly
-      const data = await response.json();
+    setIsGenerating(true);
+    setGenerationProgress(0);
+    setError(null);
+    setTimeoutWarning(false);
+    
+    // Set a timeout warning after 30 seconds
+    const warningId = setTimeout(() => {
+      setTimeoutWarning(true);
+    }, 30000);
+    
+    setTimeoutId(warningId);
+    
+    // Simulated progress updates
+    const progressInterval = setInterval(() => {
+      setGenerationProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return 90;
+        }
+        // Slower progress increments
+        return prev + (prev < 50 ? 4 : (prev < 80 ? 2 : 1));
+      });
+    }, 1000);
+    
+    try {
+      const controller = new AbortController();
+      // Set a longer timeout for the fetch request
+      const fetchTimeoutId = setTimeout(() => controller.abort(), 60000);
       
-      // Check for error field in the response
-      if (data.error) {
-        throw new Error(data.error);
+      // Create a simplified request body
+      const requestBody = {
+        theme,
+        focusSkills: focusSkills.slice(0, 3), // Limit to 3 skills to reduce complexity
+        characterNames: characterNames || undefined,
+        episodeCount: Math.min(episodeCount, 10), // Allow up to 10 episodes
+        gradeLevel: 3,
+      };
+      
+      console.log("Sending request with data:", requestBody);
+      
+      const response = await fetch('/api/sentence_formation/generate-story/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      });
+      
+      clearTimeout(fetchTimeoutId);
+      clearInterval(progressInterval);
+      clearTimeout(warningId);
+      setTimeoutId(null);
+      
+      // Check if the request was aborted
+      if (controller.signal.aborted) {
+        throw new Error("Request timed out after 60 seconds");
       }
       
-      // Update progress and generate story
-      setGenerationProgress(100);
-      
-      // Add a slight delay to show 100% completion
-      setTimeout(() => {
-        if (onStoryGenerated) {
-          onStoryGenerated(data);
-        }
-      }, 500);
-      
-    } else {
-      // If not JSON, get the text and try to parse it
-      const textResponse = await response.text();
-      console.log("Response text:", textResponse.substring(0, 200) + "...");
-      
-      try {
-        // Try to parse as JSON, handle common issues
-        const jsonText = textResponse.trim();
-        let data;
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        // If response is JSON, parse it directly
+        const data = await response.json();
         
-        if (jsonText.startsWith('{') && jsonText.endsWith('}')) {
-          // Valid JSON object
-          data = JSON.parse(jsonText);
-        } else {
-          // Try to extract JSON from the response
-          const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            data = JSON.parse(jsonMatch[0]);
-          } else {
-            throw new Error(`Unable to parse response as JSON`);
-          }
-        }
-        
-        // Check for error field in the parsed data
+        // Check for error field in the response
         if (data.error) {
           throw new Error(data.error);
         }
@@ -180,26 +143,64 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
           }
         }, 500);
         
-      } catch (jsonError) {
-        console.error("JSON parse error:", jsonError);
-        throw new Error(`Unable to parse response: ${jsonError.message}`);
+      } else {
+        // If not JSON, get the text and try to parse it
+        const textResponse = await response.text();
+        console.log("Response text:", textResponse.substring(0, 200) + "...");
+        
+        try {
+          // Try to parse as JSON, handle common issues
+          const jsonText = textResponse.trim();
+          let data;
+          
+          if (jsonText.startsWith('{') && jsonText.endsWith('}')) {
+            // Valid JSON object
+            data = JSON.parse(jsonText);
+          } else {
+            // Try to extract JSON from the response
+            const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              data = JSON.parse(jsonMatch[0]);
+            } else {
+              throw new Error(`Unable to parse response as JSON`);
+            }
+          }
+          
+          // Check for error field in the parsed data
+          if (data.error) {
+            throw new Error(data.error);
+          }
+          
+          // Update progress and generate story
+          setGenerationProgress(100);
+          
+          // Add a slight delay to show 100% completion
+          setTimeout(() => {
+            if (onStoryGenerated) {
+              onStoryGenerated(data);
+            }
+          }, 500);
+          
+        } catch (jsonError) {
+          console.error("JSON parse error:", jsonError);
+          throw new Error(`Unable to parse response: ${jsonError.message}`);
+        }
       }
+      
+    } catch (err) {
+      clearInterval(progressInterval);
+      clearTimeout(warningId);
+      setTimeoutId(null);
+      
+      if (err.name === 'AbortError') {
+        setError('Request timed out. The server is taking too long to respond. Try with fewer episodes or a simpler theme.');
+      } else {
+        setError(err.message || 'An error occurred while generating the story');
+      }
+      setIsGenerating(false);
+      console.error('Error generating story:', err);
     }
-    
-  } catch (err) {
-    clearInterval(progressInterval);
-    clearTimeout(warningId);
-    setTimeoutId(null);
-    
-    if (err.name === 'AbortError') {
-      setError('Request timed out. The server is taking too long to respond. Try with fewer episodes or a simpler theme.');
-    } else {
-      setError(err.message || 'An error occurred while generating the story');
-    }
-    setIsGenerating(false);
-    console.error('Error generating story:', err);
-  }
-};
+  };
   
   // Retry with simpler settings
   const handleRetry = () => {
@@ -228,8 +229,10 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   return (
     <div className={styles.generatorContainer}>
       <div className={styles.generatorCard}>
-        <h1 className={styles.generatorTitle}>Create a New Story Adventure</h1>
-        <p className={styles.generatorSubtitle}>Set your preferences to generate a custom story with crossword puzzles!</p>
+        <div className={styles.headerSection}>
+          <h1 className={styles.generatorTitle}>Reading Adventures: Crossword Quest</h1>
+          <p className={styles.generatorSubtitle}>Set your preferences to generate a custom story with crossword puzzles!</p>
+        </div>
         
         {isGenerating ? (
           <div className={styles.generatingContent}>
@@ -310,35 +313,47 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
             {/* Theme Selection */}
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Story Theme:</label>
-              <div className={styles.themeOptions}>
-                {availableThemes.map(themeOption => (
-                  <div 
-                    key={themeOption.id}
-                    className={`${styles.themeOption} ${theme === themeOption.id ? styles.selected : ''}`}
-                    onClick={() => setTheme(themeOption.id)}
-                  >
-                    <div className={`${styles.themeIcon} ${styles[themeOption.id + 'Icon']}`}></div>
-                    <span>{themeOption.name}</span>
-                  </div>
-                ))}
+              <div className={styles.themeOptionsContainer}>
+                <div className={styles.themeOptions}>
+                  {availableThemes.map(themeOption => (
+                    <motion.div 
+                      key={themeOption.id}
+                      className={`${styles.themeOption} ${theme === themeOption.id ? styles.selected : ''}`}
+                      onClick={() => setTheme(themeOption.id)}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className={styles.themeIconContainer}>
+                        <span className={styles.themeEmoji}>{themeOption.icon}</span>
+                      </div>
+                      <div className={styles.themeDetails}>
+                        <h3 className={styles.themeName}>{themeOption.name}</h3>
+                        <p className={styles.themeDescription}>{themeOption.description}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             </div>
             
             {/* Skill Focus */}
             <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Focus Skills:</label>
+              <label className={styles.formLabel}>Focus Skills: <span className={styles.optionalHint}>(select up to 3)</span></label>
               <div className={styles.skillsOptions}>
                 {availableSkills.map(skill => (
-                  <div 
+                  <motion.div 
                     key={skill.id}
                     className={`${styles.skillOption} ${focusSkills.includes(skill.id) ? styles.selected : ''}`}
                     onClick={() => handleSkillToggle(skill.id)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    disabled={!focusSkills.includes(skill.id) && focusSkills.length >= 3}
                   >
                     <div className={styles.skillCheckbox}>
-                      {focusSkills.includes(skill.id) && <span>✓</span>}
+                      {focusSkills.includes(skill.id) ? skill.icon : ''}
                     </div>
                     <span>{skill.name}</span>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
@@ -360,41 +375,73 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
             
             {/* Episode Count */}
             <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Number of Episodes:</label>
-              <div className={styles.episodeCountWrapper}>
-                <button 
+              <label className={styles.formLabel}>Number of Episodes: <span className={styles.optionalHint}>(1-10)</span></label>
+              <div className={styles.episodeCountControls}>
+                <motion.button 
                   type="button"
                   className={styles.countButton}
                   onClick={() => setEpisodeCount(Math.max(1, episodeCount - 1))}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  disabled={episodeCount <= 1}
                 >
                   -
-                </button>
+                </motion.button>
                 <div className={styles.episodeCount}>{episodeCount}</div>
-                <button 
+                <motion.button 
                   type="button"
                   className={styles.countButton}
-                  onClick={() => setEpisodeCount(Math.min(5, episodeCount + 1))}
+                  onClick={() => setEpisodeCount(Math.min(10, episodeCount + 1))}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  disabled={episodeCount >= 10}
                 >
                   +
-                </button>
+                </motion.button>
+              </div>
+              <div className={styles.episodeSlider}>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={episodeCount}
+                  onChange={(e) => setEpisodeCount(parseInt(e.target.value))}
+                  className={styles.slider}
+                />
+                <div className={styles.sliderMarkers}>
+                  <span>1</span>
+                  <span>2</span>
+                  <span>3</span>
+                  <span>4</span>
+                  <span>5</span>
+                  <span>6</span>
+                  <span>7</span>
+                  <span>8</span>
+                  <span>9</span>
+                  <span>10</span>
+                </div>
               </div>
             </div>
             
             {/* Action Buttons */}
             <div className={styles.actionButtons}>
-              <button 
+              <motion.button 
                 type="button"
                 className={styles.cancelButton}
                 onClick={handleCancel}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 Cancel
-              </button>
-              <button 
+              </motion.button>
+              <motion.button 
                 type="submit"
                 className={styles.generateButton}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 Create Story
-              </button>
+              </motion.button>
             </div>
           </form>
         )}
