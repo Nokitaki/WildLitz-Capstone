@@ -1,0 +1,7 @@
+INFO 2025-05-21 01:25:25,335 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a ocean theme.
+        
+    ...
+INFO 2025-05-21 01:25:30,166 views Received response from OpenAI: {
+    "title": "The Magical Ocean Adventure",
+    "description": "Join Sammy the Seahorse on an exci...

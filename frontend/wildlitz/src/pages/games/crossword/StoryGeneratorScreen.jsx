@@ -59,92 +59,80 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   
   // Generate story with AI
   const generateStory = async (e) => {
-    if (e && e.preventDefault) {
-      e.preventDefault();
+  if (e && e.preventDefault) {
+    e.preventDefault();
+  }
+  
+  setIsGenerating(true);
+  setGenerationProgress(0);
+  setError(null);
+  setTimeoutWarning(false);
+  
+  // Set a timeout warning after 30 seconds
+  const warningId = setTimeout(() => {
+    setTimeoutWarning(true);
+  }, 30000);
+  
+  setTimeoutId(warningId);
+  
+  // Simulated progress updates
+  const progressInterval = setInterval(() => {
+    setGenerationProgress(prev => {
+      if (prev >= 90) {
+        clearInterval(progressInterval);
+        return 90;
+      }
+      // Slower progress increments
+      return prev + (prev < 50 ? 4 : (prev < 80 ? 2 : 1));
+    });
+  }, 1000);
+  
+  try {
+    const controller = new AbortController();
+    // Set a longer timeout for the fetch request
+    const fetchTimeoutId = setTimeout(() => controller.abort(), 60000);
+    
+    // Create a simplified request body
+    const requestBody = {
+      theme,
+      focusSkills: focusSkills.slice(0, 3), // Limit to 3 skills to reduce complexity
+      characterNames: characterNames || undefined,
+      episodeCount: Math.min(episodeCount, 3), // Limit to 3 episodes to reduce complexity
+      gradeLevel: 3,
+    };
+    
+    console.log("Sending request with data:", requestBody);
+    
+    const response = await fetch('/api/sentence_formation/generate-story/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal
+    });
+    
+    clearTimeout(fetchTimeoutId);
+    clearInterval(progressInterval);
+    clearTimeout(warningId);
+    setTimeoutId(null);
+    
+    // Check if the request was aborted
+    if (controller.signal.aborted) {
+      throw new Error("Request timed out after 60 seconds");
     }
     
-    setIsGenerating(true);
-    setGenerationProgress(0);
-    setError(null);
-    setTimeoutWarning(false);
-    
-    // Set a timeout warning after 30 seconds
-    const warningId = setTimeout(() => {
-      setTimeoutWarning(true);
-    }, 30000);
-    
-    setTimeoutId(warningId);
-    
-    // Simulated progress updates - slower to prevent reaching 90% too quickly
-    const progressInterval = setInterval(() => {
-      setGenerationProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return 90;
-        }
-        // Slower progress increments
-        return prev + (prev < 50 ? 4 : (prev < 80 ? 2 : 1));
-      });
-    }, 1000);
-    
-    try {
-      const controller = new AbortController();
-      // Set a longer timeout for the fetch request
-      const fetchTimeoutId = setTimeout(() => controller.abort(), 60000);
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      // If response is JSON, parse it directly
+      const data = await response.json();
       
-      const response = await fetch('/api/sentence_formation/generate-story/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          theme,
-          focusSkills,
-          characterNames: characterNames || undefined,
-          episodeCount,
-          gradeLevel: 3,
-          refresh: true  // This flag forces new content generation
-        }),
-        signal: controller.signal
-      });
-      
-      clearTimeout(fetchTimeoutId);
-      clearInterval(progressInterval);
-      clearTimeout(warningId);
-      setTimeoutId(null);
-      
-      // Even if we get a 500 error, try to parse the response JSON
-      let data;
-      let errorMessage = null;
-      
-      try {
-        const textResponse = await response.text();
-        console.log("Response text:", textResponse.substring(0, 200) + "...");
-        
-        // Try to parse as JSON, if it fails, handle the error gracefully
-        try {
-          data = JSON.parse(textResponse);
-          
-          if (!response.ok) {
-            errorMessage = data.message || `Server error: ${response.status}`;
-            throw new Error(errorMessage);
-          }
-        } catch (jsonError) {
-          console.error("JSON parse error:", jsonError);
-          
-          if (!response.ok) {
-            throw new Error(`Server error (${response.status}): Unable to parse response`);
-          }
-          
-          // If we can't parse JSON but the response was OK, something's really wrong
-          throw new Error("Failed to parse server response");
-        }
-      } catch (responseError) {
-        console.error("Response processing error:", responseError);
-        throw responseError;
+      // Check for error field in the response
+      if (data.error) {
+        throw new Error(data.error);
       }
       
-      // If we got here, we have valid data
+      // Update progress and generate story
       setGenerationProgress(100);
       
       // Add a slight delay to show 100% completion
@@ -154,20 +142,64 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
         }
       }, 500);
       
-    } catch (err) {
-      clearInterval(progressInterval);
-      clearTimeout(warningId);
-      setTimeoutId(null);
+    } else {
+      // If not JSON, get the text and try to parse it
+      const textResponse = await response.text();
+      console.log("Response text:", textResponse.substring(0, 200) + "...");
       
-      if (err.name === 'AbortError') {
-        setError('Request timed out. The server is taking too long to respond. Try with fewer episodes or a simpler theme.');
-      } else {
-        setError(err.message || 'An error occurred while generating the story');
+      try {
+        // Try to parse as JSON, handle common issues
+        const jsonText = textResponse.trim();
+        let data;
+        
+        if (jsonText.startsWith('{') && jsonText.endsWith('}')) {
+          // Valid JSON object
+          data = JSON.parse(jsonText);
+        } else {
+          // Try to extract JSON from the response
+          const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            data = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error(`Unable to parse response as JSON`);
+          }
+        }
+        
+        // Check for error field in the parsed data
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        
+        // Update progress and generate story
+        setGenerationProgress(100);
+        
+        // Add a slight delay to show 100% completion
+        setTimeout(() => {
+          if (onStoryGenerated) {
+            onStoryGenerated(data);
+          }
+        }, 500);
+        
+      } catch (jsonError) {
+        console.error("JSON parse error:", jsonError);
+        throw new Error(`Unable to parse response: ${jsonError.message}`);
       }
-      setIsGenerating(false);
-      console.error('Error generating story:', err);
     }
-  };
+    
+  } catch (err) {
+    clearInterval(progressInterval);
+    clearTimeout(warningId);
+    setTimeoutId(null);
+    
+    if (err.name === 'AbortError') {
+      setError('Request timed out. The server is taking too long to respond. Try with fewer episodes or a simpler theme.');
+    } else {
+      setError(err.message || 'An error occurred while generating the story');
+    }
+    setIsGenerating(false);
+    console.error('Error generating story:', err);
+  }
+};
   
   // Retry with simpler settings
   const handleRetry = () => {

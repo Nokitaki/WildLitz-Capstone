@@ -503,68 +503,87 @@ const GameplayScreen = ({
    * IMPROVED - Handle showing a hint by revealing a random letter
    */
   const handleShowHint = () => {
-    if (hintsRemaining > 0 && selectedClue) {
-      setHintsRemaining(prev => prev - 1);
-      
-      // Get the currently selected word's cells
-      const wordCells = selectedClue.cells || [];
-      if (wordCells.length === 0) return;
-      
-      // Find unrevealed cells for this word
-      const unrevealedCells = wordCells.filter((cell, index) => {
-        const cellIndex = gridCells.findIndex(c => 
-          c.row === cell.row && c.col === cell.col
-        );
-        
-        return cellIndex !== -1 && !gridCells[cellIndex].revealed;
-      });
-      
-      // If all cells are revealed, show message
-      if (unrevealedCells.length === 0) {
-        setShowHint(true);
-        setLastHint("All letters for this word are already revealed!");
-        setTimeout(() => setShowHint(false), 3000);
-        return;
-      }
-      
-      // Choose a random unrevealed cell
-      const randomIndex = Math.floor(Math.random() * unrevealedCells.length);
-      const cellToReveal = unrevealedCells[randomIndex];
-      
-      // Find the position of this cell in the word
-      const letterPosition = wordCells.findIndex(c => 
-        c.row === cellToReveal.row && c.col === cellToReveal.col
-      );
-      
-      // Get the letter at this position
-      const letterToReveal = selectedClue.answer[letterPosition];
-      
-      // Create a hint message
-      setLastHint(`Revealing the letter "${letterToReveal}" in position ${letterPosition + 1}`);
-      setShowHint(true);
-      
-      // Update the grid to reveal this letter
-      const updatedCells = [...gridCells];
-      const cellIndex = updatedCells.findIndex(c => 
-        c.row === cellToReveal.row && c.col === cellToReveal.col
-      );
-      
-      if (cellIndex !== -1) {
-        updatedCells[cellIndex] = {
-          ...updatedCells[cellIndex],
-          value: letterToReveal,
-          revealed: true
-        };
-        
-        setGridCells(updatedCells);
-      }
-      
-      // Hide hint after 3 seconds
-      setTimeout(() => {
-        setShowHint(false);
-      }, 3000);
-    }
-  };
+  if (hintsRemaining <= 0) {
+    // No hints remaining
+    setShowHint(true);
+    setLastHint("You've used all your hints!");
+    setTimeout(() => setShowHint(false), 3000);
+    return;
+  }
+  
+  if (!selectedClue) {
+    // No clue selected
+    setShowHint(true);
+    setLastHint("Please select a word first!");
+    setTimeout(() => setShowHint(false), 3000);
+    return;
+  }
+  
+  // Immediately decrease the hint counter
+  const newHintCount = hintsRemaining - 1;
+  setHintsRemaining(newHintCount);
+  
+  console.log(`Using hint. Remaining: ${newHintCount}`);
+  
+  // Get the currently selected word's cells
+  const wordCells = selectedClue.cells || [];
+  if (wordCells.length === 0) return;
+  
+  // Find unrevealed cells for this word
+  const unrevealedCells = wordCells.filter((cell, index) => {
+    const cellIndex = gridCells.findIndex(c => 
+      c.row === cell.row && c.col === cell.col
+    );
+    
+    return cellIndex !== -1 && !gridCells[cellIndex].revealed;
+  });
+  
+  // If all cells are revealed, show message
+  if (unrevealedCells.length === 0) {
+    setShowHint(true);
+    setLastHint("All letters for this word are already revealed!");
+    setTimeout(() => setShowHint(false), 3000);
+    return;
+  }
+  
+  // Choose a random unrevealed cell
+  const randomIndex = Math.floor(Math.random() * unrevealedCells.length);
+  const cellToReveal = unrevealedCells[randomIndex];
+  
+  // Find the position of this cell in the word
+  const letterPosition = wordCells.findIndex(c => 
+    c.row === cellToReveal.row && c.col === cellToReveal.col
+  );
+  
+  // Get the letter at this position
+  const letterToReveal = selectedClue.answer[letterPosition];
+  
+  // Create a hint message
+  setLastHint(`Revealing the letter "${letterToReveal}" in position ${letterPosition + 1}`);
+  setShowHint(true);
+  
+  // Update the grid to reveal this letter
+  const updatedCells = [...gridCells];
+  const cellIndex = updatedCells.findIndex(c => 
+    c.row === cellToReveal.row && c.col === cellToReveal.col
+  );
+  
+  if (cellIndex !== -1) {
+    updatedCells[cellIndex] = {
+      ...updatedCells[cellIndex],
+      value: letterToReveal,
+      revealed: true
+    };
+    
+    setGridCells(updatedCells);
+  }
+  
+  // Hide hint after 3 seconds
+  setTimeout(() => {
+    setShowHint(false);
+  }, 3000);
+};
+
   
   /**
    * Handle adaptive hint
@@ -745,6 +764,9 @@ const GameplayScreen = ({
   const width = puzzle.size.width;
   const height = puzzle.size.height;
   
+  console.log(`Rendering grid with dimensions: ${width}x${height}`);
+  console.log(`Grid cells: ${gridCells.length}`);
+  
   // Ensure the grid is rendered with proper dimensions
   const gridStyle = {
     gridTemplateColumns: `repeat(${width}, 45px)`,
@@ -754,8 +776,6 @@ const GameplayScreen = ({
     borderRadius: '15px',
     display: 'grid',
     gap: '1px',
-    margin: '0 auto', // Center the grid horizontally
-    maxWidth: 'fit-content' // Make grid only as wide as needed
   };
   
   return (
