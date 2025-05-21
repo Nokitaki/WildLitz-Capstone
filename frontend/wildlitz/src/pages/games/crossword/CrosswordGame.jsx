@@ -19,7 +19,7 @@ import { STORY_ADVENTURES, STORY_PUZZLES } from '../../../mock/storyData';
 
 /**
  * Main Crossword Puzzle Game component that manages game state and flow
- * Modified to go directly to story generation screen
+ * Modified to support multiple puzzles per episode
  */
 const CrosswordGame = () => {
   // Game states: 'intro', 'story', 'gameplay', 'summary', 'sentence-builder', 'generate-story'
@@ -48,6 +48,10 @@ const CrosswordGame = () => {
   const [solvedWords, setSolvedWords] = useState([]);
   const [timeSpent, setTimeSpent] = useState(0);
   
+  // Multiple puzzles support
+  const [availablePuzzles, setAvailablePuzzles] = useState([]);
+  const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(0);
+  
   // Reading coach state
   const [showReadingCoach, setShowReadingCoach] = useState(false);
   
@@ -67,6 +71,48 @@ const CrosswordGame = () => {
       if (timer) clearInterval(timer);
     };
   }, [timerActive, gameState]);
+  
+  // Load multiple puzzles when story segment changes
+  useEffect(() => {
+    if (currentStorySegment) {
+      // Get primary puzzle ID
+      const primaryPuzzleId = currentStorySegment.crosswordPuzzleId;
+      
+      // Get additional puzzle IDs
+      const additionalPuzzleIds = currentStorySegment.additionalPuzzleIds || [];
+      
+      // Combine all puzzle IDs
+      const allPuzzleIds = [primaryPuzzleId, ...additionalPuzzleIds].filter(Boolean);
+      setAvailablePuzzles(allPuzzleIds);
+      
+      // Load the first puzzle
+      setCurrentPuzzleIndex(0);
+      if (allPuzzleIds.length > 0) {
+        const puzzleData = gamePuzzles[allPuzzleIds[0]];
+        setCurrentPuzzle(puzzleData);
+      }
+      
+      // Reset game state for a new story segment
+      setSolvedWords([]);
+      setTimeSpent(0);
+    }
+  }, [currentStorySegment, gamePuzzles]);
+  
+  /**
+   * Handle changing between available puzzles
+   */
+  const handleChangePuzzle = (index) => {
+    if (index >= 0 && index < availablePuzzles.length) {
+      setCurrentPuzzleIndex(index);
+      const puzzleId = availablePuzzles[index];
+      const puzzleData = gamePuzzles[puzzleId];
+      setCurrentPuzzle(puzzleData);
+      
+      // Reset game state for the new puzzle
+      setSolvedWords([]);
+      setTimeSpent(0);
+    }
+  };
   
   /**
    * Handle starting the game with selected configuration
@@ -152,10 +198,49 @@ const CrosswordGame = () => {
   
   /**
    * Get words that will appear in the puzzle from story
+   * Updated to collect words from all episodes
    */
   const getWordsFromPuzzle = () => {
     if (!currentPuzzle) return [];
+    
+    // For the current puzzle, get all words
     return currentPuzzle.words.map(word => word.answer);
+  };
+  
+  /**
+   * Get ALL vocabulary words across ALL episodes in the current adventure
+   * Used for highlighting words in the story text
+   */
+  const getAllVocabularyWords = () => {
+    if (!gameStories || !gameConfig || !gameConfig.adventureId) return [];
+    
+    const adventure = gameStories[gameConfig.adventureId];
+    if (!adventure || !adventure.episodes) return [];
+    
+    const allWords = [];
+    
+    // Go through each episode
+    adventure.episodes.forEach(episode => {
+      // Get all puzzles for this episode
+      const puzzleId = episode.crosswordPuzzleId;
+      const additionalIds = episode.additionalPuzzleIds || [];
+      const allPuzzleIds = [puzzleId, ...additionalIds].filter(Boolean);
+      
+      // Go through each puzzle
+      allPuzzleIds.forEach(id => {
+        const puzzle = gamePuzzles[id];
+        if (puzzle && puzzle.words) {
+          // Add each word from this puzzle
+          puzzle.words.forEach(word => {
+            if (!allWords.includes(word.answer)) {
+              allWords.push(word.answer);
+            }
+          });
+        }
+      });
+    });
+    
+    return allWords;
   };
   
   /**
@@ -204,10 +289,6 @@ const CrosswordGame = () => {
       const nextEpisode = adventure.episodes[nextEpisodeIndex];
       setCurrentStorySegment(nextEpisode);
       setCurrentEpisode(currentEpisode + 1);
-      
-      // Load corresponding puzzle
-      const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
-      setCurrentPuzzle(puzzleData);
       
       // Reset game state
       setSolvedWords([]);
@@ -293,7 +374,7 @@ const CrosswordGame = () => {
               <StoryScreen 
                 storySegment={currentStorySegment}
                 onContinue={handleContinueToPuzzle}
-                wordsToPuzzle={getWordsFromPuzzle()}
+                wordsToPuzzle={getAllVocabularyWords()}
                 currentEpisode={currentEpisode}
                 onToggleReadingCoach={toggleReadingCoach}
               />
@@ -303,7 +384,7 @@ const CrosswordGame = () => {
                   storyText={currentStorySegment.text}
                   isVisible={showReadingCoach}
                   onClose={() => setShowReadingCoach(false)}
-                  vocabularyWords={getWordsFromPuzzle()}
+                  vocabularyWords={getAllVocabularyWords()}
                   grade={3}
                 />
               )}
@@ -325,6 +406,11 @@ const CrosswordGame = () => {
                 solvedWords={solvedWords}
                 timeFormatted={formatTime(timeSpent)}
                 storyContext={currentStorySegment}
+                // Pass multiple puzzle navigation props
+                puzzleIds={availablePuzzles}
+                currentPuzzleIndex={currentPuzzleIndex}
+                onChangePuzzle={handleChangePuzzle}
+                totalPuzzles={availablePuzzles.length}
               />
             </motion.div>
           )}
@@ -352,6 +438,8 @@ const CrosswordGame = () => {
                 storyTitle={gameStories[gameConfig.adventureId]?.title}
                 storySegment={currentStorySegment}
                 onToggleReadingCoach={toggleReadingCoach}
+                currentPuzzleIndex={currentPuzzleIndex}
+                totalPuzzles={availablePuzzles.length}
               />
             </motion.div>
           )}

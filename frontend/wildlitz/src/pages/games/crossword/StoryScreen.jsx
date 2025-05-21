@@ -1,10 +1,10 @@
-// StoryScreen with individual sound buttons for each sentence
+// StoryScreen with vocabulary words limited to visible content
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/crossword/StoryScreen.module.css';
 
 /**
- * Enhanced Story Screen with individual sound buttons for each sentence
+ * Enhanced Story Screen that only shows vocabulary words visible on screen
  */
 const StoryScreen = ({ 
   storySegment, 
@@ -24,9 +24,14 @@ const StoryScreen = ({
   const [sentences, setSentences] = useState([]);
   const [visitedSentences, setVisitedSentences] = useState([]);
   
+  // NEW: State for visible vocabulary words
+  const [visibleVocabWords, setVisibleVocabWords] = useState([]);
+  const [visibleSentences, setVisibleSentences] = useState(new Set());
+  
   // References
   const storyTextRef = useRef(null);
   const sentenceRefs = useRef([]);
+  const observerRef = useRef(null);
   
   // Check if speech synthesis is available
   const hasSpeech = typeof window !== 'undefined' && 'speechSynthesis' in window;
@@ -45,8 +50,89 @@ const StoryScreen = ({
       
       // Reset visited sentences
       setVisitedSentences([]);
+      
+      // Reset visible sentences
+      setVisibleSentences(new Set());
     }
   }, [storySegment]);
+  
+  // NEW: Set up intersection observer to track visible sentences
+  useEffect(() => {
+    // Clean up previous observer if it exists
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+    
+    // Set up new intersection observer
+    const options = {
+      root: storyTextRef.current,
+      rootMargin: '0px',
+      threshold: 0.5 // Element is considered visible when 50% is in view
+    };
+    
+    observerRef.current = new IntersectionObserver((entries) => {
+      const newVisibleSentences = new Set(visibleSentences);
+      
+      entries.forEach(entry => {
+        const sentenceId = entry.target.id;
+        if (!sentenceId) return;
+        
+        const sentenceIndex = parseInt(sentenceId.split('-')[1]);
+        if (isNaN(sentenceIndex)) return;
+        
+        if (entry.isIntersecting) {
+          newVisibleSentences.add(sentenceIndex);
+        } else {
+          newVisibleSentences.delete(sentenceIndex);
+        }
+      });
+      
+      setVisibleSentences(newVisibleSentences);
+    }, options);
+    
+    // Start observing sentence elements
+    sentenceRefs.current.forEach((ref, index) => {
+      if (ref.current) {
+        observerRef.current.observe(ref.current);
+      }
+    });
+    
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [sentences]);
+  
+  // NEW: Update visible vocabulary words based on visible sentences
+  useEffect(() => {
+    if (sentences.length === 0 || wordsToPuzzle.length === 0) {
+      setVisibleVocabWords([]);
+      return;
+    }
+    
+    // Get only visible sentences
+    const visibleSentenceTexts = Array.from(visibleSentences).map(
+      index => sentences[index] || ''
+    );
+    
+    // Find vocabulary words in visible sentences
+    const visible = [];
+    
+    for (const word of wordsToPuzzle) {
+      const lowerWord = word.toLowerCase();
+      const wordRegex = new RegExp(`\\b${lowerWord}\\b`, 'i');
+      
+      for (const sentence of visibleSentenceTexts) {
+        if (wordRegex.test(sentence) && !visible.includes(word)) {
+          visible.push(word);
+          break;
+        }
+      }
+    }
+    
+    setVisibleVocabWords(visible);
+  }, [visibleSentences, sentences, wordsToPuzzle]);
   
   // Handle reading the full story aloud
   const handleReadAloud = () => {
@@ -192,6 +278,7 @@ const StoryScreen = ({
   
   // Function to highlight vocabulary words in a sentence
   const highlightVocabWords = (sentence) => {
+    // Get ALL vocabulary words across all episodes
     if (!wordsToPuzzle || wordsToPuzzle.length === 0) return sentence;
     
     // Create a deep copy of the sentence to work with
@@ -327,7 +414,8 @@ const StoryScreen = ({
             <div className={styles.vocabularySection}>
               <h3 className={styles.vocabularyTitle}>Vocabulary Words:</h3>
               <div className={styles.vocabularyWords}>
-                {wordsToPuzzle.map((word, index) => {
+                {/* MODIFIED: Only show vocabulary words that are visible on screen */}
+                {visibleVocabWords.map((word, index) => {
                   // Get a rainbow color for each word
                   const colors = ['#FF5252', '#FF9E80', '#FFCA28', '#66BB6A', '#42A5F5', '#7E57C2'];
                   const color = colors[index % colors.length];
@@ -342,6 +430,13 @@ const StoryScreen = ({
                     </div>
                   );
                 })}
+                
+                {/* Show a message if no vocabulary words are visible */}
+                {visibleVocabWords.length === 0 && (
+                  <div className={styles.noVocabWords}>
+                    Scroll through the story to see vocabulary words
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -5,3 +5,175 @@ INFO 2025-05-21 01:25:25,335 views Sending prompt to OpenAI:
 INFO 2025-05-21 01:25:30,166 views Received response from OpenAI: {
     "title": "The Magical Ocean Adventure",
     "description": "Join Sammy the Seahorse on an exci...
+INFO 2025-05-21 14:08:19,391 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 14:08:24,145 views Received response from OpenAI: ```json
+{
+  "title": "The Jungle Adventure",
+  "description": "Join Max and Lily as they embark on a...
+INFO 2025-05-21 14:08:50,673 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 14:08:55,759 views Received response from OpenAI: ```json
+{
+    "title": "The Jungle Adventure",
+    "description": "Join Lily the Lion on an exciting...
+INFO 2025-05-21 14:10:40,997 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 14:10:45,672 views Received response from OpenAI: ```json
+{
+  "title": "Jungle Adventure",
+  "description": "Join Timmy and Sally on an exciting jungl...
+INFO 2025-05-21 14:11:54,901 views Sending prompt to OpenAI: 
+        Create a 2-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 14:11:59,912 views Received response from OpenAI: ```json
+{
+  "title": "Jungle Adventure",
+  "description": "Join Lily and Max on an exciting journey ...
+INFO 2025-05-21 14:18:25,058 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 14:18:29,923 views Received response from OpenAI: ```json
+{
+  "title": "Jungle Adventure",
+  "description": "Join Lily and Max on an exciting jungle e...
+INFO 2025-05-21 14:19:50,396 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 14:19:54,658 views Received response from OpenAI: {
+    "title": "Jungle Adventure",
+    "description": "Join Lily and her friends on an exciting jung...
+INFO 2025-05-21 14:21:07,889 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 14:21:12,060 views Received response from OpenAI: ```json
+{
+  "title": "Jungle Adventure",
+  "description": "Join Mia and Max on a thrilling jungle ex...
+INFO 2025-05-21 14:26:01,231 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 14:26:06,105 views Received response from OpenAI: {
+    "title": "The Jungle Adventure",
+    "description": "Join Leo the Lion on an exciting journey ...
+INFO 2025-05-21 15:12:32,738 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a city theme.
+        
+     ...
+INFO 2025-05-21 15:12:38,405 views Received response from OpenAI: ```json
+{
+  "title": "City Adventure",
+  "description": "Join Lily and Max as they explore the bustl...
+INFO 2025-05-21 15:18:37,090 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 15:18:41,709 views Received response from OpenAI: ```json
+{
+  "title": "Jungle Adventure",
+  "description": "Join Max and Mia on an exciting jungle ex...
+INFO 2025-05-21 15:25:48,584 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 15:25:52,866 views Received response from OpenAI: ```json
+{
+  "title": "Jungle Journey",
+  "description": "Join Sam and Mia on an exciting adventure i...
+INFO 2025-05-21 15:26:23,756 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 15:26:28,805 views Received response from OpenAI: ```json
+{
+  "title": "The Jungle Adventure",
+  "description": "Join Lily the Lioness on an exciting ...
+INFO 2025-05-21 15:35:52,818 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 15:35:57,036 views Received response from OpenAI: ```json
+{
+  "title": "The Jungle Adventure",
+  "description": "Join Mia and Max on an exciting jungl...
+INFO 2025-05-21 15:40:13,703 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 15:40:19,403 views Received response from OpenAI: {
+  "title": "Jungle Journey",
+  "description": "Join Lily the Lion and her friends on an exciting a...
+INFO 2025-05-21 15:42:13,498 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 15:42:17,412 views Received response from OpenAI: ```json
+{
+  "title": "Jungle Journey",
+  "description": "Join Lily the Lioness on an exciting advent...
+INFO 2025-05-21 15:43:21,164 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 15:43:25,208 views Received response from OpenAI: {
+  "title": "The Jungle Adventure",
+  "description": "Join Mia and Max as they embark on an excitin...
+INFO 2025-05-21 15:43:59,813 views Sending prompt to OpenAI: 
+        Create a 3-episode educational story for grade 3 students with a fairytale theme.
+        
+...
+INFO 2025-05-21 15:44:06,676 views Received response from OpenAI: ```json
+{
+  "title": "The Enchanted Forest Adventures",
+  "description": "Join Lily and Max on their...
+INFO 2025-05-21 15:46:05,576 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a farm theme.
+        
+     ...
+INFO 2025-05-21 15:46:10,119 views Received response from OpenAI: ```json
+{
+  "title": "Farm Adventures",
+  "description": "Join Sammy and his friends as they explore...
+INFO 2025-05-21 15:53:49,878 views Sending prompt to OpenAI: 
+        Create a 3-episode educational story for grade 3 students with a farm theme.
+        
+     ...
+INFO 2025-05-21 15:53:58,590 views Received response from OpenAI: ```json
+{
+  "title": "Farm Adventures",
+  "description": "Join Molly and Max as they explore life on...
+INFO 2025-05-21 15:56:24,565 views Sending prompt to OpenAI: 
+        Create a 5-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 15:56:41,998 views Received response from OpenAI: ```json
+{
+    "title": "The Jungle Adventures",
+    "description": "Join Leo the Lion and his friend...
+INFO 2025-05-21 15:57:09,219 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-21 15:57:13,968 views Received response from OpenAI: ```json
+{
+  "title": "Jungle Adventures with Joey",
+  "description": "Join Joey the Jaguar on exciti...
+INFO 2025-05-21 16:14:23,107 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a ocean theme.
+        
+    ...
+INFO 2025-05-21 16:14:26,776 views Received response from OpenAI: ```json
+{
+  "title": "The Magical Ocean Adventure",
+  "description": "Join Sam and Lily as they emba...

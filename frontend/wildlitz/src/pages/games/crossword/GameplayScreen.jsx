@@ -31,7 +31,7 @@ const GameplayScreen = ({
   const [solvedClues, setSolvedClues] = useState({});
   const [cluesMap, setCluesMap] = useState({});
   const [isLoadingClues, setIsLoadingClues] = useState(false);
-  
+  const [isLoadingChoices, setIsLoadingChoices] = useState(false);
   // Create grid when puzzle changes
   useEffect(() => {
     if (puzzle && puzzle.size) {
@@ -62,17 +62,16 @@ const GameplayScreen = ({
   
   // Generate new answer choices when the selected clue changes
   useEffect(() => {
-    if (selectedClue) {
-      // Clear existing choices
-      setAnswerChoices([]);
-      setSelectedAnswer(null);
-      setFeedback(null);
-      
-      // Generate choices for the new clue
-      generateChoicesForClue(selectedClue);
-    }
-  }, [selectedClue]);
-  
+  if (selectedClue) {
+    // Clear existing choices
+    setAnswerChoices([]);
+    setSelectedAnswer(null);
+    setFeedback(null);
+    
+    // Generate choices for the new clue
+    generateChoicesForClue(selectedClue);
+  }
+}, [selectedClue]);
   /**
    * Create a proper crossword grid with words connecting at shared letters
    */
@@ -780,57 +779,68 @@ const GameplayScreen = ({
   /**
    * Generate answer choices for a clue
    */
-  const generateChoicesForClue = (clue) => {
-    const correctAnswer = clue.answer;
-    
-    // Dictionary of related words to use as distractors
-    const relatedWordMap = {
-      "MAP": ["CAP", "LAP", "NAP"],
-      "PATH": ["BATH", "MATH", "PATTY"],
-      "TREASURE": ["PLEASURE", "MEASURE", "FEATURE"],
-      "COMPASS": ["COMPARE", "COMPOST", "COMPACT"],
-      "JOURNEY": ["JOURNAL", "FURNACE", "TOURNEY"],
-      "BUILDING": ["BOULDER", "BILLING", "BRIDGING"],
-      "PARK": ["MARK", "DARK", "BARK"],
-      "STREET": ["STREAK", "STREAM", "STREWN"],
-      "MUSEUM": ["MAUSOLEUM", "MEDIUM", "MUSLIM"],
-      "SUBWAY": ["SUBWAT", "SUBPAR", "SUNRAY"]
-    };
-    
-    // Create array to hold choices
-    let choices = [correctAnswer];
-    
-    // Try to use related words from the map
-    const relatedWords = relatedWordMap[correctAnswer] || [];
-    for (const word of relatedWords) {
-      if (choices.length < 4 && word !== correctAnswer) {
-        choices.push(word);
-      }
+ const generateChoicesForClue = (clue) => {
+  setIsLoadingChoices(true);
+  const correctAnswer = clue.answer;
+  
+  // Create starting array with correct answer
+  let choices = [correctAnswer];
+  
+  // Add similar words based on patterns (as in your previous implementation)
+  const wordPatterns = {
+    // Words ending in -ure
+    'TREASURE': ['PLEASURE', 'MEASURE', 'FEATURE', 'CREATURE'],
+    'PATH': ['BATH', 'MATH', 'WRATH', 'LATH'],
+    'MAP': ['CAP', 'LAP', 'GAP', 'TAP'],
+    'JOURNEY': ['TOURNEY', 'TURNKEY', 'FURNACE', 'SURGING'],
+    'COMPASS': ['COMPOSE', 'COMPOST', 'COMPARE', 'COMPACT'],
+    // Add more common crossword patterns
+  };
+  
+  // Check if we have predefined choices
+  if (wordPatterns[correctAnswer]) {
+    // Add some of the similar words
+    const similarWords = wordPatterns[correctAnswer];
+    for (let i = 0; i < 3 && i < similarWords.length; i++) {
+      choices.push(similarWords[i]);
     }
-    
-    // If we don't have enough choices, generate plausible words
+  } else {
+    // Generate basic alternatives
     while (choices.length < 4) {
-      const letterPool = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      let fakeWord = '';
-      
-      for (let i = 0; i < correctAnswer.length; i++) {
-        // 25% chance to keep the original letter
-        if (Math.random() < 0.25) {
-          fakeWord += correctAnswer[i];
-        } else {
-          fakeWord += letterPool[Math.floor(Math.random() * letterPool.length)];
+      const letters = correctAnswer.split('');
+      // Swap 1-2 letters
+      for (let i = 0; i < 2 && choices.length < 4; i++) {
+        const position = Math.floor(Math.random() * letters.length);
+        const letterPool = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const newLetter = letterPool[Math.floor(Math.random() * letterPool.length)];
+        
+        if (letters[position] !== newLetter) {
+          const newLetters = [...letters];
+          newLetters[position] = newLetter;
+          const newWord = newLetters.join('');
+          
+          if (!choices.includes(newWord)) {
+            choices.push(newWord);
+          }
         }
       }
-      
-      // Check if this fake word is unique and not the correct answer
-      if (!choices.includes(fakeWord) && fakeWord !== correctAnswer) {
-        choices.push(fakeWord);
-      }
     }
-    
-    // Shuffle the choices
-    setAnswerChoices(choices.sort(() => Math.random() - 0.5));
-  };
+  }
+  
+  // Shuffle and set the choices
+  setAnswerChoices(shuffleArray(choices.slice(0, 4)));
+  setIsLoadingChoices(false);
+};
+
+// Helper function to shuffle array
+const shuffleArray = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
   
   /**
    * Update grid with solved words
@@ -1426,36 +1436,49 @@ const GameplayScreen = ({
               
               {/* Answer choices for classroom use */}
               <div className={styles.answerChoices}>
-                <h3 className={styles.choicesTitle}>Answer Choices:</h3>
-                <div className={styles.choicesList}>
-                  {answerChoices.map((choice, index) => (
-                    <button 
-                      key={index} 
-                      className={`${styles.choiceButton} ${selectedAnswer === choice ? styles.selectedChoice : ''}`}
-                      onClick={() => handleSelectAnswer(choice)}
-                      disabled={selectedClue ? isWordSolved(selectedClue.answer) : true}
-                    >
-                      {choice}
-                    </button>
-                  ))}
-                </div>
-                
-                {selectedAnswer && selectedClue && !isWordSolved(selectedClue.answer) && (
-                  <button 
-                    className={styles.submitAnswerButton}
-                    onClick={handleSubmitAnswer}
-                  >
-                    Submit Answer
-                  </button>
-                )}
-                
-                {feedback && (
-                  <div className={`${styles.feedbackMessage} ${feedback.type === 'success' ? styles.successFeedback : styles.errorFeedback}`}>
-                    {feedback.message}
-                  </div>
-                )}
-              </div>
-              
+  <h3 className={styles.choicesTitle}>Answer Choices:</h3>
+  {isLoadingChoices ? (
+    <div className={styles.loadingChoices}>
+      <div className={styles.spinner}></div>
+      <p>Loading choices...</p>
+    </div>
+  ) : (
+    <div className={styles.choicesList}>
+      {answerChoices && answerChoices.length > 0 ? (
+        answerChoices.map((choice, index) => (
+          <button 
+            key={index} 
+            className={`${styles.choiceButton} ${selectedAnswer === choice ? styles.selectedChoice : ''}`}
+            onClick={() => handleSelectAnswer(choice)}
+            disabled={selectedClue ? isWordSolved(selectedClue.answer) : true}
+          >
+            {choice}
+          </button>
+        ))
+      ) : (
+        // Fallback if no choices are available
+        <div className={styles.noChoices}>
+          <p>Select a clue to see answer choices.</p>
+        </div>
+      )}
+    </div>
+  )}
+  
+  {selectedAnswer && selectedClue && !isWordSolved(selectedClue.answer) && (
+    <button 
+      className={styles.submitAnswerButton}
+      onClick={handleSubmitAnswer}
+    >
+      Submit Answer
+    </button>
+  )}
+  
+  {feedback && (
+    <div className={`${styles.feedbackMessage} ${feedback.type === 'success' ? styles.successFeedback : styles.errorFeedback}`}>
+      {feedback.message}
+    </div>
+  )}
+</div>
               <div className={styles.teacherButtons}>
                 <button 
                   className={styles.markSolvedButton}

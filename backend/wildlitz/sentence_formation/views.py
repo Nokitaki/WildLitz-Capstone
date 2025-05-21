@@ -26,7 +26,7 @@ def test_endpoint(request):
 @require_http_methods(["POST"])
 def generate_story(request):
     """
-    Generate a story adventure with episodes and crossword puzzles
+    Generate a story adventure with episodes and multiple crossword puzzles per episode
     
     Expects JSON with:
     - theme: theme of the story (e.g., 'jungle', 'space')
@@ -62,6 +62,8 @@ def generate_story(request):
         
         Include vocabulary focusing on {', '.join(focus_skills)}.
         
+        For each episode, provide 8-12 vocabulary words with age-appropriate definitions and examples.
+        
         For each vocabulary word, create a challenging but age-appropriate crossword puzzle clue that gives a hint about the word without directly stating it. For example, instead of "Clue for map", create something like "Paper guide to find your way" for the word "map".
         
         Format as JSON:
@@ -79,9 +81,16 @@ def generate_story(request):
                   "word": "word1", 
                   "clue": "Cryptic, age-appropriate hint about the word", 
                   "definition": "kid-friendly definition"
+                }},
+                {{
+                  "word": "word2", 
+                  "clue": "Another hint about this word", 
+                  "definition": "simple definition"
                 }}
+                // Include 8-12 vocabulary words per episode
               ]
             }}
+            // Repeat for each episode
           ]
         }}
         """
@@ -97,7 +106,7 @@ def generate_story(request):
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
-                max_tokens=2000
+                max_tokens=2500  # Increased to accommodate more vocabulary words
             )
             
             # Parse the response
@@ -134,7 +143,6 @@ def generate_story(request):
                 
                 for i, episode in enumerate(story_data.get("episodes", [])):
                     episode_id = f"{story_id}_ep{i+1}"
-                    puzzle_id = f"{episode_id}_puzzle"
                     
                     # Extract vocabulary words (with fallback)
                     vocab_words = episode.get("vocabularyWords", [])
@@ -144,11 +152,34 @@ def generate_story(request):
                             {"word": "example", "clue": "Something that shows what something else is like", "definition": "A model or pattern"}
                         ]
                     
-                    # Generate crossword puzzle data
-                    puzzle = generate_simple_crossword(vocab_words, theme)
-                    puzzles[puzzle_id] = puzzle
+                    # Determine how many puzzles to create (3-5 per episode)
+                    num_puzzles = min(5, max(3, len(vocab_words) // 3))
+                    all_puzzle_ids = []
                     
-                    # Add to story adventure
+                    # Create multiple puzzles with different vocabularies
+                    for puzzle_idx in range(num_puzzles):
+                        puzzle_id = f"{episode_id}_puzzle_{puzzle_idx+1}"
+                        all_puzzle_ids.append(puzzle_id)
+                        
+                        # Distribute vocabulary words among puzzles
+                        # For example, if we have 12 words and 4 puzzles, each gets 3 words
+                        words_per_puzzle = max(3, len(vocab_words) // num_puzzles)
+                        
+                        # Calculate which words go in this puzzle
+                        start_idx = puzzle_idx * words_per_puzzle
+                        end_idx = min(start_idx + words_per_puzzle, len(vocab_words))
+                        
+                        # Get this puzzle's words
+                        puzzle_vocab = vocab_words[start_idx:end_idx]
+                        
+                        # Generate crossword puzzle for these words
+                        puzzle = generate_simple_crossword(puzzle_vocab, theme)
+                        puzzles[puzzle_id] = puzzle
+                    
+                    # Add to story adventure - use first puzzle as primary
+                    primary_puzzle_id = all_puzzle_ids[0] if all_puzzle_ids else f"{episode_id}_puzzle"
+                    additional_puzzle_ids = all_puzzle_ids[1:] if len(all_puzzle_ids) > 1 else []
+                    
                     story_adventure["episodes"].append({
                         "id": episode_id,
                         "episodeNumber": i + 1,
@@ -160,7 +191,8 @@ def generate_story(request):
                             "Which character did you like the most?",
                             "What do you think will happen next?"
                         ]),
-                        "crosswordPuzzleId": puzzle_id,
+                        "crosswordPuzzleId": primary_puzzle_id,
+                        "additionalPuzzleIds": additional_puzzle_ids,
                         "vocabularyFocus": [word.get("word", "") for word in vocab_words]
                     })
                 
@@ -196,16 +228,21 @@ def generate_story(request):
                             "text": "Once upon a time in a magical land, a great adventure began. The heroes set out on a journey filled with excitement and learning.",
                             "recap": "The heroes begin their adventure.",
                             "discussionQuestions": ["What do you think will happen?", "Who is your favorite character?"],
-                            "crosswordPuzzleId": f"{story_id}_ep1_puzzle",
+                            "crosswordPuzzleId": f"{story_id}_ep1_puzzle_1",
+                            "additionalPuzzleIds": [f"{story_id}_ep1_puzzle_2", f"{story_id}_ep1_puzzle_3"],
                             "vocabularyFocus": ["adventure", "journey", "magical", "heroes", "excitement"]
                         }]
                     },
                     'puzzles': {
-                        f"{story_id}_ep1_puzzle": generate_simple_crossword([
+                        f"{story_id}_ep1_puzzle_1": generate_simple_crossword([
                             {"word": "adventure", "clue": "An exciting trip or experience", "definition": "An unusual and exciting experience"},
-                            {"word": "journey", "clue": "A trip from one place to another", "definition": "The act of traveling from one place to another"},
+                            {"word": "journey", "clue": "A trip from one place to another", "definition": "The act of traveling from one place to another"}
+                        ], theme),
+                        f"{story_id}_ep1_puzzle_2": generate_simple_crossword([
                             {"word": "magical", "clue": "Special, like in fairy tales", "definition": "Very special and exciting, as if created by magic"},
-                            {"word": "heroes", "clue": "Brave people who do great things", "definition": "People who are admired for their courage or achievements"},
+                            {"word": "heroes", "clue": "Brave people who do great things", "definition": "People who are admired for their courage or achievements"}
+                        ], theme),
+                        f"{story_id}_ep1_puzzle_3": generate_simple_crossword([
                             {"word": "excitement", "clue": "Feeling really happy and eager", "definition": "A feeling of great enthusiasm and eagerness"}
                         ], theme)
                     }
@@ -235,8 +272,8 @@ def generate_simple_crossword(vocab_words, theme):
     # Get the words from vocab_words
     word_list = [word.get("word", "").upper() for word in vocab_words]
     
-    # Calculate a simple grid layout
-    grid_width = max(10, max([len(word) for word in word_list]) + 2)
+    # Calculate a simple grid layout - ensure it's large enough for all words
+    grid_width = max(10, max([len(word) for word in word_list] + [0]) + 2)
     grid_height = max(10, len(word_list) * 2)
     
     # Process each vocabulary word
@@ -361,6 +398,7 @@ def generate_crossword_clues(request):
             'error': str(e)
         }, status=500)
 
+# views.py - improved generate_answer_choices
 @csrf_exempt
 @require_http_methods(["POST"])
 def generate_answer_choices(request):
@@ -385,19 +423,24 @@ def generate_answer_choices(request):
                 'error': 'No correct_answer provided'
             }, status=400)
         
-        # Set up the prompt for GPT
+        # Set up the prompt for GPT with improved instructions
         prompt = f"""
         For a {grade_level}rd grade crossword puzzle with a {theme} theme, 
         generate {num_choices} plausible but incorrect answer choices for the word "{correct_answer}".
         
-        The wrong answers should:
-        1. Be the same length or very close to the same length as "{correct_answer}"
-        2. Be real, age-appropriate words that students might know
-        3. Be related to the theme or word meaning when possible
-        4. Be distinct from each other and from the correct answer
+        The wrong answers MUST BE REAL WORDS that sound or look similar to "{correct_answer}", such as:
+        1. Words with similar sounds (like "treasure"/"pleasure"/"feature")
+        2. Words with similar spelling patterns
+        3. Age-appropriate words that students might confuse with the right answer
+        
+        Wrong answers should:
+        - Be the same length or very close to the same length as "{correct_answer}"
+        - Be real English words that grade {grade_level} students might know
+        - Be related to the theme or word meaning when possible
+        - Be distinct from each other and from the correct answer
         
         Format your response as a JSON array of strings containing only the wrong answers.
-        Example: ["RIVER", "LAKES", "SHORE"]
+        Example for "MAP": ["CAP", "LAP", "NAP"]
         """
         
         # Call OpenAI API
@@ -424,24 +467,11 @@ def generate_answer_choices(request):
                 # Try parsing the whole response
                 wrong_answers = json.loads(content)
         except json.JSONDecodeError:
-            # Fallback: Create basic wrong answers by changing letters
-            import random
-            import string
-            
-            wrong_answers = []
-            for _ in range(num_choices):
-                wrong = list(correct_answer)
-                # Change 1-2 characters
-                for _ in range(random.randint(1, 2)):
-                    pos = random.randint(0, len(wrong) - 1)
-                    wrong[pos] = random.choice(string.ascii_uppercase)
-                wrong_answer = ''.join(wrong)
-                if wrong_answer != correct_answer and wrong_answer not in wrong_answers:
-                    wrong_answers.append(wrong_answer)
+            # Fallback: Create better wrong answers based on patterns
+            wrong_answers = generate_fallback_choices(correct_answer, theme, num_choices)
         
         # Include the correct answer in the shuffled array
-        all_choices = [correct_answer] + wrong_answers
-        random.shuffle(all_choices)
+        all_choices = wrong_answers[:num_choices]  # Ensure we only take needed number
         
         return JsonResponse({
             'choices': all_choices,
@@ -452,6 +482,57 @@ def generate_answer_choices(request):
         return JsonResponse({
             'error': str(e)
         }, status=500)
+
+def generate_fallback_choices(word, theme, num=3):
+    """Generate fallback choices if AI generation fails"""
+    # Common word patterns table (similar to the JavaScript version)
+    word_patterns = {
+        'treasure': ['pleasure', 'measure', 'feature', 'creature'],
+        'path': ['bath', 'math', 'wrath', 'lath'],
+        'map': ['cap', 'lap', 'gap', 'tap'],
+        # Add more patterns
+    }
+    
+    # Check if word is in patterns
+    if word.lower() in word_patterns:
+        options = word_patterns[word.lower()]
+        # Return a random subset
+        import random
+        return random.sample(options, min(num, len(options)))
+    
+    # Otherwise generate variations based on common patterns
+    results = []
+    
+    # Try rhyming patterns
+    if len(word) > 2:
+        # Change first letter
+        import string
+        suffix = word[1:].lower()
+        for letter in string.ascii_lowercase:
+            if letter + suffix != word.lower() and len(results) < num:
+                results.append(letter + suffix)
+    
+    # If still not enough, add words of same length
+    common_words = {
+        3: ['cat', 'dog', 'hat', 'hot', 'run', 'sit', 'sun', 'tag', 'pen'],
+        4: ['book', 'look', 'took', 'time', 'play', 'jump', 'park', 'fish'],
+        5: ['train', 'truck', 'water', 'house', 'table', 'plant', 'sheep'],
+        6: ['garden', 'school', 'jungle', 'animal', 'planet', 'window'],
+        7: ['teacher', 'student', 'weather', 'picture', 'dolphin', 'penguin'],
+        8: ['elephant', 'dinosaur', 'computer', 'building', 'mountain'],
+    }
+    
+    if len(word) in common_words and len(results) < num:
+        options = common_words[len(word)]
+        import random
+        while len(results) < num and options:
+            idx = random.randint(0, len(options) - 1)
+            if options[idx].lower() != word.lower() and options[idx] not in results:
+                results.append(options[idx])
+            options.pop(idx)
+    
+    # Return upper case results for consistency
+    return [r.upper() for r in results[:num]]
 
 @csrf_exempt
 @require_http_methods(["POST"])
