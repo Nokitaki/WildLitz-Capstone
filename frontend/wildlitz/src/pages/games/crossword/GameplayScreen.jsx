@@ -757,69 +757,25 @@ const GameplayScreen = ({
   /**
    * Get the appropriate clue for a word
    */
-  const getClueForWord = (word) => {
-    // If we have clues, use those
-    if (cluesMap && cluesMap[word]) {
-      return cluesMap[word];
-    }
-    
-    // Fallback to clue generator
-    return generateProperClue(word, theme);
-  };
+ const getClueForWord = (word) => {
+  // Find the clue directly from puzzle data
+  const wordData = puzzle.words.find(w => w.answer === word);
+  
+  if (wordData && wordData.clue) {
+    return wordData.clue;
+  }
+  
+  // Only as a fallback, generate a basic clue
+  return `Hint for ${word.toLowerCase()}`;
+};
   
   /**
    * Clue generator (more cryptic, doesn't give away answers)
    */
   const generateProperClue = (word, theme) => {
-    // Dictionary of clues without directly mentioning the word
-    const clueMap = {
-      // Jungle themed clues
-      "MAP": "Guide that shows you where to go",
-      "TREASURE": "Something valuable that might be hidden",
-      "PATH": "A way to walk through the jungle",
-      "JOURNEY": "A long trip or adventure",
-      "COMPASS": "Tool that helps you find north",
-      
-      // City themed clues
-      "BUILDING": "Structure where people live or work",
-      "STREET": "Cars drive on this in the city",
-      "MUSEUM": "Place to see old and interesting things",
-      "PARK": "Green space in the city where people relax",
-      "SUBWAY": "Underground train in the city"
-    };
-    
-    // Return specific clue if it exists
-    if (clueMap[word]) {
-      return clueMap[word];
-    }
-    
-    // Generate more cryptic general clues
-    switch (word.toLowerCase()) {
-      case 'park':
-        return "Green space for city enjoyment";
-      case 'building':
-        return "Structure with floors and walls";
-      case 'museum':
-        return "Place to see historical exhibits";
-      case 'street':
-        return "Urban roadway between buildings";
-      case 'subway':
-        return "Underground transportation option";
-      case 'hall':
-        return "Long passage or room in a building";
-      case 'path':
-        return "Way to walk from here to there";
-      default:
-        // Generate clues based on word length
-        if (word.length <= 3) {
-          return `Short ${word.length}-letter ${theme} word`;
-        } else if (word.length <= 5) {
-          return `${word.length}-letter word found in the story`;
-        } else {
-          return `Longer word from the story (${word.length} letters)`;
-        }
-    }
-  };
+  // Basic fallback only - we should never reach this if AI properly generated clues
+  return `Find this ${theme} word (${word.length} letters)`;
+};
   
   /**
    * Generate answer choices for a clue
@@ -1370,37 +1326,37 @@ const GameplayScreen = ({
   /**
    * Render the clue list for a specific direction
    */
-  const renderClueList = (direction) => {
-    return puzzle?.words?.filter(word => word.direction === direction).map(clue => {
-      const key = `${clue.direction}-${clue.number}`;
-      const isSolved = solvedClues[key] || 
-        solvedWords.some(word => word.word.toUpperCase() === clue.answer.toUpperCase());
-      
-      return (
-        <li 
-          key={`${direction}-${clue.number}`}
-          className={`
-            ${styles.clueItem} 
-            ${selectedClue && selectedClue.number === clue.number && selectedClue.direction === clue.direction ? styles.active : ''} 
-            ${isSolved ? styles.solved : ''}
-          `}
-          onClick={() => handleSelectClue(clue)}
-        >
-          <span className={`
-            ${styles.clueNumber} 
-            ${isSolved ? styles.solvedNumber : ''}
-          `}>
-            {clue.number}
-          </span>
-          <span className={styles.clueText}>
-            {isLoadingClues && !cluesMap[clue.answer] 
-              ? "Generating clue..." 
-              : getClueForWord(clue.answer)}
-          </span>
-        </li>
-      );
-    }) || [];
-  };
+ const renderClueList = (direction) => {
+  return puzzle?.words?.filter(word => word.direction === direction).map(clue => {
+    const key = `${clue.direction}-${clue.number}`;
+    const isSolved = solvedClues[key] || 
+      solvedWords.some(word => word.word.toUpperCase() === clue.answer.toUpperCase());
+    
+    return (
+      <li 
+        key={`${direction}-${clue.number}`}
+        className={`
+          ${styles.clueItem} 
+          ${selectedClue && selectedClue.number === clue.number && selectedClue.direction === clue.direction ? styles.active : ''} 
+          ${isSolved ? styles.solved : ''}
+        `}
+        onClick={() => handleSelectClue(clue)}
+      >
+        <span className={`
+          ${styles.clueNumber} 
+          ${isSolved ? styles.solvedNumber : ''}
+        `}>
+          {clue.number}
+        </span>
+        <span className={styles.clueText}>
+          {isLoadingClues && !clue.clue 
+            ? "Loading clue..." 
+            : clue.clue}
+        </span>
+      </li>
+    );
+  }) || [];
+};
 
   return (
     <div className={styles.crosswordContainer}>

@@ -176,7 +176,7 @@
   padding: 25px;
   border-radius: 15px;
   overflow-y: auto;
-  max-height: 300px;
+  max-height: 400px; /* Increased height to show more content */
   position: relative;
   border: 2px dashed #e1bee7;
   box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -190,23 +190,108 @@
   position: relative;
 }
 
-/* Animated sentences styling */
-.animatedSentence {
-  margin-bottom: 1.2rem;
-  padding: 8px;
-  border-radius: 8px;
-  transition: all 0.3s ease;
+/* Sentence line-by-line styles */
+.sentenceLines {
+  display: flex;
+  flex-direction: column;
+  gap: 24px; /* Significant spacing between sentences */
 }
 
+.sentenceLine {
+  padding: 15px 20px;
+  border-radius: 15px;
+  font-size: 1.6rem; /* Larger text for young readers */
+  line-height: 1.6;
+  color: #333;
+  background-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border-left: 4px solid #e1bee7;
+  font-family: 'Comic Sans MS', 'Marker Felt', 'Arial Rounded MT Bold', cursive; /* Kid-friendly font */
+  display: flex;
+  align-items: center;
+}
+
+.sentenceLine:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+  transform: translateX(5px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Current sentence animation */
 .currentSentence {
   background-color: rgba(233, 30, 99, 0.1);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(233, 30, 99, 0.15);
-  padding: 10px;
+  border-left: 4px solid #e91e63;
+  font-weight: 600;
+  box-shadow: 0 3px 15px rgba(233, 30, 99, 0.15);
+  
+  /* Add these zoom/pulse animation effects */
+  animation: sentenceHighlight 2s infinite alternate;
+  transform-origin: left center;
+  z-index: 10;
+  position: relative;
 }
 
-.storyText.readingMode .animatedSentence:not(.currentSentence) {
-  opacity: 0.6;
+/* Keyframes for the zoom/pulse animation */
+@keyframes sentenceHighlight {
+  0% {
+    transform: scale(1);
+    background-color: rgba(233, 30, 99, 0.1);
+  }
+  100% {
+    transform: scale(1.07);
+    background-color: rgba(233, 30, 99, 0.18);
+  }
+}
+
+/* Add a subtle bounce when the sentence first becomes active */
+.sentenceLine.currentSentence {
+  animation: sentenceBounce 0.5s ease-out, sentenceHighlight 2s infinite alternate 0.5s;
+}
+
+@keyframes sentenceBounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1.05); }
+}
+
+/* Make the number larger as well */
+.currentSentence .sentenceNumber {
+  animation: numberPulse 2s infinite alternate;
+}
+
+@keyframes numberPulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.2); }
+}
+
+.visitedSentence {
+  border-left: 4px solid #4caf50;
+}
+
+.sentenceNumber {
+  width: 30px;
+  height: 30px;
+  background-color: #4caf50;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-right: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.currentSentence .sentenceNumber {
+  background-color: #ff4081;
+  transform: scale(1.1);
+}
+
+.sentenceContent {
+  flex: 1;
 }
 
 .highlightedWord, .vocabWord {
@@ -622,6 +707,44 @@
   font-weight: 500;
 }
 
+/* Sound button for individual sentences */
+.sentenceSoundButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #9c27b0;
+  color: white;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 15px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  opacity: 0.7;
+}
+
+.sentenceSoundButton:hover {
+  background-color: #7b1fa2;
+  transform: scale(1.1);
+  opacity: 1;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.sentenceSoundButton:active {
+  transform: scale(0.95);
+  background-color: #6a1b9a;
+}
+
+.sentenceSoundButton:disabled {
+  background-color: #bdbdbd;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .storyCard {
@@ -669,84 +792,6 @@
     font-size: 2.5rem;
   }
 }
-/* Add these styles to your StoryScreen.module.css file */
-
-/* Sentence line-by-line styles */
-.sentenceLines {
-  display: flex;
-  flex-direction: column;
-  gap: 24px; /* Significant spacing between sentences */
-}
-
-.sentenceLine {
-  padding: 15px 20px;
-  border-radius: 15px;
-  font-size: 1.6rem; /* Larger text for young readers */
-  line-height: 1.6;
-  color: #333;
-  background-color: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  border-left: 4px solid #e1bee7;
-  font-family: 'Comic Sans MS', 'Marker Felt', 'Arial Rounded MT Bold', cursive; /* Kid-friendly font */
-}
-
-.sentenceLine:hover {
-  background-color: rgba(255, 255, 255, 0.9);
-  transform: translateX(5px);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-}
-
-.currentSentence {
-  background-color: rgba(233, 30, 99, 0.1) !important;
-  border-left: 4px solid #e91e63 !important;
-  font-weight: 600;
-  box-shadow: 0 3px 15px rgba(233, 30, 99, 0.15) !important;
-}
-
-/* Modify the story text wrapper for better scrolling */
-.storyTextWrapper {
-  background-color: #f9f8fe;
-  padding: 25px;
-  border-radius: 15px;
-  overflow-y: auto;
-  max-height: 400px; /* Increased height to show more content */
-  position: relative;
-  border: 2px dashed #e1bee7;
-  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-/* Modify the vocabulary word highlighting styles */
-.vocabWord {
-  font-weight: 700;
-  border-radius: 8px;
-  padding: 3px 8px;
-  margin: 0 2px;
-  position: relative;
-  display: inline-block;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
-}
-
-.vocabWord:hover {
-  transform: scale(1.1) rotate(-1deg);
-}
-
-/* Add decorative elements */
-.vocabWord::after {
-  content: '✨';
-  position: absolute;
-  top: -8px;
-  right: -3px;
-  font-size: 0.8rem;
-  opacity: 0.7;
-}
-
-/* Fade other sentences during reading */
-.readingMode .sentenceLine:not(.currentSentence) {
-  opacity: 0.5;
-}
 
 /* Small visual cue to indicate scrollability */
 .storyTextWrapper::after {
@@ -764,311 +809,3 @@
   0%, 100% { transform: translateX(-50%) translateY(0); }
   50% { transform: translateX(-50%) translateY(10px); }
 }
-
-/* Add these styles to your StoryScreen.module.css file for the sentence navigator */
-
-/* Sentence Navigator styles */
-.sentenceNavigator {
-  background-color: #f5f5f5;
-  border-radius: 12px;
-  border: 2px solid #9c27b0;
-  margin-bottom: 15px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.navHeader {
-  background-color: #9c27b0;
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 15px;
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.closeNavButton {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.2rem;
-  cursor: pointer;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  transition: background-color 0.2s ease;
-}
-
-.closeNavButton:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.navSentences {
-  max-height: 200px;
-  overflow-y: auto;
-  padding: 10px;
-}
-
-.navSentenceItem {
-  display: flex;
-  align-items: center;
-  padding: 8px 10px;
-  margin-bottom: 5px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background-color: #f9f9f9;
-  border-left: 3px solid #e0e0e0;
-}
-
-.navSentenceItem:hover {
-  background-color: #f0f0f0;
-  transform: translateX(3px);
-}
-
-.navCurrentSentence {
-  background-color: #e1bee7;
-  border-left: 3px solid #9c27b0;
-}
-
-.navVisitedSentence {
-  border-left: 3px solid #4caf50;
-}
-
-.navSentenceNumber {
-  width: 24px;
-  height: 24px;
-  background-color: #9c27b0;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin-right: 10px;
-  flex-shrink: 0;
-}
-
-.navCurrentSentence .navSentenceNumber {
-  background-color: #ff4081;
-}
-
-.navVisitedSentence .navSentenceNumber {
-  background-color: #4caf50;
-}
-
-.navSentencePreview {
-  font-size: 0.85rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Teacher Nav Button */
-.teacherNavButton {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border: none;
-  border-radius: 30px;
-  font-size: 1.05rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: linear-gradient(to right, #607d8b, #455a64);
-  color: white;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-}
-
-.teacherNavButton:hover {
-  background: linear-gradient(to right, #455a64, #37474f);
-  transform: translateY(-2px);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* Sentence line number styles */
-.sentenceLine {
-  display: flex;
-  align-items: flex-start;
-  position: relative;
-}
-
-.sentenceNumber {
-  width: 28px;
-  height: 28px;
-  background-color: #9c27b0;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-right: 12px;
-  flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-.currentSentence .sentenceNumber {
-  background-color: #ff4081;
-  transform: scale(1.1);
-}
-
-.visitedSentence .sentenceNumber {
-  background-color: #4caf50;
-}
-
-.sentenceContent {
-  flex: 1;
-}
-
-/* Update existing styles */
-.sentenceLine {
-  padding: 15px 20px;
-  border-radius: 15px;
-  font-size: 1.5rem; /* Slightly smaller than before, but still large */
-  line-height: 1.6;
-  color: #333;
-  background-color: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  border-left: 4px solid #e1bee7;
-  font-family: 'Comic Sans MS', 'Marker Felt', 'Arial Rounded MT Bold', cursive;
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-}
-
-.currentSentence {
-  background-color: rgba(233, 30, 99, 0.1);
-  border-left: 4px solid #e91e63;
-  font-weight: 600;
-  box-shadow: 0 3px 15px rgba(233, 30, 99, 0.15);
-}
-
-.visitedSentence {
-  border-left: 4px solid #4caf50;
-}
-
-/* Adjust the story text wrapper */
-.storyTextWrapper {
-  padding: 15px;
-}
-
-/* Add these styles to your StoryScreen.module.css file for individual sound buttons */
-
-/* Sound button for individual sentences */
-.sentenceSoundButton {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: #9c27b0;
-  color: white;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-  margin-left: 15px;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  opacity: 0.7;
-}
-
-.sentenceSoundButton:hover {
-  background-color: #7b1fa2;
-  transform: scale(1.1);
-  opacity: 1;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-}
-
-.sentenceSoundButton:active {
-  transform: scale(0.95);
-  background-color: #6a1b9a;
-}
-
-.sentenceSoundButton:disabled {
-  background-color: #bdbdbd;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-/* Modified sentence line for the sound button layout */
-.sentenceLine {
-  padding: 15px 20px;
-  border-radius: 15px;
-  font-size: 1.5rem;
-  line-height: 1.6;
-  color: #333;
-  background-color: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  border-left: 4px solid #e1bee7;
-  font-family: 'Comic Sans MS', 'Marker Felt', 'Arial Rounded MT Bold', cursive;
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-}
-
-.sentenceNumber {
-  width: 30px;
-  height: 30px;
-  background-color: #4caf50;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-right: 12px;
-  flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-.currentSentence .sentenceNumber {
-  background-color: #ff4081;
-  transform: scale(1.1);
-}
-
-.sentenceContent {
-  flex: 1;
-}
-
-.currentSentence {
-  background-color: rgba(233, 30, 99, 0.1);
-  border-left: 4px solid #e91e63;
-  font-weight: 600;
-  box-shadow: 0 3px 15px rgba(233, 30, 99, 0.15);
-}
-
-.visitedSentence {
-  border-left: 4px solid #4caf50;
-}
-
-/* Adjust button highlight states for better visual feedback */
-.currentSentence .sentenceSoundButton {
-  background-color: #ff4081;
-  opacity: 1;
-}
-
-.sentenceLine:hover .sentenceSoundButton {
-  opacity: 1;
-}
-
-/* Hover effect for whole sentence line */
-.sentenceLine:hover {
-  background-color: rgba(255, 255, 255, 0.9);
-  transform: translateX(5px);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-}
-
-/* Remove the sentence navigator styles that are no longer needed */

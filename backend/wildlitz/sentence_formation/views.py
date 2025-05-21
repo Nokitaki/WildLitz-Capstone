@@ -54,13 +54,15 @@ def generate_story(request):
         # Create a unique ID for this story
         story_id = f"{theme}_generated_{int(datetime.datetime.now().timestamp())}"
         
-        # Create a simpler prompt to avoid potential issues
+        # Create a more detailed prompt to include better clue generation
         prompt = f"""
         Create a {episode_count}-episode educational story for grade {grade_level} students with a {theme} theme.
         
         {character_names and f"Use these character names: {character_names}" or ""}
         
         Include vocabulary focusing on {', '.join(focus_skills)}.
+        
+        For each vocabulary word, create a challenging but age-appropriate crossword puzzle clue that gives a hint about the word without directly stating it. For example, instead of "Clue for map", create something like "Paper guide to find your way" for the word "map".
         
         Format as JSON:
         {{
@@ -73,7 +75,11 @@ def generate_story(request):
               "recap": "Brief summary",
               "discussionQuestions": ["Question 1", "Question 2", "Question 3"],
               "vocabularyWords": [
-                {{"word": "word1", "clue": "crossword clue", "definition": "kid-friendly definition"}}
+                {{
+                  "word": "word1", 
+                  "clue": "Cryptic, age-appropriate hint about the word", 
+                  "definition": "kid-friendly definition"
+                }}
               ]
             }}
           ]
@@ -87,11 +93,11 @@ def generate_story(request):
             response = openai.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are an educational content creator specializing in creating engaging, age-appropriate stories for elementary school students."},
+                    {"role": "system", "content": "You are an educational content creator specializing in creating engaging, age-appropriate stories and crossword puzzles for elementary school students."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
-                max_tokens=2000  # Reduced tokens to avoid potential issues
+                max_tokens=2000
             )
             
             # Parse the response
@@ -135,10 +141,10 @@ def generate_story(request):
                     if not vocab_words:
                         # Create some basic vocabulary words if none provided
                         vocab_words = [
-                            {"word": "example", "clue": "A model or pattern", "definition": "Something that shows what something else is like"}
+                            {"word": "example", "clue": "Something that shows what something else is like", "definition": "A model or pattern"}
                         ]
                     
-                    # Generate simple crossword puzzle data
+                    # Generate crossword puzzle data
                     puzzle = generate_simple_crossword(vocab_words, theme)
                     puzzles[puzzle_id] = puzzle
                     
@@ -196,11 +202,11 @@ def generate_story(request):
                     },
                     'puzzles': {
                         f"{story_id}_ep1_puzzle": generate_simple_crossword([
-                            {"word": "adventure", "clue": "An exciting experience", "definition": "An unusual and exciting experience"},
-                            {"word": "journey", "clue": "Traveling from one place to another", "definition": "The act of traveling from one place to another"},
-                            {"word": "magical", "clue": "Like something from a fairy tale", "definition": "Very special and exciting, as if created by magic"},
+                            {"word": "adventure", "clue": "An exciting trip or experience", "definition": "An unusual and exciting experience"},
+                            {"word": "journey", "clue": "A trip from one place to another", "definition": "The act of traveling from one place to another"},
+                            {"word": "magical", "clue": "Special, like in fairy tales", "definition": "Very special and exciting, as if created by magic"},
                             {"word": "heroes", "clue": "Brave people who do great things", "definition": "People who are admired for their courage or achievements"},
-                            {"word": "excitement", "clue": "Feeling of being happy and enthusiastic", "definition": "A feeling of great enthusiasm and eagerness"}
+                            {"word": "excitement", "clue": "Feeling really happy and eager", "definition": "A feeling of great enthusiasm and eagerness"}
                         ], theme)
                     }
                 })
@@ -236,7 +242,8 @@ def generate_simple_crossword(vocab_words, theme):
     # Process each vocabulary word
     for i, word_data in enumerate(vocab_words):
         word = word_data.get("word", "").upper()
-        clue = word_data.get("clue", f"A {theme} word")
+        # Use the AI-generated clue directly, or generate a basic one if missing
+        clue = word_data.get("clue", f"Something related to {theme}")
         definition = word_data.get("definition", f"A word related to {theme}")
         
         if not word:
@@ -279,7 +286,6 @@ def generate_simple_crossword(vocab_words, theme):
     }
 
 
-
 @csrf_exempt
 @require_http_methods(["POST"])
 def generate_crossword_clues(request):
@@ -307,7 +313,7 @@ def generate_crossword_clues(request):
         prompt = f"""
         Create age-appropriate clues for a {grade_level}rd grade crossword puzzle with a {theme} theme.
         
-        For each word in this list, create a brief, clear clue that would help students guess the word:
+        For each word in this list, create a brief, clear, and cryptic clue that would help students guess the word without directly stating it:
         {', '.join(words)}
         
         Story context for reference:
@@ -341,8 +347,10 @@ def generate_crossword_clues(request):
                 # Try parsing the whole response
                 clues = json.loads(content)
         except json.JSONDecodeError:
-            # Fallback: Create basic clues
-            clues = {word: f"A {theme} word with {len(word)} letters" for word in words}
+            # Fallback: Create better clues than just "A theme word"
+            clues = {}
+            for word in words:
+                clues[word] = f"This {theme} word has {len(word)} letters and helps on adventures"
             
         return JsonResponse({
             'clues': clues
@@ -473,7 +481,7 @@ def generate_crossword_content(request):
         clues_prompt = f"""
         Create age-appropriate clues for a {grade_level}rd grade crossword puzzle with a {theme} theme.
         
-        For each word in this list, create a brief, clear clue that would help students guess the word:
+        For each word in this list, create a brief, cryptic clue that would help students guess the word without directly stating it:
         {', '.join(words)}
         
         Story context for reference:
@@ -505,7 +513,9 @@ def generate_crossword_content(request):
                 clues = json.loads(clues_content)
         except json.JSONDecodeError:
             # Fallback for clues
-            clues = {word: f"A {theme} word with {len(word)} letters" for word in words}
+            clues = {}
+            for word in words:
+                clues[word] = f"Find this {len(word)}-letter {theme} word"
         
         # Generate answer choices for each word
         choices = {}

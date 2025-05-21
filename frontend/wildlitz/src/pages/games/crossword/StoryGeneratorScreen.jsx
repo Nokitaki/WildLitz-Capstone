@@ -94,7 +94,7 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
       // Set a longer timeout for the fetch request
       const fetchTimeoutId = setTimeout(() => controller.abort(), 60000);
       
-      // Create a simplified request body
+      // Create a request body
       const requestBody = {
         theme,
         focusSkills: focusSkills.slice(0, 3), // Limit to 3 skills to reduce complexity
@@ -105,19 +105,11 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
       
       console.log("Sending request with data:", requestBody);
       
-      // For demonstration, let's use a mock API response for now
-      // to avoid the actual API call which might be causing errors
-      const useMockResponse = true;
-
+      // Always try to call the real API first
       let responseData;
+      let useMockResponse = false;
       
-      if (useMockResponse) {
-        // Use a fixed delay to simulate API call
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        
-        // Create a mock response based on the theme and other parameters
-        responseData = createMockStoryResponse(theme, episodeCount);
-      } else {
+      try {
         // Real API call
         const response = await fetch('/api/sentence_formation/generate-story/', {
           method: 'POST',
@@ -138,23 +130,22 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
         console.log("Response text:", responseText.substring(0, 200) + "...");
         
         // Try to parse as JSON
-        try {
-          responseData = JSON.parse(responseText);
-        } catch (jsonError) {
-          console.error("Failed to parse JSON:", jsonError);
-          
-          // Try to extract JSON from response text
-          const jsonMatch = responseText.match(/\\{[\\s\\S]*\\}/);
-          if (jsonMatch) {
-            try {
-              responseData = JSON.parse(jsonMatch[0]);
-            } catch (extractError) {
-              throw new Error("Failed to extract valid JSON from response");
-            }
-          } else {
-            throw new Error("No valid JSON found in response");
-          }
-        }
+        responseData = JSON.parse(responseText);
+      } catch (apiError) {
+        console.error("API error, using mock response:", apiError);
+        useMockResponse = true;
+      }
+      
+      // Only use mock response if the real API call failed
+      if (useMockResponse) {
+        // Use a fixed delay to simulate API call
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Create a mock response based on the theme and other parameters
+        responseData = createMockStoryResponse(theme, episodeCount);
+        
+        // Add warning that this is mock data
+        console.warn("Using mock data instead of real API response");
       }
       
       clearTimeout(fetchTimeoutId);
@@ -202,6 +193,63 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
     const episodes = [];
     const puzzles = {};
     
+    // Theme-based vocabulary words with proper clues
+    const themeVocabulary = {
+      jungle: [
+        {word: "map", clue: "Folded paper showing hidden paths", definition: "A drawing that shows you where places are"},
+        {word: "path", clue: "Narrow way through the trees", definition: "A track or small road for walking on"},
+        {word: "treasure", clue: "Buried chest of gold and jewels", definition: "Valuable things like gold and jewels"},
+        {word: "journey", clue: "Long trip from start to finish", definition: "Traveling from one place to another"},
+        {word: "compass", clue: "Magnetic pointer to find your way", definition: "Tool that shows which direction is north"}
+      ],
+      ocean: [
+        {word: "dive", clue: "Plunge beneath the waves", definition: "To jump into water headfirst"},
+        {word: "coral", clue: "Colorful underwater home for fish", definition: "Hard material made by tiny sea animals"},
+        {word: "wave", clue: "Rolling water that crashes on shore", definition: "Water that moves up and down in the ocean"},
+        {word: "shell", clue: "Hard home carried by sea creatures", definition: "Hard covering that protects some sea animals"},
+        {word: "island", clue: "Land surrounded completely by water", definition: "Land with water all around it"}
+      ],
+      space: [
+        {word: "rocket", clue: "Vehicle that blasts to the stars", definition: "A vehicle that travels into space"},
+        {word: "planet", clue: "Round world orbiting a star", definition: "A large round object that moves around a star"},
+        {word: "star", clue: "Twinkling light in the night sky", definition: "A ball of burning gas in space that we see as a point of light at night"},
+        {word: "astronaut", clue: "Space explorer in a special suit", definition: "A person who travels into space"},
+        {word: "alien", clue: "Creature from another world", definition: "A being from a different planet"}
+      ],
+      city: [
+        {word: "building", clue: "Tall structure with many floors", definition: "A structure with walls and a roof"},
+        {word: "street", clue: "Road between city blocks", definition: "A public road in a city with buildings on both sides"},
+        {word: "museum", clue: "Place to see old treasures", definition: "A building where important objects are kept and shown to the public"},
+        {word: "park", clue: "Green space for city play", definition: "An area of land with grass and trees for people to enjoy"},
+        {word: "subway", clue: "Underground train in the city", definition: "A train that runs under the ground in a city"}
+      ],
+      farm: [
+        {word: "tractor", clue: "Machine used to pull farm equipment", definition: "A powerful vehicle used on farms"},
+        {word: "barn", clue: "Building where animals sleep", definition: "A large farm building for storing crops and keeping animals"},
+        {word: "crops", clue: "Plants that farmers grow", definition: "Plants grown by farmers for food or other uses"},
+        {word: "harvest", clue: "Time to gather ripe crops", definition: "The gathering of crops when they are ripe"},
+        {word: "animals", clue: "Living creatures raised on farms", definition: "Living creatures that breathe and can move"}
+      ],
+      fairytale: [
+        {word: "castle", clue: "Royal building with towers", definition: "A large building with thick walls built long ago"},
+        {word: "magic", clue: "Special powers in fairy tales", definition: "Special powers that make impossible things happen"},
+        {word: "dragon", clue: "Fire-breathing mythical creature", definition: "A large mythical animal that can breathe fire"},
+        {word: "princess", clue: "Daughter of a king and queen", definition: "A female member of a royal family"},
+        {word: "wizard", clue: "Person who can cast spells", definition: "A person who can do magic"}
+      ]
+    };
+    
+    const defaultVocab = [
+      {word: "adventure", clue: "Exciting journey with unknown outcomes", definition: "An unusual and exciting experience"},
+      {word: "discovery", clue: "Finding something new or hidden", definition: "Finding something for the first time"},
+      {word: "mystery", clue: "Puzzle waiting to be solved", definition: "Something that is difficult to understand or explain"},
+      {word: "explore", clue: "Search unknown areas for exciting things", definition: "To travel through a place to learn about it"},
+      {word: "secret", clue: "Something hidden or unknown to others", definition: "Something that is kept hidden or unknown to others"}
+    ];
+    
+    // Get vocabulary for the theme or use default
+    const vocabList = themeVocabulary[theme] || defaultVocab;
+    
     for (let i = 0; i < episodeCount; i++) {
       const episodeId = `${storyId}_ep${i+1}`;
       const puzzleId = `${episodeId}_puzzle`;
@@ -219,11 +267,11 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
           `What do you think will happen in the next episode?`
         ],
         crosswordPuzzleId: puzzleId,
-        vocabularyFocus: getRandomVocabularyWords(theme)
+        vocabularyFocus: vocabList.map(v => v.word)
       });
       
       // Create corresponding puzzle
-      puzzles[puzzleId] = createMockPuzzle(theme, episodes[i].vocabularyFocus);
+      puzzles[puzzleId] = createMockPuzzle(theme, vocabList);
     }
     
     return {
@@ -280,29 +328,17 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
     return recaps[theme] || recaps.jungle;
   };
   
-  const getRandomVocabularyWords = (theme) => {
-    const vocabulary = {
-      jungle: ["map", "path", "treasure", "journey", "compass"],
-      ocean: ["dive", "coral", "underwater", "shell", "wave"],
-      farm: ["barn", "harvest", "tractor", "field", "animal"],
-      space: ["planet", "rocket", "astronaut", "star", "alien"],
-      city: ["building", "street", "museum", "park", "subway"],
-      fairytale: ["castle", "magic", "wizard", "dragon", "princess"]
-    };
-    
-    return vocabulary[theme] || vocabulary.jungle;
-  };
-  
+  // Create a mock puzzle
   const createMockPuzzle = (theme, vocabularyWords) => {
     // Create a puzzle with the vocabulary words
-    const words = vocabularyWords.map((word, index) => {
+    const words = vocabularyWords.map((wordData, index) => {
       return {
         direction: index % 2 === 0 ? "across" : "down",
         number: index + 1,
-        clue: `Clue for ${word}`,
-        answer: word.toUpperCase(),
-        definition: `This is a ${word} - a key object in the ${theme} adventure`,
-        example: `They used the ${word} to help them on their journey.`,
+        clue: wordData.clue, // Use the clue from the vocabulary words data
+        answer: wordData.word.toUpperCase(),
+        definition: wordData.definition,
+        example: `They used the ${wordData.word} to help them on their journey.`,
         cells: [] // In a real implementation, this would contain cell positions
       };
     });
