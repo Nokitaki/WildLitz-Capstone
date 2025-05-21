@@ -7,6 +7,8 @@ import styles from '../../../styles/games/crossword/SummaryScreen.module.css';
  * SummaryScreen component shows the words learned after completing the crossword puzzle
  */
 const SummaryScreen = ({ 
+
+  
   solvedWords, 
   timeSpent, 
   timeFormatted,
@@ -21,11 +23,36 @@ const SummaryScreen = ({
   storyTitle = '',
   storySegment = null
 }) => {
+
+
+ 
+
+
+
+
   // Get theme name with proper capitalization
   const themeName = theme === "story" ? "Story Adventure" : theme.charAt(0).toUpperCase() + theme.slice(1);
-  
+   const Confetti = () => {
+  return (
+    <div className={styles.confettiContainer}>
+      {[...Array(20)].map((_, i) => (
+        <div 
+          key={i} 
+          className={styles.confetti}
+          style={{ 
+            left: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 5}s`,
+            animationDuration: `${3 + Math.random() * 4}s`
+          }}
+        />
+      ))}
+    </div>
+  );
+};
   return (
     <div className={styles.summaryContainer}>
+
+      <Confetti />
       <div className={styles.summaryCard}>
         {/* Header with theme info */}
         <div className={styles.summaryHeader}>
@@ -40,20 +67,20 @@ const SummaryScreen = ({
         </div>
         
         {/* Completion message */}
-        <motion.div 
-          className={styles.completionMessage}
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className={styles.messageTitle}>Great Job! You completed the puzzle!</h2>
-          <p className={styles.messageSubtitle}>
-            {isStoryMode 
-              ? `You learned ${solvedWords.length} new words from the story!`
-              : `You learned ${solvedWords.length} new ${theme} words today`
-            }
-          </p>
-        </motion.div>
+       <motion.div 
+  className={styles.completionMessage}
+  initial={{ scale: 0.9, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
+>
+  <h2 className={styles.messageTitle}>Great Job! You completed the puzzle!</h2>
+  <p className={styles.messageSubtitle}>
+    {isStoryMode 
+      ? `You learned ${solvedWords.length} new words from the story!`
+      : `You learned ${solvedWords.length} new ${theme} words today`
+    }
+  </p>
+</motion.div>
         
         {/* Story recap for story mode */}
         {isStoryMode && storySegment && (
@@ -74,50 +101,65 @@ const SummaryScreen = ({
         
         {/* Words learned section */}
         <div className={styles.wordsLearnedSection}>
-          <h2 className={styles.sectionTitle}>Words You've Learned:</h2>
-          <div className={styles.wordCards}>
-            {solvedWords.map((word, index) => (
-              <motion.div 
-                key={index}
-                className={styles.wordCard}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.3 }}
-              >
-                <div className={styles.wordHeader}>
-                  <h3 className={styles.wordTitle}>{word.word}</h3>
-                </div>
-                
-                <div className={styles.wordContent}>
-                  <div className={styles.wordDefinition}>
-                    <span className={styles.definitionLabel}>Definition:</span> {word.definition}
-                  </div>
-                  
-                  <div className={styles.wordExample}>
-                    <span className={styles.exampleLabel}>Example:</span> 
-                    {word.example.includes(word.word.toLowerCase()) ? (
-                      <span>
-                        {word.example.split(word.word.toLowerCase()).map((part, i, arr) => (
-                          <React.Fragment key={i}>
-                            {part}
-                            {i < arr.length - 1 && <span className={styles.highlightedWord}>{word.word.toLowerCase()}</span>}
-                          </React.Fragment>
-                        ))}
-                      </span>
-                    ) : (
-                      word.example
-                    )}
-                  </div>
-                </div>
-                
-                {/* Word image placeholder - in a real app, images would be dynamically loaded */}
-                <div className={styles.wordImage}>
-                  {getWordImage(word.word, theme)}
-                </div>
-              </motion.div>
-            ))}
+  <h2 className={styles.sectionTitle}>Words You've Learned:</h2>
+  <div className={styles.wordCards}>
+    {solvedWords.map((word, index) => (
+      <motion.div 
+        key={index}
+        className={styles.wordCard}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ 
+          delay: index * 0.15,
+          duration: 0.5,
+          type: "spring",
+          stiffness: 100 
+        }}
+      >
+        <div className={styles.wordHeader}>
+          <h3 className={styles.wordTitle}>{word.word}</h3>
+          <div className={styles.wordImage}>
+            {getWordImage(word.word, theme)}
           </div>
         </div>
+        
+        <div className={styles.wordContent}>
+          <div className={styles.wordDefinition}>
+            <span className={styles.definitionLabel}>Definition:</span> 
+            {word.definition || "An important word in our adventure story."}
+          </div>
+          
+          <div className={styles.wordExample}>
+            <span className={styles.exampleLabel}>Example:</span> 
+            {word.example && word.example.includes(word.word.toLowerCase()) ? (
+              <span>
+                {word.example.split(word.word.toLowerCase()).map((part, i, arr) => (
+                  <React.Fragment key={i}>
+                    {part}
+                    {i < arr.length - 1 && (
+                      <span className={styles.highlightedWord}>{word.word.toLowerCase()}</span>
+                    )}
+                  </React.Fragment>
+                ))}
+              </span>
+            ) : (
+              word.example || `The ${word.word.toLowerCase()} helps us on our adventure!`
+            )}
+          </div>
+        </div>
+        
+        <motion.div 
+          className={styles.wordBadge}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: index * 0.15 + 0.3, duration: 0.5, type: "spring" }}
+        >
+          Mastered!
+        </motion.div>
+      </motion.div>
+    ))}
+  </div>
+</div>
         
         {/* Stats section */}
         <div className={styles.statsSection}>
