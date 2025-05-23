@@ -1,23 +1,99 @@
+// src/pages/games/syllable/SyllableDemoScreen.jsx
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import axios from 'axios';
-import styles from '../../../styles/SyllableDemoScreen.module.css'; // Assuming you have a CSS module for styles
+import styles from '../../../styles/games/syllable/SyllableDemoScreen.module.css';
+import wildLitzCharacter from '../../../assets/img/wildlitz-idle.png';
 
-const SyllableDemoScreen = ({ word, syllables, explanation, onBack, onPlaySound }) => {
+const SyllableDemoScreen = ({ word, onBack, onPlaySound, pronunciationGuide }) => {
   const [selectedSyllable, setSelectedSyllable] = useState('all');
   const [playbackSpeed, setPlaybackSpeed] = useState('normal');
   const [isLoading, setIsLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [syllableAudio, setSyllableAudio] = useState({});
+  const [pronunciation, setPronunciation] = useState(null);
+  const [characterMessage, setCharacterMessage] = useState('');
   
-  // Load syllable sounds when component mounts or when word changes
+  // Split syllables from syllable breakdown
+  const syllableArray = word?.syllables?.split('-') || [word?.word || 'example'];
+  
+  // Split pronunciation guides if available
+  const pronunciationArray = word?.pronunciation_guide?.split('-') || syllableArray;
+  
+  // Helper function to truncate messages to prevent UI overflow
+  const truncateMessage = (message, maxLength) => {
+    if (!message) return '';
+    return message.length > maxLength ? message.substring(0, maxLength) + '...' : message;
+  };
+  
+  // Load syllable sounds and pronunciation guidance
   useEffect(() => {
-    if (!word || syllables.length === 0) return;
+    if (!word) return;
     
     setIsLoading(true);
     
-    // Call API without awaiting
+    // Get the word text, handling different object structures
+    const wordText = typeof word === 'string' ? word : word.word;
+    
+    // Use the pronunciation guide if it was passed as a prop
+    if (pronunciationGuide) {
+      setPronunciation(pronunciationGuide);
+      
+      // Set the character message if provided in the pronunciation guide
+      if (pronunciationGuide.character_message) {
+        // Truncate the message if it's too long to prevent UI issues
+        setCharacterMessage(truncateMessage(pronunciationGuide.character_message, 120));
+      } else {
+        // Only generate a message if one wasn't provided
+        generateDemoMessage();
+      }
+      
+      setIsLoading(false);
+      return;
+    }
+    
+    // Otherwise fetch pronunciation data
+    const fetchPronunciationData = async () => {
+      try {
+        const response = await axios.post('/api/syllabification/get-syllable-pronunciation/', {
+          word: wordText,
+          syllables: word.syllables
+        });
+        
+        if (response.data) {
+          setPronunciation(response.data);
+          
+          // Set the character message from the response if available
+          if (response.data.character_message) {
+            // Truncate the message if it's too long to prevent UI issues
+            setCharacterMessage(truncateMessage(response.data.character_message, 120));
+          } else {
+            // Only generate a message if one wasn't provided
+            generateDemoMessage();
+          }
+        }
+      } catch (err) {
+        console.error("Error loading pronunciation guidance:", err);
+        // Set default pronunciation data
+        setPronunciation({
+          syllables: syllableArray.map((syllable, index) => ({
+            syllable,
+            // Use pronunciation guide if available, otherwise use original syllable
+            pronunciation_guide: pronunciationArray[index] || `Say "${syllable}" clearly.`,
+            similar_sound_word: 'example'
+          })),
+          full_pronunciation_tip: `Say the word "${wordText}" by pronouncing each syllable clearly.`
+        });
+        
+        // Generate a message since we don't have one
+        generateDemoMessage();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    // Call API to get syllable audio
     axios.post('/api/syllabification/pronounce-word/', {
-      word: word
+      word: wordText
     })
     .then(response => {
       if (response.data && response.data.syllables) {
@@ -29,66 +105,169 @@ const SyllableDemoScreen = ({ word, syllables, explanation, onBack, onPlaySound 
     .catch(err => {
       console.error("Error loading syllable sounds:", err);
       // If API call fails, we'll fall back to browser speech synthesis
-    })
-    .finally(() => {
-      setIsLoading(false);
     });
-  }, [word, syllables]);
+    
+    fetchPronunciationData();
+  }, [word, pronunciationGuide, syllableArray, pronunciationArray]);
   
-  // Function to play a specific syllable sound
-  const playSyllableSound = (syllable) => {
+  // Generate a word-specific demo message if needed
+  const generateDemoMessage = async () => {
+    // Don't generate a message if we already have one from pronunciationGuide
+    if (characterMessage) return;
+    
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/api/syllabification/generate-ai-content/', {
+        type: 'character_message',
+        word: word.word,
+        context: 'demo'
+      });
+      
+      if (response.data && response.data.content) {
+        // Truncate message to prevent UI overflow
+        setCharacterMessage(truncateMessage(response.data.content, 120));
+      } else {
+        setCharacterMessage(`Let's learn how to pronounce "${word.word}" syllable by syllable!`);
+      }
+    } catch (error) {
+      console.error("Error generating demo message:", error);
+      setCharacterMessage(`Let's learn how to pronounce "${word.word}" syllable by syllable!`);
+    }
+  };
+  
+  // Function to play a specific syllable sound using the pronunciation guide
+  const playSyllableSound = (syllable, index) => {
+    if (!syllable) return;
+    
+    setIsPlaying(true);
+    
+    // Use the pronunciation guide if available, otherwise use the original syllable
+    // Important: This is where we're now using the pronunciation_guide for better TTS
+    const textToSpeak = pronunciationArray[index] || syllable;
+    
     // If we have the syllable audio data from the API
     if (syllableAudio.syllables) {
       const syllableData = syllableAudio.syllables.find(s => s.syllable === syllable);
       
-      if (syllableData && syllableData.audio && syllableData.audio.audio_url) {
-        const audio = new Audio(syllableData.audio.audio_url);
+      if (syllableData && syllableData.audio && syllableData.audio.audio_data) {
+        const audio = new Audio(`data:audio/mp3;base64,${syllableData.audio.audio_data}`);
         audio.playbackRate = playbackSpeed === 'slow' ? 0.7 : 1;
-        audio.play();
+        
+        audio.onended = () => {
+          setIsPlaying(false);
+        };
+        
+        audio.play().catch(error => {
+          console.error("Failed to play syllable audio:", error);
+          useBrowserSpeech(textToSpeak);
+        });
         return;
       }
     }
     
-    // Fallback: Use browser's speech synthesis
-    if ('speechSynthesis' in window) {
-      // Cancel any ongoing speech
-      window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(syllable);
-      utterance.rate = playbackSpeed === 'slow' ? 0.5 : 0.8;
-      window.speechSynthesis.speak(utterance);
+    // Fallback: Use browser's speech synthesis with the pronunciation guide
+    useBrowserSpeech(textToSpeak);
+    
+    function useBrowserSpeech(text) {
+      if ('speechSynthesis' in window) {
+        // Cancel any ongoing speech
+        window.speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = playbackSpeed === 'slow' ? 0.5 : 0.8;
+        
+        utterance.onend = () => {
+          setIsPlaying(false);
+        };
+        
+        utterance.onerror = () => {
+          setIsPlaying(false);
+        };
+        
+        window.speechSynthesis.speak(utterance);
+      } else {
+        setIsPlaying(false);
+      }
     }
   };
   
-  // Function to play the whole word
+  // Function to play the whole word - keep using the whole word rather than pronunciation guide
   const playWordSound = () => {
+    setIsPlaying(true);
+    
     if (onPlaySound) {
       onPlaySound();
-    } else if (syllableAudio.complete_word_audio && syllableAudio.complete_word_audio.audio_url) {
-      const audio = new Audio(syllableAudio.complete_word_audio.audio_url);
+      // Since we don't control the audio in the parent, set a timeout to stop animation
+      setTimeout(() => {
+        setIsPlaying(false);
+      }, 1500);
+    } else if (syllableAudio.complete_word_audio && syllableAudio.complete_word_audio.audio_data) {
+      const audio = new Audio(`data:audio/mp3;base64,${syllableAudio.complete_word_audio.audio_data}`);
       audio.playbackRate = playbackSpeed === 'slow' ? 0.7 : 1;
-      audio.play();
-    } else if ('speechSynthesis' in window) {
-      // Cancel any ongoing speech
-      window.speechSynthesis.cancel();
       
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.rate = playbackSpeed === 'slow' ? 0.5 : 0.8;
-      window.speechSynthesis.speak(utterance);
+      audio.onended = () => {
+        setIsPlaying(false);
+      };
+      
+      audio.play().catch(error => {
+        console.error("Failed to play word audio:", error);
+        useBrowserSpeech();
+      });
+    } else {
+      useBrowserSpeech();
+    }
+    
+    function useBrowserSpeech() {
+      if ('speechSynthesis' in window) {
+        // Cancel any ongoing speech
+        window.speechSynthesis.cancel();
+        
+        const wordText = typeof word === 'string' ? word : word.word;
+        const utterance = new SpeechSynthesisUtterance(wordText);
+        utterance.rate = playbackSpeed === 'slow' ? 0.5 : 0.8;
+        
+        utterance.onend = () => {
+          setIsPlaying(false);
+        };
+        
+        utterance.onerror = () => {
+          setIsPlaying(false);
+        };
+        
+        window.speechSynthesis.speak(utterance);
+      } else {
+        setIsPlaying(false);
+      }
     }
   };
   
   // Function to get phonetic description based on syllable
   const getPhoneticDescription = (syllable) => {
-    if (explanation && explanation.syllables) {
-      const syllableInfo = explanation.syllables.find(s => s.syllable === syllable);
-      if (syllableInfo) {
+    if (pronunciation && pronunciation.syllables) {
+      const syllableInfo = pronunciation.syllables.find(s => s.syllable === syllable);
+      if (syllableInfo && syllableInfo.pronunciation_guide) {
         return syllableInfo.pronunciation_guide;
       }
     }
     
     // Default descriptions if we don't have API data
-    return 'Pronounce the syllable clearly, focusing on each sound.';
+    if (syllable === 'all') {
+      return `Say the full word "${word.word || word}" clearly, emphasizing each syllable.`;
+    }
+    
+    return `Pronounce the syllable "${syllable}" by shaping your mouth and focusing on the vowel sound.`;
+  };
+  
+  // Function to get example word with similar sound
+  const getSimilarSoundWord = (syllable) => {
+    if (pronunciation && pronunciation.syllables) {
+      const syllableInfo = pronunciation.syllables.find(s => s.syllable === syllable);
+      if (syllableInfo && syllableInfo.similar_sound_word) {
+        return syllableInfo.similar_sound_word;
+      }
+    }
+    
+    // Default example if none is available
+    return 'similar words';
   };
   
   // Function to handle playing the selected syllable or whole word
@@ -96,123 +275,167 @@ const SyllableDemoScreen = ({ word, syllables, explanation, onBack, onPlaySound 
     if (selectedSyllable === 'all') {
       playWordSound();
     } else {
-      playSyllableSound(selectedSyllable);
+      // Get the index of the syllable to find the corresponding pronunciation guide
+      const syllableIndex = syllableArray.indexOf(selectedSyllable);
+      playSyllableSound(selectedSyllable, syllableIndex);
     }
   };
   
+  const wordText = typeof word === 'string' ? word : word?.word || 'example';
+  
   return (
-    <div className={styles.container}>
-      <div className={styles.demoContent}>
+    <div className={styles.syllableDemoContainer}>
+      <div className={styles.demoContentWrapper}>
+        {/* Character on the left */}
+        <div className={styles.demoCharacterColumn}>
+          <img 
+            src={wildLitzCharacter} 
+            alt="WildLitz Character" 
+            className={styles.demoCharacter}
+          />
+          
+          <div className={styles.speechBubble}>
+            <p>{characterMessage || 'Let\'s learn how to say each syllable!'}</p>
+          </div>
+        </div>
+        
+        {/* Main demo card */}
         <div className={styles.demoCard}>
-          <div className={styles.header}>
-            <h1>WildLitz - Syllable Sound Demonstration</h1>
-            <div className={styles.wordBadge}>
-              Word: <span className={styles.wordHighlight}>{word}</span>
-            </div>
+          <div className={styles.demoHeader}>
+            <h1>Syllable Sound Demonstration</h1>
           </div>
           
-          <h2 className={styles.demoTitle}>Listen and Watch Each Syllable</h2>
-          
-          <div className={styles.syllableButtons}>
-            {syllables.map((syllable, index) => (
-              <button 
-                key={index}
-                className={`${styles.syllableButton} ${selectedSyllable === syllable ? styles.active : ''}`}
-                onClick={() => setSelectedSyllable(syllable)}
-                disabled={isLoading}
+          {/* Syllable breakdown visualization - now at the top */}
+          <div className={styles.syllableBreakdown}>
+            <h3>Syllable Breakdown</h3>
+            <div className={styles.breakdownVisualization}>
+              {syllableArray.map((syllable, index) => (
+                <div 
+                  key={index}
+                  className={`${styles.syllableUnit} ${selectedSyllable === syllable ? styles.highlighted : ''}`}
+                  onClick={() => setSelectedSyllable(syllable)}
+                >
+                  {syllable}
+                  <div 
+                    className={styles.soundIndicator}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playSyllableSound(syllable, index);
+                    }}
+                  >
+                    🔊
+                  </div>
+                </div>
+              ))}
+              <button
+                className={`${styles.fullWordButton} ${selectedSyllable === 'all' ? styles.active : ''}`}
+                onClick={() => setSelectedSyllable('all')}
               >
-                {syllable}
-              </button>
-            ))}
-            <button 
-              className={`${styles.syllableButton} ${selectedSyllable === 'all' ? styles.active : ''}`}
-              onClick={() => setSelectedSyllable('all')}
-              disabled={isLoading}
-            >
-              Full Word
-            </button>
-          </div>
-          
-          <div className={styles.demoDisplay}>
-            <motion.button 
-              className={styles.playButton}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handlePlaySelected}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span role="img" aria-label="Loading">⏳</span>
-              ) : (
-                <span role="img" aria-label="Play">▶️</span>
-              )}
-            </motion.button>
-            
-            <div className={styles.phoneticDisplay}>
-              <div className={styles.soundLabel}>
-                {selectedSyllable === 'all' ? 
-                  `Word: "${word}"` : 
-                  `Syllable: "${selectedSyllable}"`
-                }
-              </div>
-              
-              <div className={styles.mouthDiagram}>
-                <svg width="150" height="100" viewBox="0 0 150 100">
-                  <ellipse cx="75" cy="50" rx="70" ry="40" stroke="#333" strokeWidth="2" fill="none" />
-                  <path d="M30,50 Q75,80 120,50" stroke="#f00" strokeWidth="2" fill="none" />
-                </svg>
-                <p className={styles.diagramLabel}>{getPhoneticDescription(selectedSyllable === 'all' ? word : selectedSyllable)}</p>
-              </div>
-              
-              <button 
-                className={`${styles.speedButton} ${playbackSpeed === 'slow' ? styles.active : ''}`}
-                onClick={() => setPlaybackSpeed(playbackSpeed === 'slow' ? 'normal' : 'slow')}
-                disabled={isLoading}
-              >
-                {playbackSpeed === 'slow' ? 'Normal Speed' : 'Slow Speed'}
+                Full Word
               </button>
             </div>
-          </div>
-          
-          <div className={styles.practiceSection}>
-            <h3>Practice with this sound:</h3>
-            <p>
-              Try saying the {selectedSyllable === 'all' ? 'word' : 'syllable'} slowly, then at normal speed. 
-              Pay attention to the shape of your mouth and the position of your tongue.
+            <p className={styles.breakdownTip}>
+              Click on a syllable to select it or use the "Full Word" button for the entire word.
             </p>
-            
-            {explanation && explanation.full_pronunciation_tip && (
-              <div className={styles.pronunciationTip}>
-                <h4>Pronunciation Tip:</h4>
-                <p>{explanation.full_pronunciation_tip}</p>
-              </div>
-            )}
           </div>
           
-          <div className={styles.demoControls}>
+          {/* Pronunciation Section */}
+          <div className={styles.pronunciationContainer}>
+            {/* Sound player section */}
+            <div className={styles.soundPlayerSection}>
+              <h3>{selectedSyllable === 'all' ? 'Listen to Full Word' : `Listen to "${selectedSyllable}"`}</h3>
+              <div className={styles.playerControls}>
+                <button 
+                  className={styles.playSoundButton}
+                  onClick={handlePlaySelected}
+                  disabled={isPlaying || isLoading}
+                >
+                  {isLoading ? (
+                    <span className={styles.loadingIcon}>⏳</span>
+                  ) : isPlaying ? (
+                    <span className={styles.playingIcon}>🔊</span>
+                  ) : (
+                    <span className={styles.playIcon}>▶️</span>
+                  )}
+                  {isLoading ? "Loading..." : isPlaying ? "Playing..." : "Play Sound"}
+                </button>
+                
+                <button 
+                  className={`${styles.speedToggle} ${playbackSpeed === 'slow' ? styles.active : ''}`}
+                  onClick={() => setPlaybackSpeed(playbackSpeed === 'normal' ? 'slow' : 'normal')}
+                  disabled={isPlaying || isLoading}
+                >
+                  {playbackSpeed === 'slow' ? 'Normal Speed' : 'Slow Speed'}
+                </button>
+              </div>
+            </div>
+            
+            {/* Sound explanation */}
+            <div className={styles.soundExplanation}>
+              <h3>How to Pronounce</h3>
+              <div className={styles.explanationContent}>
+                <p className={styles.phoneticGuide}>
+                  {getPhoneticDescription(selectedSyllable)}
+                </p>
+                
+                <div className={styles.examples}>
+                  {selectedSyllable !== 'all' && (
+                    <p>
+                      <strong>Similar sound in:</strong> {getSimilarSoundWord(selectedSyllable)}
+                    </p>
+                  )}
+                </div>
+                
+                {pronunciation && pronunciation.full_pronunciation_tip && selectedSyllable === 'all' && (
+                  <div className={styles.pronunciationTip}>
+                    <h4>Pronunciation Tip:</h4>
+                    <p>{pronunciation.full_pronunciation_tip}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* Navigation buttons with Back to Game button positioned on the right */}
+          <div className={styles.navigationContainer}>
+            {syllableArray.length > 1 && selectedSyllable !== 'all' ? (
+              <div className={styles.syllableNavigation}>
+                <button 
+                  className={styles.navButton}
+                  onClick={() => {
+                    const currentIndex = syllableArray.indexOf(selectedSyllable);
+                    if (currentIndex > 0) {
+                      setSelectedSyllable(syllableArray[currentIndex - 1]);
+                    }
+                  }}
+                  disabled={syllableArray.indexOf(selectedSyllable) === 0}
+                >
+                  Previous Syllable
+                </button>
+                <button 
+                  className={styles.navButton}
+                  onClick={() => {
+                    const currentIndex = syllableArray.indexOf(selectedSyllable);
+                    if (currentIndex < syllableArray.length - 1) {
+                      setSelectedSyllable(syllableArray[currentIndex + 1]);
+                    }
+                  }}
+                  disabled={syllableArray.indexOf(selectedSyllable) === syllableArray.length - 1}
+                >
+                  Next Syllable
+                </button>
+              </div>
+            ) : (
+              <div className={styles.emptyNavSpace}></div>
+            )}
+            
+            {/* Back to Game button positioned on the right */}
             <button 
-              className={`${styles.controlButton} ${styles.backButton}`}
+              className={styles.backButton}
               onClick={onBack}
-              disabled={isLoading}
             >
               Back to Game
             </button>
-            {syllables.length > 1 && (
-              <button 
-                className={`${styles.controlButton} ${styles.nextButton}`}
-                onClick={() => {
-                  const currentIndex = syllables.indexOf(selectedSyllable);
-                  if (currentIndex === -1 || currentIndex === syllables.length - 1) {
-                    setSelectedSyllable(syllables[0]);
-                  } else {
-                    setSelectedSyllable(syllables[currentIndex + 1]);
-                  }
-                }}
-                disabled={isLoading || selectedSyllable === 'all'}
-              >
-                Next Syllable
-              </button>
-            )}
           </div>
         </div>
       </div>

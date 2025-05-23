@@ -1,1089 +1,1333 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// src/pages/games/syllable/SyllableClappingGame.jsx
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import '../../../styles/components/SyllableClappingGame.css';
+import styles from '../../../styles/games/syllable/SyllableClappingGame.module.css';
 import SyllableConfigScreen from './SyllableConfigScreen';
-import SyllableLoadingScreen from './SyllableLoadingScreen';
 import SyllableDemoScreen from './SyllableDemoScreen';
-import wildLitzCharacter from '../../../assets/img/wildlitz-idle.png';
-import AudioLoadingIndicator from '../../../components/audio/AudioLoadingIndicator';
-import syllableClappingCharacter from '../../../assets/img/syllable-clapping-character.svg';
+import CompletionScreen from './CompletionScreen';
+import SyllableLoadingScreen from './SyllableLoadingScreen';
+import Character from '../../../assets/img/wildlitz-idle.png';
+import WordTransitionScreen from './WordTransitionScreen';
 
-// Import the background SVGs
-import cloudsBackground from '../../../assets/img/backgrounds/clouds.svg';
-import mountainsBackground from '../../../assets/img/backgrounds/mountains.svg';
-import treesBackground from '../../../assets/img/backgrounds/trees.svg';
-import handIcon from '../../../assets/img/hand-icon.svg';
-
-function SyllableClappingGame() {
+const SyllableClappingGame = () => {
   const navigate = useNavigate();
   
   // Game state management
-  const [gameState, setGameState] = useState('config'); // config, loading, playing, feedback, demo
+  const [gamePhase, setGamePhase] = useState('config'); // config, loading, playing, feedback, demo, complete
   const [gameConfig, setGameConfig] = useState(null);
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [currentWord, setCurrentWord] = useState(null);
-  const [gameWords, setGameWords] = useState([]);
-  const [userAnswer, setUserAnswer] = useState('');
-  const [showFeedback, setShowFeedback] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
+  const [speakingSyllable, setSpeakingSyllable] = useState(null);
+
+  const [currentWord, setCurrentWord] = useState({
+    word: "",
+    syllables: "",
+    count: 0,
+    category: "",
+    image_url: null,
+    fun_fact: "",
+    intro_message: ""
+  });
+  const [clapCount, setClapCount] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(1);
+  const [totalWords, setTotalWords] = useState(10);
+  const [gameStats, setGameStats] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showBubble, setShowBubble] = useState(false);
+  const [bubbleMessage, setBubbleMessage] = useState("");
+  const [aiResponse, setAiResponse] = useState(null);
+  const [syllableTip, setSyllableTip] = useState("");
   
-  // Animation state
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [showCharacterAnimation, setShowCharacterAnimation] = useState(false);
-  const [clapAnimation, setClapAnimation] = useState(false);
+  // Button disabling states
+  const [checkButtonDisabled, setCheckButtonDisabled] = useState(false);
+  const [nextButtonDisabled, setNextButtonDisabled] = useState(false);
+  const [demoButtonDisabled, setDemoButtonDisabled] = useState(false);
   
-  // References
-  const audioRef = useRef(null);
-  const correctSoundRef = useRef(null);
-  const wrongSoundRef = useRef(null);
-  const clapSoundRef = useRef(null);
-  const characterRef = useRef(null);
+  // Track correct answers
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [startTime, setStartTime] = useState(null);
   
-  // Load sound effects when component mounts
-  useEffect(() => {
-    console.log("SyllableClappingGame component mounted");
-    
-    // Initialize sound effects
-    correctSoundRef.current = new Audio('/sounds/correct_answer.mp3');
-    wrongSoundRef.current = new Audio('/sounds/wrong_answer.mp3');
-    clapSoundRef.current = new Audio('/sounds/clap_sound.mp3');
-    
-    // Cleanup function for when component unmounts
-    return () => {
-      // Cancel any speech synthesis
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-      
-      // Stop any audio playing
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-      }
-      
-      // Clean up sound effects
-      if (correctSoundRef.current) {
-        correctSoundRef.current.pause();
-        correctSoundRef.current = null;
-      }
-      
-      if (wrongSoundRef.current) {
-        wrongSoundRef.current.pause();
-        wrongSoundRef.current = null;
-      }
-      
-      if (clapSoundRef.current) {
-        clapSoundRef.current.pause();
-        clapSoundRef.current = null;
-      }
+  // Card flip state
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [isFlipping, setIsFlipping] = useState(false);
+  
+  // Instead of making an API call, use these hardcoded tips
+  const getSyllableTip = (difficulty) => {
+    const tips = {
+      'easy': [
+        "Listen for the beat in each word - every beat is a syllable!",
+        "Clap as you say each word part to count syllables.",
+        "Every syllable has one vowel sound."
+      ],
+      'medium': [
+        "Put your hand under your chin - each time your jaw drops is a syllable!",
+        "Break words into chunks by listening for vowel sounds.",
+        "Try singing the word slowly to hear each syllable."
+      ],
+      'hard': [
+        "Compound words often have syllables from each original word.",
+        "Long words can be broken down into smaller parts to count syllables.",
+        "Focus on vowel sounds - each syllable has exactly one vowel sound."
+      ]
     };
-  }, []);
-  
-  // Handle starting the game after configuration
-  const handleStartGame = (config) => {
-    // Track already processed words to avoid duplicates
-    const processedWordIds = new Set();
-    let processedWords = [];
     
-    // If config has custom words that were selected
-    if (config.customWords && config.customWords.length > 0) {
-      // Process each custom word only once
-      config.customWords.forEach(word => {
-        // Use word text as unique identifier
-        if (!processedWordIds.has(word.word)) {
-          processedWordIds.add(word.word);
-          
-          processedWords.push({
-            ...word,
-            isCustomWord: true, // Mark as custom word
-            // Make sure audio flags are properly set
-            usesCustomAudio: word.usesCustomAudio === true || (word.customAudio ? true : false)
-          });
-        }
-      });
-      console.log(`Processed ${processedWords.length} custom words`);
-    }
-    
-    // If config has AI-generated words, add those too
-    if (config.words && config.words.length > 0) {
-      // Only add AI words that haven't been processed yet
-      const newAiWords = config.words.filter(word => !processedWordIds.has(word.word));
-      
-      // Combine with existing words
-      processedWords = [...processedWords, ...newAiWords];
-      console.log(`Total words: ${processedWords.length}`);
-    }
-    
-    // Update game state
-    setGameWords(processedWords);
-    setCurrentWordIndex(0);
-    setGameState('loading');
-    
-    // Log the first few words for debugging
-    processedWords.slice(0, 3).forEach((word, idx) => {
-      console.log(`Word ${idx}: ${word.word}, isCustom: ${!!word.isCustomWord}, hasCustomAudio: ${!!word.usesCustomAudio}`);
-    });
-    
-    // Simulate loading AI-generated word
-    setTimeout(() => {
-      if (processedWords.length > 0) {
-        setCurrentWord(processedWords[0]);
-        setUserAnswer('');
-        setShowFeedback(false);
-        setGameState('playing');
-      } else {
-        setError("No words available. Please try again.");
-        setGameState('config');
-      }
-    }, 2000);
+    const difficultyTips = tips[difficulty.toLowerCase()] || tips['medium'];
+    return difficultyTips[Math.floor(Math.random() * difficultyTips.length)];
   };
 
-  // Handle the continue button in playing state
-  const handleContinue = () => {
-    setShowFeedback(true);
-    setGameState('feedback');
-  };
-  
-  // Handle clapping
-  const handleClap = () => {
-    // Play clap sound
-    if (clapSoundRef.current) {
-      clapSoundRef.current.play()
-        .catch(error => console.error("Error playing clap sound:", error));
-    }
-    
-    // Show clap animation
-    setClapAnimation(true);
-    setTimeout(() => setClapAnimation(false), 300);
-    
-    // If we already have numbers, increase by one
-    if (userAnswer !== '') {
-      setUserAnswer(prevCount => String(parseInt(prevCount, 10) + 1));
-    } else {
-      setUserAnswer('1');
+  const handleQuit = () => {
+    // Show a confirmation if needed
+    if (window.confirm("Are you sure you want to quit? Your progress will be lost.")) {
+      navigate('/home'); // Navigate to home page
     }
   };
-  
-  // Play word pronunciation with visual feedback
-  const handlePlayWordSound = () => {
-    if (!currentWord) return;
+
+  const handleSyllablePronunciation = (syllable) => {
+    // Set the currently speaking syllable for visual feedback
+    setSpeakingSyllable(syllable);
     
-    // Prevent multiple audio playbacks
-    if (isPlayingAudio) {
-      console.log("Already playing audio, ignoring request");
-      return;
-    }
+    // Use slow speech rate by default
+    const rate = 0.5;
     
-    setIsPlayingAudio(true);
-    console.log(`Attempting to play word: "${currentWord.word}", custom audio: ${currentWord.usesCustomAudio}`);
+    // Get syllable array and find index
+    const syllableArray = currentWord.syllables.split('-');
+    const syllableIndex = syllableArray.indexOf(syllable);
     
-    // Add visual feedback - make character bounce
-    if (characterRef.current) {
-      characterRef.current.classList.add('character-bounce');
-      setTimeout(() => {
-        if (characterRef.current) {
-          characterRef.current.classList.remove('character-bounce');
-        }
-      }, 2000);
-    }
+    // Get the correct pronunciation using our helper
+    const textToSpeak = getPronunciationForSyllable(syllable, syllableIndex, currentWord);
     
-    // Create a new audio element for better control
-    const audio = new Audio();
-    audioRef.current = audio;
+    console.log(`Speaking syllable "${syllable}" with pronunciation "${textToSpeak}"`);
     
-    // Set up audio event handlers
-    audio.onended = () => {
-      console.log("Audio playback ended");
-      setIsPlayingAudio(false);
-    };
-    
-    audio.onerror = (e) => {
-      console.error("Audio playback error:", e);
-      setIsPlayingAudio(false);
-      tryApiAudio();
-    };
-    
-    // Check if we have a custom audio recording for this word
-    if (currentWord.usesCustomAudio && currentWord.customAudio) {
-      try {
-        console.log("Using custom audio recording");
-        audio.src = currentWord.customAudio;
-        
-        audio.play()
-          .then(() => console.log("Custom audio playing successfully"))
-          .catch(error => {
-            console.error("Failed to play custom audio:", error);
-            tryApiAudio();
-          });
-        
-        return;
-      } catch (error) {
-        console.error("Error setting up custom audio:", error);
-        tryApiAudio();
-      }
-    } else {
-      console.log("No custom audio, trying API");
-      tryApiAudio();
-    }
-    
-    // Function to use the TTS API
-    function tryApiAudio() {
-      console.log("Trying API audio");
+    // Try to use browser's text-to-speech
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
       
-      axios.post('/api/syllabification/text-to-speech/', {
-        text: currentWord.word,
-        voice: 'nova'
-      })
-      .then(response => {
-        if (response.data && response.data.success && response.data.audio_data) {
-          console.log("API audio received, playing");
-          
-          // Create a new audio element each time
-          const newAudio = new Audio(`data:audio/mp3;base64,${response.data.audio_data}`);
-          audioRef.current = newAudio;
-          
-          newAudio.onended = () => {
-            console.log("API audio playback ended");
-            setIsPlayingAudio(false);
-          };
-          
-          newAudio.onerror = (e) => {
-            console.error("API audio playback error:", e);
-            setIsPlayingAudio(false);
-            tryBrowserSpeech();
-          };
-          
-          newAudio.play()
-            .then(() => console.log("API audio playing successfully"))
-            .catch(error => {
-              console.error("Failed to play API audio:", error);
-              tryBrowserSpeech();
-            });
-        } else {
-          console.log("Invalid API response, falling back to browser speech");
-          tryBrowserSpeech();
-        }
-      })
-      .catch(err => {
-        console.error("Error calling TTS API:", err);
-        tryBrowserSpeech();
-      });
-    }
-    
-    // Function to use browser's speech synthesis
-    function tryBrowserSpeech() {
-      console.log("Using browser speech synthesis");
+      const utterance = new SpeechSynthesisUtterance(textToSpeak.trim());
+      utterance.rate = rate;
       
-      if ('speechSynthesis' in window) {
-        // Cancel any ongoing speech
-        window.speechSynthesis.cancel();
-        
-        const utterance = new SpeechSynthesisUtterance(currentWord.word);
-        utterance.rate = 0.8;
-        
-        utterance.onend = () => {
-          console.log("Browser speech ended");
-          setIsPlayingAudio(false);
-        };
-        
-        utterance.onerror = (e) => {
-          console.error("Browser speech error:", e);
-          setIsPlayingAudio(false);
-        };
-        
-        window.speechSynthesis.speak(utterance);
-      } else {
-        console.error("Speech synthesis not available in this browser");
-        setIsPlayingAudio(false);
-      }
-    }
-  };
-  
-  // Handle the next word button in feedback state
-  const handleNextWord = () => {
-    const nextIndex = currentWordIndex + 1;
-    
-    // Check if we've completed all words
-    if (nextIndex >= gameWords.length) {
-      // Game complete - show celebration
-      setShowConfetti(true);
-      
-      // Delay navigation to show celebration
-      setTimeout(() => {
-        setShowConfetti(false);
-        alert("Congratulations! You've completed all the words!");
-        setGameState('config');
-      }, 3000);
-      return;
-    }
-    
-    // Reset audio state before moving to loading screen
-    setIsPlayingAudio(false);
-    
-    // Clear any existing audio element
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
-      audioRef.current = null;
-    }
-    
-    // Go to loading screen
-    setGameState('loading');
-    setCurrentWordIndex(nextIndex);
-    
-    // Move to the next word
-    setTimeout(() => {
-      setCurrentWord(gameWords[nextIndex]);
-      setUserAnswer('');
-      setShowFeedback(false);
-      setGameState('playing');
-    }, 2000);
-  };
-  
-  // Handle changing the answer value
-  const handleAnswerChange = (e) => {
-    // Only allow numeric input
-    const value = e.target.value.replace(/[^0-9]/g, '');
-    setUserAnswer(value);
-  };
-  
-  // Handle checking syllable claps
-  const handleCheckClaps = () => {
-    if (!currentWord || !userAnswer) return;
-    
-    setIsLoading(true);
-    
-    // Get the correct syllable count and breakdown
-    let correctCount;
-    let syllableBreakdown;
-    
-    // For custom words, use the syllable data provided by the user
-    if (currentWord.isCustomWord) {
-      // Use the syllable count from the custom word data
-      correctCount = currentWord.syllableCount || 
-                    (currentWord.syllableBreakdown ? currentWord.syllableBreakdown.split('-').length : null);
-      syllableBreakdown = currentWord.syllableBreakdown || currentWord.word;
-    } else {
-      // For AI-generated words, use the count from the API
-      correctCount = currentWord.count || 
-                    (currentWord.syllables ? 
-                      (currentWord.syllables.match(/-/g) || []).length + 1 : 
-                      null);
-      syllableBreakdown = currentWord.syllables || currentWord.word;
-    }
-    
-    // If we couldn't determine the syllable count, call the API
-    if (correctCount === null) {
-      // Call API to get syllable count for this word
-      axios.post('/api/syllabification/analyze-word/', {
-        word: currentWord.word
-      })
-      .then(response => {
-        if (response.data && response.data.syllable_count) {
-          processClaps(response.data.syllable_count, response.data.syllable_breakdown || syllableBreakdown);
-        } else {
-          // If API didn't return valid data, use basic counting as fallback
-          const basicCount = countSyllables(currentWord.word);
-          processClaps(basicCount, syllableBreakdown);
-        }
-      })
-      .catch(err => {
-        console.error("Error getting syllable count from API:", err);
-        // Fallback to basic counting
-        const basicCount = countSyllables(currentWord.word);
-        processClaps(basicCount, syllableBreakdown);
-      });
-    } else {
-      // We already have a valid syllable count, proceed with checking
-      processClaps(correctCount, syllableBreakdown);
-    }
-    
-    // Function to process claps once we have the syllable count
-    function processClaps(correctSyllableCount, breakdown) {
-      // Check if the user's answer is correct
-      const userCount = parseInt(userAnswer, 10);
-      const isCorrect = userCount === correctSyllableCount;
-      
-      // Play appropriate sound effect
-      if (isCorrect) {
-        if (correctSoundRef.current) {
-          correctSoundRef.current.play()
-            .catch(error => console.error("Error playing correct sound:", error));
-        }
-        // Show celebration animation
-        setShowConfetti(true);
-        // Show excited character animation
-        setShowCharacterAnimation(true);
-        setTimeout(() => {
-          setShowConfetti(false);
-          setShowCharacterAnimation(false);
-        }, 2000);
-      } else {
-        if (wrongSoundRef.current) {
-          wrongSoundRef.current.play()
-            .catch(error => console.error("Error playing wrong sound:", error));
-        }
-        // Show sad character animation
-        setShowCharacterAnimation(true);
-        setTimeout(() => {
-          setShowCharacterAnimation(false);
-        }, 2000);
-      }
-      
-      // Create feedback data
-      const localFeedback = {
-        is_correct: isCorrect,
-        correct_count: correctSyllableCount,
-        user_count: userCount,
-        word: currentWord.word,
-        syllable_breakdown: breakdown,
-        feedback: isCorrect ? 
-          `Great job! "${currentWord.word}" has ${correctSyllableCount} syllable${correctSyllableCount !== 1 ? 's' : ''}: ${breakdown}.` :
-          `Nice try! "${currentWord.word}" actually has ${correctSyllableCount} syllable${correctSyllableCount !== 1 ? 's' : ''}: ${breakdown}. Try saying the word slowly, focusing on each vowel sound.`
+      utterance.onend = () => {
+        setSpeakingSyllable(null);
       };
       
-      // Update with local feedback immediately
-      setCurrentWord({
-        ...currentWord,
-        feedback: localFeedback,
-        isCorrect: isCorrect
-      });
+      utterance.onerror = () => {
+        setSpeakingSyllable(null);
+      };
       
-      // Show feedback
-      handleContinue();
-      setIsLoading(false);
-    }
-    
-    // Basic syllable counting function as fallback
-    function countSyllables(word) {
-      const vowels = ['a', 'e', 'i', 'o', 'u', 'y'];
-      let count = 0;
-      let inVowelGroup = false;
-      
-      for (let i = 0; i < word.length; i++) {
-        const isVowel = vowels.includes(word[i].toLowerCase());
-        
-        if (isVowel && !inVowelGroup) {
-          count++;
-          inVowelGroup = true;
-        } else if (!isVowel) {
-          inVowelGroup = false;
-        }
-      }
-      
-      // Ensure we have at least one syllable
-      return Math.max(1, count);
-    }
-  };
-  
-  // Play each syllable individually
-  const playSyllableSound = (syllable) => {
-    if (!syllable) return;
-    
-    // Create new audio
-    const audio = new Audio();
-    
-    // Try to get syllable audio from API
-    axios.post('/api/syllabification/text-to-speech/', {
-      text: syllable,
-      voice: 'nova'
-    })
-    .then(response => {
-      if (response.data && response.data.success && response.data.audio_data) {
-        audio.src = `data:audio/mp3;base64,${response.data.audio_data}`;
-        audio.play()
-          .catch(error => {
-            console.error("Failed to play syllable audio:", error);
-            useBrowserSpeech(syllable);
-          });
-      } else {
-        useBrowserSpeech(syllable);
-      }
-    })
-    .catch(err => {
-      console.error("Error calling TTS API for syllable:", err);
-      useBrowserSpeech(syllable);
-    });
-    
-    // Browser speech synthesis fallback
-    function useBrowserSpeech(text) {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 0.7; // Slower rate for better clarity
-        window.speechSynthesis.speak(utterance);
-      }
-    }
-  };
-  
-  // Generate confetti effect for celebrations
-  const generateConfetti = () => {
-    if (typeof window.confetti === 'function') {
-      window.confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
+      window.speechSynthesis.speak(utterance);
     } else {
-      console.log("Confetti library not available");
+      // Fallback if speech synthesis is not available
+      console.warn('Text-to-speech not supported in this browser');
+      setTimeout(() => {
+        setSpeakingSyllable(null);
+      }, 1000);
     }
-  };
-  
-  // Handle showing the demonstration
-  const handleShowDemo = () => {
-    if (!currentWord) return;
-    
-    // Get syllable sounds explanation from backend
-    axios.get(`/api/syllabification/syllable-sounds/?word=${currentWord.word}`)
-    .then(response => {
-      if (response.data) {
-        // Update current word with syllable explanation
-        setCurrentWord({
-          ...currentWord,
-          syllableExplanation: response.data
-        });
-      }
-      setGameState('demo');
-    })
-    .catch(err => {
-      console.error("Error getting syllable sounds:", err);
-      // Go to demo anyway, but with limited data
-      setGameState('demo');
-    });
-  };
-  
-  // Handle returning from demonstration to feedback
-  const handleBackFromDemo = () => {
-    setGameState('feedback');
-  };
-  
-  // Handle continuing from loading to playing
-  const handleContinueFromLoading = () => {
-    setGameState('playing');
   };
 
-  // Get syllable count from word data
-  const getSyllableCount = (word) => {
-    if (!word) return 0;
-    
-    // First check if the feedback contains the correct count
-    if (word.feedback && word.feedback.correct_count) {
-      return word.feedback.correct_count;
+  const renderSyllableButtons = () => {
+    // Safety check
+    if (!currentWord || !currentWord.syllables) {
+      return <div className={styles.syllables}>No syllables available</div>;
     }
     
-    // For custom words, use the syllable count provided by the user
-    if (word.isCustomWord && word.syllableCount) {
-      return word.syllableCount;
-    }
+    const syllableArray = currentWord.syllables.split('-');
     
-    // For other cases, check if count is directly available
-    if (word.count) {
-      return word.count;
-    }
-    
-    // If we have syllable breakdown, count the hyphens and add 1
-    if (word.syllableBreakdown && word.syllableBreakdown.includes('-')) {
-      return (word.syllableBreakdown.match(/-/g) || []).length + 1;
-    }
-    
-    if (word.syllables && word.syllables.includes('-')) {
-      return (word.syllables.match(/-/g) || []).length + 1;
-    }
-    
-    // If no information is available, default to 1
-    return 1;
-  };
-
-  // Break word into syllables (using the syllable breakdown from backend)
-  const breakIntoSyllables = (word, syllableBreakdown) => {
-    if (!word) return [];
-    if (!syllableBreakdown) return [word];
-    
-    // If the syllable breakdown contains hyphens, split by those
-    if (syllableBreakdown.includes('-')) {
-      return syllableBreakdown.split('-');
-    } 
-    
-    // If no hyphens but we have the word, return the whole word
-    return [word];
-  };
-
-  // Helper function to get word category
-  const getWordCategory = (word) => {
-    if (!word) return 'Words';
-    if (word.category) return word.category;
-    
-    // If no category is available, try to determine it from game config
-    if (gameConfig && gameConfig.categories && gameConfig.categories.length > 0) {
-      return gameConfig.categories[0].charAt(0).toUpperCase() + gameConfig.categories[0].slice(1);
-    }
-    
-    return 'Words';
-  };
-  
-  // Render playing state UI
-  const renderPlaying = () => {
     return (
-      <div className="syllable-game-container">
-        <motion.div 
-          className="background-layer"
-          style={{ backgroundImage: `url(${cloudsBackground})` }}
-          animate={{ backgroundPositionX: [0, -1200] }}
-          transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-        />
-        <motion.div 
-          className="background-layer"
-          style={{ backgroundImage: `url(${mountainsBackground})`, backgroundPosition: 'bottom' }}
-          animate={{ backgroundPositionX: [0, -1200] }}
-          transition={{ duration: 180, repeat: Infinity, ease: "linear" }}
-        />
-        <motion.div 
-          className="background-layer"
-          style={{ backgroundImage: `url(${treesBackground})`, backgroundPosition: 'bottom' }}
-          animate={{ backgroundPositionX: [0, -1200] }}
-          transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
-        />
-        
-        <div className="game-content-wrapper">
-          <motion.img 
-            ref={characterRef}
-            src={syllableClappingCharacter} 
-            alt="syllable-clapping-character" 
-            className={`wildlitz-character ${showCharacterAnimation ? 'character-excited' : ''}`}
-            animate={{ 
-              y: [0, -10, 0],
-              rotate: showCharacterAnimation ? [0, -5, 5, -5, 0] : 0
-            }}
-            transition={{ 
-              y: { repeat: Infinity, duration: 2, ease: "easeInOut" },
-              rotate: { duration: 0.8, ease: "easeInOut" }
-            }}
-          />
+      <div className={styles.syllables}>
+        {syllableArray.map((syllable, index) => {
+          // Get the pronunciation for this syllable
+          const pronunciation = getPronunciationForSyllable(syllable, index, currentWord);
           
-          {/* Add speech bubble */}
-          <AnimatePresence>
-            <motion.div 
-              className="speech-bubble"
-              initial={{ opacity: 0, scale: 0, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
+          return (
+            <button 
+              key={index} 
+              className={`${styles.syllableButton} ${speakingSyllable === syllable ? styles.speaking : ''}`}
+              onClick={() => handleSyllablePronunciation(syllable)}
+              disabled={speakingSyllable !== null}
             >
-              <p>Clap for each syllable you hear!</p>
-            </motion.div>
-          </AnimatePresence>
-          
-          <div className="game-play-card">
-            <div className="game-header">
-              <h1>WildLitz - Syllable Clapping Game</h1>
-              <div className="progress-container">
-                <motion.div 
-                  className="progress-bar" 
-                  style={{ width: `${((currentWordIndex) / gameWords.length * 100)}%` }}
-                  initial={{ width: `${((currentWordIndex - 1) / gameWords.length * 100)}%` }}
-                  animate={{ width: `${((currentWordIndex) / gameWords.length * 100)}%` }}
-                  transition={{ duration: 0.8 }}
-                ></motion.div>
-                <span className="progress-text">{currentWordIndex}/{gameWords.length}</span>
-              </div>
-            </div>
-          
-            <div className="level-indicator">
-              <span>{getSyllableCount(currentWord)}</span>
-            </div>
-            
-            <h2>Listen to the word and count the syllables!</h2>
-            
-            <motion.div 
-              className="word-display"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="category-label">{getWordCategory(currentWord)}</div>
-              <motion.div 
-                className="word-text"
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-              >
-                {currentWord?.word || ''}
-              </motion.div>
-              <motion.button 
-                className={`sound-button ${isPlayingAudio ? 'playing' : ''}`} 
-                onClick={handlePlayWordSound}
-                disabled={isPlayingAudio}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <span role="img" aria-label="Play sound">🔊</span>
-              </motion.button>
-              
-              {/* Audio playing indicator */}
-              <AudioLoadingIndicator isPlaying={isPlayingAudio} />
-              
-              {/* Audio element for better control */}
-              <audio ref={audioRef} style={{ display: 'none' }} />
-            </motion.div>
-            
-            {/* New clapping interaction area */}
-            <motion.div 
-              className="clap-interaction"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-            >
-              <div className="clap-instruction">Clap for each syllable!</div>
-              
-              <motion.button 
-                className="clap-button"
-                onClick={handleClap}
-                whileHover={{ scale: 1.05, boxShadow: "0 8px 20px rgba(0, 0, 0, 0.25)" }}
-                whileTap={{ scale: 0.95 }}
-                disabled={isLoading}
-              >
-                <motion.img
-                  src={handIcon}
-                  alt="Clap"
-                  className={`hand-icon ${clapAnimation ? 'clapping-animation' : ''}`}
-                  animate={clapAnimation ? { rotate: -30, y: -20 } : { rotate: 0, y: 0 }}
-                  transition={{ duration: 0.2 }}
-                />
-              </motion.button>
-              
-              <div className="clap-counter">{userAnswer || '0'} claps</div>
-            </motion.div>
-            
-            <div className="answer-input-container">
-              <label htmlFor="syllable-count">Number of syllables heard:</label>
-              <motion.input 
-                type="number" 
-                id="syllable-count" 
-                className="syllable-input"
-                value={userAnswer}
-                onChange={handleAnswerChange}
-                min="1"
-                max="10"
-                placeholder="Enter number"
-                whileFocus={{ scale: 1.05, boxShadow: "0 0 0 2px rgba(139, 195, 74, 0.3)" }}
-              />
-            </div>
-            
-            {error && <div className="error-message">{error}</div>}
-            
-            <div className="action-buttons">
-              <motion.button 
-                className="hint-button" 
-                disabled={isLoading}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Hint
-              </motion.button>
-              <motion.button 
-                className="replay-button" 
-                onClick={handlePlayWordSound}
-                disabled={isLoading || isPlayingAudio}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {isPlayingAudio ? 'Playing...' : 'Replay'}
-              </motion.button>
-              <motion.button 
-                className="continue-button" 
-                onClick={handleCheckClaps}
-                disabled={!userAnswer || isLoading}
-                whileHover={{ scale: 1.05, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {isLoading ? 'Checking...' : 'Continue'}
-              </motion.button>
-            </div>
-          </div>
-        </div>
+              {syllable}
+              {pronunciation !== syllable && (
+                <span className={styles.syllablePronunciation}>({pronunciation})</span>
+              )}
+            </button>
+          );
+        })}
       </div>
     );
   };
+
+  const validateWordData = (wordData) => {
+    // Check for required fields
+    if (!wordData.word || !wordData.syllables) {
+      console.error('Word data missing critical fields:', wordData);
+      return false;
+    }
+    
+    // Check syllable breakdown
+    const syllables = wordData.syllables.split('-');
+    if (syllables.length !== wordData.count) {
+      console.warn(`Syllable count mismatch: breakdown has ${syllables.length} but count is ${wordData.count}`);
+    }
+    
+    // Check pronunciation guide if available
+    if (wordData.pronunciation_guide) {
+      try {
+        const pronunciations = wordData.pronunciation_guide.split('-');
+        if (pronunciations.length !== syllables.length) {
+          console.warn(`Pronunciation guide segments (${pronunciations.length}) don't match syllable count (${syllables.length})`);
+        }
+      } catch (error) {
+        console.error('Error parsing pronunciation guide:', error);
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
+  // Fetch a new word from the API
+  const fetchNewWord = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Use the selected difficulty and categories from gameConfig
+      const difficulty = gameConfig?.difficulty || 'medium';
+      const categories = gameConfig?.categories || [];
+      
+      // Build query string for categories
+      const categoryParams = categories.map(cat => `categories[]=${encodeURIComponent(cat)}`).join('&');
+      
+      // Call API to get a word with AI-generated content
+      const response = await axios.get(
+        `http://127.0.0.1:8000/api/syllabification/get-word-supabase/?difficulty=${difficulty}&${categoryParams}`
+      );
+      
+      const wordData = response.data;
+      
+      // Validate the word data
+      if (!validateWordData(wordData)) {
+        console.warn('Word data validation failed, but continuing with available data');
+      }
+      
+      // Debug pronunciation guide specifically
+      console.log('Pronunciation guide:', wordData.pronunciation_guide);
+      
+      // First update state with the new word
+      setCurrentWord({
+        word: wordData.word,
+        syllables: wordData.syllables,
+        count: wordData.count,
+        category: wordData.category,
+        image_url: wordData.image_url || null,
+        pronunciation_guide: wordData.pronunciation_guide || wordData.syllables, // Fall back to syllables if no guide
+        fun_fact: wordData.fun_fact || `Fun fact about ${wordData.word}: This is a ${wordData.category.toLowerCase()} with ${wordData.count} syllables!`,
+        intro_message: wordData.intro_message || `Listen to "${wordData.word}" and count the syllables!`
+      });
+      
+      // Then set the bubble message from the AI-generated intro
+      setBubbleMessage(wordData.intro_message || `Listen to "${wordData.word}" and count the syllables!`);
+      
+    } catch (err) {
+      setError('Failed to load word. Please try again.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
-  // Render feedback state UI
-  const renderFeedback = () => {
-    return (
-      <div className="syllable-game-container">
-        {/* Background layers */}
-        <motion.div 
-          className="background-layer"
-          style={{ backgroundImage: `url(${cloudsBackground})` }}
-          animate={{ backgroundPositionX: [0, -1200] }}
-          transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-        />
-        <motion.div 
-          className="background-layer"
-          style={{ backgroundImage: `url(${mountainsBackground})`, backgroundPosition: 'bottom' }}
-          animate={{ backgroundPositionX: [0, -1200] }}
-          transition={{ duration: 180, repeat: Infinity, ease: "linear" }}
-        />
-        <motion.div 
-          className="background-layer"
-          style={{ backgroundImage: `url(${treesBackground})`, backgroundPosition: 'bottom' }}
-          animate={{ backgroundPositionX: [0, -1200] }}
-          transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
-        />
+  // State to store all preloaded words
+  const [gameWords, setGameWords] = useState([]);
+  const [wordIndex, setWordIndex] = useState(0);
+  
+  // Check answer with the AI feedback
+  const checkAnswerWithAI = async () => {
+    // Disable the check button to prevent multiple clicks
+    setCheckButtonDisabled(true);
+    
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/api/syllabification/check-syllable-answer/', {
+        word: currentWord.word,
+        syllables: currentWord.syllables,
+        clapCount: clapCount,
+        correctCount: currentWord.count
+      });
+      
+      setAiResponse(response.data);
+      
+      // Update bubble message with AI feedback
+      setBubbleMessage(response.data.feedback_message);
+      
+      // Update correct answers count
+      if (response.data.is_correct) {
+        setCorrectAnswers(prev => prev + 1);
+      }
+      
+      // Move to feedback phase
+      setGamePhase('feedback');
+      setShowBubble(true);
+      
+    } catch (error) {
+      console.error("Error checking answer:", error);
+      
+      // Fallback to basic feedback without AI
+      const isCorrect = clapCount === currentWord.count;
+      setBubbleMessage(
+        isCorrect
+          ? "Great job! That's correct!"
+          : "Nice try! Listen again."
+      );
+      
+      if (isCorrect) {
+        setCorrectAnswers(prev => prev + 1);
+      }
+      
+      setGamePhase('feedback');
+      setShowBubble(true);
+    }
+    
+    // Enable the check button after a delay (6 seconds)
+    setTimeout(() => {
+      setCheckButtonDisabled(false);
+    }, 6000);
+  };
+  
+  // Request AI pronunciation guidance for the demo screen
+  const fetchPronunciationGuide = async () => {
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/api/syllabification/get-syllable-pronunciation/', {
+        word: currentWord.word,
+        syllables: currentWord.syllables
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching pronunciation guide:", error);
+      return null;
+    }
+  };
+  
+  // Show welcome message when a new word starts
+  useEffect(() => {
+    if (gamePhase === 'playing') {
+      // Show message and bubble
+      setShowBubble(true);
+      
+      // Hide bubble after 6 seconds
+      const bubbleTimer = setTimeout(() => {
+        setShowBubble(false);
+      }, 6000);
+      
+      // Show image flip at the start
+      setIsFlipped(true);
+      setIsFlipping(true);
+      
+      // Auto flip back to word after 3 seconds
+      const flipTimer = setTimeout(() => {
+        setIsFlipped(false);
+        setIsFlipping(true);
         
-        {/* Confetti overlay for correct answers */}
-        {showConfetti && (
-          <div className="confetti-container">
-            {/* The confetti effect is generated by the JS function */}
-            {generateConfetti()}
+        // After flipping back to word, wait a moment then play the sound
+        const audioTimer = setTimeout(() => {
+          // Make sure we have the current word before trying to play it
+          if (currentWord && currentWord.word) {
+            // Play the word using TTS
+            handlePlaySound(); // <-- Use your existing function
+          }
+        }, 500);
+        
+        // Clean up the audio timer
+        return () => clearTimeout(audioTimer);
+      }, 3000);
+      
+      return () => {
+        clearTimeout(bubbleTimer);
+        clearTimeout(flipTimer);
+      };
+    }
+  }, [gamePhase]);
+  
+  // Handle card flip transition end
+  const handleFlipTransitionEnd = () => {
+    setIsFlipping(false);
+  };
+  
+  // Handle manual card flip
+  const handleCardFlip = () => {
+    if (!isFlipping) {
+      setIsFlipped(!isFlipped);
+      setIsFlipping(true);
+    }
+  };
+  
+  // Handle starting the game from config screen
+  const handleStartGame = async (config) => {
+    setGameConfig(config);
+    
+    // Initialize game stats
+    setCorrectAnswers(0);
+    setStartTime(new Date());
+    setTotalWords(config.questionCount || 10);
+    
+    // Set a tip using our hardcoded function
+    const gameTip = getSyllableTip(config.difficulty);
+    setSyllableTip(gameTip);
+    
+    // Show loading screen before preloading words
+    setGamePhase('loading');
+    
+    // Preload all words first - IMPORTANT: capture the returned words
+    const words = await preloadGameWords(config);
+    
+    if (words && words.length > 0) {
+      // Use the words array directly instead of relying on gameWords state
+      
+      // Set the current word explicitly using the first word from the returned array
+      const firstWord = words[0];
+      setCurrentWord({
+        word: firstWord.word,
+        syllables: firstWord.syllables,
+        count: firstWord.count,
+        category: firstWord.category,
+        image_url: firstWord.image_url || null,
+        fun_fact: firstWord.fun_fact || `Fun fact about ${firstWord.word}!`,
+        intro_message: firstWord.intro_message || `Let's listen and count the syllables!`
+      });
+      
+      // Set bubble message
+      setBubbleMessage(firstWord.intro_message || `Let's listen and count the syllables!`);
+      
+      // Transition to playing phase
+      setGamePhase('playing');
+    } else {
+      // Handle error - words couldn't be loaded
+      console.error("Failed to load word data");
+      setError('Could not load game data. Please try different settings or reload the page.');
+    }
+  };
+  
+  const playWordWithTTS = (word) => {
+    if (!word) {
+      console.warn('Attempted to play TTS for empty word');
+      return;
+    }
+    
+    setIsPlaying(true);
+    
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.rate = 0.35; // Slightly slower for clarity
+      
+      utterance.onend = () => {
+        setIsPlaying(false);
+      };
+      
+      utterance.onerror = () => {
+        setIsPlaying(false);
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      // Fallback if speech synthesis is not available
+      console.warn('Text-to-speech not supported in this browser');
+      setTimeout(() => setIsPlaying(false), 2000);
+    }
+  };
+
+
+  // Handle clap button press
+  const handleClap = () => {
+    setClapCount(prev => prev + 1);
+  };
+  
+  // Handle play sound button
+  const handlePlaySound = () => {
+    // Get the current word directly from state
+    const word = currentWord?.word;
+    
+    // Safety check to ensure we have a valid word
+    if (!word) {
+      console.warn('Attempted to play sound for undefined word');
+      return;
+    }
+    
+    setIsPlaying(true);
+    
+    // Use text-to-speech to read the current word
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      // For word playback, we use the word directly, not the pronunciation guide
+      // This is because we want users to hear the actual word, not the phonetic breakdown
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.rate = 0.35; // Slightly slower for clarity
+      
+      utterance.onend = () => {
+        setIsPlaying(false);
+      };
+      
+      utterance.onerror = () => {
+        setIsPlaying(false);
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      // Fallback if speech synthesis is not available
+      console.warn('Text-to-speech not supported in this browser');
+      // Simulate audio playing for 2 seconds
+      setTimeout(() => setIsPlaying(false), 2000);
+    }
+  };
+
+  const getPronunciationForSyllable = (syllable, syllableIndex, word) => {
+    // Safety checks
+    if (!word || !word.syllables || !word.pronunciation_guide) {
+      return syllable; // Fall back to the syllable itself
+    }
+    
+    try {
+      // Get the correct syllable and pronunciation arrays
+      const syllables = word.syllables.split('-');
+      const pronunciations = word.pronunciation_guide.split('-');
+      
+      // Validate that we have the correct syllable at the expected index
+      if (syllableIndex >= 0 && syllableIndex < syllables.length && 
+          syllables[syllableIndex] === syllable && 
+          syllableIndex < pronunciations.length) {
+        return pronunciations[syllableIndex];
+      }
+    } catch (error) {
+      console.error('Error parsing pronunciation guide:', error);
+    }
+    
+    // Default fallback
+    return syllable;
+  };
+  
+  // Handle checking the answer
+  const handleCheckAnswer = () => {
+    // Only process if the button is not disabled
+    if (!checkButtonDisabled) {
+      checkAnswerWithAI();
+    }
+  };
+  
+  // Helper function to truncate long messages
+  const truncateMessage = (message, maxLength) => {
+    if (!message) return '';
+    return message.length > maxLength ? message.substring(0, maxLength) + '...' : message;
+  };
+  
+  // Handle showing the demo screen
+  const handleShowDemo = async () => {
+    // Disable the demo button to prevent multiple clicks
+    setDemoButtonDisabled(true);
+    
+    // Generate word-specific pronunciation guide
+    const pronunciationData = await fetchPronunciationGuide();
+    
+    // Generate a demo-specific character message
+    try {
+      const messageResponse = await axios.post('http://127.0.0.1:8000/api/syllabification/generate-ai-content/', {
+        type: 'character_message',
+        word: currentWord.word,
+        context: 'demo'
+      });
+      
+      if (messageResponse.data && messageResponse.data.content) {
+        // Add the message to the pronunciation data
+        if (pronunciationData) {
+          // Truncate message if it's too long to prevent UI glitches
+          const message = messageResponse.data.content;
+          pronunciationData.character_message = truncateMessage(message, 120);
+        }
+      }
+    } catch (error) {
+      console.error("Error generating demo character message:", error);
+      // Add a default message if the API call fails
+      if (pronunciationData) {
+        pronunciationData.character_message = `Let's learn how to pronounce "${currentWord.word}" syllable by syllable!`;
+      }
+    }
+    
+    // Store the pronunciation data to pass to demo screen
+    setCurrentWord(prev => ({
+      ...prev,
+      pronunciationGuide: pronunciationData
+    }));
+    
+    setGamePhase('demo');
+    
+    // Re-enable the demo button after 6 seconds
+    setTimeout(() => {
+      setDemoButtonDisabled(false);
+    }, 3000);
+  };
+  
+  // Handle going back from demo to feedback
+  const handleBackFromDemo = () => {
+    setGamePhase('feedback');
+    // Show feedback bubble again when returning from demo
+    setShowBubble(true);
+  };
+  
+  // Calculate elapsed time in MM:SS format
+  const getElapsedTime = () => {
+    if (!startTime) return '0:00';
+    
+    const now = new Date();
+    const elapsed = Math.floor((now - startTime) / 1000); // seconds
+    
+    const minutes = Math.floor(elapsed / 60);
+    const seconds = elapsed % 60;
+    
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+  
+  // Function to properly set up the next word
+  const setupNextWord = (nextWordIndex) => {
+    // Get the next word data
+    const nextWordData = gameWords[nextWordIndex];
+    if (!nextWordData) return false;
+    
+    // Log the word data being loaded
+    console.log('Setting up next word:', nextWordData);
+    console.log('Pronunciation guide for next word:', nextWordData.pronunciation_guide);
+    
+    // Reset all related states
+    setClapCount(0);
+    setAiResponse(null);
+    
+    // Update the current word - ensure all fields are properly populated
+    setCurrentWord({
+      word: nextWordData.word,
+      syllables: nextWordData.syllables,
+      count: nextWordData.count,
+      category: nextWordData.category,
+      image_url: nextWordData.image_url || null,
+      pronunciation_guide: nextWordData.pronunciation_guide || nextWordData.syllables, // Ensure we have some guide
+      fun_fact: nextWordData.fun_fact || `Fun fact about ${nextWordData.word}!`,
+      intro_message: nextWordData.intro_message || `Listen to "${nextWordData.word}" and count the syllables!`
+    });
+    
+    // Update bubble message for the new word
+    setBubbleMessage(nextWordData.intro_message || `Listen to "${nextWordData.word}" and count the syllables!`);
+    
+    // Log the current word state after update
+    console.log('Current word state updated:', {
+      word: nextWordData.word,
+      syllables: nextWordData.syllables,
+      pronunciation_guide: nextWordData.pronunciation_guide || nextWordData.syllables
+    });
+    
+    return true;
+  };
+  
+
+  const handleNextWord = () => {
+    // Disable the next button to prevent multiple clicks
+    setNextButtonDisabled(true);
+    
+    // Increase the word index
+    const nextIndex = currentIndex + 1;
+    
+    // Check if we've completed all words
+    if (nextIndex > totalWords) {
+      // Game is complete, calculate stats
+      const accuracy = Math.round((correctAnswers / totalWords) * 100);
+      
+      const gameStats = {
+        totalWords: totalWords,
+        correctAnswers: correctAnswers,
+        accuracy: `${accuracy}%`,
+        difficulty: gameConfig?.difficulty || 'Medium',
+        completionTime: getElapsedTime()
+      };
+      
+      setGameStats(gameStats);
+      setGamePhase('complete');
+      setNextButtonDisabled(false);
+      return;
+    }
+    
+    // First completely reset any answer-related states
+    setClapCount(0);
+    setAiResponse(null);
+    
+    // Update index counter
+    setCurrentIndex(nextIndex);
+    
+    // Generate a new tip for this transition
+    const gameTip = getSyllableTip(gameConfig?.difficulty || 'medium');
+    setSyllableTip(gameTip);
+    
+    // Show the word transition screen overlay
+    setGamePhase('wordTransition');
+    
+    // Wait 1.5 seconds with the transition screen
+    setTimeout(() => {
+      // Advance to the next word index
+      const newWordIndex = wordIndex + 1;
+      setWordIndex(newWordIndex);
+      
+      // Explicitly set the current word to the new word
+      const wordData = gameWords[newWordIndex];
+      if (wordData) {
+        // Update the current word explicitly
+        setCurrentWord({
+          word: wordData.word,
+          syllables: wordData.syllables,
+          count: wordData.count,
+          category: wordData.category,
+          image_url: wordData.image_url || null,
+          pronunciation_guide: wordData.pronunciation_guide || wordData.syllables, // Make sure to include pronunciation guide
+          fun_fact: wordData.fun_fact || `Fun fact about ${wordData.word}!`,
+          intro_message: wordData.intro_message || `Let's listen and count the syllables!`
+        });
+        
+        // Set bubble message
+        setBubbleMessage(wordData.intro_message || `Let's listen and count the syllables!`);
+      }
+      
+      // Now change to playing phase
+      setGamePhase('playing');
+      
+      // Re-enable the next button
+      setNextButtonDisabled(false);
+      
+      // Show the bubble for the new word
+      setShowBubble(true);
+      
+      // Auto hide bubble after 6 seconds
+      setTimeout(() => {
+        setShowBubble(false);
+      }, 6000);
+      
+      // Auto-play the word only after the card flip animation
+      setTimeout(() => {
+        // First the card flips to show the image (3 seconds)
+        // Then it flips back to show the word
+        setTimeout(() => {
+          if (wordData && wordData.word) {
+            // Cancel any ongoing speech
+            if ('speechSynthesis' in window) {
+              window.speechSynthesis.cancel();
+              
+              const utterance = new SpeechSynthesisUtterance(wordData.word);
+              utterance.rate = 0.35; // Slightly slower for clarity
+              
+              setIsPlaying(true);
+              
+              utterance.onend = () => {
+                setIsPlaying(false);
+              };
+              
+              utterance.onerror = () => {
+                setIsPlaying(false);
+              };
+              
+              window.speechSynthesis.speak(utterance);
+            }
+          }
+        }, 3500); // Wait for card flip animation to complete
+      }, 100);
+    }, 1500);
+  };
+
+  // Load the current word from the preloaded array
+  const loadCurrentWord = () => {
+    if (gameWords.length === 0 || wordIndex >= gameWords.length) {
+      setError('No more words available. Please start a new game.');
+      return false;
+    }
+    
+    try {
+      const wordData = gameWords[wordIndex];
+      
+      if (!wordData) {
+        console.error(`No word data found at index ${wordIndex}`);
+        setError('Failed to load word data. Please try again.');
+        return false;
+      }
+      
+      // Update state with the current word
+      setCurrentWord({
+        word: wordData.word || 'example',
+        syllables: wordData.syllables || 'ex-am-ple',
+        count: wordData.count || 3,
+        category: wordData.category || 'Default',
+        image_url: wordData.image_url || null,
+        pronunciation_guide: wordData.pronunciation_guide || wordData.syllables || 'ex-am-ple', // Make sure to include pronunciation guide
+        fun_fact: wordData.fun_fact || `Fun fact about words!`,
+        intro_message: wordData.intro_message || `Let's listen and count the syllables!`
+      });
+      
+      // Set the bubble message from the AI-generated intro
+      setBubbleMessage(wordData.intro_message || `Let's listen and count the syllables!`);
+      
+      return true;
+    } catch (error) {
+      console.error('Error loading current word:', error);
+      setError('An error occurred while loading the word. Please try again.');
+      return false;
+    }
+  };
+  
+  // Preload all words for the game session
+  const preloadGameWords = async (config) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Use the selected difficulty and categories from config
+      const difficulty = config?.difficulty || 'medium';
+      const categories = config?.categories || [];
+      const wordCount = config?.questionCount || 10;
+      
+      console.log("Preloading with config:", {difficulty, categories, wordCount});
+      
+      // Build query string for categories
+      const categoryParams = categories.map(cat => `categories[]=${encodeURIComponent(cat)}`).join('&');
+      
+      const url = `http://127.0.0.1:8000/api/syllabification/get-word-batch/?difficulty=${difficulty}&${categoryParams}&count=${wordCount}`;
+      console.log("API URL:", url);
+      
+      // Call API to get a batch of words with AI-generated content
+      const response = await axios.get(url);
+      
+      const wordsData = response.data.words;
+      console.log("Received words:", wordsData?.length || 0);
+      
+      if (wordsData && wordsData.length > 0) {
+        // Check for duplicates in the received data
+        const wordSet = new Set();
+        const uniqueWords = [];
+        
+        // Filter out any duplicates in the response
+        for (const word of wordsData) {
+          if (!wordSet.has(word.word)) {
+            wordSet.add(word.word);
+            
+            // Ensure image_url is null if it's an empty string
+            if (word.image_url === '') {
+              word.image_url = null;
+            }
+            
+            uniqueWords.push(word);
+          } else {
+            console.warn(`Duplicate word detected in API response: ${word.word}`);
+          }
+        }
+        
+        console.log(`Unique words after filtering: ${uniqueWords.length} (removed ${wordsData.length - uniqueWords.length} duplicates)`);
+        
+        // Shuffle the array to randomize word order
+        const shuffledWords = [...uniqueWords].sort(() => Math.random() - 0.5);
+        
+        // Set state for future use
+        setGameWords(shuffledWords);
+        setWordIndex(0);
+        
+        // IMPORTANT CHANGE: Return the words array directly
+        return shuffledWords;
+      } else {
+        setError('Could not load enough words. Please try different settings.');
+        return null;
+      }
+    } catch (err) {
+      console.error('Error preloading words:', err);
+      setError('Failed to load words. Please try again.');
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };  
+  
+  // Fallback message if API fails
+  const getFallbackMessage = () => {
+    return `Let's listen and count the syllables!`;
+  };
+
+  const renderQuitButton = () => {
+  // Only show the quit button during actual gameplay phases
+  if (gamePhase === 'playing' || gamePhase === 'feedback') {
+    return (
+      <button 
+        className={styles.quitButton}
+        onClick={handleQuit}
+      >
+        <span>←</span>
+        Quit Game
+      </button>
+    );
+  }
+  return null; // Don't render the button for other phases
+};
+
+const debugPronunciationGuide = () => {
+  // Log the current word state
+  console.group('Pronunciation Guide Debug');
+  console.log('Current word:', currentWord);
+  
+  if (!currentWord) {
+    console.error('Current word not defined');
+    console.groupEnd();
+    return;
+  }
+  
+  console.log('Word:', currentWord.word);
+  console.log('Syllables:', currentWord.syllables);
+  console.log('Pronunciation guide:', currentWord.pronunciation_guide);
+  
+  // Check if pronunciation guide exists
+  if (!currentWord.pronunciation_guide) {
+    console.warn('Pronunciation guide is missing or undefined');
+    console.groupEnd();
+    return;
+  }
+  
+  // Check if syllables and pronunciation guide have the same format
+  const syllables = currentWord.syllables.split('-');
+  const pronunciations = currentWord.pronunciation_guide.split('-');
+  
+  console.log('Syllable count:', syllables.length);
+  console.log('Pronunciation segments count:', pronunciations.length);
+  
+  // Compare each syllable with its pronunciation
+  console.log('Syllable to pronunciation mapping:');
+  syllables.forEach((syllable, index) => {
+    const pronunciation = index < pronunciations.length ? pronunciations[index] : 'MISSING';
+    console.log(`Syllable ${index + 1}: "${syllable}" → Pronunciation: "${pronunciation}"`);
+  });
+  
+  console.groupEnd();
+};
+  
+  // Render Playing Phase
+  const renderPlayingPhase = () => {
+    return (
+      <div className={styles.gameContainer}>
+        {/* Game Header */}
+        <div className={styles.gameHeader}>
+          <h1>Syllable Clapping Game</h1>
+          <div className={styles.progressBar}>
+            <div 
+              className={styles.progressFill} 
+              style={{ width: `${(currentIndex / totalWords) * 100}%` }}
+            />
+            <span className={styles.progressText}>{currentIndex}/{totalWords}</span>
+          </div>
+        </div>
+        
+        {/* Main Game Area */}
+        <div className={styles.gameArea}>
+          {/* Character on the Left */}
+          <div className={styles.characterSide}>
+            <div className={styles.characterWrapper}>
+              <img src={Character} alt="WildLitz Character" className={styles.character} />
+              
+              {/* Feedback bubble below character */}
+              {showBubble && (
+                <div className={styles.feedbackBubble}>
+                  {bubbleMessage || getFallbackMessage()}
+                </div>
+              )}
+            </div>
+            
+            <div className={styles.gameInfo}>
+              <div className={styles.infoItem}>
+                <span>Category:</span>
+                <span>{currentWord.category}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span>Difficulty:</span>
+                <span>{gameConfig?.difficulty || 'Medium'}</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Word Display in Center - With flip effect */}
+          <div 
+            className={`${styles.wordSection} ${isFlipped ? styles.flipped : ''}`}
+            onClick={handleCardFlip}
+            onTransitionEnd={handleFlipTransitionEnd}
+          >
+            {/* Front side - Word information */}
+            <div className={styles.cardFront}>
+              <div className={styles.wordImageContainer}>
+                <div className={styles.wordImage}>
+                  {currentWord.image_url ? (
+                    <img 
+                      src={currentWord.image_url} 
+                      alt={currentWord.word} 
+                      className={styles.realImage}
+                    />
+                  ) : (
+                    <div className={styles.placeholderImage}>
+                      <span>🖼️</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className={styles.wordDisplay}>
+                <h2>{currentWord.word}</h2>
+                <button 
+                  className={`${styles.playButton} ${isPlaying ? styles.playing : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent card flip when clicking button
+                    handlePlaySound();
+                  }}
+                  disabled={isPlaying}
+                >
+                  <span className={styles.soundIcon}>🔊</span>
+                  <span>{isPlaying ? 'Playing...' : 'Listen Again'}</span>
+                </button>
+              </div>
+              
+              <div className={styles.flipInstruction}>
+                Click to see image
+              </div>
+            </div>
+            
+            {/* Back side - Real image */}
+            <div className={styles.cardBack}>
+              <div className={styles.realImageContainer}>
+                {currentWord.image_url ? (
+                  <img 
+                    src={currentWord.image_url} 
+                    alt={currentWord.word} 
+                    className={styles.realImage}
+                  />
+                ) : (
+                  <div className={styles.placeholderImage}>
+                    <span>No image available</span>
+                  </div>
+                )}
+              </div>
+              <div className={styles.funFactContainer}>
+                <span className={styles.funFactIcon}>💡</span>
+                <div className={styles.funFact}>
+                  {currentWord.fun_fact}
+                </div>
+              </div>
+              <div className={styles.flipInstruction}>
+                Click to see word
+              </div>
+            </div>
+          </div>
+          
+          {/* Clap Area on Right */}
+          <div className={styles.clapSection}>
+            <p className={styles.instructions}>Clap for each syllable!</p>
+            
+            <button 
+              className={styles.clapButton}
+              onClick={handleClap}
+            >
+              <span className={styles.clapIcon}>👏</span>
+            </button>
+            
+            <div className={styles.clapCountDisplay}>
+              <span className={styles.clapCount}>{clapCount}</span>
+              <span className={styles.clapLabel}>claps</span>
+              
+              {/* Add reset button here */}
+              <button 
+                className={styles.resetButton}
+                onClick={() => setClapCount(0)}
+                title="Reset claps"
+              >
+                <span className={styles.resetIcon}>🔄</span>
+              </button>
+            </div>
+            
+            <button 
+              className={`${styles.checkButton} ${checkButtonDisabled ? styles.disabled : ''}`}
+              onClick={handleCheckAnswer}
+              disabled={clapCount === 0 || checkButtonDisabled}
+            >
+              {checkButtonDisabled ? 'Checking...' : 'Check Answer'}
+            </button>
+          </div>
+        </div>
+        
+        {/* Loading and Error States */}
+        {isLoading && (
+          <div className={styles.loadingOverlay}>
+            <div className={styles.loadingSpinner}></div>
+            <p>Loading next word...</p>
           </div>
         )}
         
-        <div className="game-content-wrapper">
-          <motion.img 
-            ref={characterRef}
-            src={wildLitzCharacter} 
-            alt="WildLitz Character" 
-            className={`wildlitz-character ${currentWord?.isCorrect ? 'character-excited' : 'character-sad'}`}
-            animate={{ 
-              y: [0, -10, 0],
-              rotate: currentWord?.isCorrect ? [0, -5, 5, -5, 0] : [0, -3, 0, 3, 0]
-            }}
-            transition={{ 
-              y: { repeat: Infinity, duration: 2, ease: "easeInOut" },
-              rotate: { duration: currentWord?.isCorrect ? 0.8 : 0.5, repeat: !currentWord?.isCorrect ? 3 : 0, ease: "easeInOut" }
-            }}
-          />
+        {error && (
+          <div className={styles.errorMessage}>
+            <p>{error}</p>
+            <button onClick={fetchNewWord}>Try Again</button>
+          </div>
+        )}
+      </div>
+    );
+  };
+  
+  // Render Feedback Phase
+  const renderFeedbackPhase = () => {
+    return (
+      <div className={styles.gameContainer}>
+        {/* Game Header */}
+        <div className={styles.gameHeader}>
+          <h1>Syllable Clapping Game</h1>
+          <div className={styles.progressBar}>
+            <div 
+              className={styles.progressFill} 
+              style={{ width: `${(currentIndex / totalWords) * 100}%` }}
+            />
+            <span className={styles.progressText}>{currentIndex}/{totalWords}</span>
+          </div>
+        </div>
+        
+        {/* Feedback Game Area */}
+        <div className={styles.gameArea}>
+          {/* Character on the Left */}
+          <div className={styles.characterSide}>
+            <div className={styles.characterWrapper}>
+              <img src={Character} alt="WildLitz Character" className={styles.character} />
+              
+              {/* Feedback bubble below character */}
+              {showBubble && (
+                <div className={`${styles.feedbackBubble} ${clapCount === currentWord.count ? styles.correct : styles.incorrect}`}>
+                  {bubbleMessage}
+                </div>
+              )}
+            </div>
+            
+            {/* Game info stays at the bottom */}
+            <div className={styles.gameInfo}>
+              <div className={styles.infoItem}>
+                <span>Category:</span>
+                <span>{currentWord.category}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span>Difficulty:</span>
+                <span>{gameConfig?.difficulty || 'Medium'}</span>
+              </div>
+            </div>
+          </div>
           
-          {/* Add speech bubble */}
-          <AnimatePresence>
-            <motion.div 
-              className={`speech-bubble ${currentWord?.isCorrect ? 'correct' : 'incorrect'}`}
-              initial={{ opacity: 0, scale: 0, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-            >
-              <p>{currentWord?.isCorrect ? 'Great job!' : 'Nice try!'}</p>
-            </motion.div>
-          </AnimatePresence>
-          
-          <div className="game-feedback-card">
-            <div className="game-header">
-              <h1>WildLitz - Syllable Clapping Game</h1>
-              <div className="progress-container">
-                <div 
-                  className="progress-bar" 
-                  style={{ width: `${((currentWordIndex) / gameWords.length * 100)}%` }}
-                ></div>
-                <span className="progress-text">{currentWordIndex}/{gameWords.length}</span>
+          {/* Word and Image - With flip effect */}
+          <div 
+            className={`${styles.wordSection} ${isFlipped ? styles.flipped : ''}`}
+            onClick={handleCardFlip}
+            onTransitionEnd={handleFlipTransitionEnd}
+          >
+            {/* Front side - Word information */}
+            <div className={styles.cardFront}>
+              <div className={styles.wordImageContainer}>
+                <div className={styles.wordImage}>
+                  {currentWord.image_url ? (
+                    <img 
+                      src={currentWord.image_url} 
+                      alt={currentWord.word} 
+                      className={styles.realImage}
+                    />
+                  ) : (
+                    <div className={styles.placeholderImage}>
+                      <span>🖼️</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className={styles.wordDisplay}>
+                <h2>{currentWord.word}</h2>
+                <div className={styles.resultDisplay}>
+                  {clapCount === currentWord.count ? 
+                    <span className={styles.correctResult}>✅ Correct!</span> : 
+                    <span className={styles.incorrectResult}>
+                      ⚠️ {currentWord.word} has {currentWord.count} syllables
+                    </span>
+                  }
+                </div>
+              </div>
+              
+              <div className={styles.flipInstruction}>
+                Click to see image
               </div>
             </div>
             
-            <motion.div 
-              className={`feedback-message ${currentWord?.isCorrect ? 'correct' : 'incorrect'}`}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ 
-                opacity: 1, 
-                scale: 1,
-                x: currentWord?.isCorrect ? 0 : [0, -10, 10, -10, 0]
-              }}
-              transition={{ 
-                duration: 0.5, 
-                x: { duration: 0.5, ease: "easeInOut" }
-              }}
-            >
-              {currentWord?.feedback?.feedback || 
-                (currentWord?.isCorrect ? 
-                  `Great job! This word has ${getSyllableCount(currentWord)} syllables.` :
-                  `Nice try! This word has ${getSyllableCount(currentWord)} syllables.`
-                )
-              }
-              {userAnswer && <div>Your answer: {userAnswer}</div>}
-            </motion.div>
-            
-            <div className="syllable-breakdown">
-              {breakIntoSyllables(
-                currentWord?.word || '', 
-                currentWord?.feedback?.syllable_breakdown || currentWord?.syllables
-              ).map((syllable, index) => (
-                <motion.div 
-                  key={index}
-                  className="syllable-part"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.2 }}
-                  whileHover={{ 
-                    y: -5,
-                    boxShadow: "0 12px 20px rgba(0, 0, 0, 0.15)",
-                    scale: 1.05
-                  }}
-                >
-                  {syllable}
-                  <motion.div 
-                    className="sound-indicator"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: [0, 1.2, 1] }}
-                    transition={{ delay: index * 0.2 + 0.1, duration: 0.5 }}
-                    onClick={() => playSyllableSound(syllable)}
-                  >
-                    🔊
-                  </motion.div>
-                </motion.div>
-              ))}
-            </div>
-            
-            <motion.div 
-              className="syllable-rule"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <h3>Syllable Rule:</h3>
-              <p>Each syllable typically contains at least one vowel sound.</p>
-              <p>
-                In "{currentWord?.word || ''}", we hear the sounds: {
-                  breakIntoSyllables(
-                    currentWord?.word || '', 
-                    currentWord?.feedback?.syllable_breakdown || currentWord?.syllables
-                  ).join(' - ')
-                }
-              </p>
-            </motion.div>
-            
-            <div className="action-buttons">
-              <motion.button 
-                className="hint-button" 
-                onClick={handleShowDemo}
-                disabled={isLoading}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Demonstration
-              </motion.button>
-              <motion.button 
-                className="replay-button" 
-                onClick={handlePlayWordSound}
-                disabled={isLoading || isPlayingAudio}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {isPlayingAudio ? 'Playing...' : 'Replay'}
-              </motion.button>
-              <motion.button 
-                className="next-button" 
-                onClick={handleNextWord}
-                disabled={isLoading}
-                whileHover={{ scale: 1.05, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Next Word
-              </motion.button>
+            {/* Back side - Real image */}
+            <div className={styles.cardBack}>
+              <div className={styles.realImageContainer}>
+                {currentWord.image_url ? (
+                  <img 
+                    src={currentWord.image_url} 
+                    alt={currentWord.word} 
+                    className={styles.realImage}
+                  />
+                ) : (
+                  <div className={styles.placeholderImage}>
+                    <span>No image available</span>
+                  </div>
+                )}
+              </div>
+              <div className={styles.funFactContainer}>
+                <span className={styles.funFactIcon}>💡</span>
+                <div className={styles.funFact}>
+                  {currentWord.fun_fact}
+                </div>
+              </div>
+              <div className={styles.flipInstruction}>
+                Click to see word
+              </div>
             </div>
           </div>
+          
+          {/* Syllable Breakdown */}
+          <div className={styles.syllableSection}>
+          <h3>Syllable Breakdown</h3>
+          
+          <div className={styles.syllables}>
+            {currentWord.syllables.split('-').map((syllable, index) => {
+              // Get the corresponding pronunciation guide if available
+              let pronunciation = syllable;
+              if (currentWord.pronunciation_guide) {
+                try {
+                  const guides = currentWord.pronunciation_guide.split('-');
+                  if (guides.length > index) {
+                    pronunciation = guides[index];
+                  }
+                } catch (error) {
+                  console.error(`Error parsing pronunciation for ${syllable}:`, error);
+                }
+              }
+              
+              return (
+                <button 
+                  key={index} 
+                  className={`${styles.syllableButton} ${speakingSyllable === syllable ? styles.speaking : ''}`}
+                  onClick={() => handleSyllablePronunciation(syllable)}
+                  disabled={speakingSyllable !== null}
+                  title={`Pronunciation: ${pronunciation}`}
+                >
+                  {syllable}
+                  {pronunciation !== syllable}
+                </button>
+              );
+            })}
+          </div>
+                    
+          {/* AI Feedback Section */}
+          <div className={styles.aiFeedbackSection}>
+            <div className={styles.aiFeedbackTitle}>
+              <span>🤖</span> AI Learning Assistant
+            </div>
+            <div className={styles.aiFeedbackContent}>
+              In "{currentWord.word}", we hear {currentWord.count} distinct syllables: {currentWord.syllables}. 
+              Each syllable has one vowel sound. Try clapping slowly as you say {currentWord.syllables} to feel each syllable!
+            </div>
+          </div>
+          
+          <div className={styles.actionButtons}>
+            <button 
+              className={`${styles.demoButton} ${demoButtonDisabled ? styles.disabled : ''}`}
+              onClick={handleShowDemo}
+              disabled={demoButtonDisabled}
+            >
+              {demoButtonDisabled ? 'Loading Demo...' : 'Sound Demo'}
+            </button>
+            
+            <button 
+              className={`${styles.nextButton} ${nextButtonDisabled ? styles.disabled : ''}`}
+              onClick={handleNextWord}
+              disabled={nextButtonDisabled}
+            >
+              {nextButtonDisabled ? 'Loading...' : (currentIndex === totalWords ? 'See Results' : 'Next Word')}
+            </button>
+          </div>
+        </div>
         </div>
       </div>
     );
   };
-
-  // Handle generating more words if we run out
-  const handleGenerateMoreWords = () => {
-    // Only needed if we run out of words from the initial set
-    if (!gameConfig || !gameConfig.categories || gameConfig.categories.length === 0) {
-      console.error("Missing game configuration for generating more words");
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    // Call API to generate more words in the same categories
-    axios.post('/api/syllabification/generate-words/', {
-      difficulty: gameConfig.difficulty,
-      count: 10,
-      categories: gameConfig.categories,
-      previous_words: gameWords.map(word => word.word) // Exclude words we've already used
-    })
-    .then(response => {
-      if (response.data && response.data.words && response.data.words.length > 0) {
-        // Add new words to the game words
-        const newWords = response.data.words;
-        setGameWords(prevWords => [...prevWords, ...newWords]);
-        
-        // Update the current word to the first new word
-        setCurrentWord(newWords[0]);
-        setCurrentWordIndex(gameWords.length); // Set index to the first new word
-        setUserAnswer('');
-        setShowFeedback(false);
-        setGameState('playing');
-      } else {
-        throw new Error("API returned empty or invalid words data");
-      }
-    })
-    .catch(err => {
-      console.error("Error generating more words:", err);
-      setError("Failed to generate more words. Please try again.");
-    })
-    .finally(() => {
-      setIsLoading(false);
-    });
-  };
-
-  // Now update your renderGameContent function
+  
+  // Render the appropriate component based on game phase
   const renderGameContent = () => {
-    switch (gameState) {
+    switch(gamePhase) {
       case 'config':
         return <SyllableConfigScreen onStartGame={handleStartGame} />;
         
       case 'loading':
+        const displayDifficulty = gameConfig?.difficulty || 'Medium';
+  
+        return <SyllableLoadingScreen 
+                 difficulty={displayDifficulty}
+                 wordIndex={currentIndex}
+                 totalWords={totalWords}
+                 tip={syllableTip}
+               />;
+      
+      case 'wordTransition':
         return (
-          <SyllableLoadingScreen 
-            category={getWordCategory(currentWord)} 
-            difficulty={gameConfig?.difficulty || 'easy'} 
-            onContinue={handleContinueFromLoading}
-            wordIndex={currentWordIndex}
-            totalWords={gameWords.length}
-          />
+          <>
+            {renderPlayingPhase()}
+            <WordTransitionScreen 
+              wordIndex={currentIndex}
+              totalWords={totalWords}
+              tip={syllableTip}
+            />
+          </>
         );
         
       case 'playing':
-        return renderPlaying();
+        return renderPlayingPhase();
         
       case 'feedback':
-        return renderFeedback();
+        return renderFeedbackPhase();
         
       case 'demo':
-        return (
-          <SyllableDemoScreen 
-            word={currentWord?.word || ''}
-            syllables={breakIntoSyllables(
-              currentWord?.word || '', 
-              currentWord?.feedback?.syllable_breakdown || currentWord?.syllables
-            )}
-            explanation={currentWord?.syllableExplanation}
-            onBack={handleBackFromDemo}
-            onPlaySound={handlePlayWordSound}
-          />
-        );
+        return <SyllableDemoScreen 
+                 word={currentWord} 
+                 onBack={handleBackFromDemo} 
+                 pronunciationGuide={currentWord.pronunciationGuide}
+               />;
+        
+      case 'complete':
+        return <CompletionScreen stats={gameStats} onPlayAgain={handlePlayAgain} onGoHome={handleGoHome} />;
         
       default:
         return <SyllableConfigScreen onStartGame={handleStartGame} />;
     }
   };
   
+  // Handle playing again
+  const handlePlayAgain = () => {
+    setGamePhase('config');
+    setClapCount(0);
+    setCurrentIndex(1);
+    setCorrectAnswers(0);
+    setStartTime(null);
+    setGameWords([]);
+    setWordIndex(0);
+  };
+  
+  // Handle returning to home
+  const handleGoHome = () => {
+    navigate('/home');
+  };
+  
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={gameState}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        {renderGameContent()}
-      </motion.div>
-    </AnimatePresence>
-  );
-}
+  <div className={styles.container}>
+    {renderQuitButton()}
+    {renderGameContent()}
+  </div>
+);
+};
 
 export default SyllableClappingGame;

@@ -1,0 +1,610 @@
+/* src/styles/games/syllable/SyllableDemoScreen.module.css */
+
+.syllableDemoContainer {
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.demoContentWrapper {
+  z-index: 1;
+  width: 90%;
+  max-width: 1200px;
+  height: 90%; 
+  max-height: 800px;
+  display: flex;
+  gap: 2rem;
+  position: relative;
+}
+
+/* Character column */
+.demoCharacterColumn {
+  width: 20%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.demoCharacter {
+  width: 100%;
+  max-width: 180px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  margin-top: 2rem;
+}
+
+/* Speech bubble */
+.speechBubble {
+  background-color: white;
+  border-radius: 16px;
+  padding: 1rem;
+  width: 90%;
+  position: relative;
+  color: #4a5568;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-top: 1rem;
+}
+
+.speechBubble:after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid white;
+}
+
+/* Main demo card */
+.demoCard {
+  width: 75%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Demo header */
+.demoHeader {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.demoHeader h1 {
+  color: white;
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0 0 1rem 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.wordDisplay {
+  margin-top: 0.5rem;
+}
+
+.wordDisplay h2 {
+  font-size: 2.8rem;
+  color: white;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Syllable breakdown - moved to top position */
+.syllableBreakdown {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.syllableBreakdown h3 {
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.breakdownVisualization {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.syllableUnit {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.syllableUnit:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.syllableUnit.highlighted {
+  background-color: white;
+  color: #8b5cf6;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.soundIndicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  background-color: #8b5cf6;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.fullWordButton {
+  background-color: white;
+  color: #8b5cf6;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fullWordButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.fullWordButton.active {
+  background-color: #8b5cf6;
+  color: white;
+  border-color: #8b5cf6;
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3);
+}
+
+.breakdownTip {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* Pronunciation container */
+.pronunciationContainer {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Sound player section */
+.soundPlayerSection {
+  width: 40%;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.soundPlayerSection h3 {
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.playerControls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 1rem;
+}
+
+.playSoundButton {
+  background-color: white;
+  color: #8b5cf6;
+  border: none;
+  border-radius: 12px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 80%;
+  justify-content: center;
+}
+
+.playSoundButton:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.playSoundButton:disabled {
+  background-color: rgba(255, 255, 255, 0.5);
+  color: rgba(139, 92, 246, 0.5);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.playIcon, .playingIcon, .loadingIcon {
+  font-size: 1.2rem;
+}
+
+.speedToggle {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 80%;
+  text-align: center;
+}
+
+.speedToggle.active {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: white;
+}
+
+.speedToggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Sound explanation */
+.soundExplanation {
+  width: 60%;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.soundExplanation h3 {
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.explanationContent {
+  color: white;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.phoneticGuide {
+  margin-bottom: 1rem;
+}
+
+.examples {
+  margin-bottom: 1rem;
+}
+
+.pronunciationTip {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 0.8rem;
+  margin-top: 1rem;
+}
+
+.pronunciationTip h4 {
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+/* Navigation container for syllable navigation and back button */
+.navigationContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  margin-top: auto;
+}
+
+.emptyNavSpace {
+  flex: 1;
+}
+
+/* Navigation buttons for syllables */
+.syllableNavigation {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+}
+
+.navButton {
+  background-color: white;
+  color: #8b5cf6;
+  border: none;
+  border-radius: 12px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.navButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.navButton:disabled {
+  background-color: rgba(255, 255, 255, 0.5);
+  color: rgba(139, 92, 246, 0.5);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Back button */
+.backButton {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+  border-radius: 12px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 150px;
+  margin-left: 1rem;
+}
+
+.backButton:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .demoContentWrapper {
+    width: 95%;
+  }
+  
+  .pronunciationContainer {
+    flex-direction: column;
+  }
+  
+  .soundPlayerSection,
+  .soundExplanation {
+    width: 100%;
+  }
+  
+  .playerControls {
+    flex-direction: row;
+    justify-content: center;
+  }
+  
+  .playSoundButton, 
+  .speedToggle {
+    width: auto;
+  }
+}
+
+@media (max-width: 992px) {
+  .demoContentWrapper {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    height: auto;
+    /* Set to a reasonable max-height to prevent scroll */
+    max-height: 90vh;
+  }
+  
+  .demoCharacterColumn {
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+    height: auto;
+  }
+  
+  .demoCharacter {
+    width: 120px;
+    margin-right: 1rem;
+    margin-top: 0;
+  }
+  
+  .speechBubble {
+    width: 60%;
+    margin-top: 0;
+  }
+  
+  .speechBubble:after {
+    top: 50%;
+    left: -10px;
+    transform: translateY(-50%);
+    border-left: none;
+    border-right: 10px solid white;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+  }
+  
+  .demoCard {
+    width: 100%;
+    height: auto;
+    padding: 1.5rem;
+    /* Ensure content fits without scrolling */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .wordDisplay h2 {
+    font-size: 2.2rem;
+  }
+  
+  .navigationContainer {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .syllableNavigation {
+    flex-direction: row;
+    width: 100%;
+  }
+  
+  .navButton {
+    flex: 1;
+  }
+  
+  .backButton {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .syllableDemoContainer {
+    height: 100%;
+    padding: 1rem 0;
+  }
+  
+  .demoContentWrapper {
+    max-height: none;
+    height: auto;
+  }
+  
+  .demoHeader h1 {
+    font-size: 1.7rem;
+  }
+  
+  .wordDisplay h2 {
+    font-size: 1.8rem;
+  }
+  
+  .demoCharacter {
+    width: 100px;
+  }
+  
+  .speechBubble {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .demoCard {
+    padding: 1rem;
+  }
+  
+  .syllableUnit {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+  }
+  
+  .fullWordButton {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+  }
+  
+  .navigationContainer {
+    flex-direction: column;
+    width: 100%;
+    gap: 1rem;
+  }
+  
+  .syllableNavigation {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.5rem;
+  }
+  
+  .playerControls {
+    flex-direction: column;
+  }
+  
+  .playSoundButton, 
+  .speedToggle {
+    width: 100%;
+  }
+  
+  .backButton {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+/* For very tall screens */
+@media (min-height: 900px) {
+  .demoContentWrapper {
+    height: 85%;
+  }
+}
+
+/* For shorter screens */
+@media (max-height: 700px) {
+  .demoContentWrapper {
+    height: auto;
+    max-height: 95vh;
+  }
+  
+  .demoHeader {
+    margin-bottom: 1rem;
+  }
+  
+  .demoHeader h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .pronunciationContainer,
+  .syllableBreakdown {
+    margin-bottom: 1rem;
+    padding: 1rem;
+  }
+  
+  .soundPlayerSection h3,
+  .soundExplanation h3,
+  .syllableBreakdown h3 {
+    margin-bottom: 0.75rem;
+  }
+}
