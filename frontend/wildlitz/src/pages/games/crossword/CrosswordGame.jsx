@@ -208,8 +208,48 @@ const CrosswordGame = () => {
   };
   
   /**
+   * Get vocabulary words for the CURRENT episode only
+   * This is used for highlighting words in the story text
+   */
+  const getCurrentEpisodeVocabularyWords = () => {
+    if (!currentStorySegment) return [];
+    
+    // Get all puzzles for the current episode
+    const puzzleId = currentStorySegment.crosswordPuzzleId;
+    const additionalIds = currentStorySegment.additionalPuzzleIds || [];
+    const allPuzzleIds = [puzzleId, ...additionalIds].filter(Boolean);
+    
+    const episodeWords = [];
+    
+    // Go through each puzzle for this episode
+    allPuzzleIds.forEach(id => {
+      const puzzle = gamePuzzles[id];
+      if (puzzle && puzzle.words) {
+        // Add each word from this puzzle
+        puzzle.words.forEach(word => {
+          if (!episodeWords.includes(word.answer)) {
+            episodeWords.push(word.answer);
+          }
+        });
+      }
+    });
+    
+    // Also include words from vocabularyFocus if available
+    if (currentStorySegment.vocabularyFocus) {
+      currentStorySegment.vocabularyFocus.forEach(word => {
+        const upperWord = word.toUpperCase();
+        if (!episodeWords.includes(upperWord)) {
+          episodeWords.push(upperWord);
+        }
+      });
+    }
+    
+    return episodeWords;
+  };
+  
+  /**
    * Get ALL vocabulary words across ALL episodes in the current adventure
-   * Used for highlighting words in the story text
+   * Used for the reading coach
    */
   const getAllVocabularyWords = () => {
     if (!gameStories || !gameConfig || !gameConfig.adventureId) return [];
@@ -374,7 +414,7 @@ const CrosswordGame = () => {
               <StoryScreen 
                 storySegment={currentStorySegment}
                 onContinue={handleContinueToPuzzle}
-                wordsToPuzzle={getAllVocabularyWords()}
+                wordsToPuzzle={getCurrentEpisodeVocabularyWords()}
                 currentEpisode={currentEpisode}
                 onToggleReadingCoach={toggleReadingCoach}
               />
@@ -384,7 +424,7 @@ const CrosswordGame = () => {
                   storyText={currentStorySegment.text}
                   isVisible={showReadingCoach}
                   onClose={() => setShowReadingCoach(false)}
-                  vocabularyWords={getAllVocabularyWords()}
+                  vocabularyWords={getCurrentEpisodeVocabularyWords()}
                   grade={3}
                 />
               )}

@@ -177,3 +177,54 @@ INFO 2025-05-21 16:14:26,776 views Received response from OpenAI: ```json
 {
   "title": "The Magical Ocean Adventure",
   "description": "Join Sam and Lily as they emba...
+INFO 2025-05-23 14:43:05,678 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a farm theme.
+        
+     ...
+INFO 2025-05-23 14:43:10,531 views Received response from OpenAI: ```json
+{
+  "title": "Fiona the Farmer's Busy Day",
+  "description": "Join Fiona the Farmer on her e...
+INFO 2025-05-23 15:10:04,661 views Sending prompt to OpenAI: 
+        Create a 1-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-23 15:10:10,235 views Received response from OpenAI: ```json
+{
+  "title": "The Jungle Adventure",
+  "description": "Join Lily the Lioness on an exciting ...
+INFO 2025-05-23 16:30:55,090 views Sending prompt to OpenAI: 
+        Create a 3-episode educational story for grade 3 students with a farm theme.
+        
+     ...
+INFO 2025-05-23 16:31:04,831 views Received response from OpenAI: {
+  "title": "Farm Adventures",
+  "description": "Join Lily and her friends on exciting adventures a...
+INFO 2025-05-23 16:32:05,989 views Sending prompt to OpenAI: 
+        Create a 3-episode educational story for grade 3 students with a fairytale theme.
+        
+...
+INFO 2025-05-23 16:32:14,876 views Received response from OpenAI: ```json
+{
+  "title": "The Magical Adventure of Lily and the Compound-Word Kingdom",
+  "description":...
+INFO 2025-05-23 16:38:21,197 views Sending prompt to OpenAI: 
+        Create a 3-episode educational story for grade 3 students with a farm theme.
+        
+     ...
+INFO 2025-05-23 16:38:32,756 views Received response from OpenAI: ```json
+{
+  "title": "Farm Adventures with Freddy the Pig",
+  "description": "Join Freddy the Pig in...
+WARNING 2025-05-23 16:38:32,756 views Word 'ripen' not found in episode text, excluding from vocabulary
+INFO 2025-05-23 16:45:46,895 views Sending prompt to OpenAI: 
+        Create a 3-episode educational story for grade 3 students with a jungle theme.
+        
+   ...
+INFO 2025-05-23 16:45:56,181 views Received response from OpenAI: ```json
+{
+  "title": "Adventures in the Jungle",
+  "description": "Join Lily the Lion and her friend...
+WARNING 2025-05-23 16:45:56,182 views Word 'rescue' not found in episode text, excluding from vocabulary
+WARNING 2025-05-23 16:45:56,182 views Word 'reunite' not found in episode text, excluding from vocabulary
+WARNING 2025-05-23 16:45:56,182 views Word 'mission' not found in episode text, excluding from vocabulary
