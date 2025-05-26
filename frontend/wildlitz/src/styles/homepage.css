@@ -1,6 +1,9 @@
-/* Fix for scrolling issues */
+/* Fix for scrolling issues - remove double scrollbars */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Bubblegum+Sans:wght@400&family=Nunito:wght@400;600;700;800&display=swap');
+
 body {
   overflow-y: auto;
+  overflow-x: hidden;
   margin: 0;
   padding: 0;
   min-height: 100%;
@@ -8,187 +11,501 @@ body {
 
 html {
   height: 100%;
-  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 #root {
   width: 100%;
-  min-height: 100vh; /* Changed from fixed height to min-height */
+  min-height: 100vh;
 }
 
 .App {
   width: 100%;
-  min-height: 100%; /* Changed from fixed height to min-height */
+  min-height: 100%;
 }
 
-/* Original homepage.css content with fixes */
+/* Beautiful brown background - consistent with landing page */
 .home-container {
   width: 100%;
   min-height: 100vh;
-  background-color: #3e2723;
+  background: #4B352A;
   color: white;
-  padding: 40px;
-  font-family: 'Poppins', sans-serif;
-  overflow-y: auto; /* Added to ensure content is scrollable */
+  padding: 20px;
+  font-family: 'Nunito', 'Bubblegum Sans', cursive, sans-serif;
+  overflow-x: hidden;
+  position: relative;
 }
 
+/* Floating background elements for brown theme */
+.home-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(255, 193, 7, 0.1) 2px, transparent 2px),
+    radial-gradient(circle at 80% 80%, rgba(255, 105, 180, 0.1) 2px, transparent 2px),
+    radial-gradient(circle at 40% 60%, rgba(135, 206, 235, 0.05) 3px, transparent 3px);
+  background-size: 60px 60px, 100px 100px, 140px 140px;
+  animation: float 20s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+
+/* Enhanced navbar for brown theme */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px 0;
-  margin-bottom: 50px;
+  margin-bottom: 15px;
+  background: rgba(93, 64, 55, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 25px;
+  padding: 15px 30px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 193, 7, 0.2);
+  border: 2px solid rgba(255, 193, 7, 0.3);
 }
 
 .logo-container {
   display: flex;
   align-items: center;
-  margin-left: 5%;
+  margin-left: 0;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
 .logo {
-  width: 120px;
-  height: 120px;
+  width: 80px;
+  height: 80px;
   margin-right: 15px;
-  border-radius: 16px;
+  border-radius: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
 }
 
 .logo-text {
-  font-size: 3.5rem;
+  font-size: 2.8rem;
   font-weight: bold;
   margin: 0;
-  background: linear-gradient(90deg, #ffffff, #ffc107);
+  background: linear-gradient(45deg, #FFD700, #FFA500, #FF69B4, #00CED1);
+  background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow: 0 3px 6px rgba(0,0,0,0.2);
+  background-clip: text;
+  animation: logoGradient 3s ease infinite;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  font-family: 'Fredoka One', cursive;
+}
+
+@keyframes logoGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 .navigation {
   display: flex;
-  gap: 30px;
+  gap: 20px;
+  align-items: center;
 }
 
 .nav-item {
   color: white;
   text-decoration: none;
-  font-size: 1.3rem;
-  padding: 12px 24px;
-  border-radius: 10px;
+  font-size: 1.1rem;
+  padding: 12px 20px;
+  border-radius: 20px;
   transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid transparent;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.nav-item:hover::before {
+  left: 100%;
 }
 
 .nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .nav-item.active {
-  background-color: #ffc107;
-  color: #3e2723;
+  background: linear-gradient(45deg, #FFD700, #FFA500);
+  color: #333;
   font-weight: bold;
-  box-shadow: 0 5px 12px rgba(0,0,0,0.25);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+  border-color: #FFD700;
 }
 
+/* Enhanced main content */
 .main-content {
   width: 95%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 30px 0;
+  padding: 10px 0;
+  position: relative;
+  z-index: 2;
 }
 
 .section-title {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 30px;
-  padding-bottom: 12px;
-  border-bottom: 3px solid #ffc107;
-  display: inline-block;
+  font-size: 3.2rem;
+  font-weight: 900;
+  margin-bottom: 15px;
+  padding: 15px 0;
+  text-align: center;
+  font-family: 'Fredoka One', cursive;
+  position: relative;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  
+  /* Beautiful gradient text */
+  background: linear-gradient(45deg, 
+    #FF6B9D, #C44CAE, #8B5FBF, #6F73D2, 
+    #5B86E5, #36C5F0, #5FB3D4, #62D0B6, 
+    #A8E6CF, #FFD93D, #FF8A65);
+  background-size: 600% 600%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  
+  /* Smooth color animation */
+  animation: rainbowText 8s ease-in-out infinite;
+  
+  /* Soft glow effect */
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+  
+  /* Gentle floating animation */
+  transform-origin: center;
 }
 
+.section-title::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  background: linear-gradient(45deg, 
+    rgba(255, 107, 157, 0.2), 
+    rgba(196, 76, 174, 0.2), 
+    rgba(139, 95, 191, 0.2), 
+    rgba(91, 134, 229, 0.2));
+  border-radius: 20px;
+  z-index: -1;
+  animation: glowPulse 4s ease-in-out infinite;
+}
+
+.section-title::after {
+  content: '📚 ✨ 🌟 🎮 📖';
+  display: block;
+  font-size: 2rem;
+  margin-top: 15px;
+  animation: gentleBounce 3s ease-in-out infinite;
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: unset;
+  background-clip: unset;
+  filter: none;
+}
+
+/* Rainbow text animation */
+@keyframes rainbowText {
+  0%, 100% { 
+    background-position: 0% 50%; 
+    transform: translateY(0px) scale(1);
+  }
+  25% { 
+    background-position: 25% 50%; 
+    transform: translateY(-2px) scale(1.02);
+  }
+  50% { 
+    background-position: 100% 50%; 
+    transform: translateY(0px) scale(1.05);
+  }
+  75% { 
+    background-position: 75% 50%; 
+    transform: translateY(-2px) scale(1.02);
+  }
+}
+
+/* Gentle glow pulse */
+@keyframes glowPulse {
+  0%, 100% { 
+    opacity: 0.3; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.6; 
+    transform: scale(1.05);
+  }
+}
+
+@keyframes gentleBounce {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Beautiful content card - colorful but harmonious with brown theme */
 .content-card {
   width: 100%;
-  background-color: #5d4037;
-  border-radius: 20px;
+  background: linear-gradient(135deg, 
+    rgba(255, 228, 181, 0.95) 0%,
+    rgba(255, 182, 193, 0.95) 25%, 
+    rgba(221, 160, 221, 0.95) 50%, 
+    rgba(173, 216, 230, 0.95) 75%,
+    rgba(144, 238, 144, 0.95) 100%);
+  border-radius: 30px;
   padding: 40px;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 193, 7, 0.3);
+  border: 4px solid rgba(255, 193, 7, 0.4);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
 }
 
+.content-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, 
+    transparent, 
+    rgba(255, 215, 0, 0.1), 
+    transparent, 
+    rgba(255, 193, 7, 0.1), 
+    transparent);
+  animation: shimmer 8s ease infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmer {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Enhanced games container */
 .games-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 30px;
+  position: relative;
+  z-index: 2;
 }
 
+/* Beautiful game cards */
 .game-card {
-  background-color: #6d4c41;
-  border-radius: 16px;
+  background: linear-gradient(145deg, #ffffff, #f0f0f0);
+  border-radius: 25px;
   overflow: hidden;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-  transition: all 0.3s ease;
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.1),
+    0 5px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s ease;
+  border: 3px solid transparent;
+  position: relative;
+  cursor: pointer;
 }
+
+.game-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, 
+    #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+  background-size: 300% 300%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: gradientMove 6s ease infinite;
+  z-index: -1;
+  border-radius: 25px;
+}
+
+.game-card:hover::before {
+  opacity: 0.1;
+}
+
+@keyframes gradientMove {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.game-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.2),
+    0 10px 30px rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+.game-card:nth-child(1) { --accent-color: #ff6b6b; }
+.game-card:nth-child(2) { --accent-color: #4ecdc4; }
+.game-card:nth-child(3) { --accent-color: #45b7d1; }
+.game-card:nth-child(4) { --accent-color: #96ceb4; }
 
 .game-image {
   width: 100%;
   height: 220px;
   object-fit: cover;
-  border-bottom: 4px solid #ffc107;
+  border-bottom: 5px solid var(--accent-color, #ffc107);
+  transition: all 0.3s ease;
 }
 
+.game-card:hover .game-image {
+  filter: brightness(1.1) saturate(1.2);
+}
+
+/* Enhanced game info */
 .game-info {
-  padding: 20px;
+  padding: 25px;
   text-align: center;
+  position: relative;
+}
+
+.game-info::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(45deg, var(--accent-color, #ffc107), lighten(var(--accent-color, #ffc107), 20%));
+  border-radius: 2px;
 }
 
 .game-info h3 {
   font-size: 1.6rem;
-  margin: 0 0 10px 0;
-  color: #ffc107;
+  margin: 15px 0 10px 0;
+  color: #333;
+  font-weight: bold;
+  font-family: 'Fredoka One', cursive;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .game-info p {
-  font-size: 1.2rem;
-  margin: 0 0 18px 0;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  margin: 0 0 20px 0;
+  color: #666;
+  font-weight: 600;
+  background: linear-gradient(45deg, var(--accent-color, #ffc107), darken(var(--accent-color, #ffc107), 20%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-family: 'Bubblegum Sans', cursive;
 }
 
+/* Spectacular play button */
 .play-button {
-  background-color: #00ca1b;
+  background: linear-gradient(45deg, #00ca1b, #00ff30);
   color: #fff;
   border: none;
   border-radius: 50px;
-  padding: 12px 28px;
-  font-size: 1.15rem;
+  padding: 15px 30px;
+  font-size: 1.2rem;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+  box-shadow: 
+    0 8px 20px rgba(0, 202, 27, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+  font-family: 'Bubblegum Sans', cursive;
+}
+
+.play-button::before {
+  content: '🎮';
+  position: absolute;
+  left: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  transition: left 0.3s ease;
+}
+
+.play-button:hover::before {
+  left: 10px;
 }
 
 .play-button:hover {
-  background-color: #0fe197;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.35);
+  background: linear-gradient(45deg, #00ff30, #00ca1b);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 
+    0 12px 30px rgba(0, 202, 27, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  padding-left: 45px;
 }
+
+.play-button:active {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 
+    0 6px 15px rgba(0, 202, 27, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Remove the problematic floating elements that cause auto-scroll */
 
 /* Media queries for responsiveness */
 @media (max-width: 1024px) {
   .games-container {
     grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+  }
+  
+  .content-card {
+    padding: 30px;
   }
 }
 
 @media (max-width: 768px) {
   .navbar {
     flex-direction: column;
-    gap: 20px;
+    gap: 15px;
+    padding: 20px;
   }
 
   .navigation {
     width: 100%;
     justify-content: center;
+    flex-wrap: wrap;
   }
 
   .content-card {
     padding: 25px;
+    border-radius: 20px;
   }
 
   .logo-text {
@@ -196,61 +513,83 @@ html {
   }
 
   .section-title {
-    font-size: 1.8rem;
+    font-size: 2rem;
+  }
+  
+  .games-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 }
 
 @media (max-width: 480px) {
-  .games-container {
-    grid-template-columns: 1fr;
+  .home-container {
+    padding: 15px;
   }
-
+  
   .navigation {
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
   }
 
   .nav-item {
     width: 100%;
     text-align: center;
+    padding: 10px;
   }
 
   .main-content {
     width: 100%;
   }
+  
+  .logo {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .logo-text {
+    font-size: 1.8rem;
+  }
+  
+  .section-title {
+    font-size: 1.8rem;
+  }
+  
+  .play-button {
+    font-size: 1.1rem;
+    padding: 12px 25px;
+  }
+}
+
+/* Add some sparkle effects */
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.game-card:hover::after {
+  content: '✨';
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 1.5rem;
+  animation: sparkle 1s ease infinite;
 }
 
 /* Enhanced navigation items */
 .navigation {
   display: flex;
-  gap: 25px;
+  gap: 15px;
   align-items: center;
 }
 
 .nav-item {
-  color: white;
-  text-decoration: none;
-  font-size: 1.2rem;
-  padding: 10px 20px;
-  border-radius: 12px;
-  transition: all 0.3s ease;
   white-space: nowrap;
+  font-family: 'Bubblegum Sans', cursive;
 }
 
-.nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-  transform: translateY(-2px);
-}
-
-.nav-item.active {
-  background-color: #ffc107;
-  color: #3e2723;
-  font-weight: 600;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* Icon support for nav items */
+/* Enhanced icon support for nav items */
 .nav-item-with-icon {
   display: flex;
   align-items: center;
@@ -261,28 +600,43 @@ html {
   font-size: 1.1rem;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .navigation {
-    gap: 15px;
-  }
-  
-  .nav-item {
-    padding: 8px 16px;
-    font-size: 1.1rem;
-  }
+/* Additional static decorative elements (no auto-scroll) */
+.content-card::after {
+  content: '🌟 ⭐ 🎯 📚 ✨';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.2rem;
+  opacity: 0.3;
+  pointer-events: none;
+  color: #FFD700;
 }
 
-@media (max-width: 768px) {
-  .navigation {
-    width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  
-  .nav-item {
-    padding: 8px 14px;
-    font-size: 1rem;
-  }
+/* Fun hover effects for game cards */
+.game-card:hover .game-info h3 {
+  color: var(--accent-color, #ffc107);
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+}
+
+/* Ensure layout doesn't overflow horizontally */
+* {
+  box-sizing: border-box;
+}
+
+body, html {
+  overflow-x: hidden;
+}
+
+#root, .App {
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
 }

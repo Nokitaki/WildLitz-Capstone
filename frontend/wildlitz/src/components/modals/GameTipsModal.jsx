@@ -8,12 +8,13 @@ import CrosswordAnimation from '../animations/CrosswordAnimation';
 import SyllableClappingAnimation from '../animations/SyllableClappingAnimation';
 
 const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
-  // Game information data
   const gameInfo = {
     'syllable-clapping': {
       title: 'Syllable Clapping Game',
       description: 'Practice breaking words into syllables with fun clapping activities!',
       component: <SyllableClappingAnimation />,
+      color: '#FF6B9D',
+      emoji: '👏',
       howToPlay: [
         'Listen to the word pronunciation carefully',
         'Count the syllables by clapping along with the rhythm',
@@ -25,6 +26,8 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
       title: 'Sound Safari',
       description: 'Hunt for specific sounds in words to develop phonemic awareness!',
       component: <SoundSafariAnimation />,
+      color: '#4ECDC4',
+      emoji: '🦁',
       howToPlay: [
         'Listen for the target sound announced at the beginning',
         'Identify animals and objects that contain the target sound',
@@ -36,6 +39,8 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
       title: 'Vanishing Game',
       description: 'Watch objects disappear and reappear while learning phonics patterns!',
       component: <VanishingGameAnimation />,
+      color: '#45B7D1',
+      emoji: '✨',
       howToPlay: [
         'Watch carefully as objects appear and disappear',
         'Identify the phonics patterns in each word',
@@ -47,6 +52,8 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
       title: 'Crossword Puzzle',
       description: 'Build vocabulary and sentence structure with fun word puzzles!',
       component: <CrosswordAnimation />,
+      color: '#96CEB4',
+      emoji: '🧩',
       howToPlay: [
         'Read each clue carefully before answering',
         'Look for clues that might be easier to solve first',
@@ -72,7 +79,8 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          background: 'linear-gradient(135deg, rgba(75, 53, 42, 0.95), rgba(93, 64, 55, 0.95))',
+          backdropFilter: 'blur(10px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -82,178 +90,203 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
         onClick={onClose}
       >
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.8, opacity: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          initial={{ scale: 0.7, opacity: 0, y: 50 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.7, opacity: 0, y: 50 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
           style={{
-            backgroundColor: '#4B352A',
-            borderRadius: '20px',
-            padding: '0',
+            background: `linear-gradient(135deg,
+              rgba(139, 95, 68, 0.98) 0%,
+              rgba(160, 116, 89, 0.98) 25%,
+              rgba(181, 137, 110, 0.98) 50%,
+              rgba(202, 158, 131, 0.98) 75%,
+              rgba(223, 179, 152, 0.98) 100%)`,
+            borderRadius: '25px',
+            padding: 0,
             maxWidth: '600px',
             width: '100%',
-            maxHeight: '90vh',
+            maxHeight: '85vh',
             overflow: 'hidden',
-            position: 'relative'
+            position: 'relative',
+            boxShadow: `0 20px 50px rgba(0, 0, 0, 0.4),
+                       0 0 0 3px ${currentGame.color}40,
+                       0 0 25px ${currentGame.color}30`,
+            border: `3px solid ${currentGame.color}60`
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Close Button */}
-          <button
+          <div style={{
+            position: 'absolute',
+            top: 0, left: 0, right: 0, bottom: 0,
+            overflow: 'hidden',
+            pointerEvents: 'none'
+          }}>
+            {[...Array(12)].map((_, i) => (
+              <motion.div
+                key={i}
+                style={{
+                  position: 'absolute',
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  fontSize: '20px',
+                  opacity: 0.3
+                }}
+                animate={{
+                  y: [0, -20, 0],
+                  x: [0, Math.random() * 20 - 10, 0],
+                  rotate: [0, 360],
+                  scale: [1, 1.2, 1]
+                }}
+                transition={{
+                  duration: 4 + Math.random() * 2,
+                  repeat: Infinity,
+                  delay: Math.random() * 2
+                }}
+              >
+                {['🌟', '✨', '🎮', '📚', '🎯', '⭐'][Math.floor(Math.random() * 6)]}
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.button
             onClick={onClose}
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
             style={{
               position: 'absolute',
               top: '15px',
               right: '15px',
-              background: '#FFC107',
+              background: `linear-gradient(45deg, ${currentGame.color}, ${currentGame.color}CC)`,
               border: 'none',
               borderRadius: '50%',
-              width: '40px',
-              height: '40px',
+              width: '45px',
+              height: '45px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              fontSize: '20px',
+              fontSize: '24px',
               fontWeight: 'bold',
-              color: '#333',
+              color: 'white',
               zIndex: 10,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+              boxShadow: `0 4px 15px ${currentGame.color}50`
             }}
           >
             ×
-          </button>
+          </motion.button>
 
-          {/* Header */}
-          <div style={{
-            textAlign: 'center',
-            padding: '30px 20px 20px',
-            color: '#FFC107'
-          }}>
-            <h2 style={{
-              fontSize: '2rem',
-              margin: '0 0 10px',
-              fontWeight: 'bold'
-            }}>
+          <div style={{ textAlign: 'center', padding: '20px 15px 10px' }}>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+              style={{ fontSize: '2.5rem', marginBottom: '8px' }}
+            >
+              {currentGame.emoji}
+            </motion.div>
+
+            <motion.h2
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              style={{
+                fontSize: '1.8rem',
+                fontWeight: 'bold',
+                background: `linear-gradient(45deg, ${currentGame.color}, #FF6B9D, #4ECDC4)`,
+                backgroundSize: '200% 200%',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                fontFamily: 'Fredoka One, cursive',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+              }}
+            >
               {currentGame.title}
-            </h2>
-            <p style={{
-              fontSize: '1rem',
-              margin: 0,
-              color: 'white',
-              opacity: 0.9
-            }}>
+            </motion.h2>
+
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              style={{
+                fontSize: '1rem',
+                color: '#2C1810',
+                opacity: 0.9,
+                fontFamily: 'Bubblegum Sans, cursive',
+                fontWeight: '600'
+              }}
+            >
               {currentGame.description}
-            </p>
+            </motion.p>
           </div>
 
-          {/* Content */}
-          <div style={{
-            display: 'flex',
-            padding: '0 20px 20px',
-            gap: '20px',
-            alignItems: 'flex-start'
-          }}>
-            {/* Left side - Game visual */}
-            <div style={{
-              flex: '0 0 200px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}>
+          <div style={{ display: 'flex', padding: '0 25px 20px', gap: '25px', alignItems: 'flex-start' }}>
+            <motion.div
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              style={{
+                flex: '0 0 220px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
               <div style={{
-                width: '200px',
-                height: '150px',
-                borderRadius: '12px',
+                width: '220px',
+                height: '160px',
+                borderRadius: '20px',
                 overflow: 'hidden',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                boxShadow: `0 8px 25px rgba(0,0,0,0.2), 0 0 0 3px ${currentGame.color}60`,
+                border: `2px solid ${currentGame.color}`,
+                position: 'relative'
               }}>
                 {currentGame.component}
               </div>
-            </div>
+            </motion.div>
 
-            {/* Right side - How to play */}
-            <div style={{
-              flex: 1,
-              color: 'white'
-            }}>
-              <h3 style={{
-                fontSize: '1.5rem',
-                margin: '0 0 15px',
-                color: '#FFC107',
-                fontWeight: 'bold'
-              }}>
-                How to Play:
-              </h3>
-              <ul style={{
-                listStyle: 'none',
-                padding: 0,
-                margin: 0
-              }}>
-                {currentGame.howToPlay.map((step, index) => (
-                  <motion.li
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      marginBottom: '12px',
-                      fontSize: '0.95rem',
-                      lineHeight: '1.4'
-                    }}
-                  >
-                    <span style={{
-                      display: 'inline-block',
-                      width: '20px',
-                      height: '20px',
-                      backgroundColor: '#FFC107',
-                      color: '#333',
-                      borderRadius: '50%',
-                      textAlign: 'center',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      lineHeight: '20px',
-                      marginRight: '12px',
-                      flexShrink: 0,
-                      marginTop: '2px'
-                    }}>
-                      {index + 1}
-                    </span>
-                    <span>{step}</span>
-                  </motion.li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Footer with play button */}
-          <div style={{
-            padding: '20px',
-            textAlign: 'center',
-            borderTop: '2px solid rgba(255, 193, 7, 0.3)'
-          }}>
-            <motion.button
-              onClick={onStartGame}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <motion.ul
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
               style={{
-                backgroundColor: '#FFC107',
-                color: '#333',
-                border: 'none',
-                borderRadius: '25px',
-                padding: '12px 40px',
-                fontSize: '1.2rem',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                transition: 'all 0.3s ease'
+                margin: 0,
+                padding: 0,
+                listStyleType: 'disc',
+                fontSize: '0.95rem',
+                fontFamily: 'Poppins, sans-serif',
+                fontWeight: 500,
+                color: '#2C1810',
+                lineHeight: '1.5'
               }}
             >
-              Let's Play!
-            </motion.button>
+              {currentGame.howToPlay.map((step, idx) => (
+                <li key={idx} style={{ marginBottom: '10px' }}>{step}</li>
+              ))}
+            </motion.ul>
           </div>
+
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onStartGame}
+            style={{
+              background: currentGame.color,
+              margin: '0 25px 25px',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '12px',
+              padding: '10px 20px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              fontSize: '1rem',
+              textAlign: 'center',
+              fontFamily: 'Poppins, sans-serif',
+              boxShadow: `0 4px 15px ${currentGame.color}70`
+            }}
+          >
+            Start Game
+          </motion.div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
