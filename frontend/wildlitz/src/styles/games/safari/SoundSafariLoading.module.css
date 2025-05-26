@@ -1,0 +1,443 @@
+/* src/styles/games/safari/SoundSafariLoading.module.css */
+
+/* SoundSafariLoading.module.css */
+
+.loadingContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.loadingCard {
+  width: 100%;
+  max-width: 1600px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.loadingContent {
+  display: flex;
+  gap: 20px;
+}
+
+.loadingColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Left Column - Target Sound */
+.targetSoundSection {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  height: 100%;
+}
+
+.targetSoundSection h3 {
+  color: #333;
+  font-size: 1.2rem;
+  margin: 0 0 15px 0;
+  text-align: center;
+}
+
+.targetSoundCircle {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #81c9c0, #a0dad1);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 15px;
+  border: 2px dashed rgba(255, 255, 255, 0.7);
+}
+
+.targetSoundDisplay {
+  font-size: 3rem;
+  color: white;
+  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.targetSoundSection p {
+  text-align: center;
+  color: #555;
+  margin: 0 0 20px 0;
+  font-weight: 500;
+}
+
+.examplesBox {
+  background-color: #f5f9f8;
+  border-radius: 12px;
+  padding: 15px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.examplesBox h4 {
+  color: #296b63;
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+}
+
+.examplesBox p {
+  margin: 0;
+  color: #333;
+  text-align: left;
+  font-weight: normal;
+}
+
+/* Center Column - Progress & Info */
+.loadingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.loadingTitle {
+  color: #296b63;
+  font-size: 1.4rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerEmoji {
+  font-size: 1.4rem;
+}
+
+.roundInfo {
+  background-color: #81c9c0;
+  color: white;
+  border-radius: 50px;
+  padding: 5px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.roundText {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.roundNumbers {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+}
+
+.currentRound {
+  font-size: 1.2rem;
+}
+
+.totalRounds {
+  font-size: 0.9rem;
+}
+
+.progressSection {
+  margin-bottom: 20px;
+}
+
+.progressBarContainer {
+  height: 10px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+
+.progressBar {
+  height: 100%;
+  background: linear-gradient(to right, #81c9c0, #a0dad1);
+  border-radius: 5px;
+}
+
+.progressLabel {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.infoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.difficultyBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: #f5f9f8;
+  padding: 12px;
+  border-radius: 12px;
+  color: #333;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.difficultyIcon {
+  font-size: 1.3rem;
+}
+
+.funFactBox {
+  background-color: #e3f2fd;
+  border-radius: 12px;
+  padding: 15px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  border-left: 4px solid #a0d6e3;
+}
+
+.factTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #296b63;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.factEmoji {
+  font-size: 1.2rem;
+}
+
+.funFactBox p {
+  margin: 0;
+  color: #333;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.actionButtons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: auto;
+}
+
+.skipButton {
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  border-radius: 50px;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.skipButton:hover {
+  background-color: #d5d5d5;
+  transform: translateY(-2px);
+}
+
+.startButton {
+  background-color: #81c9c0;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.startButton:hover {
+  background-color: #6dbdb3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.startButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Right Column - Tips */
+.tipsSection {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  height: 100%;
+}
+
+.tipsSection h3 {
+  color: #333;
+  font-size: 1.2rem;
+  margin: 0;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.tipBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background-color: #f5f9f8;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.tipIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.tipBox p {
+  margin: 0;
+  color: #333;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.soundExamplesWrapper {
+  margin-top: auto;
+  background-color: #e8f5e9;
+  border-radius: 12px;
+  padding: 15px;
+}
+
+.soundExamplesHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.soundExampleIcon {
+  font-size: 1.2rem;
+}
+
+.soundExamplesHeader h4 {
+  color: #2e7d32;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.soundExamplesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.soundExample {
+  background-color: white;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 1200px) {
+  .loadingContent {
+    flex-direction: column;
+  }
+  
+  .targetSoundCircle {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .targetSoundDisplay {
+    font-size: 2.5rem;
+  }
+  
+  .infoGrid {
+    flex-direction: row;
+  }
+  
+  .difficultyBadge, .funFactBox {
+    flex: 1;
+  }
+  
+  .soundExamplesList {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .loadingCard {
+    padding: 15px;
+  }
+  
+  .loadingHeader {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .infoGrid {
+    flex-direction: column;
+  }
+  
+  .actionButtons {
+    flex-direction: column;
+  }
+  
+  .skipButton, .startButton {
+    width: 100%;
+  }
+}
+
+/* For very large screens */
+@media (min-width: 1800px) {
+  .loadingCard {
+    max-width: 1800px;
+  }
+  
+  .targetSoundCircle {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .targetSoundDisplay {
+    font-size: 4rem;
+  }
+  
+  .loadingTitle {
+    font-size: 1.8rem;
+  }
+  
+  .tipBox p, .funFactBox p {
+    font-size: 1.1rem;
+  }
+  
+  .skipButton, .startButton {
+    padding: 12px 25px;
+    font-size: 1.1rem;
+  }
+}

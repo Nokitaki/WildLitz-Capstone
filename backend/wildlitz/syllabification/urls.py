@@ -1,20 +1,20 @@
-# In syllabification/urls.py
+# backend/wildlitz/syllabification/urls.py
 from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('generate-words/', views.generate_syllabification_words, name='generate_syllabification_words'),
-    path('get-word/', views.get_syllabification_word, name='get_syllabification_word'),
-    path('check-clapping/', views.check_syllable_clapping, name='check_syllable_clapping'),
-    path('generate-challenge/', views.generate_new_challenge, name='generate_new_challenge'),
-    path('syllable-sounds/', views.get_syllable_sounds, name='get_syllable_sounds'),
-     path('text-to-speech/', views.text_to_speech, name='text_to_speech'),
-    path('pronounce-word/', views.pronounce_word, name='pronounce_word'),
-     path('test-tts/', views.test_tts, name='test_tts'),
-      path('analyze-word/', views.analyze_word, name='analyze_word'),
-      
+    # Existing endpoint for getting words from Supabase
+    path('get-word-supabase/', views.get_syllabification_word_from_supabase, name='get_syllabification_word_from_supabase'),
+    
+    # New endpoint for batch word retrieval
+    path('get-word-batch/', views.get_word_batch, name='get_word_batch'),
+    
+    # Other AI-related endpoints
+    path('check-syllable-answer/', views.check_syllable_answer, name='check_syllable_answer'),
+    path('get-syllable-pronunciation/', views.get_syllable_pronunciation, name='get_syllable_pronunciation'),
+    path('generate-ai-content/', views.generate_ai_content, name='generate_ai_content'),
 ]
 
 if settings.DEBUG:

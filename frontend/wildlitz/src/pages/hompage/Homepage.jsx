@@ -1,15 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/homepage.css';
 import wildLitzLogo from '../../assets/img/wildlitz-logo.png';
-import syllableClappingImg from '../../assets/img/syllable-clapping-game.jpg';
-import soundSafariImg from '../../assets/img/sound-safari-game.jpg';
-import vanishingGameImg from '../../assets/img/vanishing-game.jpg';
-import crosswordGameImg from '../../assets/img/crossword-game.png';
 import { motion } from 'framer-motion';
 import GameTipsModal from '../../components/modals/GameTipsModal';
-import syllableClappingCharacter from '../../assets/img/syllable-clapping-character.svg';
+
+// Import the animation components
+import VanishingGameAnimation from '../../components/animations/VanishingGameAnimation';
+import SoundSafariAnimation from '../../components/animations/SoundSafariAnimation';
+import CrosswordAnimation from '../../components/animations/CrosswordAnimation';
+import SyllableClappingAnimation from '../../components/animations/SyllableClappingAnimation';
+
+// Force scrolling with useEffect
 function HomePage() {
+  // Force scrolling styles
+  useEffect(() => {
+    // Force body to be scrollable
+    document.body.style.overflow = "auto";
+    document.body.style.height = "auto";
+    document.documentElement.style.overflow = "auto";
+    document.documentElement.style.height = "auto";
+    
+    return () => {
+      // Optional: Reset styles when component unmounts
+      document.body.style.overflow = "";
+      document.body.style.height = "";
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.height = "";
+    };
+  }, []);
+  
   const navigate = useNavigate();
   
   // State for managing modal visibility
@@ -46,7 +66,7 @@ function HomePage() {
   };
 
   return (
-    <div className="home-container">
+    <div className="home-container" style={{ overflow: "auto", height: "auto", minHeight: "100vh" }}>
       <header className="navbar">
         <div className="logo-container">
           <img src={wildLitzLogo} alt="WildLitz Logo" className="logo" />
@@ -93,7 +113,7 @@ function HomePage() {
               }}
               onClick={() => handleGameSelect('syllable-clapping')}
             >
-              <img src={syllableClappingCharacter} alt="syllable-clapping-character" className="game-image" />
+              <SyllableClappingAnimation />
               <div className="game-info">
                 <h3>Syllable Clapping Game</h3>
                 <p>Syllabification</p>
@@ -122,7 +142,7 @@ function HomePage() {
               }}
               onClick={() => handleGameSelect('sound-safari')}
             >
-              <img src={soundSafariImg} alt="Sound Safari Game" className="game-image" />
+              <SoundSafariAnimation />
               <div className="game-info">
                 <h3>Sound Safari</h3>
                 <p>Phonemics</p>
@@ -143,6 +163,7 @@ function HomePage() {
               </div>
             </motion.div>
             
+            {/* Updated Vanishing Game card with animation */}
             <motion.div 
               className="game-card"
               whileHover={{ 
@@ -151,7 +172,8 @@ function HomePage() {
               }}
               onClick={() => handleGameSelect('vanishing-game')}
             >
-              <img src={vanishingGameImg} alt="Vanishing Game" className="game-image" />
+              {/* Replace the static image with the animation component */}
+              <VanishingGameAnimation />
               <div className="game-info">
                 <h3>Vanishing Game</h3>
                 <p>Phonics</p>
@@ -180,7 +202,7 @@ function HomePage() {
               }}
               onClick={() => handleGameSelect('crossword-puzzle')}
             >
-              <img src={crosswordGameImg} alt="Crossword Puzzle Game" className="game-image" />
+              <CrosswordAnimation />
               <div className="game-info">
                 <h3>Crossword Puzzle</h3>
                 <p>Sentence Formation</p>
