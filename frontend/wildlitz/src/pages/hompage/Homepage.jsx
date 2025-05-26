@@ -2,15 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/homepage.css';
 import wildLitzLogo from '../../assets/img/wildlitz-logo.png';
-import syllableClappingImg from '../../assets/img/syllable-clapping-game.jpg';
-import soundSafariImg from '../../assets/img/sound-safari-game.jpg';
-import crosswordGameImg from '../../assets/img/crossword-game.png';
 import { motion } from 'framer-motion';
 import GameTipsModal from '../../components/modals/GameTipsModal';
-import syllableClappingCharacter from '../../assets/img/syllable-clapping-character.svg';
 
-// Import the new animation component
+// Import the animation components
 import VanishingGameAnimation from '../../components/animations/VanishingGameAnimation';
+import SoundSafariAnimation from '../../components/animations/SoundSafariAnimation';
+import CrosswordAnimation from '../../components/animations/CrosswordAnimation';
+import SyllableClappingAnimation from '../../components/animations/SyllableClappingAnimation';
 
 // Force scrolling with useEffect
 function HomePage() {
@@ -114,7 +113,7 @@ function HomePage() {
               }}
               onClick={() => handleGameSelect('syllable-clapping')}
             >
-              <img src={syllableClappingCharacter} alt="syllable-clapping-character" className="game-image" />
+              <SyllableClappingAnimation />
               <div className="game-info">
                 <h3>Syllable Clapping Game</h3>
                 <p>Syllabification</p>
@@ -143,7 +142,7 @@ function HomePage() {
               }}
               onClick={() => handleGameSelect('sound-safari')}
             >
-              <img src={soundSafariImg} alt="Sound Safari Game" className="game-image" />
+              <SoundSafariAnimation />
               <div className="game-info">
                 <h3>Sound Safari</h3>
                 <p>Phonemics</p>
@@ -203,7 +202,7 @@ function HomePage() {
               }}
               onClick={() => handleGameSelect('crossword-puzzle')}
             >
-              <img src={crosswordGameImg} alt="Crossword Puzzle Game" className="game-image" />
+              <CrosswordAnimation />
               <div className="game-info">
                 <h3>Crossword Puzzle</h3>
                 <p>Sentence Formation</p>
