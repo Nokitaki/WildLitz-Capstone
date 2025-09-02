@@ -1,5 +1,7 @@
+// src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import './App.css';
 import LandingPage from '../src/pages/landing_page/LandingPage';
 import HomePage from '../src/pages/hompage/Homepage';
@@ -10,23 +12,25 @@ import CrosswordGame from '../src/pages/games/crossword/CrosswordGame';
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/home" element={<HomePage />} />
-          
-          {/* Game Routes */}
-          <Route path="/games/syllable-clapping" element={<SyllableClappingGame />} />
-          <Route path="/games/sound-safari" element={<SoundSafariGame />} />
-          <Route path="/games/vanishing-game" element={<VanishingGame />} />
-          <Route path="/games/crossword-puzzle" element={<CrosswordGame />} />
-          
-          {/* Fallback route */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/home" element={<HomePage />} />
+            
+            {/* Game Routes */}
+            <Route path="/games/syllable-clapping" element={<SyllableClappingGame />} />
+            <Route path="/games/sound-safari" element={<SoundSafariGame />} />
+            <Route path="/games/vanishing-game" element={<VanishingGame />} />
+            <Route path="/games/crossword-puzzle" element={<CrosswordGame />} />
+            
+            {/* Fallback route */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 

@@ -2,17 +2,61 @@
 from django.http import JsonResponse 
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework import status
 import json
 import random
+import time
 from supabase import create_client
 from django.conf import settings
 import logging
+
+# Import progress tracking
+from api.models import UserProgress, UserActivity
 
 logger = logging.getLogger(__name__)
 
 # Create Supabase client using settings
 supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
+def log_phonemics_activity(user, activity_type, question_data, user_answer, correct_answer, is_correct, time_spent, difficulty='medium'):
+    """Helper function to log phonemics activities"""
+    try:
+        if user.is_authenticated:
+            UserActivity.objects.create(
+                user=user,
+                module='phonemics',
+                activity_type=activity_type,
+                question_data=question_data,
+                user_answer=user_answer,
+                correct_answer=correct_answer,
+                is_correct=is_correct,
+                time_spent=time_spent,
+                difficulty=difficulty,
+                challenge_level='sound_identification',
+                learning_focus='phoneme_awareness'
+            )
+            
+            # Update progress summary
+            progress, created = UserProgress.objects.get_or_create(
+                user=user,
+                module='phonemics',
+                difficulty=difficulty,
+                defaults={
+                    'total_attempts': 0,
+                    'correct_answers': 0,
+                    'accuracy_percentage': 0.0,
+                    'average_time_per_question': 0.0
+                }
+            )
+            progress.update_progress(is_correct, time_spent)
+    except Exception as e:
+        logger.error(f"Error logging phonemics activity: {str(e)}")
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def get_safari_animals_by_sound(request):
     """Get animals for a specific sound and difficulty from Supabase"""
     target_sound = request.GET.get('sound', 's')
@@ -50,7 +94,7 @@ def get_safari_animals_by_sound(request):
             
         if exclude_ids:
             incorrect_query = incorrect_query.not_.in_('id', exclude_ids)
-        
+       
         # Get animals without the target sound
         incorrect_response = incorrect_query.execute()
         incorrect_animals = incorrect_response.data or []
@@ -114,6 +158,8 @@ def get_safari_animals_by_sound(request):
         logger.error(traceback.format_exc())
         return JsonResponse({'error': str(e)}, status=500)
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def get_random_sound(request):
     """Get a random sound for the game"""
     try:
@@ -140,6 +186,8 @@ def get_random_sound(request):
         logger.error(f"Error getting random sound: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def get_sound_examples(request):
     """Get example words for a specific sound"""
     sound = request.GET.get('sound', 's')
@@ -178,14 +226,19 @@ def get_sound_examples(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def submit_game_results(request):
-    """Submit game results and get feedback"""
+    """Submit game results and get feedback with progress tracking"""
+    start_time = time.time()
+    
     try:
-        data = json.loads(request.body)
+        data = request.data
         selected_animals = data.get('selected_animals', [])
         correct_animals = data.get('correct_animals', [])
         target_sound = data.get('target_sound', '')
+        difficulty = data.get('difficulty', 'medium')
+        time_spent = data.get('time_spent', time.time() - start_time)
         
         # Calculate score
         correct_selected = [a for a in selected_animals if any(c['id'] == a['id'] for c in correct_animals)]
@@ -193,6 +246,7 @@ def submit_game_results(request):
         missed_animals = [a for a in correct_animals if not any(s['id'] == a['id'] for s in selected_animals)]
         
         score = (len(correct_selected) / len(correct_animals)) * 100 if correct_animals else 0
+        is_correct = score >= 70  # Consider 70% or higher as correct
         
         # Generate feedback message
         if score >= 90:
@@ -204,15 +258,50 @@ def submit_game_results(request):
         else:
             feedback = f"You found {len(correct_selected)} out of {len(correct_animals)} animals. Let's try again!"
         
-        return JsonResponse({
+        # Log activity for authenticated users
+        if request.user.is_authenticated:
+            log_phonemics_activity(
+                user=request.user,
+                activity_type='sound_safari_game',
+                question_data={
+                    'target_sound': target_sound,
+                    'correct_animals': [{'id': a['id'], 'name': a['name']} for a in correct_animals],
+                    'total_animals': len(selected_animals) + len(correct_animals) + len(missed_animals)
+                },
+                user_answer={'selected_animals': [{'id': a['id'], 'name': a['name']} for a in selected_animals]},
+                correct_answer={'correct_animals': [{'id': a['id'], 'name': a['name']} for a in correct_animals]},
+                is_correct=is_correct,
+                time_spent=time_spent,
+                difficulty=difficulty
+            )
+        
+        response_data = {
             'score': round(score),
             'feedback': feedback,
             'correct_selected': correct_selected,
             'incorrect_selected': incorrect_selected,
             'missed_animals': missed_animals,
             'total_correct': len(correct_animals)
-        })
+        }
+        
+        # Add progress info for authenticated users
+        if request.user.is_authenticated:
+            try:
+                progress = UserProgress.objects.get(
+                    user=request.user,
+                    module='phonemics',
+                    difficulty=difficulty
+                )
+                response_data['progress'] = {
+                    'total_attempts': progress.total_attempts,
+                    'accuracy_percentage': progress.accuracy_percentage,
+                    'correct_answers': progress.correct_answers
+                }
+            except UserProgress.DoesNotExist:
+                pass
+        
+        return Response(response_data)
         
     except Exception as e:
         logger.error(f"Error submitting game results: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=400)
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

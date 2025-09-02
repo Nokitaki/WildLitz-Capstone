@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import '../../styles/homepage.css';
 import wildLitzLogo from '../../assets/img/wildlitz-logo.png';
 import { motion } from 'framer-motion';
 import GameTipsModal from '../../components/modals/GameTipsModal';
+import AuthModal from '../../components/auth/AuthModal';
 
 // Import the animation components
 import VanishingGameAnimation from '../../components/animations/VanishingGameAnimation';
@@ -31,10 +33,13 @@ function HomePage() {
   }, []);
   
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
   
   // State for managing modal visibility
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState('');
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
 
   // Function to handle game selection
   const handleGameSelect = (game) => {
@@ -65,6 +70,26 @@ function HomePage() {
     }
   };
 
+  // Auth handlers
+  const handleLoginClick = () => {
+    setAuthMode('login');
+    setAuthModalOpen(true);
+  };
+
+  const handleSignUpClick = () => {
+    setAuthMode('register');
+    setAuthModalOpen(true);
+  };
+
+  const handleLogoutClick = async () => {
+    await logout();
+  };
+
+  const handleProfileClick = () => {
+    // TODO: Navigate to profile page
+    console.log('Navigate to profile');
+  };
+
   return (
     <div className="home-container" style={{ overflow: "auto", height: "auto", minHeight: "100vh" }}>
       <header className="navbar">
@@ -80,6 +105,7 @@ function HomePage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
+            <span className="nav-icon">🏠</span>
             Home
           </motion.a>
           <motion.a 
@@ -88,6 +114,7 @@ function HomePage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
+            <span className="nav-icon">📖</span>
             About Us
           </motion.a>
           <motion.a 
@@ -96,14 +123,129 @@ function HomePage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
+            <span className="nav-icon">📞</span>
             Contact
           </motion.a>
+
+          {/* Authentication Section */}
+          {isLoading ? (
+            <div className="nav-item auth-loading">
+              <span className="nav-icon">⏳</span>
+              Loading...
+            </div>
+          ) : isAuthenticated ? (
+            // Logged in state
+            <>
+              <motion.div 
+                className="nav-item user-greeting"
+                whileHover={{ scale: 1.05 }}
+                onClick={handleProfileClick}
+                style={{ cursor: 'pointer' }}
+              >
+                <span className="nav-icon">👋</span>
+                Hi, {user?.first_name || 'Friend'}!
+              </motion.div>
+              <motion.button 
+                className="nav-item logout-btn"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleLogoutClick}
+              >
+                <span className="nav-icon">🚪</span>
+                Logout
+              </motion.button>
+            </>
+          ) : (
+            // Not logged in state
+            <>
+              <motion.button 
+                className="nav-item login-btn"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleLoginClick}
+              >
+                <span className="nav-icon">🔐</span>
+                Login
+              </motion.button>
+              <motion.button 
+                className="nav-item signup-btn"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSignUpClick}
+              >
+                <span className="nav-icon">🌟</span>
+                Sign Up
+              </motion.button>
+            </>
+          )}
         </nav>
       </header>
 
       <section className="main-content">
         <h2 className="section-title">ENGLISH READING</h2>
         <div className="content-card">
+          {/* User Progress Section - Show only when authenticated */}
+          {isAuthenticated && (
+            <motion.div 
+              className="user-progress-section"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h3 className="progress-title">
+                🎯 Welcome back, {user?.first_name}! Ready to continue learning?
+              </h3>
+              <div className="progress-stats">
+                <div className="stat-item">
+                  <span className="stat-icon">📈</span>
+                  <span className="stat-label">Progress Tracking Active</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-icon">🏆</span>
+                  <span className="stat-label">Achievements Unlocked</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-icon">📊</span>
+                  <span className="stat-label">Analytics Available</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Call to Action for Non-Authenticated Users */}
+          {!isAuthenticated && (
+            <motion.div 
+              className="cta-section"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h3 className="cta-title">
+                🚀 Want to track your progress and unlock achievements?
+              </h3>
+              <div className="cta-buttons">
+                <motion.button 
+                  className="cta-btn primary"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleSignUpClick}
+                >
+                  <span className="btn-icon">🌟</span>
+                  Create Free Account
+                </motion.button>
+                <motion.button 
+                  className="cta-btn secondary"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleLoginClick}
+                >
+                  <span className="btn-icon">🔐</span>
+                  Already have an account?
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+
           <div className="games-container">
             <motion.div 
               className="game-card"
@@ -117,23 +259,12 @@ function HomePage() {
               <div className="game-info">
                 <h3>Syllable Clapping Game</h3>
                 <p>Syllabification</p>
-                <motion.button 
-                  className="play-button"
-                  whileHover={{ 
-                    scale: 1.08,
-                    boxShadow: "0 8px 16px rgba(0,0,0,0.4)" 
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleGameSelect('syllable-clapping');
-                  }}
-                >
+                <button className="play-button">
                   Play Now
-                </motion.button>
+                </button>
               </div>
             </motion.div>
-            
+
             <motion.div 
               className="game-card"
               whileHover={{ 
@@ -144,26 +275,14 @@ function HomePage() {
             >
               <SoundSafariAnimation />
               <div className="game-info">
-                <h3>Sound Safari</h3>
-                <p>Phonemics</p>
-                <motion.button 
-                  className="play-button"
-                  whileHover={{ 
-                    scale: 1.08,
-                    boxShadow: "0 8px 16px rgba(0,0,0,0.4)" 
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleGameSelect('sound-safari');
-                  }}
-                >
+                <h3>Sound Safari Game</h3>
+                <p>Phoneme Identification</p>
+                <button className="play-button">
                   Play Now
-                </motion.button>
+                </button>
               </div>
             </motion.div>
-            
-            {/* Updated Vanishing Game card with animation */}
+
             <motion.div 
               className="game-card"
               whileHover={{ 
@@ -172,28 +291,16 @@ function HomePage() {
               }}
               onClick={() => handleGameSelect('vanishing-game')}
             >
-              {/* Replace the static image with the animation component */}
               <VanishingGameAnimation />
               <div className="game-info">
                 <h3>Vanishing Game</h3>
-                <p>Phonics</p>
-                <motion.button 
-                  className="play-button"
-                  whileHover={{ 
-                    scale: 1.08,
-                    boxShadow: "0 8px 16px rgba(0,0,0,0.4)" 
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleGameSelect('vanishing-game');
-                  }}
-                >
+                <p>Speed Reading</p>
+                <button className="play-button">
                   Play Now
-                </motion.button>
+                </button>
               </div>
             </motion.div>
-            
+
             <motion.div 
               className="game-card"
               whileHover={{ 
@@ -205,21 +312,10 @@ function HomePage() {
               <CrosswordAnimation />
               <div className="game-info">
                 <h3>Crossword Puzzle</h3>
-                <p>Sentence Formation</p>
-                <motion.button 
-                  className="play-button"
-                  whileHover={{ 
-                    scale: 1.08,
-                    boxShadow: "0 8px 16px rgba(0,0,0,0.4)" 
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleGameSelect('crossword-puzzle');
-                  }}
-                >
+                <p>Vocabulary Building</p>
+                <button className="play-button">
                   Play Now
-                </motion.button>
+                </button>
               </div>
             </motion.div>
           </div>
@@ -227,11 +323,18 @@ function HomePage() {
       </section>
 
       {/* Game Tips Modal */}
-      <GameTipsModal 
+      <GameTipsModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        game={selectedGame}
         onStartGame={handleStartGame}
+        gameType={selectedGame}
+      />
+
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        defaultMode={authMode}
       />
     </div>
   );

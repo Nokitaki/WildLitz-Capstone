@@ -2,14 +2,22 @@
 from django.http import JsonResponse 
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework import status
 import json
 import random
 from supabase import create_client
 from django.conf import settings
 import logging
+import time
 
 # Import the AI service
 from .services_ai import AIContentGenerator
+
+# Import progress tracking
+from api.models import UserProgress, UserActivity
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +27,42 @@ supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 # Initialize AI content generator
 ai_generator = AIContentGenerator()
 
+def log_syllabification_activity(user, activity_type, question_data, user_answer, correct_answer, is_correct, time_spent, difficulty='medium'):
+    """Helper function to log syllabification activities"""
+    try:
+        if user.is_authenticated:
+            UserActivity.objects.create(
+                user=user,
+                module='syllabification',
+                activity_type=activity_type,
+                question_data=question_data,
+                user_answer=user_answer,
+                correct_answer=correct_answer,
+                is_correct=is_correct,
+                time_spent=time_spent,
+                difficulty=difficulty,
+                challenge_level='syllable_counting',
+                learning_focus='syllable_awareness'
+            )
+            
+            # Update progress summary
+            progress, created = UserProgress.objects.get_or_create(
+                user=user,
+                module='syllabification',
+                difficulty=difficulty,
+                defaults={
+                    'total_attempts': 0,
+                    'correct_answers': 0,
+                    'accuracy_percentage': 0.0,
+                    'average_time_per_question': 0.0
+                }
+            )
+            progress.update_progress(is_correct, time_spent)
+    except Exception as e:
+        logger.error(f"Error logging syllabification activity: {str(e)}")
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def get_syllabification_word_from_supabase(request):
     """Get a random word for syllabification practice from Supabase"""
     difficulty = request.GET.get('difficulty', 'medium')
@@ -50,46 +94,31 @@ def get_syllabification_word_from_supabase(request):
             if exclude_words:
                 words = [w for w in words if w['word'] not in exclude_words]
             
-            # If no words left after filtering, return all words (start over)
+            # If no words left after filtering, return error
             if not words:
-                logger.warning("All words have been used, starting over")
-                response = query.execute()
-                words = response.data
+                return JsonResponse({'error': 'No new words available with the specified criteria'}, status=404)
             
-            # Get a random word
-            word = random.choice(words)
-            logger.info(f"Selected word: {word['word']}")
+            # Select a random word
+            selected_word = random.choice(words)
+            logger.info(f"Selected word: {selected_word['word']}")
             
-            # Generate a fun fact using AI
-            fun_fact = ai_generator.generate_fun_fact(word['word'], word['category'])
+            # Generate AI content
+            fun_fact = ai_generator.generate_fun_fact(selected_word['word'], selected_word['category'])
+            intro_message = ai_generator.generate_character_message(selected_word['word'], 'intro', difficulty)
             
-            # Generate an intro message
-            intro_message = ai_generator.generate_character_message(word['word'], 'intro', difficulty)
-            
-            # Add this debug logging right before returning the response
-            pronunciation_guide = word.get('pronunciation_guide', word['syllable_breakdown'])
-            logger.info(f"Word: {word['word']}, Syllables: {word['syllable_breakdown']}, Pronunciation Guide: {pronunciation_guide}")
-            
-            # Then return the response
-            response_data = {
-                'word': word['word'],
-                'syllables': word['syllable_breakdown'],
-                'count': word['syllable_count'],
-                'category': word['category'],
-                'image_url': word.get('image_url', ''),
-                'pronunciation_guide': pronunciation_guide,  # Make sure this is included
+            # Return word data with AI content
+            word_data = {
+                'word': selected_word['word'],
+                'syllables': selected_word['syllable_breakdown'],
+                'count': selected_word['syllable_count'],
+                'category': selected_word['category'],
+                'image_url': selected_word.get('image_url', ''),
+                'pronunciation_guide': selected_word.get('pronunciation_guide', selected_word['syllable_breakdown']),
                 'fun_fact': fun_fact,
                 'intro_message': intro_message
             }
             
-            # Add more debugging info in the response during development
-            # Remove this in production
-            # response_data['debug'] = {
-            #     'raw_word_data': word,
-            #     'pronunciation_available': 'pronunciation_guide' in word,
-            # }
-            
-            return JsonResponse(response_data)
+            return JsonResponse(word_data)
         else:
             logger.warning("No words found matching criteria")
             return JsonResponse({'error': 'No words found with the specified criteria'}, status=404)
@@ -101,90 +130,100 @@ def get_syllabification_word_from_supabase(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def check_syllable_answer(request):
-    """Check syllable clapping answer and provide AI feedback"""
+    """Check syllable clapping answer and provide AI feedback with progress tracking"""
+    start_time = time.time()
+    
     try:
-        data = json.loads(request.body)
+        data = request.data
         word = data.get('word')
         syllables = data.get('syllables')
         user_clap_count = data.get('clapCount')
         correct_count = data.get('correctCount')
+        difficulty = data.get('difficulty', 'medium')
         
         # Determine if answer is correct
         is_correct = user_clap_count == correct_count
+        
+        # Calculate time spent (if provided)
+        time_spent = data.get('timeSpent', time.time() - start_time)
         
         # Generate appropriate feedback message
         context = 'correct' if is_correct else 'incorrect'
         feedback_message = ai_generator.generate_character_message(word, context)
         
-        return JsonResponse({
+        # Log activity for authenticated users
+        if request.user.is_authenticated:
+            log_syllabification_activity(
+                user=request.user,
+                activity_type='syllable_clapping',
+                question_data={
+                    'word': word,
+                    'syllables': syllables,
+                    'correct_count': correct_count
+                },
+                user_answer={'clap_count': user_clap_count},
+                correct_answer={'clap_count': correct_count},
+                is_correct=is_correct,
+                time_spent=time_spent,
+                difficulty=difficulty
+            )
+        
+        response_data = {
             'is_correct': is_correct,
             'feedback_message': feedback_message
-        })
+        }
+        
+        # Add progress info for authenticated users
+        if request.user.is_authenticated:
+            try:
+                progress = UserProgress.objects.get(
+                    user=request.user,
+                    module='syllabification',
+                    difficulty=difficulty
+                )
+                response_data['progress'] = {
+                    'total_attempts': progress.total_attempts,
+                    'accuracy_percentage': progress.accuracy_percentage,
+                    'correct_answers': progress.correct_answers
+                }
+            except UserProgress.DoesNotExist:
+                pass
+        
+        return Response(response_data)
     
     except Exception as e:
         logger.error(f"Error checking syllable answer: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=400)
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def get_syllable_pronunciation(request):
     """Get pronunciation guidance for a word and its syllables"""
     try:
-        data = json.loads(request.body)
+        data = request.data
         word = data.get('word')
         syllable_breakdown = data.get('syllables')
         
         if not word or not syllable_breakdown:
-            return JsonResponse({'error': 'Word and syllable breakdown are required'}, status=400)
+            return Response({'error': 'Word and syllable breakdown are required'}, status=status.HTTP_400_BAD_REQUEST)
         
         # Generate pronunciation guidance
         pronunciation_guide = ai_generator.generate_pronunciation_guide(word, syllable_breakdown)
         
-        # Add a character message for the demo
-        demo_message = ai_generator.generate_character_message(word, 'demo')
-        pronunciation_guide['character_message'] = demo_message
-        
-        return JsonResponse(pronunciation_guide)
+        return Response({'pronunciation_guide': pronunciation_guide})
     
     except Exception as e:
-        logger.error(f"Error generating pronunciation guidance: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=400)
+        logger.error(f"Error generating pronunciation guide: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-# Add this endpoint to the urls.py file later
-@csrf_exempt
-@require_http_methods(["POST"])
-def generate_ai_content(request):
-    """General endpoint for generating various AI content"""
-    try:
-        data = json.loads(request.body)
-        content_type = data.get('type')  # 'fun_fact', 'character_message', or 'pronunciation'
-        word = data.get('word')
-        category = data.get('category', '')
-        context = data.get('context', 'intro')  # For character messages
-        syllable_breakdown = data.get('syllables', '')
-        
-        if not word:
-            return JsonResponse({'error': 'Word parameter is required'}, status=400)
-        
-        if content_type == 'fun_fact':
-            content = ai_generator.generate_fun_fact(word, category)
-        elif content_type == 'character_message':
-            content = ai_generator.generate_character_message(word, context)
-        elif content_type == 'pronunciation':
-            content = ai_generator.generate_pronunciation_guide(word, syllable_breakdown)
-        else:
-            return JsonResponse({'error': 'Invalid content type'}, status=400)
-        
-        return JsonResponse({'content': content})
-    
-    except Exception as e:
-        logger.error(f"Error generating AI content: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=400)
-
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def get_word_batch(request):
-    """Get a batch of words for syllabification practice with AI-generated content"""
+    """Get a batch of words for syllabification practice from Supabase"""
     difficulty = request.GET.get('difficulty', 'medium')
     categories = request.GET.getlist('categories[]', [])  # Get categories as list
     count = int(request.GET.get('count', 10))  # Number of words to fetch
@@ -296,9 +335,10 @@ def get_word_batch(request):
         logger.error(f"Error fetching word batch from Supabase: {str(e)}")
         logger.error(traceback.format_exc())  # Print the full traceback
         return JsonResponse({'error': str(e)}, status=500)
-    
+
 @csrf_exempt
-@require_http_methods(["GET"])
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def get_syllable_tip(request):
     """Get a random educational tip about syllables"""
     try:
@@ -312,3 +352,31 @@ def get_syllable_tip(request):
     except Exception as e:
         logger.error(f"Error generating syllable tip: {str(e)}")
         return JsonResponse({'error': str(e)}, status=400)
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def generate_ai_content(request):
+    """Generate AI content for syllabification activities"""
+    try:
+        data = request.data
+        content_type = data.get('type', 'fun_fact')
+        word = data.get('word', '')
+        category = data.get('category', 'General')
+        difficulty = data.get('difficulty', 'medium')
+        
+        if content_type == 'fun_fact':
+            content = ai_generator.generate_fun_fact(word, category)
+        elif content_type == 'character_message':
+            context = data.get('context', 'intro')
+            content = ai_generator.generate_character_message(word, context, difficulty)
+        elif content_type == 'syllable_tip':
+            content = ai_generator.generate_syllable_tip(difficulty)
+        else:
+            return Response({'error': 'Invalid content type'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({'content': content})
+    
+    except Exception as e:
+        logger.error(f"Error generating AI content: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

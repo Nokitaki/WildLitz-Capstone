@@ -2,13 +2,21 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework import status
 import json
 import openai
+import time
 from django.conf import settings
 import random
 import datetime
 import logging
 import traceback
+
+# Import progress tracking
+from api.models import UserProgress, UserActivity
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -16,14 +24,50 @@ logger = logging.getLogger(__name__)
 # Configure OpenAI API key from settings
 openai.api_key = settings.OPENAI_API_KEY
 
+def log_sentence_formation_activity(user, activity_type, question_data, user_answer, correct_answer, is_correct, time_spent, difficulty='medium', challenge_level='', learning_focus=''):
+    """Helper function to log sentence formation activities"""
+    try:
+        if user.is_authenticated:
+            UserActivity.objects.create(
+                user=user,
+                module='sentence_formation',
+                activity_type=activity_type,
+                question_data=question_data,
+                user_answer=user_answer,
+                correct_answer=correct_answer,
+                is_correct=is_correct,
+                time_spent=time_spent,
+                difficulty=difficulty,
+                challenge_level=challenge_level,
+                learning_focus=learning_focus
+            )
+            
+            # Update progress summary
+            progress, created = UserProgress.objects.get_or_create(
+                user=user,
+                module='sentence_formation',
+                difficulty=difficulty,
+                defaults={
+                    'total_attempts': 0,
+                    'correct_answers': 0,
+                    'accuracy_percentage': 0.0,
+                    'average_time_per_question': 0.0
+                }
+            )
+            progress.update_progress(is_correct, time_spent)
+    except Exception as e:
+        logger.error(f"Error logging sentence formation activity: {str(e)}")
+
 @csrf_exempt
-@require_http_methods(["POST"])
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def test_endpoint(request):
     """Simple test endpoint to verify API connectivity"""
     return JsonResponse({"status": "success", "message": "API is working"})
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def generate_story(request):
     """
     Generate a story adventure with episodes and multiple crossword puzzles per episode
@@ -37,7 +81,7 @@ def generate_story(request):
     """
     try:
         # Parse request data
-        data = json.loads(request.body)
+        data = request.data
         theme = data.get('theme', 'jungle')
         focus_skills = data.get('focusSkills', ['sight-words'])
         character_names = data.get('characterNames', '')
@@ -47,9 +91,9 @@ def generate_story(request):
         # Validate the OpenAI API key
         if not settings.OPENAI_API_KEY:
             logger.error("OpenAI API key is missing")
-            return JsonResponse({
+            return Response({
                 'error': 'OpenAI API key is not configured'
-            }, status=500)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
         # Create a unique ID for this story
         story_id = f"{theme}_generated_{int(datetime.datetime.now().timestamp())}"
@@ -69,320 +113,151 @@ def generate_story(request):
         
         GRADE 3 VOCABULARY GUIDELINES:
         - Use simple, common words that 8-9 year olds know: run, jump, find, look, help, big, small, red, blue, tree, house, car, book, etc.
-        - Avoid complex words longer than 6 letters
-        - Use basic sight words and phonics words
-        - Examples of good grade 3 words: cat, dog, run, big, red, tree, book, play, look, find, help, jump, walk, house, car, sun, fun, etc.
-        - Examples of words TOO HARD for grade 3: exploration, magnificent, extraordinary, fascinating, mysterious, etc.
+        - Focus on sight words and basic phonics patterns
+        - Words should be 3-6 letters long
+        - Avoid complex vocabulary or abstract concepts
         
-        For each vocabulary word, create a simple crossword puzzle clue that a grade 3 student can understand. For example:
-        - "map" → "Paper that shows you where to go"
-        - "run" → "Move very fast with your legs" 
-        - "big" → "Very large, not small"
-        - "tree" → "Tall plant with leaves and branches"
+        For each episode, provide:
+        1. Episode number and title
+        2. Story text (150-200 words, engaging and age-appropriate)
+        3. Brief recap sentence
+        4. 2-3 discussion questions
+        5. List of vocabulary words that appear in the episode
+        6. Simple crossword clues for each vocabulary word
         
-        Format as JSON:
+        Return ONLY a valid JSON object in this exact format:
         {{
-          "title": "Story Title",
-          "description": "Brief description",
-          "episodes": [
-            {{
-              "title": "Episode Title",
-              "text": "Episode text here that MUST include all the simple vocabulary words naturally in the story...",
-              "recap": "Brief summary",
-              "discussionQuestions": ["Question 1", "Question 2", "Question 3"],
-              "vocabularyWords": [
+          "story": {{
+            "id": "{story_id}",
+            "title": "Story Title",
+            "theme": "{theme}",
+            "gradeLevel": {grade_level},
+            "totalEpisodes": {episode_count},
+            "episodes": [
+              {{
+                "id": "episode_1",
+                "episodeNumber": 1,
+                "title": "Episode Title",
+                "text": "Story text that includes the vocabulary words naturally...",
+                "recap": "Brief summary of the episode",
+                "discussionQuestions": ["Question 1?", "Question 2?", "Question 3?"],
+                "crosswordPuzzleId": "puzzle_1",
+                "additionalPuzzleIds": [],
+                "vocabularyFocus": ["word1", "word2", "word3", "word4", "word5"]
+              }}
+            ]
+          }},
+          "puzzles": {{
+            "puzzle_1": {{
+              "id": "puzzle_1",
+              "title": "Episode 1 Crossword",
+              "size": {{"width": 10, "height": 10}},
+              "words": [
                 {{
-                  "word": "simple_word", 
-                  "clue": "Easy clue that grade 3 students can understand", 
-                  "definition": "Very simple definition using easy words"
-                }},
-                {{
-                  "word": "another_simple_word", 
-                  "clue": "Another easy hint", 
-                  "definition": "Simple definition"
+                  "direction": "across",
+                  "number": 1,
+                  "clue": "Age-appropriate clue for the word",
+                  "answer": "WORD",
+                  "definition": "Simple definition",
+                  "example": "Example sentence using the word",
+                  "cells": [{{"row": 0, "col": 0}}, {{"row": 0, "col": 1}}, {{"row": 0, "col": 2}}, {{"row": 0, "col": 3}}]
                 }}
-                // Include 5-8 SIMPLE vocabulary words per episode that ALL appear in the episode text
               ]
             }}
-            // Repeat for each episode
-          ]
+          }}
         }}
-        
-        CRITICAL: 
-        - Only use words that grade 3 students (ages 8-9) can read and understand
-        - Ensure every word in vocabularyWords actually appears in the episode text
-        - Keep vocabulary simple: 3-6 letters, common everyday words
         """
         
-        logger.info(f"Sending prompt to OpenAI: {prompt[:100]}...")
-        
         try:
-            # Call OpenAI API with timeout
+            # Call OpenAI API with the updated interface
             response = openai.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are an educational content creator specializing in creating engaging, age-appropriate stories and crossword puzzles for elementary school students. You MUST ensure that every vocabulary word you list actually appears in the story text."},
+                    {"role": "system", "content": "You are an educational content creator specializing in stories and puzzles for elementary school students. Always respond with valid JSON."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
-                max_tokens=3000  # Increased to accommodate longer stories with vocabulary integration
+                max_tokens=4000
             )
             
-            # Parse the response
-            content = response.choices[0].message.content
-            logger.info(f"Received response from OpenAI: {content[:100]}...")
+            # Get the response content
+            response_content = response.choices[0].message.content
+            logger.info("Raw GPT response received")
             
-            # Try to parse JSON from the response
             try:
-                import re
-                # Look for JSON pattern in the content
-                json_match = re.search(r'{[\s\S]*}', content)
-                if json_match:
-                    story_data = json.loads(json_match.group(0))
-                else:
-                    # Try to parse the entire content
-                    story_data = json.loads(content)
+                # Try to parse the JSON response
+                story_data = json.loads(response_content)
+                logger.info("Successfully parsed GPT response as JSON")
                 
-                # Validate that we have required fields
-                if "title" not in story_data or "episodes" not in story_data:
-                    raise ValueError("Response is missing required fields: title and episodes")
+                return Response(story_data)
                 
-                # Validate and clean vocabulary words to ensure they appear in the text
-                for episode in story_data.get("episodes", []):
-                    episode_text = episode.get("text", "").lower()
-                    vocab_words = episode.get("vocabularyWords", [])
-                    
-                    # Filter vocabulary words to only include those that appear in the text
-                    filtered_vocab = []
-                    for word_data in vocab_words:
-                        word = word_data.get("word", "").lower()
-                        if word and word in episode_text:
-                            filtered_vocab.append(word_data)
-                        else:
-                            logger.warning(f"Word '{word}' not found in episode text, excluding from vocabulary")
-                    
-                    # Update the episode with filtered vocabulary
-                    episode["vocabularyWords"] = filtered_vocab
-                    
-                    # Ensure we have at least 3 words, add theme-appropriate words if needed
-                    if len(filtered_vocab) < 3:
-                        additional_words = get_theme_words(theme, episode_text, 3 - len(filtered_vocab))
-                        episode["vocabularyWords"].extend(additional_words)
-                
-                # Create story adventure structure
-                story_adventure = {
-                    "id": story_id,
-                    "title": story_data.get("title", f"{theme.capitalize()} Adventure"),
-                    "description": story_data.get("description", f"A story about {theme}"),
-                    "gradeLevel": f"Grade {grade_level}",
-                    "readingLevel": "Early Chapter Book",
-                    "episodes": []
-                }
-                
-                # Create puzzle data for each episode
-                puzzles = {}
-                
-                for i, episode in enumerate(story_data.get("episodes", [])):
-                    episode_id = f"{story_id}_ep{i+1}"
-                    
-                    # Extract vocabulary words (with fallback)
-                    vocab_words = episode.get("vocabularyWords", [])
-                    if not vocab_words:
-                        # Create some basic vocabulary words if none provided
-                        vocab_words = get_fallback_vocabulary(theme, episode.get("text", ""))
-                    
-                    # Determine how many puzzles to create (2-4 per episode based on vocabulary count)
-                    num_puzzles = min(4, max(2, len(vocab_words) // 3))
-                    all_puzzle_ids = []
-                    
-                    # Create multiple puzzles with different vocabularies
-                    for puzzle_idx in range(num_puzzles):
-                        puzzle_id = f"{episode_id}_puzzle_{puzzle_idx+1}"
-                        all_puzzle_ids.append(puzzle_id)
-                        
-                        # Distribute vocabulary words among puzzles
-                        words_per_puzzle = max(3, len(vocab_words) // num_puzzles)
-                        
-                        # Calculate which words go in this puzzle
-                        start_idx = puzzle_idx * words_per_puzzle
-                        end_idx = min(start_idx + words_per_puzzle, len(vocab_words))
-                        
-                        # Get this puzzle's words
-                        puzzle_vocab = vocab_words[start_idx:end_idx]
-                        
-                        # Ensure we have at least 3 words in each puzzle
-                        if len(puzzle_vocab) < 3 and puzzle_idx == 0:
-                            # For the first puzzle, include more words if available
-                            end_idx = min(len(vocab_words), start_idx + 5)
-                            puzzle_vocab = vocab_words[start_idx:end_idx]
-                        
-                        # Generate crossword puzzle for these words
-                        puzzle = generate_simple_crossword(puzzle_vocab, theme)
-                        puzzles[puzzle_id] = puzzle
-                    
-                    # Add to story adventure - use first puzzle as primary
-                    primary_puzzle_id = all_puzzle_ids[0] if all_puzzle_ids else f"{episode_id}_puzzle"
-                    additional_puzzle_ids = all_puzzle_ids[1:] if len(all_puzzle_ids) > 1 else []
-                    
-                    story_adventure["episodes"].append({
-                        "id": episode_id,
-                        "episodeNumber": i + 1,
-                        "title": episode.get("title", f"Episode {i+1}"),
-                        "text": episode.get("text", "Story text would go here..."),
-                        "recap": episode.get("recap") or episode.get("text", "")[:100] + "...",
-                        "discussionQuestions": episode.get("discussionQuestions", [
-                            "What happened in this story?",
-                            "Which character did you like the most?",
-                            "What do you think will happen next?"
-                        ]),
-                        "crosswordPuzzleId": primary_puzzle_id,
-                        "additionalPuzzleIds": additional_puzzle_ids,
-                        "vocabularyFocus": [word.get("word", "") for word in vocab_words]
-                    })
-                
-                # Return both the story and puzzles
-                response_data = {
-                    "story": story_adventure,
-                    "puzzles": puzzles
-                }
-                
-                # Validate response data can be serialized
-                json.dumps(response_data)
-                
-                return JsonResponse(response_data)
-            
             except json.JSONDecodeError as json_error:
-                logger.error(f"JSON decode error: {str(json_error)}")
-                logger.error(f"Content that failed to parse: {content}")
+                logger.warning(f"Failed to parse GPT response as JSON: {json_error}")
+                # Try to extract JSON from the response if it's wrapped in other text
+                import re
+                json_match = re.search(r'{[\s\S]*}', response_content)
+                if json_match:
+                    try:
+                        story_data = json.loads(json_match.group(0))
+                        return Response(story_data)
+                    except json.JSONDecodeError:
+                        pass
                 
-                # Return fallback response with error details
-                return create_fallback_response(story_id, theme, episode_count, grade_level)
+                logger.error("Could not extract valid JSON from GPT response, falling back to default")
+                # Fall back to default story
+                return Response(create_fallback_story(theme, episode_count, grade_level, focus_skills))
                 
         except Exception as openai_error:
-            logger.error(f"OpenAI API error: {str(openai_error)}")
-            return create_fallback_response(story_id, theme, episode_count, grade_level)
-            
+            logger.error(f"OpenAI API error: {openai_error}")
+            # Return a fallback story
+            return Response(create_fallback_story(theme, episode_count, grade_level, focus_skills))
+    
     except Exception as e:
-        logger.error(f"Error generating story: {str(e)}")
+        logger.error(f"Error in generate_story: {str(e)}")
         logger.error(traceback.format_exc())
-        return JsonResponse({
-            'error': f'Failed to generate story: {str(e)}',
-            'details': traceback.format_exc()
-        }, status=500)
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_400_BAD_REQUEST)
 
-def get_theme_words(theme, episode_text, count_needed):
-    """Get theme-appropriate words that might appear in the text - Grade 3 level"""
-    theme_words = {
-        'jungle': [
-            {"word": "tree", "clue": "Tall plant with leaves", "definition": "A big plant with a trunk and leaves"},
-            {"word": "green", "clue": "Color of grass", "definition": "The color of leaves and grass"},
-            {"word": "big", "clue": "Very large", "definition": "Not small, very large"},
-            {"word": "wild", "clue": "Not tame", "definition": "Living free in nature"},
-            {"word": "leaf", "clue": "Green part of a tree", "definition": "The green parts that grow on trees"},
-            {"word": "walk", "clue": "Move with your feet", "definition": "To move by putting one foot in front of the other"},
-            {"word": "look", "clue": "Use your eyes to see", "definition": "To see something with your eyes"}
-        ],
-        'space': [
-            {"word": "star", "clue": "Bright light in the sky", "definition": "A bright light you see in the night sky"},
-            {"word": "moon", "clue": "Round thing in the night sky", "definition": "The round object that shines at night"},
-            {"word": "fly", "clue": "Move through the air", "definition": "To move through the sky"},
-            {"word": "up", "clue": "The opposite of down", "definition": "The direction toward the sky"},
-            {"word": "far", "clue": "Not close", "definition": "A long way away"},
-            {"word": "blue", "clue": "Color of the sky", "definition": "The color of the sky on a sunny day"},
-            {"word": "ship", "clue": "Big boat", "definition": "A large boat that travels"}
-        ],
-        'ocean': [
-            {"word": "water", "clue": "What fish swim in", "definition": "The wet stuff that fish live in"},
-            {"word": "fish", "clue": "Animal that swims", "definition": "An animal that lives in water"},
-            {"word": "blue", "clue": "Color of the sea", "definition": "The color of water and sky"},
-            {"word": "wave", "clue": "Moving water", "definition": "Water that moves up and down"},
-            {"word": "swim", "clue": "Move in water", "definition": "To move your body through water"},
-            {"word": "boat", "clue": "Floats on water", "definition": "Something that carries people on water"},
-            {"word": "sand", "clue": "Tiny rocks on the beach", "definition": "Small pieces of rock you find at the beach"}
-        ],
-        'farm': [
-            {"word": "cow", "clue": "Animal that gives milk", "definition": "A big farm animal that makes milk"},
-            {"word": "pig", "clue": "Pink farm animal", "definition": "A farm animal that likes mud"},
-            {"word": "red", "clue": "Color of an apple", "definition": "The color of fire trucks"},
-            {"word": "barn", "clue": "Big farm building", "definition": "A big building where animals live"},
-            {"word": "egg", "clue": "What chickens lay", "definition": "Round white thing that chickens make"},
-            {"word": "milk", "clue": "White drink from cows", "definition": "White liquid that comes from cows"},
-            {"word": "feed", "clue": "Give food to animals", "definition": "To give food to someone or something"}
-        ],
-        'city': [
-            {"word": "car", "clue": "Vehicle with four wheels", "definition": "Something people drive on roads"},
-            {"word": "road", "clue": "Where cars drive", "definition": "A path for cars and trucks"},
-            {"word": "tall", "clue": "Very high", "definition": "Going way up high"},
-            {"word": "bus", "clue": "Big yellow vehicle", "definition": "A big vehicle that carries many people"},
-            {"word": "shop", "clue": "Place to buy things", "definition": "A store where you buy things"},
-            {"word": "park", "clue": "Green place to play", "definition": "A place with grass and trees to play"},
-            {"word": "walk", "clue": "Move with your feet", "definition": "To move by stepping"}
-        ],
-        'fairytale': [
-            {"word": "king", "clue": "Man who rules", "definition": "A man who is the boss of a kingdom"},
-            {"word": "cat", "clue": "Pet that says meow", "definition": "A furry pet that purrs"},
-            {"word": "big", "clue": "Very large", "definition": "Not small, very large"},
-            {"word": "good", "clue": "Not bad", "definition": "Nice and right"},
-            {"word": "help", "clue": "Give a hand", "definition": "To do something nice for someone"},
-            {"word": "home", "clue": "Where you live", "definition": "The place where you live"},
-            {"word": "kind", "clue": "Nice and caring", "definition": "Being nice to others"}
-        ]
-    }
+def create_fallback_story(theme, episode_count, grade_level, focus_skills):
+    """Create a fallback story if AI generation fails"""
+    story_id = f"{theme}_fallback_{int(datetime.datetime.now().timestamp())}"
     
-    words = theme_words.get(theme, theme_words['jungle'])
-    
-    # Filter words that might actually appear in the text
-    filtered_words = []
-    episode_text_lower = episode_text.lower()
-    
-    for word_data in words:
-        word = word_data["word"].lower()
-        if word in episode_text_lower and len(filtered_words) < count_needed:
-            filtered_words.append(word_data)
-    
-    return filtered_words
-
-def get_fallback_vocabulary(theme, episode_text):
-    """Generate fallback vocabulary if none provided - Grade 3 level"""
-    return [
-        {"word": "fun", "clue": "Having a good time", "definition": "When something makes you happy"},
-        {"word": "find", "clue": "Look for and see", "definition": "To look for something and see it"},
-        {"word": "go", "clue": "Move from here to there", "definition": "To move from one place to another"},
-        {"word": "see", "clue": "Use your eyes", "definition": "To look at something with your eyes"},
-        {"word": "run", "clue": "Move very fast", "definition": "To move your legs very fast"}
+    # Grade 3 appropriate vocabulary
+    grade3_vocab = [
+        {"word": "RUN", "clue": "Move fast with your legs", "definition": "To move quickly on foot"},
+        {"word": "BIG", "clue": "Not small", "definition": "Large in size"},
+        {"word": "TREE", "clue": "Tall plant with leaves", "definition": "A tall woody plant"},
+        {"word": "HELP", "clue": "Give aid to someone", "definition": "To assist or aid"},
+        {"word": "JUMP", "clue": "Leap up high", "definition": "To spring up from the ground"},
+        {"word": "LOOK", "clue": "Use your eyes", "definition": "To see or observe"},
+        {"word": "PLAY", "clue": "Have fun", "definition": "To engage in games or activities"},
+        {"word": "FIND", "clue": "Discover something", "definition": "To locate or discover"}
     ]
-
-def create_fallback_response(story_id, theme, episode_count, grade_level):
-    """Create a fallback response when AI generation fails - Grade 3 level"""
+    
     fallback_story = {
-        "id": story_id,
-        "title": f"{theme.capitalize()} Fun",
-        "description": f"A fun story about {theme}",
-        "gradeLevel": f"Grade {grade_level}",
-        "readingLevel": "Early Chapter Book",
-        "episodes": []
+        "story": {
+            "id": story_id,
+            "title": f"The Great {theme.capitalize()} Adventure",
+            "theme": theme,
+            "gradeLevel": grade_level,
+            "totalEpisodes": episode_count,
+            "episodes": []
+        }
     }
     
     fallback_puzzles = {}
     
-    # Grade 3 appropriate vocabulary that includes the words in the text
-    grade3_vocab = [
-        {"word": "fun", "clue": "Having a good time", "definition": "When something makes you happy"},
-        {"word": "go", "clue": "Move from here to there", "definition": "To move from one place to another"},
-        {"word": "see", "clue": "Use your eyes to look", "definition": "To look at something with your eyes"},
-        {"word": "big", "clue": "Very large", "definition": "Not small, very large"},
-        {"word": "find", "clue": "Look for and see", "definition": "To look for something and see it"}
-    ]
-    
-    # Create basic episodes
     for i in range(episode_count):
-        episode_id = f"{story_id}_ep{i+1}"
-        puzzle_id = f"{episode_id}_puzzle_1"
+        episode_id = f"episode_{i+1}"
+        puzzle_id = f"puzzle_{i+1}"
         
-        # Episode text that includes the vocabulary words and is appropriate for grade 3
-        episode_text = f"The kids go on a fun trip to the {theme}. They see many big and cool things. They find new places to play. It is so much fun to go and see new things!"
+        episode_text = f"""The kids go to the {theme}. They can run and play there. They look for big things to see. 
+They see many big and cool things. They find new places to play. It is so much fun to go and see new things!
+The kids help each other. They jump and run all day. They look at everything. When they find something new, they play with it.
+They see many big and cool things. They find new places to play. It is so much fun to go and see new things!"""
         
-        fallback_story["episodes"].append({
+        fallback_story["story"]["episodes"].append({
             "id": episode_id,
             "episodeNumber": i + 1,
             "title": f"Episode {i+1}: Fun Times",
@@ -401,10 +276,8 @@ def create_fallback_response(story_id, theme, episode_count, grade_level):
         # Create corresponding puzzle
         fallback_puzzles[puzzle_id] = generate_simple_crossword(grade3_vocab, theme)
     
-    return JsonResponse({
-        "story": fallback_story,
-        "puzzles": fallback_puzzles
-    })
+    fallback_story["puzzles"] = fallback_puzzles
+    return fallback_story
 
 def generate_simple_crossword(vocab_words, theme):
     """Generate a simple crossword puzzle from vocabulary words"""
@@ -465,9 +338,9 @@ def generate_simple_crossword(vocab_words, theme):
         "words": words
     }
 
-
 @csrf_exempt
-@require_http_methods(["POST"])
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def generate_crossword_clues(request):
     """
     Generate age-appropriate clues for a list of words using OpenAI GPT
@@ -478,16 +351,16 @@ def generate_crossword_clues(request):
     - grade_level: target grade level
     """
     try:
-        data = json.loads(request.body)
+        data = request.data
         words = data.get('words', [])
         theme = data.get('theme', 'general')
         grade_level = data.get('grade_level', 3)
         story_context = data.get('story_context', '')
         
         if not words:
-            return JsonResponse({
+            return Response({
                 'error': 'No words provided'
-            }, status=400)
+            }, status=status.HTTP_400_BAD_REQUEST)
         
         # Set up the prompt for GPT
         prompt = f"""
@@ -532,18 +405,18 @@ def generate_crossword_clues(request):
             for word in words:
                 clues[word] = f"This {theme} word has {len(word)} letters and helps on adventures"
             
-        return JsonResponse({
+        return Response({
             'clues': clues
         })
     
     except Exception as e:
-        return JsonResponse({
+        return Response({
             'error': str(e)
-        }, status=500)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# views.py - improved generate_answer_choices
 @csrf_exempt
-@require_http_methods(["POST"])
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def generate_answer_choices(request):
     """
     Generate plausible but incorrect answer choices for a crossword word
@@ -555,16 +428,16 @@ def generate_answer_choices(request):
     - num_choices: number of wrong answers to generate
     """
     try:
-        data = json.loads(request.body)
+        data = request.data
         correct_answer = data.get('correct_answer', '')
         theme = data.get('theme', 'general')
         grade_level = data.get('grade_level', 3)
         num_choices = data.get('num_choices', 3)
         
         if not correct_answer:
-            return JsonResponse({
+            return Response({
                 'error': 'No correct_answer provided'
-            }, status=400)
+            }, status=status.HTTP_400_BAD_REQUEST)
         
         # Set up the prompt for GPT with improved instructions
         prompt = f"""
@@ -616,24 +489,31 @@ def generate_answer_choices(request):
         # Include the correct answer in the shuffled array
         all_choices = wrong_answers[:num_choices]  # Ensure we only take needed number
         
-        return JsonResponse({
+        return Response({
             'choices': all_choices,
             'correct_answer': correct_answer
         })
     
     except Exception as e:
-        return JsonResponse({
+        return Response({
             'error': str(e)
-        }, status=500)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def generate_fallback_choices(word, theme, num=3):
     """Generate fallback choices if AI generation fails"""
-    # Common word patterns table (similar to the JavaScript version)
+    # Common word patterns based on rhyming or similar sounds
     word_patterns = {
         'treasure': ['pleasure', 'measure', 'feature', 'creature'],
         'path': ['bath', 'math', 'wrath', 'lath'],
         'map': ['cap', 'lap', 'gap', 'tap'],
-        # Add more patterns
+        'tree': ['free', 'flee', 'three', 'bee'],
+        'run': ['fun', 'sun', 'gun', 'bun'],
+        'big': ['dig', 'fig', 'pig', 'wig'],
+        'help': ['kelp', 'yelp', 'whelp'],
+        'jump': ['bump', 'dump', 'pump', 'hump'],
+        'look': ['book', 'cook', 'hook', 'took'],
+        'play': ['clay', 'gray', 'pray', 'stay'],
+        'find': ['bind', 'kind', 'mind', 'wind']
     }
     
     # Check if word is in patterns
@@ -678,142 +558,94 @@ def generate_fallback_choices(word, theme, num=3):
     return [r.upper() for r in results[:num]]
 
 @csrf_exempt
-@require_http_methods(["POST"])
-def generate_crossword_content(request):
-    """
-    Generate both clues and answer choices in a single request
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def log_crossword_activity(request):
+    """Log crossword puzzle completion and sentence building activity"""
+    start_time = time.time()
     
-    Expects JSON with:
-    - words: list of words to generate content for
-    - theme: theme of the crossword/story
-    - grade_level: target grade level
-    - story_context: text of the story for context
-    """
     try:
-        data = json.loads(request.body)
-        words = data.get('words', [])
+        data = request.data
+        activity_type = data.get('activity_type', 'crossword_completion')  # crossword_completion or sentence_building
+        puzzle_data = data.get('puzzle_data', {})
+        user_answers = data.get('user_answers', {})
+        correct_answers = data.get('correct_answers', {})
+        time_spent = data.get('time_spent', time.time() - start_time)
+        difficulty = data.get('difficulty', 'medium')
         theme = data.get('theme', 'general')
-        grade_level = data.get('grade_level', 3)
-        story_context = data.get('story_context', '')
         
-        if not words:
-            return JsonResponse({
-                'error': 'No words provided'
-            }, status=400)
+        # Calculate correctness
+        if activity_type == 'crossword_completion':
+            total_words = len(correct_answers)
+            correct_words = sum(1 for word, answer in user_answers.items() 
+                              if answer.upper() == correct_answers.get(word, '').upper())
+            is_correct = (correct_words / total_words) >= 0.7 if total_words > 0 else False
+            
+            challenge_level = 'crossword_puzzle'
+            learning_focus = 'vocabulary_comprehension'
+            
+        elif activity_type == 'sentence_building':
+            # For sentence building, check if sentence contains the target word properly
+            sentence = user_answers.get('sentence', '')
+            target_word = user_answers.get('target_word', '')
+            
+            # Basic validation: contains word, starts with capital, ends with punctuation
+            contains_word = target_word.lower() in sentence.lower()
+            starts_capital = len(sentence) > 0 and sentence[0].isupper()
+            ends_punctuation = len(sentence) > 0 and sentence[-1] in '.!?'
+            
+            is_correct = contains_word and starts_capital and ends_punctuation
+            challenge_level = 'sentence_construction'
+            learning_focus = 'sentence_formation'
+            
+        else:
+            is_correct = False
+            challenge_level = 'general'
+            learning_focus = 'reading_comprehension'
         
-        # Generate clues for all words
-        clues_prompt = f"""
-        Create age-appropriate clues for a {grade_level}rd grade crossword puzzle with a {theme} theme.
+        # Log activity for authenticated users
+        if request.user.is_authenticated:
+            log_sentence_formation_activity(
+                user=request.user,
+                activity_type=activity_type,
+                question_data={
+                    'puzzle_data': puzzle_data,
+                    'theme': theme,
+                    'total_items': len(correct_answers) if activity_type == 'crossword_completion' else 1
+                },
+                user_answer=user_answers,
+                correct_answer=correct_answers,
+                is_correct=is_correct,
+                time_spent=time_spent,
+                difficulty=difficulty,
+                challenge_level=challenge_level,
+                learning_focus=learning_focus
+            )
         
-        For each word in this list, create a brief, cryptic clue that would help students guess the word without directly stating it:
-        {', '.join(words)}
+        response_data = {
+            'logged': request.user.is_authenticated,
+            'is_correct': is_correct,
+            'feedback': 'Excellent work!' if is_correct else 'Keep practicing!'
+        }
         
-        Story context for reference:
-        {story_context}
-        
-        Format your response as a JSON object where the keys are the words and the values are the clues.
-        Example: {{"ocean": "Vast body of salt water that covers most of Earth", "shell": "Hard protective covering of sea creatures"}}
-        """
-        
-        clues_response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are an educational assistant creating age-appropriate crossword puzzles for elementary school students."},
-                {"role": "user", "content": clues_prompt}
-            ],
-            temperature=0.7,
-            max_tokens=800
-        )
-        
-        clues_content = clues_response.choices[0].message.content
-        
-        # Parse clues
-        try:
-            import re
-            clues_match = re.search(r'{[\s\S]*}', clues_content)
-            if clues_match:
-                clues = json.loads(clues_match.group(0))
-            else:
-                clues = json.loads(clues_content)
-        except json.JSONDecodeError:
-            # Fallback for clues
-            clues = {}
-            for word in words:
-                clues[word] = f"Find this {len(word)}-letter {theme} word"
-        
-        # Generate answer choices for each word
-        choices = {}
-        for word in words:
+        # Add progress info for authenticated users
+        if request.user.is_authenticated:
             try:
-                # For each word, generate 3 wrong answers
-                choices_prompt = f"""
-                For a {grade_level}rd grade crossword puzzle with a {theme} theme, 
-                generate 3 plausible but incorrect answer choices for the word "{word}".
-                
-                The wrong answers should:
-                1. Be the same length or very close to the same length as "{word}"
-                2. Be real, age-appropriate words that students might know
-                3. Be related to the theme or word meaning when possible
-                4. Be distinct from each other and from the correct answer
-                
-                Format your response as a JSON array of strings containing only the wrong answers.
-                Example: ["RIVER", "LAKES", "SHORE"]
-                """
-                
-                choices_response = openai.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are an educational assistant creating age-appropriate crossword puzzles for elementary school students."},
-                        {"role": "user", "content": choices_prompt}
-                    ],
-                    temperature=0.7,
-                    max_tokens=400
+                progress = UserProgress.objects.get(
+                    user=request.user,
+                    module='sentence_formation',
+                    difficulty=difficulty
                 )
-                
-                choices_content = choices_response.choices[0].message.content
-                
-                # Parse wrong answers
-                import re
-                choices_match = re.search(r'\[[\s\S]*\]', choices_content)
-                if choices_match:
-                    wrong_answers = json.loads(choices_match.group(0))
-                else:
-                    wrong_answers = json.loads(choices_content)
-                
-                # Shuffle and store
-                import random
-                all_choices = [word] + wrong_answers
-                random.shuffle(all_choices)
-                choices[word] = all_choices
-                
-            except Exception as word_error:
-                # Fallback for this word
-                import random
-                import string
-                
-                # Create simple wrong answers
-                wrong_answers = []
-                for _ in range(3):
-                    wrong = list(word)
-                    # Change 1-2 characters
-                    for _ in range(random.randint(1, 2)):
-                        pos = random.randint(0, len(wrong) - 1)
-                        wrong[pos] = random.choice(string.ascii_uppercase)
-                    wrong_answer = ''.join(wrong)
-                    if wrong_answer != word and wrong_answer not in wrong_answers:
-                        wrong_answers.append(wrong_answer)
-                
-                # Add to choices
-                all_choices = [word] + wrong_answers
-                random.shuffle(all_choices)
-                choices[word] = all_choices
+                response_data['progress'] = {
+                    'total_attempts': progress.total_attempts,
+                    'accuracy_percentage': progress.accuracy_percentage,
+                    'correct_answers': progress.correct_answers
+                }
+            except UserProgress.DoesNotExist:
+                pass
         
-        return JsonResponse({
-            'clues': clues,
-            'choices': choices
-        })
+        return Response(response_data)
         
     except Exception as e:
-        return JsonResponse({
-            'error': str(e)
-        }, status=500)
+        logger.error(f"Error logging crossword activity: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
