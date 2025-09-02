@@ -13,18 +13,15 @@ import SoundSafariAnimation from '../../components/animations/SoundSafariAnimati
 import CrosswordAnimation from '../../components/animations/CrosswordAnimation';
 import SyllableClappingAnimation from '../../components/animations/SyllableClappingAnimation';
 
-// Force scrolling with useEffect
 function HomePage() {
   // Force scrolling styles
   useEffect(() => {
-    // Force body to be scrollable
     document.body.style.overflow = "auto";
     document.body.style.height = "auto";
     document.documentElement.style.overflow = "auto";
     document.documentElement.style.height = "auto";
     
     return () => {
-      // Optional: Reset styles when component unmounts
       document.body.style.overflow = "";
       document.body.style.height = "";
       document.documentElement.style.overflow = "";
@@ -41,8 +38,16 @@ function HomePage() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
 
+  // Add console logs to debug
+  console.log('HomePage Debug Info:');
+  console.log('- isAuthenticated:', isAuthenticated);
+  console.log('- user:', user);
+  console.log('- isLoading:', isLoading);
+  console.log('- authModalOpen:', authModalOpen);
+
   // Function to handle game selection
   const handleGameSelect = (game) => {
+    console.log('Game selected:', game);
     setSelectedGame(game);
     setModalOpen(true);
   };
@@ -70,24 +75,39 @@ function HomePage() {
     }
   };
 
-  // Auth handlers
+  // Auth handlers with debug logs
   const handleLoginClick = () => {
+    console.log('Login button clicked!');
     setAuthMode('login');
     setAuthModalOpen(true);
+    console.log('Auth modal should be open now, authModalOpen:', true);
   };
 
   const handleSignUpClick = () => {
+    console.log('Sign Up button clicked!');
     setAuthMode('register');
     setAuthModalOpen(true);
+    console.log('Auth modal should be open now, authModalOpen:', true);
   };
 
   const handleLogoutClick = async () => {
-    await logout();
+    console.log('Logout button clicked!');
+    try {
+      await logout();
+      console.log('Logout successful');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  const handleAuthModalClose = () => {
+    console.log('Auth modal closing...');
+    setAuthModalOpen(false);
   };
 
   const handleProfileClick = () => {
-    // TODO: Navigate to profile page
-    console.log('Navigate to profile');
+    console.log('Profile clicked - navigating to profile page');
+    navigate('/profile');
   };
 
   return (
@@ -127,7 +147,7 @@ function HomePage() {
             Contact
           </motion.a>
 
-          {/* Authentication Section */}
+          {/* Authentication Section with Debug */}
           {isLoading ? (
             <div className="nav-item auth-loading">
               <span className="nav-icon">⏳</span>
@@ -156,13 +176,14 @@ function HomePage() {
               </motion.button>
             </>
           ) : (
-            // Not logged in state
+            // Not logged in state - WITH DEBUG
             <>
               <motion.button 
                 className="nav-item login-btn"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleLoginClick}
+                style={{ cursor: 'pointer' }}
               >
                 <span className="nav-icon">🔐</span>
                 Login
@@ -172,6 +193,7 @@ function HomePage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleSignUpClick}
+                style={{ cursor: 'pointer' }}
               >
                 <span className="nav-icon">🌟</span>
                 Sign Up
@@ -330,10 +352,11 @@ function HomePage() {
         gameType={selectedGame}
       />
 
-      {/* Authentication Modal */}
+      {/* Authentication Modal WITH DEBUG */}
+      {console.log('Rendering AuthModal with isOpen:', authModalOpen)}
       <AuthModal
         isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
+        onClose={handleAuthModalClose}
         defaultMode={authMode}
       />
     </div>

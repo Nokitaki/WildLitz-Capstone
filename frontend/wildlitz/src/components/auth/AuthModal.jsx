@@ -1,4 +1,4 @@
-// src/components/auth/AuthModal.jsx
+// src/components/auth/AuthModal.jsx - FIXED VERSION
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
@@ -16,6 +16,9 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { login, register } = useAuth();
+
+  // Debug log
+  console.log('AuthModal rendering with isOpen:', isOpen, 'mode:', mode);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -104,30 +107,30 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }) => {
   return (
     <AnimatePresence>
       <motion.div 
-        className={styles.authModalOverlay}
+        className={styles['auth-modal-overlay']}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
       >
         <motion.div 
-          className={styles.authModal}
+          className={styles['auth-modal']}
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className={styles.authModalHeader}>
+          <div className={styles['auth-modal-header']}>
             <h2>{mode === 'login' ? '🔐 Welcome Back!' : '🌟 Join WildLitz!'}</h2>
-            <button className={styles.authModalClose} onClick={onClose}>
+            <button className={styles['auth-modal-close']} onClick={onClose}>
               ×
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className={styles.authForm}>
+          <form onSubmit={handleSubmit} className={styles['auth-form']}>
             {mode === 'register' && (
               <>
-                <div className={styles.formGroup}>
+                <div className={styles['form-group']}>
                   <label htmlFor="firstName">First Name</label>
                   <input
                     type="text"
@@ -138,10 +141,10 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }) => {
                     className={errors.firstName ? styles.error : ''}
                     placeholder="Enter your first name"
                   />
-                  {errors.firstName && <span className={styles.errorText}>{errors.firstName}</span>}
+                  {errors.firstName && <span className={styles['error-text']}>{errors.firstName}</span>}
                 </div>
 
-                <div className={styles.formGroup}>
+                <div className={styles['form-group']}>
                   <label htmlFor="lastName">Last Name (Optional)</label>
                   <input
                     type="text"
@@ -155,7 +158,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }) => {
               </>
             )}
 
-            <div className={styles.formGroup}>
+            <div className={styles['form-group']}>
               <label htmlFor="email">Email</label>
               <input
                 type="email"
@@ -166,10 +169,10 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }) => {
                 className={errors.email ? styles.error : ''}
                 placeholder="Enter your email"
               />
-              {errors.email && <span className={styles.errorText}>{errors.email}</span>}
+              {errors.email && <span className={styles['error-text']}>{errors.email}</span>}
             </div>
 
-            <div className={styles.formGroup}>
+            <div className={styles['form-group']}>
               <label htmlFor="password">Password</label>
               <input
                 type="password"
@@ -180,18 +183,18 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }) => {
                 className={errors.password ? styles.error : ''}
                 placeholder="Enter your password"
               />
-              {errors.password && <span className={styles.errorText}>{errors.password}</span>}
+              {errors.password && <span className={styles['error-text']}>{errors.password}</span>}
             </div>
 
             {errors.submit && (
-              <div className={styles.submitError}>
+              <div className={styles['submit-error']}>
                 {errors.submit}
               </div>
             )}
 
             <button 
               type="submit" 
-              className={styles.authSubmitBtn}
+              className={styles['auth-submit-btn']}
               disabled={isSubmitting}
             >
               {isSubmitting 
@@ -200,18 +203,18 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }) => {
               }
             </button>
 
-            <div className={styles.authSwitch}>
+            <div className={styles['auth-switch']}>
               {mode === 'login' ? (
                 <p>
                   Don't have an account?{' '}
-                  <button type="button" onClick={switchMode} className={styles.authSwitchBtn}>
+                  <button type="button" onClick={switchMode} className={styles['auth-switch-btn']}>
                     Sign up here
                   </button>
                 </p>
               ) : (
                 <p>
                   Already have an account?{' '}
-                  <button type="button" onClick={switchMode} className={styles.authSwitchBtn}>
+                  <button type="button" onClick={switchMode} className={styles['auth-switch-btn']}>
                     Login here
                   </button>
                 </p>
@@ -219,7 +222,7 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }) => {
             </div>
           </form>
 
-          <div className={styles.authBenefits}>
+          <div className={styles['auth-benefits']}>
             <h4>🎯 Why create an account?</h4>
             <ul>
               <li>📊 Track your learning progress</li>

@@ -9,6 +9,7 @@ import SyllableClappingGame from '../src/pages/games/syllable/SyllableClappingGa
 import SoundSafariGame from '../src/pages/games/soundsafari/SoundSafariGame';
 import VanishingGame from '../src/pages/games/vanishing/VanishingGame';
 import CrosswordGame from '../src/pages/games/crossword/CrosswordGame';
+import ProfilePage from './pages/profile/ProfilePage';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/home" element={<HomePage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             
             {/* Game Routes */}
             <Route path="/games/syllable-clapping" element={<SyllableClappingGame />} />

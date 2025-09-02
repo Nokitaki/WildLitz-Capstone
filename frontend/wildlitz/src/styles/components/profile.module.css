@@ -1,0 +1,533 @@
+/* src/styles/profile.module.css */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Bubblegum+Sans:wght@400&family=Nunito:wght@400;600;700;800&display=swap');
+
+/* Main Container */
+.profileContainer {
+  width: 100%;
+  min-height: 100vh;
+  background: #4B352A;
+  color: white;
+  padding: 20px;
+  font-family: 'Nunito', sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Floating background elements - matching homepage */
+.profileContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(255, 193, 7, 0.1) 2px, transparent 2px),
+    radial-gradient(circle at 80% 80%, rgba(255, 105, 180, 0.1) 2px, transparent 2px),
+    radial-gradient(circle at 40% 60%, rgba(135, 206, 235, 0.05) 3px, transparent 3px);
+  background-size: 60px 60px, 100px 100px, 140px 140px;
+  animation: float 20s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+
+/* Loading State */
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.loadingSpinner {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+/* Header Section */
+.profileHeader {
+  background: linear-gradient(135deg, 
+    rgba(93, 64, 55, 0.9) 0%,
+    rgba(75, 53, 42, 0.9) 100%);
+  border-radius: 25px;
+  padding: 30px;
+  margin-bottom: 30px;
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 193, 7, 0.2);
+  border: 2px solid rgba(255, 193, 7, 0.3);
+  position: relative;
+  z-index: 2;
+}
+
+.headerNavigation {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.backButton, .logoutButton {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Bubblegum Sans', cursive;
+  font-size: 1rem;
+}
+
+.backButton {
+  background: linear-gradient(45deg, #28a745, #20c997);
+  color: white;
+  box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.backButton:hover {
+  background: linear-gradient(45deg, #20c997, #28a745);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+}
+
+.logoutButton {
+  background: linear-gradient(45deg, #dc3545, #c82333);
+  color: white;
+  box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+}
+
+.logoutButton:hover {
+  background: linear-gradient(45deg, #c82333, #dc3545);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(220, 53, 69, 0.4);
+}
+
+/* Profile Hero Section */
+.profileHero {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.profileAvatar {
+  flex-shrink: 0;
+}
+
+.avatarCircle {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(45deg, #FFD700, #FFA500);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+  border: 4px solid rgba(255, 255, 255, 0.2);
+}
+
+.avatarEmoji {
+  font-size: 3rem;
+}
+
+.profileInfo {
+  flex: 1;
+  min-width: 250px;
+}
+
+.profileName {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 0 0 10px 0;
+  font-family: 'Fredoka One', cursive;
+  background: linear-gradient(45deg, #FFD700, #FFA500, #FF69B4, #00CED1);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: logoGradient 3s ease infinite;
+}
+
+@keyframes logoGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.profileEmail {
+  font-size: 1.2rem;
+  color: #FFD700;
+  margin: 0 0 5px 0;
+  font-weight: 600;
+}
+
+.profileJoinDate {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+}
+
+/* Quick Stats */
+.quickStats {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.quickStat {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  min-width: 100px;
+}
+
+.statNumber {
+  display: block;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #FFD700;
+  font-family: 'Fredoka One', cursive;
+}
+
+.statLabel {
+  display: block;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 5px;
+}
+
+/* Navigation Tabs */
+.profileTabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  justify-content: center;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 2;
+}
+
+.tabButton {
+  padding: 15px 25px;
+  border: none;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Bubblegum Sans', cursive;
+  font-size: 1rem;
+  backdrop-filter: blur(10px);
+  border: 2px solid transparent;
+}
+
+.tabButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.tabButton.active {
+  background: linear-gradient(45deg, #FFD700, #FFA500);
+  color: #333;
+  border-color: #FFD700;
+  box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
+}
+
+/* Tab Content */
+.tabContent {
+  position: relative;
+  z-index: 2;
+}
+
+/* Overview Content */
+.overviewContent {
+  margin-bottom: 30px;
+}
+
+.overviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 25px;
+}
+
+.summaryCard, .activityCard, .nextStepsCard {
+  background: linear-gradient(135deg, 
+    rgba(255, 228, 181, 0.95) 0%,
+    rgba(255, 182, 193, 0.95) 50%, 
+    rgba(173, 216, 230, 0.95) 100%);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  border: 3px solid rgba(255, 193, 7, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.summaryCard h3, .activityCard h3, .nextStepsCard h3 {
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin: 0 0 20px 0;
+  color: #333;
+  font-family: 'Fredoka One', cursive;
+}
+
+/* Summary Stats */
+.summaryStats {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.summaryItem {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+}
+
+.summaryIcon {
+  font-size: 2rem;
+}
+
+.summaryNumber {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+  font-family: 'Fredoka One', cursive;
+}
+
+.summaryLabel {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Activity List */
+.activityList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activityItem {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.activityItem:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+}
+
+.activityIcon {
+  font-size: 1.5rem;
+}
+
+.activityName {
+  font-weight: bold;
+  color: #333;
+  margin: 0 0 5px 0;
+}
+
+.activityStat {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Suggestions */
+.suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.suggestionItem {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.suggestionItem:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.suggestionIcon {
+  font-size: 1.5rem;
+}
+
+.suggestionTitle {
+  font-weight: bold;
+  color: #333;
+  margin: 0 0 5px 0;
+}
+
+.suggestionDesc {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Progress Content */
+.progressContent {
+  margin-bottom: 30px;
+}
+
+.progressHeader {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.progressHeader h3 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0 0 10px 0;
+  color: #FFD700;
+  font-family: 'Fredoka One', cursive;
+}
+
+.progressHeader p {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+}
+
+.progressGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.progressCard {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(240, 248, 255, 0.95) 100%);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border: 3px solid rgba(255, 193, 7, 0.3);
+}
+
+.progressCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.progressCard h4 {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+  font-family: 'Fredoka One', cursive;
+}
+
+.progressDifficulty {
+  background: linear-gradient(45deg, #28a745, #20c997);
+  color: white;
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.progressStats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.progressStat {
+  text-align: center;
+}
+
+.progressValue {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  font-family: 'Fredoka One', cursive;
+}
+
+.progressLabel {
+  display: block;
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 3px;
+}
+
+.progressBarContainer {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.progressBar {
+  flex: 1;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(45deg, #28a745, #20c997);
+  border-radius: 6px;
+}
+
+.progressPercentage {
+  font-weight: bold;
+  color: #28a745;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Achievements Content */
+.achievementsContent {
+  margin-bottom: 30px;
+}
+
+.achievementsHeader {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.achievementsHeader h3 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0 0 10px 0;
+  color: #FFD700;
+  font-family: 'Fredoka One', cursive;
+}
+
+.achievementsHeader p {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+}
