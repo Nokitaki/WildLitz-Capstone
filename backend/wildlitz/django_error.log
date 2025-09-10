@@ -1,0 +1,221 @@
+ERROR 2025-09-10 22:03:24,463 views Error fetching word batch from Supabase: [Errno 11001] getaddrinfo failed
+ERROR 2025-09-10 22:03:24,469 views Traceback (most recent call last):
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+        pool_request.request
+    )
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_sync\connection.py", line 101, in handle_request
+    raise exc
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_sync\connection.py", line 78, in handle_request
+    stream = self._connect(request)
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_sync\connection.py", line 124, in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_backends\sync.py", line 207, in connect_tcp
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\joelc\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\joelc\Github\WildLitz-Capstone\backend\wildlitz\syllabification\views.py", line 221, in get_word_batch
+    response = query.execute()
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\postgrest\_sync\request_builder.py", line 57, in execute
+    r = self.session.request(
+        self.http_method,
+    ...<3 lines>...
+        headers=self.headers,
+    )
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+        request,
+    ...<2 lines>...
+        history=[],
+    )
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+        request,
+        follow_redirects=follow_redirects,
+        history=history,
+    )
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\joelc\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+ERROR 2025-09-10 22:03:24,474 log Internal Server Error: /api/syllabification/get-word-batch/
+ERROR 2025-09-10 22:03:24,475 basehttp "GET /api/syllabification/get-word-batch/?difficulty=easy&categories[]=Animals&categories[]=Food&categories[]=Toys&categories[]=School%20Supplies&categories[]=Nature&count=10 HTTP/1.1" 500 45
+ERROR 2025-09-10 22:03:24,475 basehttp "GET /api/syllabification/get-word-batch/?difficulty=easy&categories[]=Animals&categories[]=Food&categories[]=Toys&categories[]=School%20Supplies&categories[]=Nature&count=10 HTTP/1.1" 500 45
+ERROR 2025-09-10 22:03:57,386 views Error fetching word batch from Supabase: [Errno 11001] getaddrinfo failed
+ERROR 2025-09-10 22:03:57,391 views Traceback (most recent call last):
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+        pool_request.request
+    )
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_sync\connection.py", line 101, in handle_request
+    raise exc
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_sync\connection.py", line 78, in handle_request
+    stream = self._connect(request)
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_sync\connection.py", line 124, in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_backends\sync.py", line 207, in connect_tcp
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\joelc\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\joelc\Github\WildLitz-Capstone\backend\wildlitz\syllabification\views.py", line 221, in get_word_batch
+    response = query.execute()
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\postgrest\_sync\request_builder.py", line 57, in execute
+    r = self.session.request(
+        self.http_method,
+    ...<3 lines>...
+        headers=self.headers,
+    )
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+        request,
+    ...<2 lines>...
+        history=[],
+    )
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+        request,
+        follow_redirects=follow_redirects,
+        history=history,
+    )
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\joelc\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+ERROR 2025-09-10 22:03:57,392 log Internal Server Error: /api/syllabification/get-word-batch/
+ERROR 2025-09-10 22:03:57,393 basehttp "GET /api/syllabification/get-word-batch/?difficulty=easy&categories[]=Animals&categories[]=Fruits&categories[]=Food&categories[]=Toys&categories[]=Clothes&categories[]=School%20Supplies&categories[]=Nature&count=10 HTTP/1.1" 500 45
+ERROR 2025-09-10 22:03:57,393 basehttp "GET /api/syllabification/get-word-batch/?difficulty=easy&categories[]=Animals&categories[]=Fruits&categories[]=Food&categories[]=Toys&categories[]=Clothes&categories[]=School%20Supplies&categories[]=Nature&count=10 HTTP/1.1" 500 45
+ERROR 2025-09-10 22:04:38,047 views Error fetching safari animals: [Errno 11001] getaddrinfo failed
+ERROR 2025-09-10 22:04:38,054 views Traceback (most recent call last):
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+        pool_request.request
+    )
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_sync\connection.py", line 101, in handle_request
+    raise exc
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_sync\connection.py", line 78, in handle_request
+    stream = self._connect(request)
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_sync\connection.py", line 124, in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_backends\sync.py", line 207, in connect_tcp
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\joelc\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\joelc\Github\WildLitz-Capstone\backend\wildlitz\phonemics\views.py", line 40, in get_safari_animals_by_sound
+    correct_response = correct_query.execute()
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\postgrest\_sync\request_builder.py", line 57, in execute
+    r = self.session.request(
+        self.http_method,
+    ...<3 lines>...
+        headers=self.headers,
+    )
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+        request,
+    ...<2 lines>...
+        history=[],
+    )
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+        request,
+        follow_redirects=follow_redirects,
+        history=history,
+    )
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\joelc\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\joelc\Github\WildLitz-Capstone\myenv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+ERROR 2025-09-10 22:04:38,056 log Internal Server Error: /api/phonemics/animals/
+ERROR 2025-09-10 22:04:38,056 basehttp "GET /api/phonemics/animals/?sound=s&difficulty=easy&environment=jungle&position=beginning HTTP/1.1" 500 45
+ERROR 2025-09-10 22:04:38,056 basehttp "GET /api/phonemics/animals/?sound=s&difficulty=easy&environment=jungle&position=beginning HTTP/1.1" 500 45
+ERROR 2025-09-10 22:04:40,407 views Error getting sound examples: [Errno 11001] getaddrinfo failed
+ERROR 2025-09-10 22:04:40,408 log Internal Server Error: /api/phonemics/sound-examples/
+ERROR 2025-09-10 22:04:40,409 basehttp "GET /api/phonemics/sound-examples/?sound=s HTTP/1.1" 500 45
+ERROR 2025-09-10 22:04:40,409 basehttp "GET /api/phonemics/sound-examples/?sound=s HTTP/1.1" 500 45
+ERROR 2025-09-10 22:04:40,416 views Error getting sound examples: [Errno 11001] getaddrinfo failed
+ERROR 2025-09-10 22:04:40,417 log Internal Server Error: /api/phonemics/sound-examples/
+ERROR 2025-09-10 22:04:40,420 basehttp "GET /api/phonemics/sound-examples/?sound=s HTTP/1.1" 500 45
+ERROR 2025-09-10 22:04:40,420 basehttp "GET /api/phonemics/sound-examples/?sound=s HTTP/1.1" 500 45
