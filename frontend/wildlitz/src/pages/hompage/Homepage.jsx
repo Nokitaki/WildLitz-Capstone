@@ -111,7 +111,7 @@ function HomePage() {
   };
 
   return (
-    <div className="home-container" style={{ overflow: "auto", height: "auto", minHeight: "100vh" }}>
+    <div className="home-container" style={{height: "auto", minHeight: "100vh" }}>
       <header className="navbar">
         <div className="logo-container">
           <img src={wildLitzLogo} alt="WildLitz Logo" className="logo" />
