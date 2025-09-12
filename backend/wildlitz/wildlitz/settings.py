@@ -199,8 +199,8 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-SUPABASE_URL = 'https://ktumdfsrkgidieqwurod.supabase.co'
-SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0dW1kZnNya2dpZGllcXd1cm9kIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NDk4MjE0NSwiZXhwIjoyMDYwNTU4MTQ1fQ.I0x2HFqZL0ArvAKVJhLAMq2dNNCXfama_zfPyNh7Gcw'
+SUPABASE_URL = 'https://eixryunajxcthprajaxk.supabase.co'
+SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpeHJ5dW5hanhjdGhwcmFqYXhrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzUxNTMyMywiZXhwIjoyMDczMDkxMzIzfQ.BptIWFOfCq7yH17ipW8Ahib9xo_8z62r2f_BaCD94vA'
 
 # Logging Configuration
 LOGGING = {
