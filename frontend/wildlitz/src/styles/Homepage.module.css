@@ -1,0 +1,389 @@
+/* Homepage.module.css */
+@import url('https://fonts.googleapis.com/css2?family=Lalezar:wght@400&family=Athiti:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Black+Han+Sans&display=swap'); /* Add Black Han Sans */
+
+/* FORCE SCROLLING - Override any conflicts */
+html {
+  height: auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  scroll-behavior: smooth;
+}
+
+body {
+  height: auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#root {
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.App {
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* Reset and ensure scrolling works */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Main Container */
+.container {
+  width: 100%;
+  height: auto !important;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  color: white;
+  overflow: visible !important;
+  position: relative;
+}
+
+/* Upper Body Section - Header + Hero */
+.upperBody {
+  width: 100%;
+  min-height: 648px; /* Match your Figma frame height */
+  background-image: url('../assets/img/backgrounds/upper-body-bg-desktop@2x.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* --- HEADER GRID LAYOUT (with empty 3rd column) --- */
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto 2.5fr; /* 3rd column acts as a spacer */
+  align-items: center;
+  padding: 20px 40px;
+  width: 100%;
+  position: relative;
+  z-index: 100;
+  top: 20px; /* Adjusted header position */
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transform: translateX(15px);
+  justify-self: start; /* Aligns this item to the start of its grid column */
+}
+
+.logo {
+  width: 36px;
+  height: 34px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  transform: translateY(4px); 
+}
+
+.logo:hover {
+  transform: translateY(4px) scale(1.1) rotate(5deg);
+}
+
+.logoText {
+  font-family: 'Lalezar', cursive;
+  font-size: 24px;
+  font-weight: 400; /* Regular */
+  color: white;
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  transform: translateY(3px); /* Adjusted logo text position */
+}
+
+.logoText:hover {
+  transform: translateY(-2px);
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  justify-self: center; /* Aligns this item to the center of its grid column */
+}
+
+.navLink {
+  font-family: 'Athiti', sans-serif;
+  font-size: 16px;
+  font-weight: 700; /* Bold */
+  color: #FFFFFF !important; /* Force white color */
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  position: relative;
+  outline: none !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+}
+
+.navLink:link,
+.navLink:visited,
+.navLink:hover,
+.navLink:active,
+.navLink:focus {
+  color: #FFFFFF !important;
+  text-decoration: none !important;
+}
+
+.navLink:hover {
+  background-color: rgba(255, 255, 255, 0.15); /* Subtle white background */
+  color: #FFFFFF !important;
+  transform: translateY(-2px);
+}
+
+.navLink:active {
+  transform: translateY(0px);
+  color: #FFFFFF !important;
+}
+
+.navLink:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3) !important;
+  color: #FFFFFF !important;
+}
+
+/* --- Always-Floating Auth Buttons --- */
+.authSection {
+  display: flex;
+  gap: 16px;
+}
+
+.floatingAuth {
+  position: fixed;
+  top: 40px; /* Adjusted floating button position */
+  right: 40px;
+  z-index: 1000;
+}
+
+.loginBtn,
+.registerBtn {
+  font-family: 'Athiti', sans-serif;
+  font-size: 16px;
+  font-weight: 700; /* Bold */
+  padding: 8px 24px;
+  border: 2px solid #FFFFFF;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: transparent;
+  color: #FFFFFF;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.loginBtn {
+  color: #FFFFFF;
+  background-color: transparent;
+}
+
+.registerBtn {
+  background-color: #FFFFFF;
+  color: #6B4423;
+  border-color: #FFFFFF;
+}
+
+.loginBtn:hover {
+  background-color: rgba(255, 215, 0, 0.15); /* Golden glow */
+  border-color: #FFD700;
+  color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3) !important;
+}
+
+.registerBtn:hover {
+  background-color: #FFD700; /* Golden background */
+  color: #6B4423;
+  border-color: #FFD700;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4) !important;
+}
+
+.loginBtn:focus,
+.loginBtn:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3) !important;
+  border-color: #FFD700 !important;
+  background-color: rgba(255, 215, 0, 0.1);
+}
+
+.registerBtn:focus,
+.registerBtn:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3) !important;
+  border-color: #FFD700 !important;
+  background-color: #FFD700;
+}
+
+.loginBtn:active {
+  transform: translateY(0px) !important;
+  box-shadow: 0 2px 6px rgba(255, 215, 0, 0.2) !important;
+  background-color: rgba(255, 215, 0, 0.2);
+}
+
+.registerBtn:active {
+  transform: translateY(0px) !important;
+  box-shadow: 0 2px 6px rgba(255, 215, 0, 0.3) !important;
+  background-color: #CD853F;
+}
+
+.loginBtn:disabled,
+.registerBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.loginBtn::-moz-focus-inner,
+.registerBtn::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+.loginBtn:focus:not(:focus-visible),
+.registerBtn:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* --- Hero Section & Its Content --- */
+.heroSection {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center content horizontally */
+  position: relative;
+}
+
+.heroContent {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center items within the content container */
+  gap: 30px; /* Space between images and text */
+  max-width: 1200px; /* Control overall width */
+  width: 100%;
+  position: relative;
+  min-height: 400px;
+}
+
+.tigerCharacter {
+  width: 25%;      
+  height: auto;
+  
+  position: absolute;
+  left: 16%;
+  /* --- CHANGE THIS VALUE --- */
+  top: -15%; /* Decrease this value from 50% to move it up */
+  transform: translateX(-100%);
+}
+
+.gameController {
+  width: 35%; /* Example 1x size, adjust as needed. Download at 2x. */
+  height: auto;
+  object-fit: contain;
+  position: absolute;
+  top: 3%;
+  right: 22%;
+  transform: translateX(100%);
+}
+
+.heroText {
+  flex-shrink: 0; 
+  text-align: left; 
+  position: relative; /* Set positioning context */
+  bottom: 100px; /* Move it 100px up from the bottom */
+}
+
+.heroTitle {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 85px;
+  font-weight: 400;
+  color: white;
+  line-height: 1.2;
+  animation: heroSlide 2s ease-out;
+  white-space: nowrap;
+  margin: 0;
+}
+
+@keyframes heroSlide {
+  0% { opacity: 0; transform: translateY(-30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Body Sections & Footer --- */
+.midBody, .lowerBody, .bottomBodyFooter { width: 100%; background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: scroll; display: flex; flex-direction: column; position: relative; }
+.midBody { min-height: 2129px; background-image: url('../assets/img/backgrounds/mid-body-bg-desktop@2x.jpg'); background-color: #5D3621; }
+.lowerBody { min-height: 1020px; background-image: url('../assets/img/backgrounds/lower-body-bg-desktop@2x.jpg'); background-color: #4A2C1A; }
+.bottomBodyFooter { min-height: 622px; background-image: url('../assets/img/backgrounds/bottom-body-footer-bg-desktop@2x.jpg'); background-color: #3D2317; }
+
+/* --- Media Queries (Existing) --- */
+@media (max-width: 1024px) {
+  .header { padding: 16px 24px; }
+  .nav { gap: 20px; }
+  .heroSection { padding: 40px 24px; }
+  .heroContent { gap: 20px; flex-wrap: wrap; } /* Allow content to wrap */
+  .tigerCharacter { width: 150px; } /* Adjust image sizes */
+  .gameController { width: 250px; }
+  .heroTitle { font-size: 48px; }
+  .upperBody { min-height: 500px; }
+  .midBody { min-height: auto; }
+  .lowerBody { min-height: 800px; }
+  .bottomBodyFooter { min-height: 400px; }
+  .floatingAuth { top: 30px; right: 24px; }
+}
+
+@media (max-width: 768px) {
+  .header { grid-template-columns: 1fr; justify-items: center; gap: 16px; padding: 16px 20px; top: 10px; }
+  .nav { width: 100%; justify-content: center; flex-wrap: wrap; gap: 16px; }
+  .logoContainer { justify-self: center; gap: 8px; transform: translateX(0); } /* Center logo for smaller screens */
+  .logo { width: 30px; height: 28px; }
+  .logoText { font-size: 20px; transform: translateY(0); } /* Reset logo text transform */
+  .navLink { font-size: 14px; padding: 6px 12px; }
+  .floatingAuth { top: 16px; right: 20px; gap: 8px; } /* Adjust floating buttons */
+  .loginBtn, .registerBtn { font-size: 14px; padding: 8px 16px; }
+  
+  .heroSection { padding: 30px 20px; }
+  .heroContent { flex-direction: column; text-align: center; gap: 16px; }
+  .tigerCharacter { width: 120px; order: 1; } /* Order images for better mobile flow */
+  .heroText { order: 2; }
+  .gameController { width: 200px; order: 3; }
+  .heroTitle { font-size: clamp(2rem, 6vw, 2.5rem); line-height: 1.2; }
+  .upperBody { min-height: 400px; }
+  .lowerBody { min-height: 600px; }
+  .bottomBodyFooter { min-height: 300px; }
+}
+
+@media (max-width: 480px) {
+  .header { padding: 12px 16px; }
+  .logoText { font-size: 18px; }
+  .nav { flex-direction: column; gap: 12px; }
+  .authSection { width: 100%; justify-content: center; } /* Floating buttons on smaller screens too */
+  .loginBtn, .registerBtn { flex: 1; max-width: 120px; }
+  .heroSection { padding: 24px 16px; }
+  .heroTitle { font-size: clamp(1.8rem, 8vw, 2.2rem); line-height: 1.2; }
+  .tigerCharacter { width: 100px; }
+  .gameController { width: 180px; }
+}
+
+
+/* --- Scrollbar Styles (Existing) --- */
+::-webkit-scrollbar { width: 14px; background: rgba(0, 0, 0, 0.1); }
+::-webkit-scrollbar-track { background: linear-gradient(180deg, rgba(44, 24, 16, 0.3) 0%, rgba(75, 52, 35, 0.3) 50%, rgba(139, 90, 43, 0.3) 100%); border-radius: 10px; box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 193, 7, 0.1); }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #FFD700 0%, #FFA500 25%, #CD853F 50%, #8B4513 75%, #654321 100%); border-radius: 10px; border: 2px solid rgba(255, 255, 255, 0.1); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3); transition: all 0.3s ease; }
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #FFE55C 0%, #FFB347 25%, #DEB887 50%, #A0522D 75%, #8B4513 100%); box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4), 0 2px 10px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4); transform: scale(1.05); border-color: rgba(255, 215, 0, 0.3); }
+::-webkit-scrollbar-thumb:active { background: linear-gradient(180deg, #FFA500 0%, #FF8C00 25%, #CD853F 50%, #8B4513 75%, #5D4037 100%); box-shadow: 0 2px 8px rgba(255, 140, 0, 0.6), inset 0 1px 3px rgba(0, 0, 0, 0.3); transform: scale(0.95); }
