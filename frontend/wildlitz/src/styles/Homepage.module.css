@@ -286,10 +286,11 @@ body {
   height: auto;
   
   position: absolute;
-  left: 16%;
+  left: -10%;
   /* --- CHANGE THIS VALUE --- */
-  top: -15%; /* Decrease this value from 50% to move it up */
-  transform: translateX(-100%);
+  top: -11%; /* Decrease this value from 50% to move it up */
+
+  animation: floatAnimation 4s ease-in-out infinite;
 }
 
 .gameController {
@@ -318,6 +319,18 @@ body {
   animation: heroSlide 2s ease-out;
   white-space: nowrap;
   margin: 0;
+}
+
+@keyframes floatAnimation {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px); /* Moves it 15px up */
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
 
 @keyframes heroSlide {
