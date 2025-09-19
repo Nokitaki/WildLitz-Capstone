@@ -11,7 +11,7 @@ html {
 
 body {
   height: auto !important;
-  overflow-y: auto !important;
+  overflow-y: hidden !important;
   overflow-x: hidden !important;
   margin: 0 !important;
   padding: 0 !important;
@@ -333,9 +333,9 @@ body {
 
 /* --- Body Sections & Footer --- */
 .midBody, .lowerBody, .bottomBodyFooter { width: 100%; background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: scroll; display: flex; flex-direction: column; position: relative; }
-.midBody { min-height: 2129px; background-image: url('../assets/img/backgrounds/mid-body-bg-desktop@2x.jpg'); background-color: #5D3621; }
+.midBody { max-height: 3000px; background-image: url('../assets/img/backgrounds/mid-body-bg-desktop@2x.jpg'); background-color: #5D3621; }
 .lowerBody { min-height: 1020px; background-image: url('../assets/img/backgrounds/lower-body-bg-desktop@2x.jpg'); background-color: #4A2C1A; }
-.bottomBodyFooter { min-height: 622px; background-image: url('../assets/img/backgrounds/bottom-body-footer-bg-desktop@2x.jpg'); background-color: #3D2317; }
+.bottomBodyFooter { max-height: 550px; background-image: url('../assets/img/backgrounds/bottom-body-footer-bg-desktop@2x.jpg'); background-color: #3D2317; }
 
 /* --- Media Queries (Existing) --- */
 @media (max-width: 1024px) {
@@ -385,6 +385,353 @@ body {
   .tigerCharacter { width: 100px; }
   .gameController { width: 180px; }
 }
+
+/* --- Game Selection Section (midBody) --- */
+.gameSelectionContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 120px; /* Adds space between each game entry */
+  max-width: 1200px;
+  margin: 0 auto; /* This centers the container on the page */
+  padding: 150px 40px; /* Adds space on the top/bottom and sides */
+}
+
+.gameEntry {
+  display: flex;
+  align-items: center; /* Vertically aligns the text and image */
+  justify-content: center;
+  gap: 5%; /* Space between the text and the image */
+}
+
+/* This is a cool trick! It will reverse the order for every second game entry */
+/* to create the alternating layout from your design. */
+.gameEntry:nth-child(even) {
+  flex-direction: row-reverse;
+}
+
+.gameEntry:first-child {
+  /* move up/down    move left/right      enlarge */
+  transform: translateY(-300px) translateX(-50px) scale(1.1);
+}
+.gameEntry:nth-child(2) {
+  /* You can now transform the second entry independently */
+  transform: translateY(-300px) translateX(50px) scale(1.1);
+}
+
+.gameEntry:nth-child(3) {
+  /* Position and scale the third entry */
+  transform: translateY(-300px) translateX(-50px) scale(1.1);
+}
+
+.gameEntry:nth-child(4) {
+  /* Position and scale the fourth entry */
+  transform: translateY(-300px) translateX(50px) scale(1.1);
+}
+
+
+.gameTextContent {
+  flex-basis: 50%;
+  color: #FFFFFF;
+
+  /* --- ADD THIS LINE --- */
+  /* This forces all text containers to be at least this tall. */
+  min-height: 220px;
+}
+
+.gameImageContainer {
+    flex-basis: 45%;
+    position: relative; 
+    aspect-ratio: 1 / 1; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Add this line to force a consistent size */
+    max-width: 400px; 
+}
+
+.gameVisualPlaceholder {
+  width: 75%; 
+  height: 65%;
+  background-color: #333;
+  border-radius: 8px;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+  font-family: 'Athiti', sans-serif;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* This new class styles your <img> tag to act as an overlay */
+.gameFrameImage {
+  position: absolute; /* Lifts the image out of the normal flow */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Allows clicks to "pass through" the transparent parts of the PNG */
+}
+
+.gameTitle {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 42px;
+  font-weight: 400;
+  margin-bottom: 16px;
+  color: #FFFFFF;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.gameDescription {
+  font-family: 'Athiti', sans-serif;
+  font-size: 18px;
+  line-height: 1.7;
+  margin-bottom: 32px;
+  color: #E0E0E0; /* A slightly softer white for the description */
+}
+
+.playButton {
+  font-family: 'Athiti', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: #6B4423; /* Dark brown text to match register button */
+  background-color: #FFD700; /* Golden yellow */
+  padding: 12px 32px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.playButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+  background-color: #ffde2e; /* Slightly brighter gold on hover */
+}
+
+.gameImage {
+  width: 100%;
+  height: auto;
+  display: block; /* Removes any extra space below the image */
+}
+
+/* --- Project Purpose Section --- */
+.purposeSection {
+  /* This is the new main container for the whole section */
+  max-width: 2000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column; /* Stacks the title, columns, and full text vertically */
+  align-items: center; /* Centers everything horizontally */
+  transform: translateY(-200px); /* Moves the entire section up */
+
+}
+
+.purposeTitle {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 60px;
+  color: #FFFFFF;
+  margin-bottom: 80px;
+  
+  /* Add this line */
+  width: 100%;
+  /* Change 'center' to 'left' */
+  text-align: left;
+}
+
+.projectPurposeContainer {
+  display: flex;
+  align-items: flex-start; /* Aligns items to the top */
+  gap: 5%;
+  width: 100%; /* Ensures it takes up the full width of the parent */
+  margin-bottom: 15px; /* Space between this and the full-width text */
+}
+
+.purposeImagePlaceholder {
+  flex-basis: 40%;
+  height: 300px; /* Adjusted height */
+  background-color: #333;
+  border-radius: 20px;
+}
+
+.purposeTextContent {
+  flex-basis: 55%;
+}
+
+.purposeDescription {
+  font-family: 'Athiti', sans-serif;
+  font-size: 18px;
+  color: #E0E0E0;
+  line-height: 1.8;
+}
+
+.purposeFullWidthText {
+  /* This styles the new, second paragraph */
+  font-family: 'Athiti', sans-serif;
+  font-size: 18px;
+  color: #E0E0E0;
+  line-height: 1.8;
+  width: 100%; /* Takes up the full width */
+}
+
+/* --- About Us Section --- */
+.aboutUsContainer {
+  display: flex;
+  flex-direction: column; /* Stacks the title, placeholder, and text vertically */
+  align-items: center;    /* Centers all items horizontally */
+  max-width: 1000px;       /* Controls the width of the content */
+  margin: 0 auto;         /* Centers the container on the page */
+  padding: 120px 40px;    /* Adds space on the top/bottom and sides */
+}
+
+.aboutUsTitle {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 60px;
+  color: #FFFFFF;
+  margin-bottom: 40px; /* Space between the title and the placeholder */
+}
+
+.aboutUsImagePlaceholder {
+  width: 80%; /* Takes up 80% of the container's width */
+  max-width: 600px; /* Prevents it from getting too large */
+  height: 350px;
+  background-color: #333;
+  border-radius: 20px;
+  margin-bottom: 40px; /* Space between the placeholder and the description */
+}
+
+.aboutUsDescription {
+  font-family: 'Athiti', sans-serif;
+  font-size: 18px;
+  color: #E0E0E0;
+  line-height: 1.8;
+  text-align: center; /* Centers the paragraph text */
+}
+
+/* --- Footer Section --- */
+.bottomBodyFooter {
+  background-image: none;
+  background-color: #D28F69;
+  color: #FFFFFF; /* Default text color is white */
+}
+
+.footerContainer {
+  max-width: 1250px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 60px 40px;
+  font-family: 'Athiti', sans-serif;
+  transform: translateX(40px);
+}
+
+.footerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.footerColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: 15px;
+}
+
+.footerColumn h4 {
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #EAEAEA; /* Light gray for titles */
+}
+
+.footerColumn p,
+.footerColumn a {
+  font-size: 15px;
+  color: #FFFFFF; /* White for main text and links */
+  text-decoration: none;
+  line-height: 1.6;
+}
+
+.footerColumn a:hover {
+  text-decoration: underline;
+}
+
+
+
+.footerLogo {
+  width: 48px;
+  height: auto;
+  margin-bottom: 0px;
+}
+
+.footerLabel {
+  font-weight: 700;
+  font-size: 16px;
+  margin-top: 12px;
+  color: #EAEAEA; /* Light gray for labels */
+}
+
+.footerDropdown {
+  background-color: #EACDB8;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: 'Athiti', sans-serif;
+  font-size: 15px;
+  color: #3D2317; /* Dark text for contrast */
+  width: 150px;
+}
+
+.footerSocials {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.footerSocials img {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s ease;
+}
+
+.footerSocials a:hover img {
+  transform: scale(1.1);
+}
+
+.footerBrandNameLarge {
+  font-family: 'Lalezar', cursive;
+  font-size: 300px;
+  font-weight: 400;
+  color: #FFFFFF;
+  text-align: center;
+  width: 100%;
+  margin-top: 40px;
+  line-height: 0.9;
+  transform: translateX(-25px);
+}
+
+/* Targets the 1st column (Logo/Socials) */
+.footerColumn:nth-of-type(1) {
+  flex-basis: 14%; /* 20% of the total width */
+}
+
+.footerColumn:nth-of-type(2) {
+  flex-basis: 15%;
+}
+
+/* Targets the 3rd column (Project Note) */
+.footerColumn:nth-of-type(3) {
+  flex-basis: 15%;
+}
+
 
 
 /* --- Scrollbar Styles (Existing) --- */
