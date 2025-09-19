@@ -82,107 +82,173 @@ const VanishingGame = () => {
   /**
    * Handle starting a new game with AI-generated words
    */
-  const handleStartGame = async (config) => {
-  console.log('Game config received:', config); // Debug log
-  console.log('Voice configuration:', config.voiceType); // Debug voice specifically
+/**
+ * Handle starting a new game with AI-generated words - FIXED VERSION
+ */
+const handleStartGame = async (config) => {
+  console.log('Game config received:', config);
+  console.log('Voice configuration:', config.voiceType);
   
-    
-    setGameConfig(config);
-    setCurrentRound(1);
-    setScore(0);
-    setCurrentWordIndex(0);
-    setLastResult(null);
-    setSessionStartTime(Date.now());
-    setGameStartTime(Date.now());
-    setLoadingWords(true);
-    setWordGenerationError(null);
+  setGameConfig(config);
+  setCurrentRound(1);
+  setScore(0);
+  setCurrentWordIndex(0);
+  setLastResult(null);
+  setSessionStartTime(Date.now());
+  setGameStartTime(Date.now());
+  setLoadingWords(true);
+  setWordGenerationError(null);
 
-      if (config.teamPlay) {
+  if (config.teamPlay) {
     setCurrentTeam('teamA');
     setTeamScores({ teamA: 0, teamB: 0 });
-}
+  }
+  
+  // Use the actual numberOfQuestions from config
+  const questionsToGenerate = config.numberOfQuestions || 10;
+  setTotalRounds(questionsToGenerate);
+  
+  try {
+    // Generate words using AI with the correct number
+    setBubbleMessage(`Generating ${questionsToGenerate} unique words for your session...`);
+    setShowBubble(true);
     
-    // FIXED: Use the actual numberOfQuestions from config
-    const questionsToGenerate = config.numberOfQuestions || 10;
+    const words = await generateVanishingGameWords(config, questionsToGenerate);
+    
+    // CRITICAL FIX: Validate that words is an array before calling map
+    if (!words || !Array.isArray(words) || words.length === 0) {
+      throw new Error('No words were generated - received invalid data');
+    }
+    
+    console.log('Raw words received:', words);
+    console.log('Words type:', typeof words);
+    console.log('Is array:', Array.isArray(words));
+    
+    // Add metadata to each word with additional validation
+    const enhancedWords = words.map((wordItem, index) => {
+      // Ensure wordItem is an object
+      if (typeof wordItem === 'string') {
+        // If it's just a string, create a proper word object
+        return {
+          word: wordItem,
+          syllableBreakdown: wordItem,
+          targetLetter: '',
+          definition: `Word: ${wordItem}`,
+          id: `ai_generated_${index}`,
+          wordIndex: index
+        };
+      } else if (typeof wordItem === 'object' && wordItem !== null) {
+        // If it's an object, ensure it has required properties
+        return {
+          word: wordItem.word || `word_${index}`,
+          syllableBreakdown: wordItem.syllableBreakdown || wordItem.word || `word_${index}`,
+          targetLetter: wordItem.targetLetter || '',
+          definition: wordItem.definition || `Definition for ${wordItem.word || 'word'}`,
+          ...wordItem, // Keep all existing properties
+          id: `ai_generated_${index}`,
+          wordIndex: index
+        };
+      } else {
+        // Fallback for unexpected data types
+        console.warn('Unexpected word item type:', typeof wordItem, wordItem);
+        return {
+          word: `fallback_${index}`,
+          syllableBreakdown: `fallback_${index}`,
+          targetLetter: '',
+          definition: 'Fallback word',
+          id: `ai_generated_${index}`,
+          wordIndex: index
+        };
+      }
+    });
+    
+    console.log(`Generated ${enhancedWords.length} words for ${questionsToGenerate} questions`);
+    console.log('Enhanced words sample:', enhancedWords[0]);
+    
+    // Validate enhanced words
+    if (!enhancedWords || enhancedWords.length === 0) {
+      throw new Error('Failed to process generated words');
+    }
+    
+    setWordData(enhancedWords);
+    
+    // Set total rounds to exactly the number of questions requested
     setTotalRounds(questionsToGenerate);
     
-    try {
-      // Generate words using AI with the correct number
-      setBubbleMessage(`Generating ${questionsToGenerate} unique words for your session...`);
-      setShowBubble(true);
+    // Initialize enhanced stats
+    setGameStats({
+      wordsAttempted: 0,
+      wordsRecognized: 0,
+      successRate: 0,
+      patternStats: {
+        [config.learningFocus]: { attempted: 0, correct: 0, averageTime: 0 }
+      },
+      streakCount: 0,
+      maxStreak: 0,
+      averageResponseTime: 0,
+      difficultyProgression: [],
+      timeSpent: 0,
+      participationMetrics: {
+        handsRaised: 0,
+        discussionTime: 0,
+        hintsUsed: 0,
+        pauseCount: 0
+      },
+      wordsPlayed: enhancedWords.slice(0, questionsToGenerate).map(w => w.word || 'unknown') // Safe access to word property
+    });
+    
+    // Move to gameplay state
+    setGameState('gameplay');
+    
+    // Show enhanced welcome message
+    const welcomeMessages = {
+      simple_words: "Let's practice reading simple words!",
+      compound_words: "Time to tackle compound words!",
+      phrases: "Ready to read some phrases?",
+      simple_sentences: "Let's work on reading sentences!"
+    };
+    
+    setTimeout(() => {
+      setBubbleMessage(welcomeMessages[config.challengeLevel] || "Ready to practice reading?");
       
-      const words = await generateVanishingGameWords(config, questionsToGenerate);
-      
-      // Add metadata to each word
-      const enhancedWords = words.map((wordItem, index) => ({
-        ...wordItem,
-        id: `ai_generated_${index}`,
-        wordIndex: index
-      }));
-      
-      console.log(`Generated ${enhancedWords.length} words for ${questionsToGenerate} questions`); // Debug log
-      
-      setWordData(enhancedWords);
-      
-      // FIXED: Set total rounds to exactly the number of questions requested
-      setTotalRounds(questionsToGenerate);
-      
-      // Initialize enhanced stats
-      setGameStats({
-        wordsAttempted: 0,
-        wordsRecognized: 0,
-        successRate: 0,
-        patternStats: {
-          [config.learningFocus]: { attempted: 0, correct: 0, averageTime: 0 }
-        },
-        streakCount: 0,
-        maxStreak: 0,
-        averageResponseTime: 0,
-        difficultyProgression: [],
-        timeSpent: 0,
-        participationMetrics: {
-          handsRaised: 0,
-          discussionTime: 0,
-          hintsUsed: 0,
-          pauseCount: 0
-        },
-        wordsPlayed: enhancedWords.slice(0, questionsToGenerate).map(w => w.word) // Only track the words we'll actually play
-      });
-      
-      // Move to gameplay state
-      setGameState('gameplay');
-      
-      // Show enhanced welcome message
-      const welcomeMessages = {
-        simple_words: "Let's practice reading simple words!",
-        compound_words: "Time to tackle compound words!",
-        phrases: "Ready to read some phrases?",
-        simple_sentences: "Let's work on reading sentences!"
-      };
-      
+      // Hide bubble after 5 seconds
       setTimeout(() => {
-        setBubbleMessage(welcomeMessages[config.challengeLevel] || "Ready to practice reading?");
-        
-        // Hide bubble after 5 seconds
-        setTimeout(() => {
-          setShowBubble(false);
-        }, 5000);
-      }, 1000);
-      
-    } catch (error) {
-      console.error('Error generating words:', error);
-      setWordGenerationError('Failed to generate words. Please try again.');
-      setBubbleMessage("Oops! Let's try that again.");
-      
-      // Hide error after 3 seconds and return to config
-      setTimeout(() => {
-        setWordGenerationError(null);
         setShowBubble(false);
-      }, 3000);
-    } finally {
-      setLoadingWords(false);
+      }, 5000);
+    }, 1000);
+    
+  } catch (error) {
+    console.error('Error generating words:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    
+    // More specific error messages
+    let errorMessage = 'Failed to generate words. ';
+    if (error.message.includes('fetch')) {
+      errorMessage += 'Please check your internet connection and try again.';
+    } else if (error.message.includes('AI word generation failed')) {
+      errorMessage += 'The AI service is temporarily unavailable. Using backup words.';
+    } else {
+      errorMessage += 'Please try again or contact support if the problem persists.';
     }
-  };
+    
+    setWordGenerationError(errorMessage);
+    setBubbleMessage("Oops! Let's try that again.");
+    
+    // Don't immediately go back to config - stay in loading state briefly
+    setTimeout(() => {
+      setWordGenerationError(null);
+      setShowBubble(false);
+      // Stay on config screen so user can try again
+    }, 5000); // Longer timeout to let user read the error
+    
+  } finally {
+    setLoadingWords(false);
+  }
+};
 
   /**
    * Enhanced word result handling
