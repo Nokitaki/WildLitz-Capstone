@@ -18,6 +18,10 @@ import xIcon from '../../assets/img/visuals/x-icon.png';
 import instagramIcon from '../../assets/img/visuals/instagram-icon.png';
 import tiktokIcon from '../../assets/img/visuals/tiktok-icon.png';
 
+import bunnyVisual from '../../assets/img/visuals/bunny.png';
+import bugsby1Visual from '../../assets/img/visuals/bugsby1.png';
+import bugsby2Visual from '../../assets/img/visuals/bugsby2.png';
+
 function HomePage() {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout, isLoading } = useAuth();
@@ -130,8 +134,10 @@ function HomePage() {
 
       {/* --- 2. REPLACE THE EMPTY MIDBODY SECTION WITH THIS --- */}
       <section className={styles.midBody}>
+         <img src={bunnyVisual} alt="Bunny visual" className={styles.bunnyVisual} />
+
         <div className={styles.gameSelectionContainer}>
-          
+         
           {/* --- Syllable Clapping Game (first game - existing) --- */}
           <div className={styles.gameEntry} key="game-1">
             <div className={styles.gameImageContainer}>
@@ -220,6 +226,8 @@ function HomePage() {
 
         {/* --- ADD THE PROJECT PURPOSE SECTION HERE --- */}
         <div className={styles.purposeSection}>
+            <img src={bugsby1Visual} alt="Pixel monster" className={styles.bugsby1Visual} />
+            <img src={bugsby2Visual} alt="Pixel monster" className={styles.bugsby2Visual} />
           <h3 className={styles.purposeTitle}>Project Purpose</h3>
 
           <div className={styles.projectPurposeContainer}>

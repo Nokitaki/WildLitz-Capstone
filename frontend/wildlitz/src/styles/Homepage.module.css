@@ -333,7 +333,7 @@ body {
 
 /* --- Body Sections & Footer --- */
 .midBody, .lowerBody, .bottomBodyFooter { width: 100%; background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: scroll; display: flex; flex-direction: column; position: relative; }
-.midBody { max-height: 3000px; background-image: url('../assets/img/backgrounds/mid-body-bg-desktop@2x.jpg'); background-color: #5D3621; }
+.midBody { max-height: 3000px; background-image: url('../assets/img/backgrounds/mid-body-bg-desktop@2x.jpg'); background-color: #5D3621; position: relative; }
 .lowerBody { min-height: 1020px; background-image: url('../assets/img/backgrounds/lower-body-bg-desktop@2x.jpg'); background-color: #4A2C1A; }
 .bottomBodyFooter { max-height: 550px; background-image: url('../assets/img/backgrounds/bottom-body-footer-bg-desktop@2x.jpg'); background-color: #3D2317; }
 
@@ -530,6 +530,7 @@ body {
   flex-direction: column; /* Stacks the title, columns, and full text vertically */
   align-items: center; /* Centers everything horizontally */
   transform: translateY(-200px); /* Moves the entire section up */
+  position: relative;
 
 }
 
@@ -730,6 +731,32 @@ body {
 /* Targets the 3rd column (Project Note) */
 .footerColumn:nth-of-type(3) {
   flex-basis: 15%;
+}
+
+/* --- Decorative Visuals --- */
+.bunnyVisual {
+  position: absolute;
+  left: 0;
+  top: 750px; /* Adjust this value to move it up or down */
+  width: 400px;
+  transform: translateX(-1%) translateY(55%); /* Hides part of the bunny off-screen */
+  z-index: 0; /* Ensures it sits behind the game cards if they have a higher z-index */
+}
+
+.bugsby1Visual {
+  position: absolute;
+  top: 450px; /* Adjust as needed */
+  right: 10%; /* Adjust as needed */
+  width: 300px;
+  transform: translateX(90%) translateY(65%);
+}
+
+.bugsby2Visual {
+  position: absolute;
+  top: 20px;  /* Adjust as needed */
+  right: 0;   /* Adjust as needed */
+  width: 150px;
+  transform: translateX(55%) translateY(350%);
 }
 
 
