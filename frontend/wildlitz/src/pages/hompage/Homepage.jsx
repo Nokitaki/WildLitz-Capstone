@@ -21,6 +21,8 @@ import tiktokIcon from '../../assets/img/visuals/tiktok-icon.png';
 import bunnyVisual from '../../assets/img/visuals/bunny.png';
 import bugsby1Visual from '../../assets/img/visuals/bugsby1.png';
 import bugsby2Visual from '../../assets/img/visuals/bugsby2.png';
+import coinGif from '../../assets/img/visuals/coin.gif';
+import crossGif from '../../assets/img/visuals/cross.gif';
 
 function HomePage() {
   const navigate = useNavigate();
@@ -174,6 +176,7 @@ function HomePage() {
             </div>
             <div className={styles.gameTextContent}>
               <h3 className={styles.gameTitle}>Sound Safari Game</h3> {/* Update title */}
+              <img src={coinGif} alt="Animated coin" className={styles.coinVisual} />
               <p className={styles.gameDescription}>
                 Embark on an auditory adventure! This game teaches phonetic awareness by identifying and distinguishing different sounds in a playful safari setting.
               </p>
@@ -195,6 +198,7 @@ function HomePage() {
             </div>
             <div className={styles.gameTextContent}>
               <h3 className={styles.gameTitle}>Vanishing Game</h3> {/* Updated title */}
+              <img src={crossGif} alt="Animated coin" className={styles.crossVisual} />
               <p className={styles.gameDescription}>
                 A memory and phonics challenge where letters vanish from words, encouraging kids to recall letter sounds and spellings to complete the word.
               </p>

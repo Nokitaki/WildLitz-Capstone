@@ -401,6 +401,7 @@ body {
   align-items: center; /* Vertically aligns the text and image */
   justify-content: center;
   gap: 5%; /* Space between the text and the image */
+  position: relative; /* Add this line */
 }
 
 /* This is a cool trick! It will reverse the order for every second game entry */
@@ -758,6 +759,24 @@ body {
   width: 150px;
   transform: translateX(55%) translateY(350%);
 }
+
+.coinVisual {
+  position: absolute;
+  top: 110px;    /* Adjust to move up/down */
+  left: -10%;  /* Adjust to move left/right */
+  width: 135px;
+  height: auto;
+}
+
+.crossVisual {
+  position: absolute;
+  top: 50px;    /* Adjust to move up/down */
+  right: -20%;  /* Adjust to move left/right */
+  width: 300px;
+  height: auto;
+}
+
+
 
 
 
