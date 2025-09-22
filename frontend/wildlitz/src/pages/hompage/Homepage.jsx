@@ -80,6 +80,26 @@ function HomePage() {
     navigate('/profile');
   };
 
+  const handleGameClick = (gameSlug) => {
+    if (isAuthenticated) {
+      navigate(`/games/${gameSlug}`);
+    } else {
+      handleLoginClick();
+    }
+  };
+
+  const handleHowToPlayClick = (gameType) => {
+    setSelectedGame(gameType);
+    setModalOpen(true);
+  };
+
+  const handleStartGameFromModal = () => {
+    setModalOpen(false);
+    if (selectedGame) {
+      handleGameClick(selectedGame);
+    }
+  };
+
   return (
     <div className={styles.container}>
       
@@ -148,104 +168,97 @@ function HomePage() {
 
         <div className={styles.gameSelectionContainer}>
          
-          {/* --- Syllable Clapping Game (first game - existing) --- */}
+          {/* --- Syllable Clapping Game --- */}
           <div className={styles.gameEntry} key="game-1">
-            <div className={styles.gameImageContainer}>
-             <video 
-              src={syllableClappingGame} 
-              className={styles.gameVisual} 
-              autoPlay 
-              loop 
-              muted 
-            />
-              <img 
-                src={syllableGameCard} 
-                alt="Game Card Frame" 
-                className={styles.gameFrameImage} 
-              />
+            <div 
+              className={styles.gameImageContainer} 
+              onClick={() => handleGameClick('syllable-clapping')}
+            >
+              <video src={syllableClappingGame} className={styles.gameVisual} autoPlay loop muted />
+              <img src={syllableGameCard} alt="Game Card Frame" className={styles.gameFrameImage} />
             </div>
             <div className={styles.gameTextContent}>
               <h3 className={styles.gameTitle}>Syllable Clapping Game</h3>
               <p className={styles.gameDescription}>
                 A fun, interactive game where kids clap out the syllables in words, helping them understand word structure and rhythm in a playful way.
               </p>
-              <button className={styles.playButton}>How to Play</button>
+              <button 
+                className={styles.playButton} 
+                onClick={() => handleHowToPlayClick('syllable-clapping')}
+              >
+                How to Play
+              </button>
             </div>
           </div>
           
-          {/* --- 2. ADD THIS NEW GAME ENTRY BELOW THE FIRST ONE --- */}
-          {/* This will automatically be styled with the image on the right */}
+          {/* --- Sound Safari Game --- */}
           <div className={styles.gameEntry} key="game-2">
-            <div className={styles.gameImageContainer}>
-              <video 
-                src={soundSafariGame} 
-                className={styles.gameVisual} 
-                autoPlay 
-                loop 
-                muted 
-              />
-              <img 
-                src={syllableGameCardRight} 
-                alt="Second Game Card Frame" 
-                className={styles.gameFrameImage} 
-              />
+            <div 
+              className={styles.gameImageContainer} 
+              onClick={() => handleGameClick('sound-safari')}
+            >
+              <video src={soundSafariGame} className={styles.gameVisual} autoPlay loop muted />
+              <img src={syllableGameCardRight} alt="Second Game Card Frame" className={styles.gameFrameImage} />
             </div>
             <div className={styles.gameTextContent}>
-              <h3 className={styles.gameTitle}>Sound Safari Game</h3> {/* Update title */}
+              <h3 className={styles.gameTitle}>Sound Safari Game</h3>
               <img src={coinGif} alt="Animated coin" className={styles.coinVisual} />
               <p className={styles.gameDescription}>
                 Embark on an auditory adventure! This game teaches phonetic awareness by identifying and distinguishing different sounds in a playful safari setting.
               </p>
-              <button className={styles.playButton}>How to Play</button>
+              <button 
+                className={styles.playButton} 
+                onClick={() => handleHowToPlayClick('sound-safari')}
+              >
+                How to Play
+              </button>
             </div>
           </div>
 
-          {/* --- 3. ADD THIS NEW GAME ENTRY AT THE END --- */}
-          <div className={styles.gameEntry} key="game-3"> {/* Changed key to "game-3" */}
-            <div className={styles.gameImageContainer}>
-              <video 
-                src={vanishingGame} 
-                className={styles.gameVisual} 
-                autoPlay 
-                loop 
-                muted 
-              />
-              <img 
-                src={syllableGameCard}  
-                alt="Game Card Frame" 
-                className={styles.gameFrameImage} 
-              />
+          {/* --- Vanishing Game --- */}
+          <div className={styles.gameEntry} key="game-3">
+            <div 
+              className={styles.gameImageContainer} 
+              onClick={() => handleGameClick('vanishing-game')}
+            >
+              <video src={vanishingGame} className={styles.gameVisual} autoPlay loop muted />
+              <img src={syllableGameCard} alt="Game Card Frame" className={styles.gameFrameImage} />
             </div>
             <div className={styles.gameTextContent}>
-              <h3 className={styles.gameTitle}>Vanishing Game</h3> {/* Updated title */}
-              <img src={crossGif} alt="Animated coin" className={styles.crossVisual} />
+              <h3 className={styles.gameTitle}>Vanishing Game</h3>
+              <img src={crossGif} alt="Animated cross" className={styles.crossVisual} />
               <p className={styles.gameDescription}>
                 A memory and phonics challenge where letters vanish from words, encouraging kids to recall letter sounds and spellings to complete the word.
               </p>
-              <button className={styles.playButton}>How to Play</button>
+              <button 
+                className={styles.playButton} 
+                onClick={() => handleHowToPlayClick('vanishing-game')}
+              >
+                How to Play
+              </button>
             </div>
           </div>
 
-           {/* --- 4. ADD THE NEW GAME ENTRY HERE --- */}
-          <div className={styles.gameEntry} key="game-4"> {/* Changed key to "game-4" */}
-            <div className={styles.gameImageContainer}>
-              <img 
-                src={crosswordGame} 
-                alt="Crossword Game" 
-                className={styles.gameVisual} 
-              />
-              <img 
-                src={syllableGameCardRight}
-                alt="Fourth Game Card Frame" 
-                className={styles.gameFrameImage} 
-              />
+           {/* --- Crossword Game --- */}
+          <div className={styles.gameEntry} key="game-4">
+            <div 
+              className={styles.gameImageContainer} 
+              onClick={() => handleGameClick('crossword-puzzle')}
+            >
+              <img src={crosswordGame} alt="Crossword Game" className={styles.gameVisual} />
+              <img src={syllableGameCardRight} alt="Fourth Game Card Frame" className={styles.gameFrameImage} />
             </div>
             <div className={styles.gameTextContent}>
-              <h3 className={styles.gameTitle}>Crossword Game</h3> {/* Updated title */}
+              <h3 className={styles.gameTitle}>Crossword Game</h3>
               <p className={styles.gameDescription}>
                 A classic puzzle with a phonics twist. Kids use letter sounds and clues to fill in the words, reinforcing vocabulary and spelling skills.
               </p>
-              <button className={styles.playButton}>How to Play</button>
+              <button 
+                className={styles.playButton} 
+                onClick={() => handleHowToPlayClick('crossword-puzzle')}
+              >
+                How to Play
+              </button>
             </div>
           </div>
 
@@ -353,7 +366,7 @@ function HomePage() {
       <GameTipsModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        onStartGame={() => {}}
+        onStartGame={handleStartGameFromModal}
         gameType={selectedGame}
       />
       <AuthModal
