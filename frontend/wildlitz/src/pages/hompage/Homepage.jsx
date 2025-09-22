@@ -1,3 +1,6 @@
+// New homepage layout with added games and sections
+// latest update: 2025-09-23
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
