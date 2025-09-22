@@ -429,6 +429,24 @@ body {
   transform: translateY(-300px) translateX(50px) scale(1.1);
 }
 
+.gameEntry:first-child .gameVisual {
+  transform: translateY(13px) translateX(6px);
+}
+
+/* Targets the video/PNG in the 2nd game */
+.gameEntry:nth-child(2) .gameVisual {
+  transform: translateY(6px) translateX(5px);
+}
+
+/* Targets the video/PNG in the 3rd game */
+.gameEntry:nth-child(3) .gameVisual {
+  transform: translateY(6px) translateX(-1px);
+}
+
+/* Targets the video/PNG in the 4th game */
+.gameEntry:nth-child(4) .gameVisual {
+  transform: translateY(7px) translateX(-1px);
+}
 
 .gameTextContent {
   flex-basis: 50%;
@@ -451,19 +469,13 @@ body {
     max-width: 400px; 
 }
 
-.gameVisualPlaceholder {
-  width: 75%; 
-  height: 65%;
-  background-color: #333;
+.gameVisual {
+  width: 77%;
+  height: 61%;
+  /* This ensures the video/image fills the container without distortion */
+  object-fit: cover; 
   border-radius: 8px;
   
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #777;
-  font-family: 'Athiti', sans-serif;
-  font-size: 20px;
-  font-weight: bold;
 }
 
 /* This new class styles your <img> tag to act as an overlay */

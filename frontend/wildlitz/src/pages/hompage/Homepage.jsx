@@ -24,6 +24,11 @@ import bugsby2Visual from '../../assets/img/visuals/bugsby2.png';
 import coinGif from '../../assets/img/visuals/coin.gif';
 import crossGif from '../../assets/img/visuals/cross.gif';
 
+import syllableClappingGame from '../../assets/game/syllable-clapping-game.mp4';
+import soundSafariGame from '../../assets/game/sound-safari-game.mp4';
+import vanishingGame from '../../assets/game/vanishing-game.mp4';
+import crosswordGame from '../../assets/game/crossword-game.png';
+
 function HomePage() {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout, isLoading } = useAuth();
@@ -143,9 +148,13 @@ function HomePage() {
           {/* --- Syllable Clapping Game (first game - existing) --- */}
           <div className={styles.gameEntry} key="game-1">
             <div className={styles.gameImageContainer}>
-              <div className={styles.gameVisualPlaceholder}>
-                <p>Game Visual Here</p>
-              </div>
+             <video 
+              src={syllableClappingGame} 
+              className={styles.gameVisual} 
+              autoPlay 
+              loop 
+              muted 
+            />
               <img 
                 src={syllableGameCard} 
                 alt="Game Card Frame" 
@@ -165,9 +174,13 @@ function HomePage() {
           {/* This will automatically be styled with the image on the right */}
           <div className={styles.gameEntry} key="game-2">
             <div className={styles.gameImageContainer}>
-              <div className={styles.gameVisualPlaceholder}>
-                <p>Game Visual Here</p> {/* Or a different placeholder text for the second game */}
-              </div>
+              <video 
+                src={soundSafariGame} 
+                className={styles.gameVisual} 
+                autoPlay 
+                loop 
+                muted 
+              />
               <img 
                 src={syllableGameCardRight} 
                 alt="Second Game Card Frame" 
@@ -187,9 +200,13 @@ function HomePage() {
           {/* --- 3. ADD THIS NEW GAME ENTRY AT THE END --- */}
           <div className={styles.gameEntry} key="game-3"> {/* Changed key to "game-3" */}
             <div className={styles.gameImageContainer}>
-              <div className={styles.gameVisualPlaceholder}>
-                <p>Game Visual Here</p>
-              </div>
+              <video 
+                src={vanishingGame} 
+                className={styles.gameVisual} 
+                autoPlay 
+                loop 
+                muted 
+              />
               <img 
                 src={syllableGameCard}  
                 alt="Game Card Frame" 
@@ -209,9 +226,11 @@ function HomePage() {
            {/* --- 4. ADD THE NEW GAME ENTRY HERE --- */}
           <div className={styles.gameEntry} key="game-4"> {/* Changed key to "game-4" */}
             <div className={styles.gameImageContainer}>
-              <div className={styles.gameVisualPlaceholder}>
-                <p>Game Visual Here</p>
-              </div>
+              <img 
+                src={crosswordGame} 
+                alt="Crossword Game" 
+                className={styles.gameVisual} 
+              />
               <img 
                 src={syllableGameCardRight}
                 alt="Fourth Game Card Frame" 
