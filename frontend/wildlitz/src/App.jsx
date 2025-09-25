@@ -10,7 +10,7 @@ import SoundSafariGame from '../src/pages/games/soundsafari/SoundSafariGame';
 import VanishingGame from '../src/pages/games/vanishing/VanishingGame';
 import CrosswordGame from '../src/pages/games/crossword/CrosswordGame';
 import ProfilePage from './pages/profile/ProfilePage';
-
+import GameErrorBoundary from './components/common/GameErrorBoundary';
 function App() {
   return (
     <AuthProvider>
@@ -22,10 +22,10 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             
             {/* Game Routes */}
-            <Route path="/games/syllable-clapping" element={<SyllableClappingGame />} />
-            <Route path="/games/sound-safari" element={<SoundSafariGame />} />
-            <Route path="/games/vanishing-game" element={<VanishingGame />} />
-            <Route path="/games/crossword-puzzle" element={<CrosswordGame />} />
+            <Route path="/games/syllable-clapping" element={<GameErrorBoundary><SyllableClappingGame /></GameErrorBoundary>} />
+            <Route path="/games/sound-safari" element={<GameErrorBoundary><SoundSafariGame /></GameErrorBoundary>} />
+            <Route path="/games/vanishing-game" element={<GameErrorBoundary><VanishingGame /></GameErrorBoundary>} />
+            <Route path="/games/crossword-puzzle" element={<GameErrorBoundary><CrosswordGame /></GameErrorBoundary>} />
             
             {/* Fallback route */}
             <Route path="*" element={<Navigate to="/" />} />

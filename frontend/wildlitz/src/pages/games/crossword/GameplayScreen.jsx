@@ -1206,6 +1206,10 @@ const shuffleArray = (array) => {
    * Render crossword grid with proper letter sharing
    */
   const renderCrosswordGrid = () => {
+    const handleTestError = () => {
+  throw new Error('Test error boundary from grid rendering');
+};
+
     if (!puzzle || !puzzle.size || gridCells.length === 0) {
       return <div className={styles.emptyGridMessage}>Loading crossword grid...</div>;
     }
@@ -1459,6 +1463,7 @@ const shuffleArray = (array) => {
         // Fallback if no choices are available
         <div className={styles.noChoices}>
           <p>Select a clue to see answer choices.</p>
+          
         </div>
       )}
     </div>
