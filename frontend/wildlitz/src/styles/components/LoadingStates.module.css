@@ -1,0 +1,344 @@
+/* src/styles/components/LoadingStates.module.css */
+
+/* Generic Spinner */
+.spinnerContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.spinner {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.spinner.small {
+  font-size: 1rem;
+}
+
+.spinner.medium {
+  font-size: 2rem;
+}
+
+.spinner.large {
+  font-size: 3rem;
+}
+
+.loadingMessage {
+  color: #666;
+  font-size: 1rem;
+  margin: 0;
+  text-align: center;
+}
+
+/* Story Loading Screen */
+.storyLoadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.storyLoadingContent {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  max-width: 800px;
+  width: 90%;  /* Takes 90% of available width */
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.bookIcon {
+  font-size: 4rem;
+  margin-bottom: 30px;
+  display: inline-block;
+}
+
+.progressContainer {
+  margin-bottom: 20px;
+}
+
+.progressBar {
+  width: 100%;
+  height: 10px;
+  background-color: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #4CAF50, #45a049);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.progressText {
+  font-weight: bold;
+  color: #333;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.progressMessage {
+  color: #666;
+  font-size: 1rem;
+  margin: 20px 0;
+  line-height: 1.5;
+}
+
+.warningMessage {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 10px;
+  padding: 15px;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  text-align: left;
+}
+
+.warningIcon {
+  font-size: 1.5rem;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.warningMessage p {
+  color: #856404;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.loadingDots {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 20px;
+}
+
+.loadingDots span {
+  font-size: 2rem;
+  color: #667eea;
+}
+
+/* Game Loading Screen */
+.gameLoadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 20px;
+}
+
+.gameLoadingContent {
+  text-align: center;
+  max-width: 400px;
+}
+
+.puzzleContainer {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.puzzlePiece {
+  font-size: 2rem;
+}
+
+.gameLoadingTitle {
+  color: #333;
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.gameLoadingSubtitle {
+  color: #666;
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.pulseLoader {
+  width: 20px;
+  height: 20px;
+  background-color: #007bff;
+  border-radius: 50%;
+  margin: 0 auto;
+}
+
+/* Word Loading Animation */
+.wordLoadingContainer {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin: 20px 0;
+}
+
+.loadingLetter {
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: inline-block;
+}
+
+/* Skeleton Loader */
+.skeletonContainer {
+  padding: 10px 0;
+}
+
+.skeletonLine {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeletonLoading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Loading Button */
+.loadingButton {
+  position: relative;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  overflow: hidden;
+}
+
+.loadingButton.loading {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.buttonLoadingContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.buttonSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+}
+
+/* Crossword Grid Loader */
+.gridLoaderContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.gridLoader {
+  margin-bottom: 20px;
+  padding: 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+}
+
+.gridCell {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.gridLoaderText {
+  color: #666;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Success Animation */
+.successContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.successIcon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.successMessage {
+  color: #4CAF50;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .storyLoadingContent {
+    padding: 30px 20px;
+    margin: 10px;
+  }
+  
+  .bookIcon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+  }
+  
+  .gameLoadingTitle {
+    font-size: 1.3rem;
+  }
+  
+  .puzzlePiece {
+    font-size: 1.5rem;
+  }
+  
+  .gridCell {
+    width: 25px;
+    height: 25px;
+  }
+  
+  .progressMessage {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .storyLoadingContent {
+    padding: 20px 15px;
+  }
+  
+  .bookIcon {
+    font-size: 2.5rem;
+  }
+  
+  .progressMessage {
+    font-size: 0.85rem;
+  }
+  
+  .warningMessage {
+    padding: 10px;
+    text-align: center;
+    flex-direction: column;
+  }
+  
+  .warningIcon {
+    margin-right: 0;
+    margin-bottom: 5px;
+  }
+}

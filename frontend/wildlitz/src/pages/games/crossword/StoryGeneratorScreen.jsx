@@ -1,8 +1,11 @@
 // src/pages/games/crossword/StoryGeneratorScreen.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../../styles/games/crossword/StoryGeneratorScreen.module.css';
+
+import { StoryLoadingScreen } from '../../../components/common/LoadingStates';
+
 
 const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   const navigate = useNavigate();
@@ -18,9 +21,15 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   const [generationProgress, setGenerationProgress] = useState(0);
   const [error, setError] = useState(null);
   const [timeoutWarning, setTimeoutWarning] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('Creating your adventure...');
   
   // Timeout handling
   const [timeoutId, setTimeoutId] = useState(null);
+  const progressIntervalRef = useRef(null);
+  const fetchTimeoutRef = useRef(null);
+  const warningTimeoutRef = useRef(null);
+  const isMountedRef = useRef(true);
+  const abortControllerRef = useRef(null);
   
   // Available themes and skills - expanded to 5 themes
   const availableThemes = [
@@ -386,18 +395,17 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
         </div>
         
         {isGenerating ? (
+
+
+
           <div className={styles.generatingContent}>
-            <div className={styles.progressContainer}>
-              <div 
-                className={styles.progressBar}
-                style={{ width: `${generationProgress}%` }}
-              ></div>
-            </div>
-            <p className={styles.progressText}>
-              {generationProgress < 100 
-                ? `Creating your adventure (${generationProgress}%)...` 
-                : 'Story created successfully!'}
-            </p>
+            <StoryLoadingScreen 
+    progress={generationProgress}
+    message="Creating your adventure..."
+    showWarning={timeoutWarning && generationProgress < 100}
+  />
+           
+          
             
             {timeoutWarning && generationProgress < 100 && (
               <div className={styles.warningMessage}>
@@ -405,28 +413,7 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
               </div>
             )}
             
-            <div className={styles.generationSteps}>
-              <div className={`${styles.stepItem} ${generationProgress >= 20 ? styles.completed : ''}`}>
-                <div className={styles.stepIcon}>📝</div>
-                <div className={styles.stepText}>Creating story outline</div>
-              </div>
-              <div className={`${styles.stepItem} ${generationProgress >= 40 ? styles.completed : ''}`}>
-                <div className={styles.stepIcon}>📚</div>
-                <div className={styles.stepText}>Writing episodes</div>
-              </div>
-              <div className={`${styles.stepItem} ${generationProgress >= 60 ? styles.completed : ''}`}>
-                <div className={styles.stepIcon}>🔤</div>
-                <div className={styles.stepText}>Preparing vocabulary</div>
-              </div>
-              <div className={`${styles.stepItem} ${generationProgress >= 80 ? styles.completed : ''}`}>
-                <div className={styles.stepIcon}>🧩</div>
-                <div className={styles.stepText}>Building crossword puzzles</div>
-              </div>
-              <div className={`${styles.stepItem} ${generationProgress >= 100 ? styles.completed : ''}`}>
-                <div className={styles.stepIcon}>✅</div>
-                <div className={styles.stepText}>Finalizing adventure</div>
-              </div>
-            </div>
+           
             {error && (
               <div className={styles.errorMessage}>
                 <p>{error}</p>

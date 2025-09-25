@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/crossword/GameplayScreen.module.css';
-
+import { LoadingSpinner, WordLoadingAnimation, SkeletonLoader } from '../../../components/common/LoadingStates';
 /**
  * GameplayScreen component for Crossword Puzzle with proper word connections
  */
@@ -350,225 +350,322 @@ const GameplayScreen = ({
    * Find optimal placement for words in a crossword grid
    * Words should connect at shared letters, and be placed intelligently
    */
-  const findProperWordPlacements = (words) => {
-    if (!words || words.length === 0) return [];
+ const findProperWordPlacements = (words) => {
+  if (!words || words.length === 0) return [];
+  
+  // Make a copy of words to avoid mutating the original
+  const wordsCopy = JSON.parse(JSON.stringify(words));
+  
+  // Sort words by length (longest first, to make placement easier)
+  wordsCopy.sort((a, b) => b.answer.length - a.answer.length);
+  
+  // Place first word horizontally in the middle
+  const firstWord = wordsCopy[0];
+  firstWord.direction = 'across';
+  firstWord.cells = [];
+  firstWord.number = 1;
+  
+  const startRow = 4; // Start in the middle
+  const startCol = 2; // Start with some margin from the left
+  
+  for (let i = 0; i < firstWord.answer.length; i++) {
+    firstWord.cells.push({ row: startRow, col: startCol + i });
+  }
+  
+  // Keep track of placed words
+  const placedWords = [firstWord];
+  let wordNumber = 2;
+  
+  // Try to place each remaining word
+  for (let i = 1; i < wordsCopy.length; i++) {
+    const wordToPlace = wordsCopy[i];
+    const wordLetters = wordToPlace.answer.split('');
     
-    // Make a copy of words to avoid mutating the original
-    const wordsCopy = JSON.parse(JSON.stringify(words));
+    // Find if this word shares any letters with placed words
+    let bestPlacement = null;
+    let bestScore = -1;
     
-    // Sort words by length (longest first, to make placement easier)
-    wordsCopy.sort((a, b) => b.answer.length - a.answer.length);
-    
-    // Place first word horizontally in the middle
-    const firstWord = wordsCopy[0];
-    firstWord.direction = 'across';
-    firstWord.cells = [];
-    
-    const startRow = 4; // Start in the middle
-    const startCol = 2; // Start with some margin from the left
-    
-    for (let i = 0; i < firstWord.answer.length; i++) {
-      firstWord.cells.push({ row: startRow, col: startCol + i });
-    }
-    
-    // Keep track of placed words
-    const placedWords = [firstWord];
-    
-    // Try to place each remaining word
-    for (let i = 1; i < wordsCopy.length; i++) {
-      const wordToPlace = wordsCopy[i];
-      const wordLetters = wordToPlace.answer.split('');
+    // Try each placed word for possible intersections
+    for (const placedWord of placedWords) {
+      const placedLetters = placedWord.answer.split('');
       
-      // Find if this word shares any letters with placed words
-      let bestPlacement = null;
-      let bestScore = -1;
-      
-      // Try each placed word for possible intersections
-      for (const placedWord of placedWords) {
-        const placedLetters = placedWord.answer.split('');
-        
-        // Look for shared letters
-        for (let placedIdx = 0; placedIdx < placedLetters.length; placedIdx++) {
-          for (let newIdx = 0; newIdx < wordLetters.length; newIdx++) {
-            // Found a shared letter
-            if (placedLetters[placedIdx].toLowerCase() === wordLetters[newIdx].toLowerCase()) {
-              // Try to place the new word perpendicular to the placed word at this intersection
-              const newDirection = placedWord.direction === 'across' ? 'down' : 'across';
-              
-              // Calculate starting cell for new word
-              let newCells = [];
-              
-              if (newDirection === 'across') {
-                // Starting col is placedCol - newIdx
-                const startCol = placedWord.cells[placedIdx].col - newIdx;
-                const row = placedWord.cells[placedIdx].row;
-                
-                // Generate cells for horizontal word
-                for (let j = 0; j < wordLetters.length; j++) {
-                  newCells.push({ row, col: startCol + j });
-                }
-              } else {
-                // Starting row is placedRow - newIdx
-                const startRow = placedWord.cells[placedIdx].row - newIdx;
-                const col = placedWord.cells[placedIdx].col;
-                
-                // Generate cells for vertical word
-                for (let j = 0; j < wordLetters.length; j++) {
-                  newCells.push({ row: startRow + j, col });
-                }
-              }
-              
-              // Check if this placement overlaps with existing words incorrectly
-              let isValidPlacement = true;
-              const cellsUsed = new Set();
-              
-              // Check each cell of the new word
-              for (let cellIdx = 0; cellIdx < newCells.length; cellIdx++) {
-                const cell = newCells[cellIdx];
-                const cellKey = `${cell.row}-${cell.col}`;
-                
-                // Check if this cell is already used
-                if (cellsUsed.has(cellKey)) {
-                  isValidPlacement = false;
-                  break;
-                }
-                
-                // Add this cell to used set
-                cellsUsed.add(cellKey);
-                
-                // Check against all placed words
-                for (const existingWord of placedWords) {
-                  for (let existingIdx = 0; existingIdx < existingWord.cells.length; existingIdx++) {
-                    const existingCell = existingWord.cells[existingIdx];
-                    
-                    // If coordinates match, check if letter matches
-                    if (cell.row === existingCell.row && cell.col === existingCell.col) {
-                      // This is an intersection - must have the same letter
-                      const existingLetter = existingWord.answer[existingIdx];
-                      const newLetter = wordLetters[cellIdx];
-                      
-                      if (existingLetter.toLowerCase() !== newLetter.toLowerCase()) {
-                        isValidPlacement = false;
-                        break;
-                      }
-                    }
-                  }
-                  if (!isValidPlacement) break;
-                }
-                if (!isValidPlacement) break;
-              }
-              
-              // Calculate placement score - prioritize intersections and centered placements
-              if (isValidPlacement) {
-                let score = 10; // Base score for a valid placement
-                
-                // Prefer more centered placements
-                const centerRow = 5;
-                const centerCol = 5;
-                const rowDist = Math.abs(newCells[0].row - centerRow);
-                const colDist = Math.abs(newCells[0].col - centerCol);
-                score -= (rowDist + colDist) * 0.1;
-                
-                // Prefer multiple intersections
-                let intersectionCount = 0;
-                for (const cell of newCells) {
-                  for (const existingWord of placedWords) {
-                    for (const existingCell of existingWord.cells) {
-                      if (cell.row === existingCell.row && cell.col === existingCell.col) {
-                        intersectionCount++;
-                      }
-                    }
-                  }
-                }
-                score += intersectionCount * 5;
-                
-                // Update best placement if this is better
-                if (score > bestScore) {
-                  bestScore = score;
-                  bestPlacement = {
-                    direction: newDirection,
-                    cells: newCells
-                  };
-                }
-              }
-            }
-          }
-        }
-      }
-      
-      if (bestPlacement) {
-        // We found a valid intersection
-        wordToPlace.direction = bestPlacement.direction;
-        wordToPlace.cells = bestPlacement.cells;
-        placedWords.push(wordToPlace);
-      } else {
-        // No valid intersection - place word separately
-        const direction = Math.random() > 0.5 ? 'across' : 'down';
-        const cells = [];
-        
-        // Find a free spot
-        let row, col;
-        let found = false;
-        
-        // Try several positions
-        for (row = 2; row < 12 && !found; row += 2) {
-          for (col = 2; col < 12 && !found; col += 2) {
-            let validPos = true;
+      // Look for shared letters
+      for (let placedIdx = 0; placedIdx < placedLetters.length; placedIdx++) {
+        for (let newIdx = 0; newIdx < wordLetters.length; newIdx++) {
+          // Found a shared letter
+          if (placedLetters[placedIdx].toLowerCase() === wordLetters[newIdx].toLowerCase()) {
+            // Try to place the new word perpendicular to the placed word at this intersection
+            const newDirection = placedWord.direction === 'across' ? 'down' : 'across';
             
-            // Check if this position works
-            for (let j = 0; j < wordLetters.length; j++) {
-              const checkRow = direction === 'across' ? row : row + j;
-              const checkCol = direction === 'across' ? col + j : col;
-              
-              // Check if this position conflicts with any placed word
-              for (const placedWord of placedWords) {
-                for (const placedCell of placedWord.cells) {
-                  if (checkRow === placedCell.row && checkCol === placedCell.col) {
-                    validPos = false;
-                    break;
-                  }
-                }
-                if (!validPos) break;
-              }
-              if (!validPos) break;
-            }
+            // Calculate the intersection cell position
+            const intersectionCell = placedWord.cells[placedIdx];
             
-            if (validPos) {
-              found = true;
+            // Calculate where the new word would start
+            let newStartRow, newStartCol;
+            const newCells = [];
+            
+            if (newDirection === 'across') {
+              // New word goes horizontally
+              newStartRow = intersectionCell.row;
+              newStartCol = intersectionCell.col - newIdx;
               
-              // Create cells for the word
+              // Create cells for the new word
               for (let j = 0; j < wordLetters.length; j++) {
-                if (direction === 'across') {
-                  cells.push({ row, col: col + j });
-                } else {
-                  cells.push({ row: row + j, col });
-                }
+                newCells.push({ 
+                  row: newStartRow, 
+                  col: newStartCol + j 
+                });
+              }
+            } else {
+              // New word goes vertically (down)
+              newStartRow = intersectionCell.row - newIdx;
+              newStartCol = intersectionCell.col;
+              
+              // Create cells for the new word
+              for (let j = 0; j < wordLetters.length; j++) {
+                newCells.push({ 
+                  row: newStartRow + j, 
+                  col: newStartCol 
+                });
+              }
+            }
+            
+            // Check if this placement is valid (no conflicts, within bounds)
+            if (isValidPlacement(newCells, placedWords, wordToPlace.answer)) {
+              // Calculate score for this placement
+              const score = calculatePlacementScore(newCells, placedWords, wordLetters.length);
+              
+              if (score > bestScore) {
+                bestScore = score;
+                bestPlacement = {
+                  direction: newDirection,
+                  cells: newCells,
+                  intersectsWith: placedWord,
+                  intersectionIndex: placedIdx,
+                  newWordIndex: newIdx
+                };
               }
             }
           }
         }
-        
-        // If we couldn't find a spot, just place it below all existing words
-        if (!found) {
-          const maxRow = Math.max(...placedWords.flatMap(w => w.cells.map(c => c.row))) + 2;
-          const startCol = 2;
-          
-          wordToPlace.direction = 'across'; // Default to across
-          wordToPlace.cells = wordLetters.map((_, j) => ({ 
-            row: maxRow, 
-            col: startCol + j 
-          }));
-        } else {
-          wordToPlace.direction = direction;
-          wordToPlace.cells = cells;
-        }
-        
-        placedWords.push(wordToPlace);
       }
     }
     
-    return placedWords;
-  };
+    // If we found a valid placement, use it
+    if (bestPlacement) {
+      wordToPlace.direction = bestPlacement.direction;
+      wordToPlace.cells = bestPlacement.cells;
+      wordToPlace.number = wordNumber++;
+      placedWords.push(wordToPlace);
+    } else {
+      // If no intersection found, place it separately (fallback)
+      const fallbackPlacement = findFallbackPlacement(wordToPlace, placedWords, wordNumber++);
+      if (fallbackPlacement) {
+        wordToPlace.direction = fallbackPlacement.direction;
+        wordToPlace.cells = fallbackPlacement.cells;
+        wordToPlace.number = fallbackPlacement.number;
+        placedWords.push(wordToPlace);
+      }
+    }
+  }
+  
+  return placedWords;
+};
+
+
+
+const isValidPlacement = (newCells, placedWords, newAnswer) => {
+  // Check bounds (basic boundary check)
+  for (const cell of newCells) {
+    if (cell.row < 0 || cell.col < 0 || cell.row > 20 || cell.col > 20) {
+      return false;
+    }
+  }
+  
+  // Get all occupied cells from placed words
+  const occupiedCells = new Set();
+  const intersectionCells = new Map(); // cell position -> {word, letterIndex, letter}
+  
+  placedWords.forEach(placedWord => {
+    placedWord.cells.forEach((cell, i) => {
+      const key = `${cell.row}-${cell.col}`;
+      occupiedCells.add(key);
+      intersectionCells.set(key, {
+        word: placedWord,
+        letterIndex: i,
+        letter: placedWord.answer[i].toLowerCase()
+      });
+    });
+  });
+  
+  // Check each cell of the new word
+  for (let i = 0; i < newCells.length; i++) {
+    const cell = newCells[i];
+    const cellKey = `${cell.row}-${cell.col}`;
+    const newLetter = newAnswer[i].toLowerCase();
+    
+    // If this cell is occupied, it must be a valid intersection
+    if (occupiedCells.has(cellKey)) {
+      const existing = intersectionCells.get(cellKey);
+      if (existing.letter !== newLetter) {
+        return false; // Letters don't match at intersection
+      }
+      // Valid intersection - continue checking
+      continue;
+    }
+    
+    // Check that no adjacent cells are occupied (except for valid intersections)
+    for (let rowOffset = -1; rowOffset <= 1; rowOffset++) {
+      for (let colOffset = -1; colOffset <= 1; colOffset++) {
+        if (rowOffset === 0 && colOffset === 0) continue; // Skip the current cell
+        
+        const adjacentRow = cell.row + rowOffset;
+        const adjacentCol = cell.col + colOffset;
+        const adjacentKey = `${adjacentRow}-${adjacentCol}`;
+        
+        if (occupiedCells.has(adjacentKey)) {
+          // Adjacent cell is occupied - this is only allowed if:
+          // 1. It's part of the same word we're trying to place (consecutive letters)
+          // 2. It's a perpendicular intersection we're creating
+          
+          const existingCell = intersectionCells.get(adjacentKey);
+          const isPartOfNewWord = newCells.some(newCell => 
+            newCell.row === adjacentRow && newCell.col === adjacentCol
+          );
+          
+          if (isPartOfNewWord) {
+            continue; // This adjacent cell is part of our new word, so it's fine
+          }
+          
+          // Check if this is a valid perpendicular arrangement
+          const isPerpendicularOk = checkPerpendicularPlacement(
+            cell, existingCell.word, newCells, placedWords
+          );
+          
+          if (!isPerpendicularOk) {
+            return false; // Invalid adjacent placement
+          }
+        }
+      }
+    }
+  }
+  
+  return true;
+};
+
+/**
+ * Check if perpendicular placement is valid (words cross properly)
+ */
+const checkPerpendicularPlacement = (newCell, existingWord, newCells, placedWords) => {
+  // Determine direction of new word
+  const newWordDirection = newCells.length > 1 && 
+    newCells[0].row === newCells[1].row ? 'across' : 'down';
+  
+  // If words are in the same direction, they shouldn't be adjacent
+  if (newWordDirection === existingWord.direction) {
+    return false;
+  }
+  
+  // For perpendicular words, they should only touch at intersection points
+  // Count how many cells the new word shares with the existing word
+  let intersectionCount = 0;
+  newCells.forEach(cell => {
+    existingWord.cells.forEach(existingCell => {
+      if (cell.row === existingCell.row && cell.col === existingCell.col) {
+        intersectionCount++;
+      }
+    });
+  });
+  
+  // Perpendicular words should intersect at exactly one point
+  return intersectionCount <= 1;
+};
+
+
+
+const calculatePlacementScore = (cells, placedWords, wordLength) => {
+  let score = 0;
+  
+  // Prefer longer words (they're worth more points)
+  score += wordLength * 10;
+  
+  // Prefer placements that are closer to the center
+  const centerRow = 10;
+  const centerCol = 10;
+  
+  for (const cell of cells) {
+    const distanceFromCenter = Math.abs(cell.row - centerRow) + Math.abs(cell.col - centerCol);
+    score -= distanceFromCenter; // Closer to center = higher score
+  }
+  
+  // Prefer placements that create multiple intersections
+  let intersectionCount = 0;
+  for (const cell of cells) {
+    for (const placedWord of placedWords) {
+      for (const placedCell of placedWord.cells) {
+        if (cell.row === placedCell.row && cell.col === placedCell.col) {
+          intersectionCount++;
+        }
+      }
+    }
+  }
+  score += intersectionCount * 50; // Intersections are valuable
+  
+  return score;
+};
+
+
+
+
+
+const findFallbackPlacement = (word, placedWords, wordNumber) => {
+  // Find an empty area to place the word
+  const wordLength = word.answer.length;
+  
+  // Try horizontal placement first
+  for (let row = 1; row < 15; row++) {
+    for (let col = 1; col < 15 - wordLength; col++) {
+      const cells = [];
+      for (let i = 0; i < wordLength; i++) {
+        cells.push({ row, col: col + i });
+      }
+      
+      if (isValidPlacement(cells, placedWords, word.answer)) {
+        return {
+          direction: 'across',
+          cells,
+          number: wordNumber
+        };
+      }
+    }
+  }
+  
+  // Try vertical placement
+  for (let row = 1; row < 15 - wordLength; row++) {
+    for (let col = 1; col < 15; col++) {
+      const cells = [];
+      for (let i = 0; i < wordLength; i++) {
+        cells.push({ row: row + i, col });
+      }
+      
+      if (isValidPlacement(cells, placedWords, word.answer)) {
+        return {
+          direction: 'down',
+          cells,
+          number: wordNumber
+        };
+      }
+    }
+  }
+  
+  return null; // Couldn't place the word
+};
+
+
+
+
+
+
   
   /**
    * Find available intersections between placed words and remaining words
@@ -1431,9 +1528,9 @@ const shuffleArray = (array) => {
                 <div className={styles.selectedWordInfo}>
                   <h3 className={styles.selectedWordLabel}>Selected Word: {selectedClue.answer.length} letters</h3>
                   <p className={styles.selectedWordClue}>
-                    {isLoadingClues && !cluesMap[selectedClue.answer] 
-                      ? "Generating clue..." 
-                      : getClueForWord(selectedClue.answer)}
+                   {isLoadingClues && !cluesMap[selectedClue.answer] 
+                  ? <WordLoadingAnimation word="LOADING" /> 
+                  : getClueForWord(selectedClue.answer)}
                   </p>
                 </div>
               )}

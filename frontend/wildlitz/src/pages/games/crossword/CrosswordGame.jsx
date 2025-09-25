@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/crossword/CrosswordGame.module.css';
-
+import { GameLoadingScreen, CrosswordGridLoader } from '../../../components/common/LoadingStates';
 // Import game screens
 import StoryScreen from './StoryScreen';
 import GameplayScreen from './GameplayScreen';
