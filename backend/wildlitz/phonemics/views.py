@@ -21,6 +21,68 @@ logger = logging.getLogger(__name__)
 # Create Supabase client using settings
 supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
+# Image utility functions for the new Supabase storage structure
+SUPABASE_STORAGE_BASE_URL = "https://eixryunajxcthprajaxk.supabase.co/storage/v1/object/public/IMG/SoundSafariAnimals/"
+
+def generate_animal_image_url(animal_name):
+    """
+    Generate the correct Supabase storage URL for an animal image
+    
+    Args:
+        animal_name (str): Name of the animal (will be converted to lowercase)
+    
+    Returns:
+        str: Complete URL to the animal image
+    """
+    if not animal_name:
+        return None
+    
+    # Convert animal name to lowercase and remove spaces
+    clean_name = animal_name.lower().replace(' ', '').replace('-', '')
+    
+    # Generate the complete URL
+    image_url = f"{SUPABASE_STORAGE_BASE_URL}{clean_name}.jpg"
+    
+    return image_url
+
+def get_fallback_image_url():
+    """
+    Get a fallback image URL for when animal images are not available
+    
+    Returns:
+        str: URL to a generic animal placeholder image
+    """
+    return f"{SUPABASE_STORAGE_BASE_URL}placeholder.jpg"
+
+def update_animal_image_url(animal_data):
+    """
+    Update animal data with the correct image URL
+    
+    Args:
+        animal_data (dict): Animal data dictionary
+    
+    Returns:
+        dict: Updated animal data with correct image URL
+    """
+    if isinstance(animal_data, dict) and 'name' in animal_data:
+        animal_data['image_url'] = generate_animal_image_url(animal_data['name'])
+        # Also set 'image' field for frontend compatibility
+        animal_data['image'] = animal_data['image_url']
+    
+    return animal_data
+
+def batch_update_animal_images(animals_list):
+    """
+    Update a list of animals with correct image URLs
+    
+    Args:
+        animals_list (list): List of animal data dictionaries
+    
+    Returns:
+        list: Updated list with correct image URLs
+    """
+    return [update_animal_image_url(animal) for animal in animals_list]
+
 def log_phonemics_activity(user, activity_type, question_data, user_answer, correct_answer, is_correct, time_spent, difficulty='medium'):
     """Helper function to log phonemics activities"""
     try:
@@ -101,6 +163,10 @@ def get_safari_animals_by_sound(request):
         
         logger.info(f"Found {len(correct_animals)} correct and {len(incorrect_animals)} incorrect animals")
         
+        # Update image URLs for all animals using new utility functions
+        correct_animals = batch_update_animal_images(correct_animals)
+        incorrect_animals = batch_update_animal_images(incorrect_animals)
+        
         # Determine number of animals needed based on difficulty
         difficulty_settings = {
             'easy': {'total': 6, 'correct_min': 2, 'correct_max': 4},
@@ -128,22 +194,44 @@ def get_safari_animals_by_sound(request):
         all_animals = selected_correct + selected_incorrect
         random.shuffle(all_animals)
         
-        # Transform data for frontend
+        # Transform data for frontend with updated image URLs
         animals_data = []
         for animal in all_animals:
             animals_data.append({
                 'id': animal['id'],
                 'name': animal['name'],
                 'hasSound': animal['target_sound'],
-                'image': animal['image_url'] or f"🐾",  # Fallback to emoji if no image
+                'image': animal.get('image_url') or animal.get('image') or generate_animal_image_url(animal['name']) or "🐾",  # Updated with new URL generation
+                'image_url': animal.get('image_url') or generate_animal_image_url(animal['name']),  # Ensure image_url is always present
                 'soundPosition': animal['sound_position'],
                 'environment': animal['environment']
             })
         
+        # Update correct and incorrect animals data with new image URLs
+        correct_animals_data = []
+        for animal in selected_correct:
+            correct_animals_data.append({
+                'id': animal['id'], 
+                'name': animal['name'], 
+                'hasSound': animal['target_sound'], 
+                'image': animal.get('image_url') or generate_animal_image_url(animal['name']),
+                'image_url': animal.get('image_url') or generate_animal_image_url(animal['name'])
+            })
+        
+        incorrect_animals_data = []
+        for animal in selected_incorrect:
+            incorrect_animals_data.append({
+                'id': animal['id'], 
+                'name': animal['name'], 
+                'hasSound': animal['target_sound'], 
+                'image': animal.get('image_url') or generate_animal_image_url(animal['name']),
+                'image_url': animal.get('image_url') or generate_animal_image_url(animal['name'])
+            })
+        
         return JsonResponse({
             'animals': animals_data,
-            'correctAnimals': [{'id': a['id'], 'name': a['name'], 'hasSound': a['target_sound'], 'image': a['image_url']} for a in selected_correct],
-            'incorrectAnimals': [{'id': a['id'], 'name': a['name'], 'hasSound': a['target_sound'], 'image': a['image_url']} for a in selected_incorrect],
+            'correctAnimals': correct_animals_data,
+            'incorrectAnimals': incorrect_animals_data,
             'debug': {
                 'total_correct_available': len(correct_animals),
                 'total_incorrect_available': len(incorrect_animals),
@@ -213,6 +301,12 @@ def get_sound_examples(request):
                 'f': ['fox', 'frog', 'fish', 'flamingo', 'ferret', 'falcon'],
                 'l': ['lion', 'leopard', 'llama', 'lobster', 'lizard', 'lynx'],
                 'z': ['zebra', 'zorilla', 'zander', 'zebu', 'zonkey', 'zorse'],
+                'g': ['giraffe', 'gorilla', 'goat', 'gecko', 'goose', 'gazelle'],
+                'w': ['whale', 'wolf', 'walrus', 'wombat', 'woodpecker', 'weasel'],
+                'd': ['dolphin', 'dog', 'deer', 'duck', 'donkey', 'dragonfly'],
+                'c': ['cat', 'cow', 'camel', 'chameleon', 'cheetah', 'cobra'],
+                'r': ['rabbit', 'rhino', 'raccoon', 'robin', 'rat', 'rooster'],
+                'h': ['horse', 'hippo', 'hamster', 'hawk', 'hedgehog', 'heron']
             }
             examples = examples.get(sound, ['animal', 'creature', 'beast'])
         
@@ -305,3 +399,60 @@ def submit_game_results(request):
     except Exception as e:
         logger.error(f"Error submitting game results: {str(e)}")
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def update_animal_images(request):
+    """
+    Utility endpoint to batch update animal image URLs
+    This can be called to migrate existing animals to new image URL format
+    """
+    try:
+        # Get all animals from the database
+        response = supabase.table('safari_animals').select('*').execute()
+        
+        if not response.data:
+            return Response({
+                'success': False,
+                'message': 'No animals found in database'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        animals = response.data
+        updated_count = 0
+        failed_updates = []
+        
+        for animal in animals:
+            try:
+                # Generate new image URL
+                new_image_url = generate_animal_image_url(animal['name'])
+                
+                # Update the animal record
+                update_response = supabase.table('safari_animals').update({
+                    'image_url': new_image_url
+                }).eq('id', animal['id']).execute()
+                
+                if update_response.data:
+                    updated_count += 1
+                    logger.info(f"Updated {animal['name']} with new image URL: {new_image_url}")
+                else:
+                    failed_updates.append(animal['name'])
+                    
+            except Exception as e:
+                failed_updates.append(f"{animal['name']} (Error: {str(e)})")
+                logger.error(f"Failed to update {animal['name']}: {str(e)}")
+        
+        return Response({
+            'success': True,
+            'message': f'Updated {updated_count} animal image URLs',
+            'updated_count': updated_count,
+            'total_animals': len(animals),
+            'failed_updates': failed_updates
+        })
+        
+    except Exception as e:
+        logger.error(f"Error updating animal images: {str(e)}")
+        return Response({
+            'success': False,
+            'error': str(e),
+            'message': 'Failed to update animal images'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

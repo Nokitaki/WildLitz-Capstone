@@ -3,8 +3,12 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Main game endpoints
     path('animals/', views.get_safari_animals_by_sound, name='get_safari_animals'),
     path('random-sound/', views.get_random_sound, name='get_random_sound'),
     path('sound-examples/', views.get_sound_examples, name='get_sound_examples'),
     path('submit-results/', views.submit_game_results, name='submit_game_results'),
+    
+    # NEW: Utility endpoint for updating image URLs
+    path('update-animal-images/', views.update_animal_images, name='update_animal_images'),
 ]

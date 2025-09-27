@@ -1,5 +1,7 @@
-// src/services/soundSafariApi.js
-const API_BASE_URL = 'http://localhost:8000/api/phonemics';  // Changed from soundsafari to phonemics
+// frontend/wildlitz/src/services/soundSafariApi.js
+import { processAnimalImages } from '../utils/imageUtils';
+
+const API_BASE_URL = 'http://localhost:8000/api/phonemics';
 
 export const fetchSafariAnimals = async (params) => {
   try {
@@ -16,7 +18,14 @@ export const fetchSafariAnimals = async (params) => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    return await response.json();
+    const data = await response.json();
+    
+    // Process animal images to ensure correct URLs
+    if (data.animals) {
+      data.animals = processAnimalImages(data.animals);
+    }
+    
+    return data;
   } catch (error) {
     console.error('Error fetching safari animals:', error);
     throw error;
