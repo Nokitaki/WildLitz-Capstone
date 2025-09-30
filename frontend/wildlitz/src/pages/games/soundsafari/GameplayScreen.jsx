@@ -1,13 +1,14 @@
-// src/pages/games/soundsafari/GameplayScreen.jsx <updated on 2025-05-16>
+// src/pages/games/soundsafari/GameplayScreen.jsx
+// FIXED VERSION - Adds Start button to ensure speech works in all browsers
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/safari/GameplayScreen.module.css';
-import { playSpeech } from '../../../utils/soundUtils';
+import { playSpeech, stopAllSpeech } from '../../../utils/soundUtils';
 
 /**
  * Component for the main gameplay screen
- * Features center stage animation for animal introductions
+ * FIXED: Requires user click to start speech (browser requirement)
  */
 const GameplayScreen = ({ 
   animals, 
@@ -17,34 +18,32 @@ const GameplayScreen = ({
   timeLimit,
   skipIntro = false
 }) => {
+  // ============ STATE MANAGEMENT ============
+  const [gameStarted, setGameStarted] = useState(false);
   const [selectedAnimals, setSelectedAnimals] = useState([]);
   const [timeRemaining, setTimeRemaining] = useState(timeLimit);
   const [showHint, setShowHint] = useState(false);
   const [isPlaying, setIsPlaying] = useState(null);
   const [currentIntroAnimal, setCurrentIntroAnimal] = useState(null);
   const [showCenterStage, setShowCenterStage] = useState(false);
-  const [isIntroducing, setIsIntroducing] = useState(false); // For UI updates
+  const [isIntroducing, setIsIntroducing] = useState(false);
   
-  // Use refs to track state and prevent duplicate calls
+  // ============ REFS FOR STATE TRACKING ============
   const timerRef = useRef(null);
   const isIntroducingRef = useRef(false);
   const hasIntroducedRef = useRef(false);
-  const currentAnimalIndexRef = useRef(0);
   const readCountRef = useRef(0);
-  
-  // Multiple layers of protection for intro speech
   const introPlayedRef = useRef(false);
   const introSpeechInProgressRef = useRef(false);
-  const componentMountedRef = useRef(false);
   
-  // Format time as MM:SS
+  // ============ HELPER FUNCTIONS ============
+  
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
   
-  // Get position text
   const getPositionText = () => {
     switch(soundPosition) {
       case 'beginning': return 'at the beginning';
@@ -54,24 +53,26 @@ const GameplayScreen = ({
     }
   };
   
-  // Generate intro speech
   const generateIntroSpeech = () => {
     const positionText = getPositionText();
     return `Let's find the animals with the "${targetSound}" sound ${positionText} of their names! Listen carefully and select all the matching animals.`;
   };
   
-  // Play intro speech with multiple guards
+  // ============ SPEECH FUNCTIONS ============
+  
   const playIntroSpeech = () => {
-    // Triple check to prevent duplicate calls
     if (introPlayedRef.current || introSpeechInProgressRef.current || skipIntro) {
+      console.log('⏭️ Skipping intro speech');
       return Promise.resolve();
     }
     
+    console.log('🎤 Playing intro speech...');
     introSpeechInProgressRef.current = true;
     const speechText = generateIntroSpeech();
     
     return new Promise((resolve) => {
       playSpeech(speechText, 0.9, () => {
+        console.log('✅ Intro speech completed');
         introPlayedRef.current = true;
         introSpeechInProgressRef.current = false;
         resolve();
@@ -79,86 +80,21 @@ const GameplayScreen = ({
     });
   };
   
-  // Start the entire game sequence
-  const startGameSequence = async () => {
-    // Prevent multiple initializations
-    if (componentMountedRef.current || hasIntroducedRef.current) {
-      return;
-    }
-    
-    componentMountedRef.current = true;
-    
-    try {
-      if (!skipIntro) {
-        // Step 1: Play intro speech
-        await playIntroSpeech();
-        
-        // Step 2: Small pause after intro
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Step 3: Introduce animals
-        await introduceAllAnimals();
-      } else {
-        // Skip intro, mark as completed
-        introPlayedRef.current = true;
-        hasIntroducedRef.current = true;
-        
-        // Start timer immediately
-        startTimer();
-      }
-    } catch (error) {
-      console.error('Error in game sequence:', error);
-      // Fallback: start timer if anything fails
-      startTimer();
-    }
-  };
-  
-  // Initialize game on component mount - SINGLE CALL
-  useEffect(() => {
-    // Immediate execution, only once
-    startGameSequence();
-    
-    // Cleanup on unmount
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-  }, []); // Empty deps - run only once ever
-  
-  // Start the timer
-  const startTimer = () => {
-    if (timeLimit > 0 && !timerRef.current) {
-      timerRef.current = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-            handleSubmit();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-  };
-  
-  // Read animal name exactly twice
   const readAnimalTwice = (animalName) => {
     return new Promise((resolve) => {
       readCountRef.current = 0;
       
       const readOnce = () => {
         readCountRef.current++;
+        console.log(`🔊 Reading "${animalName}" (${readCountRef.current}/2)`);
+        
         playSpeech(animalName, 0.9, () => {
           if (readCountRef.current === 1) {
-            // After first read, wait then read again
             setTimeout(() => {
               readOnce();
             }, 500);
           } else if (readCountRef.current === 2) {
-            // After second read, we're done
+            console.log(`✅ Finished reading "${animalName}"`);
             setTimeout(() => {
               resolve();
             }, 800);
@@ -170,18 +106,15 @@ const GameplayScreen = ({
     });
   };
   
-  // Introduce single animal
   const introduceSingleAnimal = (animal) => {
     return new Promise((resolve) => {
-      // Show animal in center
+      console.log(`🐾 Introducing: ${animal.name}`);
+      
       setCurrentIntroAnimal(animal);
       setShowCenterStage(true);
       
-      // Wait for animation, then read twice
       setTimeout(async () => {
         await readAnimalTwice(animal.name);
-        
-        // Hide animal after reading
         setCurrentIntroAnimal(null);
         setTimeout(() => {
           resolve();
@@ -190,45 +123,41 @@ const GameplayScreen = ({
     });
   };
   
-  // Main animal introduction sequence
   const introduceAllAnimals = () => {
     return new Promise(async (resolve) => {
-      // Prevent multiple calls
       if (isIntroducingRef.current || hasIntroducedRef.current) {
+        console.log('⏭️ Animals already introduced, skipping');
         resolve();
         return;
       }
       
+      console.log('🎯 Starting animal introductions...');
       isIntroducingRef.current = true;
       setIsIntroducing(true);
       hasIntroducedRef.current = true;
-      currentAnimalIndexRef.current = 0;
       
       try {
-        // Introduce each animal sequentially
         for (let i = 0; i < animals.length; i++) {
           await introduceSingleAnimal(animals[i]);
           
-          // Small delay between animals (except for the last one)
           if (i < animals.length - 1) {
             await new Promise(resolve => setTimeout(resolve, 200));
           }
         }
         
-        // All animals introduced
+        console.log('✅ All animals introduced');
+        
         setShowCenterStage(false);
         isIntroducingRef.current = false;
         setIsIntroducing(false);
         
-        // Wait a bit then start timer
         setTimeout(() => {
           startTimer();
           resolve();
         }, 500);
         
       } catch (error) {
-        console.error('Error introducing animals:', error);
-        // Cleanup on error
+        console.error('❌ Error introducing animals:', error);
         setShowCenterStage(false);
         isIntroducingRef.current = false;
         setIsIntroducing(false);
@@ -238,10 +167,90 @@ const GameplayScreen = ({
     });
   };
   
-  // Toggle animal selection
+  // ============ GAME SEQUENCE ============
+  
+  const startGameSequence = async () => {
+    console.log('🎮 Starting game sequence, skipIntro:', skipIntro);
+    
+    try {
+      if (!skipIntro) {
+        console.log('📢 Step 1: Playing intro speech...');
+        await playIntroSpeech();
+        
+        console.log('⏸️ Step 2: Pause after intro...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        console.log('🐾 Step 3: Introducing animals...');
+        await introduceAllAnimals();
+      } else {
+        console.log('⏭️ Skipping intro, starting timer immediately');
+        introPlayedRef.current = true;
+        hasIntroducedRef.current = true;
+        startTimer();
+      }
+    } catch (error) {
+      console.error('❌ Error in game sequence:', error);
+      startTimer();
+    }
+  };
+  
+  // Handle start button click - THIS ENSURES USER INTERACTION
+  const handleStartGame = () => {
+    console.log('🚀 User clicked Start - beginning game sequence');
+    setGameStarted(true);
+    // Small delay to let UI update
+    setTimeout(() => {
+      startGameSequence();
+    }, 100);
+  };
+  
+  // ============ LIFECYCLE - CRITICAL CLEANUP ============
+  
+  useEffect(() => {
+    console.log('🚀 GameplayScreen mounted');
+    
+    return () => {
+      console.log('🛑 GameplayScreen unmounting - stopping all speech');
+      stopAllSpeech();
+      
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      
+      isIntroducingRef.current = false;
+      hasIntroducedRef.current = false;
+    };
+  }, []);
+  
+  // ============ TIMER MANAGEMENT ============
+  
+  const startTimer = () => {
+    console.log('⏱️ Starting timer with timeLimit:', timeLimit);
+    
+    if (timeLimit > 0 && !timerRef.current) {
+      timerRef.current = setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev <= 1) {
+            console.log('⏰ Time expired!');
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+            handleSubmit();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+  };
+  
+  // ============ USER INTERACTION HANDLERS ============
+  
   const handleToggleSelect = (animal) => {
-    // Prevent selection during introduction
-    if (isIntroducingRef.current) return;
+    if (isIntroducingRef.current) {
+      console.log('⚠️ Cannot select during introduction');
+      return;
+    }
     
     setSelectedAnimals(prev => {
       if (prev.some(a => a.id === animal.id)) {
@@ -251,18 +260,15 @@ const GameplayScreen = ({
     });
   };
   
-  // Play animal name sound
   const playAnimalSound = (e, animal) => {
     e.stopPropagation();
     
-    // Prevent manual play during introduction
     if (isIntroducingRef.current || isPlaying !== null) return;
     
     setIsPlaying(animal.id);
     playSpeech(animal.name, 0.8, () => setIsPlaying(null));
   };
   
-  // Show hint
   const handleShowHint = () => {
     setShowHint(true);
     setTimeout(() => {
@@ -270,59 +276,80 @@ const GameplayScreen = ({
     }, 3000);
   };
   
-  // Submit answers
   const handleSubmit = () => {
+    console.log('📤 Round ending - stopping all speech');
+    stopAllSpeech();
+    
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    
     onSubmit(selectedAnimals);
   };
   
-  // Clear selection
   const handleClearSelection = () => {
     if (isIntroducingRef.current) return;
     setSelectedAnimals([]);
   };
   
-  // Safety fallback - ensure game starts even if intro fails
-  useEffect(() => {
-    // Fallback timer: if nothing has happened in 10 seconds, force start
-    const fallbackTimer = setTimeout(() => {
-      if (!timerRef.current && !isIntroducingRef.current) {
-        console.log('Fallback: Force starting timer');
-        introPlayedRef.current = true;
-        hasIntroducedRef.current = true;
-        isIntroducingRef.current = false;
-        setIsIntroducing(false);
-        setShowCenterStage(false);
-        setCurrentIntroAnimal(null);
-        startTimer();
-      }
-    }, 10000);
-    
-    return () => clearTimeout(fallbackTimer);
-  }, []);
-  const debugInfo = {
-    introPlayed: introPlayedRef.current,
-    introInProgress: introSpeechInProgressRef.current,
-    componentMounted: componentMountedRef.current,
-    hasIntroduced: hasIntroducedRef.current,
-    isIntroducing: isIntroducingRef.current,
-    skipIntro,
-    animalsCount: animals.length
-  };
-  
-  // Log debug info
-  useEffect(() => {
-    console.log('GameplayScreen Debug:', debugInfo);
-  });
-  
-  // Check if animal is highlighted
   const isAnimalHighlighted = (animal) => {
     return currentIntroAnimal && currentIntroAnimal.id === animal.id;
   };
   
+  // ============ RENDER ============
+  
+  // Show start screen if game hasn't started
+  if (!gameStarted) {
+    return (
+      <div className={styles.gameplayContainer}>
+        <div className={styles.gameplayCard}>
+          <motion.div 
+            className={styles.startScreen}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className={styles.startContent}>
+              <h2 className={styles.startTitle}>
+                🔍 Sound Safari Hunt
+              </h2>
+              <p className={styles.startSubtitle}>
+                Find animals with the <span className={styles.targetSoundText}>"{targetSound}"</span> sound!
+              </p>
+              
+              <div className={styles.startInstructions}>
+                <div className={styles.startInstruction}>
+                  <span className={styles.startIcon}>🔊</span>
+                  <p>Listen carefully to the animal names</p>
+                </div>
+                <div className={styles.startInstruction}>
+                  <span className={styles.startIcon}>👆</span>
+                  <p>Select animals with the "{targetSound}" sound {getPositionText()}</p>
+                </div>
+                <div className={styles.startInstruction}>
+                  <span className={styles.startIcon}>⏱️</span>
+                  <p>Beat the clock - you have {timeLimit} seconds!</p>
+                </div>
+              </div>
+              
+              <motion.button
+                className={styles.startButton}
+                onClick={handleStartGame}
+                whileHover={{ scale: 1.05, boxShadow: "0 8px 16px rgba(0, 0, 0, 0.2)" }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span className={styles.startButtonIcon}>🎮</span>
+                Start Game
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Main game screen
   return (
     <div className={styles.gameplayContainer}>
       <div className={styles.gameplayCard}>
@@ -506,7 +533,6 @@ const GameplayScreen = ({
             </div>
             
             <div className={styles.actionButtons}>
-            <div className={styles.actionButtons}>
               <motion.button 
                 className={styles.clearButton}
                 whileHover={{ scale: 1.03 }}
@@ -529,7 +555,6 @@ const GameplayScreen = ({
                 <span className={styles.buttonIcon}>✅</span>
                 Submit Answer
               </motion.button>
-            </div>
             </div>
           </div>
         </div>

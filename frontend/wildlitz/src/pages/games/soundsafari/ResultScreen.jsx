@@ -1,13 +1,15 @@
-// src/pages/games/soundsafari/ResultScreen.jsx <updated on 2025-04-27>
+// src/pages/games/soundsafari/ResultScreen.jsx
+// FIXED: Score shows 0% instead of NaN%
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/safari/ResultsScreen.module.css';
-import { playCelebrationSound, playSpeech } from '../../../utils/soundUtils';
+import { playCelebrationSound, playSpeech, stopAllSpeech } from '../../../utils/soundUtils';
 import WildLitzFox from '../../../assets/img/wildlitz-idle.png';
 
 /**
  * Results screen component displaying round results
- * Redesigned with horizontal layout and no overflow/scroll
+ * FIXED: Handles NaN scores properly
  */
 const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
   const [isPlaying, setIsPlaying] = useState(null);
@@ -35,8 +37,26 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
     !selectedAnimals.some(a => a.id === animal.id)
   );
   
-  // Calculate percentage score
-  const score = Math.round((correctSelected.length / correctAnimals.length) * 100);
+  // Calculate percentage score - FIXED: Handle NaN cases
+  const calculateScore = () => {
+    // If there are no correct animals, score is 0
+    if (!correctAnimals || correctAnimals.length === 0) {
+      return 0;
+    }
+    
+    // Calculate the score
+    const rawScore = (correctSelected.length / correctAnimals.length) * 100;
+    
+    // If result is NaN or Infinity, return 0
+    if (isNaN(rawScore) || !isFinite(rawScore)) {
+      return 0;
+    }
+    
+    // Return rounded score
+    return Math.round(rawScore);
+  };
+  
+  const score = calculateScore();
   
   // Determine feedback message based on score
   const getFeedbackMessage = () => {
@@ -80,6 +100,14 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
     }
   }, [score]);
   
+  // Cleanup speech on unmount
+  useEffect(() => {
+    return () => {
+      console.log('ResultsScreen unmounting - stopping speech');
+      stopAllSpeech();
+    };
+  }, []);
+  
   // Get character feedback based on score
   const getCharacterFeedback = () => {
     const correctMessage = `You found ${correctSelected.length} out of ${correctAnimals.length} animals with the "${targetSound}" sound!`;
@@ -90,9 +118,23 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
       return `Great work! ${correctMessage} You're becoming a sound expert!`;
     } else if (score >= 50) {
       return `Good effort! ${correctMessage} Keep practicing and you'll get even better.`;
+    } else if (score === 0) {
+      return `${correctMessage} Don't worry! Let's try again and listen more carefully to the sounds.`;
     } else {
       return `${correctMessage} Let's keep practicing to get better at hearing the sounds.`;
     }
+  };
+  
+  // Handle next round - stop speech before continuing
+  const handleNextRoundClick = () => {
+    stopAllSpeech();
+    onNextRound();
+  };
+  
+  // Handle try again - stop speech before retrying
+  const handleTryAgainClick = () => {
+    stopAllSpeech();
+    onTryAgain();
   };
   
   return (
@@ -135,8 +177,6 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
           </h2>
         </div>
         
-       
-        
         {/* Score Banner */}
         <div className={styles.scoreSection}>
           <div className={styles.scoreBanner} style={{ 
@@ -159,7 +199,14 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
           </div>
         </div>
         
-        {/* Results Content Grid */}
+        {/* Feedback Message Box */}
+        <div className={styles.feedbackMessageBox}>
+          <div className={styles.feedbackContent}>
+            {getCharacterFeedback()}
+          </div>
+        </div>
+        
+        {/* Results Content */}
         <div className={styles.resultsContent}>
           {/* Correct Answers Column */}
           <div className={styles.resultsColumn}>
@@ -168,211 +215,127 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
                 <span className={styles.sectionIcon}>✅</span>
                 <h3>Correct Answers!</h3>
               </div>
+              
               {correctSelected.length > 0 ? (
                 <div className={styles.animalsGrid}>
-                  {correctSelected.map(animal => (
-                    <motion.div 
+                  {correctSelected.map((animal) => (
+                    <motion.div
                       key={animal.id}
                       className={styles.animalResult}
+                      whileHover={{ scale: 1.05 }}
                       onClick={() => handlePlaySound(animal)}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: Math.random() * 0.3 }}
                     >
-                      <div className={styles.animalIcon}>
-                        {animal.image && animal.image.startsWith('http') ? (
-                          <img 
-                            src={animal.image} 
-                            alt={animal.name}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                              borderRadius: '8px'
-                            }}
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'block';
-                            }}
-                          />
+                      <div className={styles.animalResultImage}>
+                        {animal.image && (animal.image.startsWith('http') || animal.image.startsWith('data:')) ? (
+                          <img src={animal.image} alt={animal.name} />
                         ) : (
                           <span>{animal.image || '🐾'}</span>
                         )}
-                        {animal.image && animal.image.startsWith('http') && (
-                          <span style={{ display: 'none' }}>{animal.image || '🐾'}</span>
-                        )}
                       </div>
-                      <div className={styles.animalName}>
-                        {animal.name}
-                        <motion.div 
-                          className={styles.soundIcon}
-                          animate={isPlaying === animal.id ? { 
-                            scale: [1, 1.2, 1],
-                            color: ['#4a9240', '#ffd600', '#4a9240']
-                          } : {}}
-                          transition={{ duration: 0.5, repeat: Infinity }}
-                        >
-                          🔊
-                        </motion.div>
-                      </div>
+                      <div className={styles.animalResultName}>{animal.name}</div>
+                      <button className={styles.playSoundBtn}>
+                        {isPlaying === animal.id ? '🔊' : '🔊'}
+                      </button>
                     </motion.div>
                   ))}
                 </div>
               ) : (
-                <div className={styles.emptyMessage}>
+                <div className={styles.emptyState}>
                   <p>You didn't find any animals with the "{targetSound}" sound.</p>
                 </div>
               )}
             </div>
           </div>
           
-          {/* Middle Column - Incorrect Answers */}
-          <div className={styles.resultsColumn}>
-            {incorrectSelected.length > 0 && (
+          {/* Missed Animals Column */}
+          {missedCorrect.length > 0 && (
+            <div className={styles.resultsColumn}>
+              <div className={styles.resultSection}>
+                <div className={styles.sectionHeader}>
+                  <span className={styles.sectionIcon}>❗</span>
+                  <h3>You Missed These</h3>
+                </div>
+                
+                <div className={styles.animalsGrid}>
+                  {missedCorrect.map((animal) => (
+                    <motion.div
+                      key={animal.id}
+                      className={styles.animalResult}
+                      whileHover={{ scale: 1.05 }}
+                      onClick={() => handlePlaySound(animal)}
+                    >
+                      <div className={styles.animalResultImage}>
+                        {animal.image && (animal.image.startsWith('http') || animal.image.startsWith('data:')) ? (
+                          <img src={animal.image} alt={animal.name} />
+                        ) : (
+                          <span>{animal.image || '🐾'}</span>
+                        )}
+                      </div>
+                      <div className={styles.animalResultName}>{animal.name}</div>
+                      <button className={styles.playSoundBtn}>
+                        {isPlaying === animal.id ? '🔊' : '🔊'}
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Incorrect Selections Column */}
+          {incorrectSelected.length > 0 && (
+            <div className={styles.resultsColumn}>
               <div className={styles.resultSection}>
                 <div className={styles.sectionHeader}>
                   <span className={styles.sectionIcon}>❌</span>
-                  <h3>Incorrect Choices</h3>
+                  <h3>Incorrect Selections</h3>
                 </div>
+                
                 <div className={styles.animalsGrid}>
-                  {incorrectSelected.map(animal => (
-                    <motion.div 
+                  {incorrectSelected.map((animal) => (
+                    <motion.div
                       key={animal.id}
-                      className={`${styles.animalResult} ${styles.incorrect}`}
+                      className={styles.animalResult}
+                      whileHover={{ scale: 1.05 }}
                       onClick={() => handlePlaySound(animal)}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: Math.random() * 0.3 + 0.2 }}
                     >
-                      <div className={styles.animalIcon}>
-                        {animal.image && animal.image.startsWith('http') ? (
-                          <img 
-                            src={animal.image} 
-                            alt={animal.name}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                              borderRadius: '8px'
-                            }}
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'block';
-                            }}
-                          />
+                      <div className={styles.animalResultImage}>
+                        {animal.image && (animal.image.startsWith('http') || animal.image.startsWith('data:')) ? (
+                          <img src={animal.image} alt={animal.name} />
                         ) : (
                           <span>{animal.image || '🐾'}</span>
                         )}
-                        {animal.image && animal.image.startsWith('http') && (
-                          <span style={{ display: 'none' }}>{animal.image || '🐾'}</span>
-                        )}
                       </div>
-                      <div className={styles.animalName}>
-                        {animal.name}
-                        <motion.div 
-                          className={styles.soundIcon}
-                          animate={isPlaying === animal.id ? { 
-                            scale: [1, 1.2, 1],
-                            color: ['#4a9240', '#ffd600', '#4a9240']
-                          } : {}}
-                          transition={{ duration: 0.5, repeat: Infinity }}
-                        >
-                          🔊
-                        </motion.div>
-                      </div>
+                      <div className={styles.animalResultName}>{animal.name}</div>
+                      <button className={styles.playSoundBtn}>
+                        {isPlaying === animal.id ? '🔊' : '🔊'}
+                      </button>
                     </motion.div>
                   ))}
                 </div>
               </div>
-            )}
-          </div>
-          
-          {/* Right Column - Missed Animals */}
-          <div className={styles.resultsColumn}>
-            {missedCorrect.length > 0 && (
-              <div className={styles.resultSection}>
-                <div className={styles.sectionHeader}>
-                  <span className={styles.sectionIcon}>🔍</span>
-                  <h3>You Missed These</h3>
-                </div>
-                <div className={styles.animalsGrid}>
-                  {missedCorrect.map(animal => (
-                    <motion.div 
-                      key={animal.id}
-                      className={`${styles.animalResult} ${styles.missed}`}
-                      onClick={() => handlePlaySound(animal)}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: Math.random() * 0.3 + 0.4 }}
-                    >
-                      <div className={styles.animalIcon}>
-                        {animal.image && animal.image.startsWith('http') ? (
-                          <img 
-                            src={animal.image} 
-                            alt={animal.name} 
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                              borderRadius: '8px'
-                            }}
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'block';
-                            }}
-                          />
-                        ) : (
-                          <span>{animal.image || '🐾'}</span>
-                        )}
-                        {animal.image && animal.image.startsWith('http') && (
-                          <span style={{ display: 'none' }}>{animal.image || '🐾'}</span>
-                        )}
-                      </div>
-                      <div className={styles.animalName}>
-                        {animal.name}
-                        <motion.div 
-                          className={styles.soundIcon}
-                          animate={isPlaying === animal.id ? { 
-                            scale: [1, 1.2, 1],
-                            color: ['#4a9240', '#ffd600', '#4a9240']
-                          } : {}}
-                          transition={{ duration: 0.5, repeat: Infinity }}
-                        >
-                          🔊
-                        </motion.div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
         
         {/* Action Buttons */}
         <div className={styles.actionButtons}>
-          <motion.button 
+          <motion.button
             className={styles.tryAgainButton}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            onClick={onTryAgain}
+            onClick={handleTryAgainClick}
           >
             <span className={styles.buttonIcon}>🔄</span>
             Try Again
           </motion.button>
-          <motion.button 
+          <motion.button
             className={styles.nextButton}
             whileHover={{ scale: 1.03, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" }}
             whileTap={{ scale: 0.97 }}
-            onClick={onNextRound}
+            onClick={handleNextRoundClick}
           >
-            <span className={styles.buttonIcon}>⏩</span>
+            <span className={styles.buttonIcon}>▶️</span>
             Next Challenge
           </motion.button>
         </div>
