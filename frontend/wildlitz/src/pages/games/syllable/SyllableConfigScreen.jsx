@@ -1,11 +1,11 @@
-// Update the categories to match the database exactly
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import styles from '../../../styles/games/syllable/SyllableConfigScreen.module.css';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
+import styles from "../../../styles/games/syllable/SyllableConfigScreen.module.css";
 
 const SyllableConfigScreen = ({ onStartGame }) => {
   // State management
-  const [difficulty, setDifficulty] = useState('easy');
+  const [difficulty, setDifficulty] = useState("easy");
   const [questionCount, setQuestionCount] = useState(10);
   const [selectedCategories, setSelectedCategories] = useState({
     animals: true,
@@ -15,152 +15,661 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     clothes: false,
     schoolSupplies: true,
     nature: true,
+    everydayWords: true,
   });
+
+  // AI Syllable Suggestion state
+  const [isSuggestingBreakdown, setIsSuggestingBreakdown] = useState(false);
+
+  const [showCategoryNotice, setShowCategoryNotice] = useState('');
+
+  const [showSearchModal, setShowSearchModal] = useState(false);
+
   const [showCustomWordModal, setShowCustomWordModal] = useState(false);
   const [customWords, setCustomWords] = useState([]);
-  const [newCustomWord, setNewCustomWord] = useState({ 
-    word: '', 
-    category: 'Custom Words',
+  // Enhanced custom word form state
+  const [newCustomWord, setNewCustomWord] = useState({
+    word: "",
+    syllableBreakdown: "",
+    syllableCount: 0,
+    category: "",
   });
-  const [audioRecording, setAudioRecording] = useState(null);
-  const [isRecording, setIsRecording] = useState(false);
 
-  // Load saved custom words from localStorage when component mounts
-  useEffect(() => {
-    const savedWords = localStorage.getItem('wildlitz_custom_words');
-    if (savedWords) {
-      try {
-        setCustomWords(JSON.parse(savedWords));
-      } catch (error) {
-        console.error("Error loading saved custom words:", error);
-      }
+  // Spelling check state
+  const [spellingError, setSpellingError] = useState(false);
+  const [spellingSuggestions, setSpellingSuggestions] = useState([]);
+
+  // Check spelling using a free API
+  const checkSpelling = async (word) => {
+    if (!word || word.length < 2) {
+      setSpellingError(false);
+      setSpellingSuggestions([]);
+      return;
     }
-  }, []);
 
-  // IMPORTANT: Make sure these category IDs and names match exactly with your database
+    try {
+      // Using LanguageTool API (free tier)
+      const response = await axios.post(
+        "https://api.languagetool.org/v2/check",
+        new URLSearchParams({
+          text: word,
+          language: "en-US",
+        })
+      );
+
+      if (response.data.matches && response.data.matches.length > 0) {
+        const match = response.data.matches[0];
+        if (match.rule.issueType === "misspelling") {
+          setSpellingError(true);
+          setSpellingSuggestions(
+            match.replacements.slice(0, 3).map((r) => r.value)
+          );
+        } else {
+          setSpellingError(false);
+          setSpellingSuggestions([]);
+        }
+      } else {
+        setSpellingError(false);
+        setSpellingSuggestions([]);
+      }
+    } catch (error) {
+      console.error("Error checking spelling:", error);
+      // Fail silently - spelling check is optional
+      setSpellingError(false);
+    }
+  };
+
+
+
+  // AI Validation state
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationResult, setValidationResult] = useState(null);
+
+  // Image upload state
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
+  // Audio recording state
+  const [isRecordingFullWord, setIsRecordingFullWord] = useState(false);
+  const [fullWordAudio, setFullWordAudio] = useState(null);
+  const [syllableAudios, setSyllableAudios] = useState({});
+  const [recordingSyllableIndex, setRecordingSyllableIndex] = useState(null);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+
+  // AI category suggestion
+  const [aiSuggestedCategory, setAiSuggestedCategory] = useState("");
+
+  // Form submission state
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Word existence check
+  const [wordExists, setWordExists] = useState(false);
+  const [existingWordData, setExistingWordData] = useState(null);
+
+  // Database Search Panel State
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchFilters, setSearchFilters] = useState({
+    categories: [],
+    has_audio: false,
+  });
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchIsLoading, setSearchIsLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const [searchTotalPages, setSearchTotalPages] = useState(0);
+  const [searchCurrentPage, setSearchCurrentPage] = useState(1);
+
+  const handleSearch = async (page = 1) => {
+    setSearchIsLoading(true);
+    setSearchError("");
+    setSearchCurrentPage(page);
+
+    try {
+      // Build query parameters
+      const params = new URLSearchParams({
+        q: searchTerm,
+        page: page,
+        has_audio: searchFilters.has_audio,
+      });
+      searchFilters.categories.forEach((cat) =>
+        params.append("categories[]", cat)
+      );
+
+      const response = await axios.get(
+        // 👇 CORRECTED IP ADDRESS HERE
+        `http://127.0.0.1:8000/api/syllabification/search-words/?${params.toString()}`
+      );
+
+      setSearchResults(response.data.results || []);
+      setSearchTotalPages(response.data.totalPages || 0);
+    } catch (error) {
+      console.error("Error searching words:", error);
+      setSearchError("Failed to fetch words. Please try again.");
+    } finally {
+      setSearchIsLoading(false);
+    }
+  };
+
+  // Trigger initial search when the SEARCH modal opens
+  useEffect(() => {
+    if (showSearchModal) {
+      handleSearch();
+    }
+  }, [showSearchModal]);
+
+  // Load custom words from database when modal opens
+  /*
+  useEffect(() => {
+    if (showCustomWordModal) {
+      //loadCustomWordsFromDB();
+    }
+  }, [showCustomWordModal]);
+  */
+ 
+  const loadCustomWordsFromDB = async () => {
+    try {
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/syllabification/get-custom-words/"
+      );
+      setCustomWords(response.data.words || []);
+    } catch (error) {
+      console.error("Error loading custom words:", error);
+    }
+  };
+
   const categories = [
-    { id: 'animals', name: 'Animals', icon: '🦁' },
-    { id: 'fruits', name: 'Fruits', icon: '🍎' },
-    { id: 'food', name: 'Food', icon: '🍕' },
-    { id: 'toys', name: 'Toys', icon: '🧸' },
-    { id: 'clothes', name: 'Clothes', icon: '👕' },
-    { id: 'schoolSupplies', name: 'School Supplies', icon: '✏️' },
-    { id: 'nature', name: 'Nature', icon: '🌿' },
+    { id: "animals", name: "Animals", icon: "🦁" },
+    { id: "fruits", name: "Fruits", icon: "🍎" },
+    { id: "food", name: "Food", icon: "🍕" },
+    { id: "toys", name: "Toys", icon: "🧸" },
+    { id: "clothes", name: "Clothes", icon: "👕" },
+    { id: "schoolSupplies", name: "School Supplies", icon: "✏️" },
+    { id: "nature", name: "Nature", icon: "🌿" },
+    { id: "everydayWords", name: "Everyday Words", icon: "🗣️" },
   ];
 
   const difficultyInfo = {
-    easy: { emoji: '😊', text: '1-2 syllables', color: '#4caf50' },
-    medium: { emoji: '🤔', text: '2-3 syllables', color: '#ff9800' },
-    hard: { emoji: '🧠', text: '3+ syllables', color: '#f44336' }
+    easy: { emoji: "😊", text: "1-2 syllables", color: "#4caf50" },
+    medium: { emoji: "🤔", text: "2-3 syllables", color: "#ff9800" },
+    hard: { emoji: "🧠", text: "3+ syllables", color: "#f44336" },
   };
 
-  // Toggle category selection
   const toggleCategory = (categoryId) => {
-    setSelectedCategories(prev => ({
+    setSelectedCategories((prev) => ({
       ...prev,
-      [categoryId]: !prev[categoryId]
+      [categoryId]: !prev[categoryId],
     }));
   };
 
-  // Select random categories
+  const handleFilterChange = (filterName, value, isChecked) => {
+    setSearchFilters((prevFilters) => {
+      const newFilters = { ...prevFilters };
+
+      if (filterName === "category") {
+        if (isChecked) {
+          newFilters.categories = [...newFilters.categories, value];
+        } else {
+          newFilters.categories = newFilters.categories.filter(
+            (cat) => cat !== value
+          );
+        }
+      } else {
+        // This now handles 'has_audio'
+        newFilters[filterName] = value;
+      }
+
+      return newFilters;
+    });
+  };
+
+  // We need to trigger a search when filters change. Modify this useEffect.
+  useEffect(() => {
+    // This effect now runs when the modal opens OR when filters change
+    if (showSearchModal) {
+      handleSearch(1); // Reset to page 1 on filter change
+    }
+  }, [showSearchModal, searchFilters]); // Add searchFilters to dependency array
+
   const selectRandomCategories = () => {
     const newCategories = {};
-    categories.forEach(category => {
+    categories.forEach((category) => {
       newCategories[category.id] = Math.random() > 0.5;
     });
-    
-    // Ensure at least one category is selected
-    if (!Object.values(newCategories).some(value => value)) {
+
+    if (!Object.values(newCategories).some((value) => value)) {
       const randomIndex = Math.floor(Math.random() * categories.length);
       newCategories[categories[randomIndex].id] = true;
     }
-    
+
     setSelectedCategories(newCategories);
   };
 
-  // Calculate syllable count automatically based on hyphens
-  const calculateSyllableCount = (breakdown) => {
-    if (!breakdown || !breakdown.includes('-')) return 1;
-    return breakdown.split('-').length;
-  };
-
-  // Update syllable breakdown and automatically calculate count
+  // Calculate syllable count from breakdown
   const updateSyllableBreakdown = (value) => {
-    const count = calculateSyllableCount(value);
-    setNewCustomWord(prev => ({
-      ...prev, 
-      syllableBreakdown: value,
-      syllableCount: count
+    const breakdown = value.trim();
+    const count = breakdown ? breakdown.split("-").length : 0;
+
+    setNewCustomWord((prev) => ({
+      ...prev,
+      syllableBreakdown: breakdown,
+      syllableCount: count,
     }));
+
+    // Reset validation when breakdown changes
+    setValidationResult(null);
   };
 
-  // Add a custom word
-  const addCustomWord = () => {
-    if (newCustomWord.word.trim() === '') return;
+  // Consolidated useEffect for all debounced actions on the 'Word' input
+  useEffect(() => {
+    const trimmedWord = newCustomWord.word.trim();
 
-    const wordToAdd = {
-      ...newCustomWord,
-      id: Date.now(), // Add unique ID
-    };
+    // Set a single timer for 800ms
+    const timer = setTimeout(() => {
+      if (trimmedWord) {
+        // Run all suggestions and checks from one place
+        fetchAiSyllableBreakdown(trimmedWord);
+        fetchAiCategorySuggestion(trimmedWord);
+        checkSpelling(trimmedWord);
+        checkWordExists(trimmedWord);
+      }
+    }, 800);
 
-    const updatedWords = [...customWords, wordToAdd];
-    setCustomWords(updatedWords);
-    
-    // Save to localStorage
-    try {
-      localStorage.setItem('wildlitz_custom_words', JSON.stringify(updatedWords));
-    } catch (error) {
-      console.error("Error saving to localStorage:", error);
+    // This cleanup function will run every time the user types a new letter,
+    // resetting the timer and preventing the functions from running too early.
+    return () => clearTimeout(timer);
+  }, [newCustomWord.word]);
+
+  // Auto-validate when both word and syllable breakdown are present
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (
+        newCustomWord.word.trim() &&
+        newCustomWord.syllableBreakdown.trim() &&
+        newCustomWord.syllableCount > 0
+      ) {
+        handleValidateSyllables();
+      }
+    }, 2000); // Changed from 1000 to 1500 (1.5 seconds)
+
+    return () => clearTimeout(timer);
+  }, [newCustomWord.word, newCustomWord.syllableBreakdown]);
+
+  // Check if word exists in database
+  const checkWordExists = async (word) => {
+    if (!word || word.length < 2) {
+      setWordExists(false);
+      setExistingWordData(null);
+      return;
     }
-    
-    // Reset form
-    setNewCustomWord({ 
-      word: '', 
-      category: 'Custom Words',
+
+    try {
+      const response = await axios.get(
+        `http://127.0.0.1:8000/api/syllabification/check-word-exists/?word=${word}`
+      );
+
+      if (response.data.exists) {
+        setWordExists(true);
+        setExistingWordData(response.data.word);
+      } else {
+        setWordExists(false);
+        setExistingWordData(null);
+      }
+    } catch (error) {
+      console.error("Error checking word existence:", error);
+    }
+  };
+
+  // Debounced word check
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (newCustomWord.word.trim()) {
+        checkWordExists(newCustomWord.word.trim());
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [newCustomWord.word]);
+
+  const handleValidateSyllables = async () => {
+    if (!newCustomWord.word || !newCustomWord.syllableBreakdown) {
+      alert("Please enter both word and syllable breakdown");
+      return;
+    }
+
+    setIsValidating(true);
+
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/syllabification/validate-syllable-structure/",
+        {
+          word: newCustomWord.word,
+          syllable_breakdown: newCustomWord.syllableBreakdown,
+        }
+      );
+
+      setValidationResult(response.data.validation);
+
+      // AI-suggest category based on word (Now runs every time)
+      try {
+        const categoryResponse = await axios.post(
+          "http://127.0.0.1:8000/api/syllabification/generate-ai-content/",
+          {
+            type: "category_suggestion",
+            word: newCustomWord.word,
+          }
+        );
+        
+        const suggestedCategory = categoryResponse.data.content;
+        if (suggestedCategory) {
+          // 1. Automatically update the form's category
+          setNewCustomWord(prev => ({ ...prev, category: suggestedCategory }));
+          
+          // 2. Show the notice with the suggested category
+          setShowCategoryNotice(suggestedCategory);
+
+          // 3. Set a timer to hide the notice after 5 seconds
+          setTimeout(() => {
+            setShowCategoryNotice('');
+          }, 5000);
+        }
+      } catch (error) {
+        console.error("Error getting AI category suggestion:", error);
+      }
+
+    } catch (error) {
+      console.error("Error validating syllables:", error);
+      alert("Failed to validate syllables. Please try again.");
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+
+
+  const fetchAiCategorySuggestion = async (word) => {
+    if (!word || word.length < 2) return; // Don't run on very short words
+    try {
+      const categoryResponse = await axios.post(
+        "http://127.0.0.1:8000/api/syllabification/generate-ai-content/",
+        {
+          type: "category_suggestion",
+          word: word,
+        }
+      );
+      
+      const suggestedCategory = categoryResponse.data.content;
+      if (suggestedCategory) {
+        // Automatically update the form's category
+        setNewCustomWord(prev => ({ ...prev, category: suggestedCategory }));
+        
+        // Show the timed notice
+        setShowCategoryNotice(suggestedCategory);
+        setTimeout(() => {
+          setShowCategoryNotice('');
+        }, 5000);
+      }
+    } catch (error) {
+      console.error("Error getting AI category suggestion:", error);
+    }
+  };
+
+  const fetchAiSyllableBreakdown = async (word) => {
+    // Don't fetch for very short words to save API calls
+    if (!word || word.length < 3) return;
+
+    setIsSuggestingBreakdown(true);
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/syllabification/generate-ai-content/",
+        {
+          type: "syllable_breakdown_suggestion",
+          word: word,
+        }
+      );
+
+      if (response.data.content) {
+        // Use your existing function to update the input field and syllable count
+        updateSyllableBreakdown(response.data.content);
+      }
+    } catch (error) {
+      console.error("Error fetching AI syllable breakdown:", error);
+    } finally {
+      setIsSuggestingBreakdown(false);
+    }
+  };
+
+  // Handle image upload
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
+  // Audio recording functions
+  const startRecording = async (type, syllableIndex = null) => {
+    try {
+      // ← ADD NOISE SUPPRESSION HERE
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true, // ← Removes echo
+          noiseSuppression: true, // ← Reduces background noise
+          autoGainControl: true, // ← Normalizes volume
+          sampleRate: 48000, // ← Higher quality
+        },
+      });
+
+      const recorder = new MediaRecorder(stream);
+      const audioChunks = [];
+
+      recorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+
+      recorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        if (type === "fullWord") {
+          setFullWordAudio({ blob: audioBlob, url: audioUrl });
+          setIsRecordingFullWord(false);
+        } else if (type === "syllable" && syllableIndex !== null) {
+          setSyllableAudios((prev) => ({
+            ...prev,
+            [syllableIndex]: { blob: audioBlob, url: audioUrl },
+          }));
+          setRecordingSyllableIndex(null);
+        }
+
+        // Stop all tracks
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+
+      if (type === "fullWord") {
+        setIsRecordingFullWord(true);
+      } else if (type === "syllable") {
+        setRecordingSyllableIndex(syllableIndex);
+      }
+
+      // Auto-stop after 5 seconds
+      setTimeout(() => {
+        if (recorder.state === "recording") {
+          recorder.stop();
+        }
+      }, 5000);
+    } catch (error) {
+      console.error("Error accessing microphone:", error);
+      alert("Could not access microphone. Please check permissions.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+    }
+  };
+
+  const deleteAudio = (type, syllableIndex = null) => {
+    if (type === "fullWord") {
+      setFullWordAudio(null);
+    } else if (type === "syllable" && syllableIndex !== null) {
+      setSyllableAudios((prev) => {
+        const newAudios = { ...prev };
+        delete newAudios[syllableIndex];
+        return newAudios;
+      });
+    }
+  };
+
+  // Save custom word to database
+  const saveCustomWordToDB = async () => {
+    // Validation
+    if (!newCustomWord.word || !newCustomWord.syllableBreakdown) {
+      alert("Please enter word and syllable breakdown");
+      return;
+    }
+
+    if (!validationResult) {
+      alert("Please validate the syllable structure first");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("word", newCustomWord.word);
+      formData.append("syllable_breakdown", newCustomWord.syllableBreakdown);
+      formData.append(
+        "category",
+        newCustomWord.category || aiSuggestedCategory || "Custom Words"
+      );
+
+      // Add image if uploaded
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+
+      // Add full word audio if recorded
+      if (fullWordAudio) {
+        formData.append(
+          "full_word_audio",
+          fullWordAudio.blob,
+          "full_word.webm"
+        );
+      }
+
+      // Add syllable audios if recorded
+      const syllables = newCustomWord.syllableBreakdown.split("-");
+      syllables.forEach((syllable, index) => {
+        if (syllableAudios[index]) {
+          formData.append(
+            `syllable_audio_${index}`,
+            syllableAudios[index].blob,
+            `syllable_${index}.webm`
+          );
+        }
+      });
+
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/syllabification/create-custom-word/",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setSaveSuccess(true);
+
+        // Reload custom words list
+        await loadCustomWordsFromDB();
+
+        // Reset form after 2 seconds
+        setTimeout(() => {
+          resetCustomWordForm();
+          setSaveSuccess(false);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Error saving custom word:", error);
+      alert("Failed to save custom word. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const resetCustomWordForm = () => {
+    setNewCustomWord({
+      word: "",
+      syllableBreakdown: "",
+      syllableCount: 0,
+      category: "",
     });
+    setValidationResult(null);
+    setImageFile(null);
+    setImagePreview(null);
+    setFullWordAudio(null);
+    setSyllableAudios({});
+    setAiSuggestedCategory("");
+    setWordExists(false);
+    setExistingWordData(null);
   };
 
-  // Delete a custom word
-  const deleteCustomWord = (id) => {
-    const updatedWords = customWords.filter(word => word.id !== id);
-    setCustomWords(updatedWords);
-    
-    try {
-      localStorage.setItem('wildlitz_custom_words', JSON.stringify(updatedWords));
-    } catch (error) {
-      console.error("Error saving to localStorage:", error);
+   const deleteCustomWord = (wordId) => {
+    // I've updated the confirmation text to be more accurate
+    if (!window.confirm("Are you sure you want to remove this word from the game list?")) {
+      return;
     }
+
+    // This only updates the temporary list on your screen (the "playlist")
+    setCustomWords((currentWords) =>
+      currentWords.filter((word) => word.id !== wordId)
+    );
   };
 
-  // Start the game with selected settings
   const handleStartGame = () => {
-    // Get selected category names - make sure they match database categories exactly
     const categoryNames = Object.entries(selectedCategories)
       .filter(([_, isSelected]) => isSelected)
       .map(([id, _]) => {
-        const category = categories.find(cat => cat.id === id);
-        
-        // Use the exact category name - this must match your database
-        return category ? category.name : '';
+        const category = categories.find((cat) => cat.id === id);
+        return category ? category.name : "";
       })
-      .filter(name => name !== '');
-      
-    // Validate - ensure we have categories or custom words
+      .filter((name) => name !== "");
+
     if (categoryNames.length === 0 && customWords.length === 0) {
       alert("Please select at least one category or add custom words");
       return;
     }
 
-    console.log("Starting game with categories:", categoryNames);
-
-    // Pass game configuration to parent
     onStartGame({
       difficulty,
       questionCount,
       categories: categoryNames,
-      customWords
+      customWords: customWords.map((w) => ({ id: w.id, word: w.word })),
     });
   };
+
+  const syllables = newCustomWord.syllableBreakdown
+    ? newCustomWord.syllableBreakdown.split("-")
+    : [];
 
   return (
     <div className={styles.fixedContainer}>
@@ -178,14 +687,20 @@ const SyllableConfigScreen = ({ onStartGame }) => {
               {Object.entries(difficultyInfo).map(([level, info]) => (
                 <motion.button
                   key={level}
-                  className={`${styles.difficultyBtn} ${difficulty === level ? styles.active : ''}`}
-                  whileHover={{ scale: 1.03, boxShadow: "0 6px 10px rgba(0,0,0,0.15)" }}
+                  className={`${styles.difficultyBtn} ${
+                    difficulty === level ? styles.active : ""
+                  }`}
+                  whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => setDifficulty(level)}
-                  style={difficulty === level ? { 
-                    backgroundColor: info.color,
-                    borderColor: info.color
-                  } : {}}
+                  style={
+                    difficulty === level
+                      ? {
+                          backgroundColor: info.color,
+                          borderColor: info.color,
+                        }
+                      : {}
+                  }
                 >
                   <span>{info.emoji}</span>
                   <div className={styles.difficultyLabel}>
@@ -205,41 +720,53 @@ const SyllableConfigScreen = ({ onStartGame }) => {
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2>Word Categories</h2>
-              <motion.button
-                className={styles.randomBtn}
-                whileHover={{ scale: 1.05, boxShadow: "0 4px 8px rgba(255,179,71,0.4)" }}
-                whileTap={{ scale: 0.95 }}
-                onClick={selectRandomCategories}
-              >
-                <span className={styles.diceIcon}>🎲</span>
-                Random Mix
-              </motion.button>
+              <div className={styles.headerButtons}>
+                <motion.button
+                  className={`${styles.randomBtn} ${styles.manageDbBtn}`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowSearchModal(true)}
+                >
+                  <span>📚</span>
+                  Manage Database
+                </motion.button>
+                <motion.button
+                  className={styles.randomBtn}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={selectRandomCategories}
+                >
+                  <span className={styles.diceIcon}>🎲</span>
+                  Random Mix
+                </motion.button>
+              </div>
             </div>
-            
+
             <div className={styles.categoriesGrid}>
-              {categories.map(category => (
+              {categories.map((category) => (
                 <motion.div
                   key={category.id}
-                  className={`${styles.categoryCard} ${selectedCategories[category.id] ? styles.selected : ''}`}
+                  className={`${styles.categoryCard} ${
+                    selectedCategories[category.id] ? styles.selected : ""
+                  }`}
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => toggleCategory(category.id)}
                 >
-                  <input 
-                    type="checkbox" 
-                    id={`category-${category.id}`}
-                    checked={selectedCategories[category.id]} 
+                  <input
+                    type="checkbox"
+                    checked={selectedCategories[category.id]}
                     onChange={() => toggleCategory(category.id)}
-                    onClick={e => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
                   />
                   <span className={styles.categoryIcon}>{category.icon}</span>
                   <span className={styles.categoryName}>{category.name}</span>
                 </motion.div>
               ))}
-              
+
               <motion.div
                 className={styles.addCustomBtn}
-                whileHover={{ scale: 1.03, boxShadow: "0 4px 8px rgba(255,179,71,0.3)" }}
+                whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setShowCustomWordModal(true)}
               >
@@ -248,7 +775,9 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                   <div className={styles.customLabelFlex}>
                     <span>Custom Words </span>
                     {customWords.length > 0 && (
-                      <span className={styles.customCount}>{customWords.length}</span>
+                      <span className={styles.customCount}>
+                        {customWords.length}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -271,16 +800,18 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                 style={{
                   background: `linear-gradient(to right, 
                     ${difficultyInfo[difficulty].color} 0%, 
-                    ${difficultyInfo[difficulty].color} ${(questionCount-5)/15*100}%, 
-                    #ddd ${(questionCount-5)/15*100}%, 
-                    #ddd 100%)`
+                    ${difficultyInfo[difficulty].color} ${
+                    ((questionCount - 5) / 15) * 100
+                  }%, 
+                    #ddd ${((questionCount - 5) / 15) * 100}%, 
+                    #ddd 100%)`,
                 }}
               />
               <div className={styles.sliderLabels}>
                 <span>5</span>
-                <span 
-                  className={styles.currentValue} 
-                  style={{backgroundColor: difficultyInfo[difficulty].color}}
+                <span
+                  className={styles.currentValue}
+                  style={{ backgroundColor: difficultyInfo[difficulty].color }}
                 >
                   {questionCount}
                 </span>
@@ -293,10 +824,10 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         <div className={styles.gameFooter}>
           <motion.button
             className={styles.startButton}
-            whileHover={{ scale: 1.03, boxShadow: "0 8px 15px rgba(106,90,205,0.4)" }}
+            whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             onClick={handleStartGame}
-            style={{backgroundColor: difficultyInfo[difficulty].color}}
+            style={{ backgroundColor: difficultyInfo[difficulty].color }}
           >
             Start Game
           </motion.button>
@@ -304,13 +835,16 @@ const SyllableConfigScreen = ({ onStartGame }) => {
           {customWords.length > 0 && (
             <div className={styles.customWordsSummary}>
               <span className={styles.customWordsIcon}>📚</span>
-              <span>{customWords.length} custom word{customWords.length !== 1 ? 's' : ''} added</span>
+              <span>
+                {customWords.length} custom word
+                {customWords.length !== 1 ? "s" : ""} ready
+              </span>
             </div>
           )}
         </div>
       </div>
 
-      {/* CUSTOM WORD MODAL */}
+      {/* ENHANCED CUSTOM WORD MODAL */}
       <AnimatePresence>
         {showCustomWordModal && (
           <div className={styles.modalOverlay}>
@@ -319,103 +853,595 @@ const SyllableConfigScreen = ({ onStartGame }) => {
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               <div className={styles.modalHeader}>
-                <h2>Custom Words</h2>
-                <motion.button 
+                <h2>Add Custom Word to Database</h2>
+                <motion.button
                   className={styles.closeButton}
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => setShowCustomWordModal(false)}
+                  onClick={() => {
+                    setShowCustomWordModal(false);
+                    resetCustomWordForm();
+                  }}
                 >
                   ✕
                 </motion.button>
               </div>
-              
-              <p>Add your own words for syllable clapping practice!</p>
 
+              <p>
+                Create a custom word that will be saved to the database for
+                future use!
+              </p>
+
+              {/* WORD INPUT */}
               <div className={styles.wordForm}>
                 <div className={styles.formGroup}>
-                  <label htmlFor="custom-word">Word</label>
+                  <label htmlFor="custom-word">Word *</label>
                   <input
                     id="custom-word"
                     type="text"
                     value={newCustomWord.word}
-                    onChange={(e) => setNewCustomWord({...newCustomWord, word: e.target.value})}
-                    placeholder="Enter a word"
+                    onChange={(e) =>
+                      setNewCustomWord({
+                        ...newCustomWord,
+                        word: e.target.value,
+                      })
+                    }
+                    placeholder="Enter a word (e.g., butterfly)"
                     className={styles.wordInput}
+                  />
+
+                  {/* Word Exists Warning */}
+                  {wordExists && existingWordData && (
+                    <div
+                      className={styles.aiSuggestionBox}
+                      style={{
+                        marginTop: "0.5rem",
+                        backgroundColor: "#e3f2fd",
+                        borderColor: "#2196f3",
+                      }}
+                    >
+                      <span className={styles.aiIcon}>💡</span>
+                      <div className={styles.suggestionText}>
+                        <strong>"{existingWordData.word}"</strong> already
+                        exists in database
+                        <div
+                          style={{ fontSize: "0.75rem", marginTop: "0.2rem" }}
+                        >
+                          Syllables: {existingWordData.syllable_breakdown} |
+                          Category: {existingWordData.category}
+                        </div>
+                        <div
+                          style={{
+                            marginTop: "0.5rem",
+                            display: "flex",
+                            gap: "0.5rem",
+                          }}
+                        >
+                          <button
+                            className={styles.acceptSuggestionButton}
+                            onClick={() => {
+                              // Add to game selection without creating duplicate
+                              setCustomWords((prev) => {
+                                const exists = prev.some(
+                                  (w) => w.id === existingWordData.id
+                                );
+                                if (exists) return prev;
+                                return [...prev, existingWordData];
+                              });
+                              resetCustomWordForm();
+                            }}
+                          >
+                            ✓ Use Existing Word
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Spelling Error Warning */}
+
+                  {spellingError && spellingSuggestions.length > 0 && (
+                    <div
+                      className={styles.aiSuggestionBox}
+                      style={{
+                        marginTop: "0.5rem",
+                        backgroundColor: "#fff8e1",
+                        borderColor: "#ffc107",
+                      }}
+                    >
+                      <span className={styles.aiIcon}>📝</span>
+
+                      <div className={styles.suggestionText}>
+                        <strong>Possible spelling error.</strong> Did you mean:{" "}
+                        {spellingSuggestions.join(", ")}?
+                        <div
+                          style={{
+                            marginTop: "0.3rem",
+                            display: "flex",
+                            gap: "0.3rem",
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          {spellingSuggestions.map((suggestion, idx) => (
+                            <button
+                              key={idx}
+                              className={styles.acceptSuggestionButton}
+                              onClick={() =>
+                                setNewCustomWord({
+                                  ...newCustomWord,
+                                  word: suggestion,
+                                })
+                              }
+                            >
+                              {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* SYLLABLE BREAKDOWN */}
+                <div className={styles.formGroup}>
+                  <label htmlFor="syllable-breakdown">
+                    Syllable Breakdown *{" "}
+                    <span className={styles.infoText}>
+                      (use hyphens: but-ter-fly)
+                    </span>
+                  </label>
+                  {/* 👇 Add a conditional 'loading' class here */}
+                  <div
+                    className={`${styles.syllableBreakdownGroup} ${
+                      isSuggestingBreakdown ? styles.loading : ""
+                    }`}
+                  >
+                    <input
+                      id="syllable-breakdown"
+                      type="text"
+                      value={newCustomWord.syllableBreakdown}
+                      onChange={(e) => updateSyllableBreakdown(e.target.value)}
+                      placeholder="e.g., but-ter-fly"
+                      className={`${styles.wordInput} ${styles.syllableBreakdownInput}`}
+                    />
+                    {/* 👇 Add this spinner element */}
+                    {isSuggestingBreakdown && (
+                      <span className={styles.inputSpinner}></span>
+                    )}
+
+                    <div className={styles.syllableCountBadge}>
+                      <span className={styles.count}>
+                        {newCustomWord.syllableCount}
+                      </span>
+                      <span className={styles.label}>syllables</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI VALIDATION */}
+                <div className={styles.aiValidationSection}>
+                  {validationResult && (
+                    <div
+                      className={`${styles.validationResult} ${
+                        validationResult.is_correct
+                          ? styles.correct
+                          : styles.incorrect
+                      }`}
+                    >
+                      <div>
+                        <span className={styles.resultIcon}>
+                          {validationResult.is_correct ? "✅" : "❌"}
+                        </span>
+                        <span className={styles.resultText}>
+                          {validationResult.is_correct
+                            ? "Syllable structure looks correct!"
+                            : "Syllable structure may be incorrect"}
+                        </span>
+                      </div>
+
+                      {validationResult.suggestion && (
+                        <div className={styles.suggestion}>
+                          💡 {validationResult.suggestion}
+                        </div>
+                      )}
+
+                      {validationResult.alternative_breakdown && (
+                        <div className={styles.alternativeBreakdown}>
+                          Suggested: {validationResult.alternative_breakdown}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* CATEGORY SELECTION */}
+                <div className={styles.formGroup}>
+                  <label htmlFor="category">Category</label>
+                  <select
+                    id="category"
+                    value={newCustomWord.category}
+                    onChange={(e) =>
+                      setNewCustomWord({
+                        ...newCustomWord,
+                        category: e.target.value,
+                      })
+                    }
+                    className={styles.categorySelect}
+                  >
+                    <option value="">Select category...</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  {showCategoryNotice && (
+                    <div className={styles.aiSuggestionBox}>
+                      <span className={styles.aiIcon}>🤖</span>
+                      <span className={styles.suggestionText}>
+                        AI suggested and selected: <strong>{showCategoryNotice}</strong>
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* IMAGE UPLOAD */}
+                <div className={styles.imageUploadSection}>
+                  <label>Word Image (Optional)</label>
+                  <div
+                    className={`${styles.imageUploadBox} ${
+                      imagePreview ? styles.hasImage : ""
+                    }`}
+                    onClick={() =>
+                      document.getElementById("image-upload-input").click()
+                    }
+                  >
+                    {!imagePreview ? (
+                      <>
+                        <div className={styles.uploadIcon}>🖼️</div>
+                        <div className={styles.uploadText}>
+                          Click to upload image
+                        </div>
+                      </>
+                    ) : (
+                      <div className={styles.imagePreview}>
+                        <img src={imagePreview} alt="Preview" />
+                        <button
+                          className={styles.removeImageButton}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeImage();
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    id="image-upload-input"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    style={{ display: "none" }}
                   />
                 </div>
 
-                <motion.button
-                  className={styles.addWordButton}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={addCustomWord}
-                  disabled={!newCustomWord.word.trim()}
-                >
-                  <span>+</span>
-                  Add Word
-                </motion.button>
+                {/* AUDIO RECORDING - FULL WORD */}
+                <div className={styles.audioRecordingSection}>
+                  <div className={styles.audioSectionTitle}>
+                    <span>🔊</span> Full Word Audio (Optional)
+                  </div>
+
+                  {!fullWordAudio ? (
+                    <button
+                      className={`${styles.recordButton} ${
+                        isRecordingFullWord ? styles.recording : ""
+                      }`}
+                      onClick={() => {
+                        if (isRecordingFullWord) {
+                          stopRecording();
+                        } else {
+                          startRecording("fullWord");
+                        }
+                      }}
+                    >
+                      <span className={styles.micIcon}>🎤</span>
+                      {isRecordingFullWord
+                        ? "Stop Recording"
+                        : "Record Full Word"}
+                    </button>
+                  ) : (
+                    <div className={styles.audioPreview}>
+                      <audio src={fullWordAudio.url} controls />
+                      <button
+                        className={styles.deleteAudioButton}
+                        onClick={() => deleteAudio("fullWord")}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* AUDIO RECORDING - SYLLABLES */}
+                {syllables.length > 0 && (
+                  <div className={styles.audioRecordingSection}>
+                    <div className={styles.audioSectionTitle}>
+                      <span>🎵</span> Individual Syllable Audio (Optional)
+                    </div>
+
+                    <div className={styles.syllableAudioGrid}>
+                      {syllables.map((syllable, index) => (
+                        <div key={index} className={styles.syllableAudioItem}>
+                          <div className={styles.syllableLabel}>{syllable}</div>
+
+                          {!syllableAudios[index] ? (
+                            <button
+                              className={`${styles.recordButton} ${
+                                recordingSyllableIndex === index
+                                  ? styles.recording
+                                  : ""
+                              }`}
+                              onClick={() => {
+                                if (recordingSyllableIndex === index) {
+                                  stopRecording();
+                                } else {
+                                  startRecording("syllable", index);
+                                }
+                              }}
+                            >
+                              <span className={styles.micIcon}>🎤</span>
+                              {recordingSyllableIndex === index
+                                ? "Stop"
+                                : "Record"}
+                            </button>
+                          ) : (
+                            <div className={styles.audioPreview}>
+                              <audio src={syllableAudios[index].url} controls />
+                              <button
+                                className={styles.deleteAudioButton}
+                                onClick={() => deleteAudio("syllable", index)}
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* SUCCESS MESSAGE */}
+                {saveSuccess && (
+                  <div className={styles.successMessage}>
+                    <span className={styles.successIcon}>✅</span>
+                    <span className={styles.successText}>
+                      Word saved to database successfully!
+                    </span>
+                  </div>
+                )}
+
+                {/* FORM ACTIONS */}
+                <div className={styles.formActions}>
+                  <button
+                    className={styles.cancelFormButton}
+                    onClick={resetCustomWordForm}
+                  >
+                    Clear Form
+                  </button>
+
+                  <button
+                    className={styles.saveToDbButton}
+                    onClick={saveCustomWordToDB}
+                    disabled={
+                      isSaving ||
+                      !validationResult ||
+                      !newCustomWord.word ||
+                      !newCustomWord.syllableBreakdown ||
+                      wordExists
+                    }
+                  >
+                    {isSaving ? (
+                      <>
+                        <span className={styles.spinner}></span>
+                        Saving...
+                      </>
+                    ) : (
+                      <>💾 Save to Database</>
+                    )}
+                  </button>
+                </div>
               </div>
 
-              {/* Custom Words List */}
+              {/* CUSTOM WORDS LIST FROM DATABASE */}
               {customWords.length > 0 && (
-                <div className={styles.customWordsContainer}>
-                  <h3>Your Custom Words ({customWords.length})</h3>
-                  <div className={styles.customList}>
-                    {customWords.map((word, index) => (
-                      <motion.div 
-                        key={word.id || index}
-                        className={styles.wordItem}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                      >
-                        <div className={styles.wordItemContent}>
-                          <div className={styles.wordItemHeader}>
-                            <span className={styles.wordText}>{word.word}</span>
-                          </div>
-                        </div>
-                        
-                        <motion.button
-                          className={styles.deleteButton}
-                          whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 77, 77, 0.2)" }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => deleteCustomWord(word.id || index)}
+                <>
+                  {/* The header is now outside the scrollable container */}
+                  <h3 className={styles.customWordsHeader}>
+                    Custom Words ({customWords.length})
+                  </h3>
+                  <div className={styles.customWordsContainer}>
+                    <div className={styles.customList}>
+                      {customWords.map((word, index) => (
+                        <motion.div
+                          key={word.id || index}
+                          className={styles.wordItem}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
                         >
-                          ✕
-                        </motion.button>
-                      </motion.div>
-                    ))}
+                          <div className={styles.wordItemContent}>
+                            <div className={styles.wordItemHeader}>
+                              <span className={styles.wordText}>
+                                {word.word}
+                              </span>
+                              <span className={styles.wordCategory}>
+                                {word.category}
+                              </span>
+                            </div>
+                            <div className={styles.wordItemDetails}>
+                              <span className={styles.syllableBreakdown}>
+                                {word.syllable_breakdown}
+                              </span>
+                              <span className={styles.syllableCounter}>
+                                {word.syllable_count} syllable
+                                {word.syllable_count !== 1 ? "s" : ""}
+                              </span>
+                            </div>
+                          </div>
+
+                          <motion.button
+                            className={styles.deleteButton}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => deleteCustomWord(word.id)}
+                          >
+                            ✕
+                          </motion.button>
+                        </motion.div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               <div className={styles.modalActions}>
                 <motion.button
-                  className={styles.clearButton}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => {
-                    if (window.confirm("Are you sure you want to clear all custom words?")) {
-                      setCustomWords([]);
-                      localStorage.removeItem('wildlitz_custom_words');
-                    }
-                  }}
-                  disabled={customWords.length === 0}
-                >
-                  Clear All
-                </motion.button>
-                <motion.button
                   className={styles.saveButton}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => setShowCustomWordModal(false)}
+                  onClick={() => {
+                    setShowCustomWordModal(false);
+                    resetCustomWordForm();
+                  }}
                 >
-                  Save & Close
+                  Done
                 </motion.button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 👇 ADD THIS ENTIRE NEW MODAL BLOCK */}
+      <AnimatePresence>
+        {showSearchModal && (
+          <div className={styles.modalOverlay}>
+            <motion.div
+              className={`${styles.modal} ${styles.searchModal}`}
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 20 }}
+            >
+              <div className={styles.modalHeader}>
+                <h2>Search & Manage Database</h2>
+                <motion.button
+                  className={styles.closeButton}
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setShowSearchModal(false)}
+                >
+                  ✕
+                </motion.button>
+              </div>
+
+              {/* 👇 PASTE THE SEARCH PANEL CODE YOU CUT EARLIER RIGHT HERE */}
+              {/* DATABASE SEARCH PANEL */}
+              <div className={styles.searchPanel}>
+                <div className={styles.searchHeader}>
+                  <h3>Search Database</h3>
+                </div>
+
+                {/* Search Bar */}
+                <div className={styles.searchBar}>
+                  <input
+                    type="text"
+                    placeholder="Search by word..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch(1)}
+                  />
+                  <button onClick={() => handleSearch(1)}>
+                    {searchIsLoading ? "..." : "🔍"}
+                  </button>
+                </div>
+
+                {/* 👇 ADD THIS FILTERS BLOCK */}
+                <div className={styles.searchFilters}>
+                  <div className={styles.filterGroup}>
+                    {categories.map((cat) => (
+                      <label key={cat.id} className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={searchFilters.categories.includes(cat.name)}
+                          onChange={(e) =>
+                            handleFilterChange(
+                              "category",
+                              cat.name,
+                              e.target.checked
+                            )
+                          }
+                        />{" "}
+                        {cat.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Search Results */}
+                <div className={styles.searchResults}>
+                  {searchIsLoading ? (
+                    <p>Loading...</p>
+                  ) : searchError ? (
+                    <p className={styles.searchError}>{searchError}</p>
+                  ) : searchResults.length > 0 ? (
+                    searchResults.map((word) => (
+                      <div key={word.id} className={styles.searchResultItem}>
+                        <div className={styles.wordInfo}>
+                          <span className={styles.wordText}>{word.word}</span>
+                          <span className={styles.syllableBreakdown}>
+                            {word.syllable_breakdown}
+                          </span>
+                        </div>
+                        <div className={styles.wordActions}>
+                          <span className={styles.wordCategory}>
+                            {word.category}
+                          </span>
+                          {/* We will add Edit/Delete buttons here later */}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p>No words found.</p>
+                  )}
+                </div>
+
+                {/* 👇 ADD THIS PAGINATION BLOCK */}
+                {searchTotalPages > 1 && (
+                  <div className={styles.paginationControls}>
+                    <button
+                      onClick={() => handleSearch(searchCurrentPage - 1)}
+                      disabled={searchCurrentPage <= 1}
+                    >
+                      &laquo; Prev
+                    </button>
+                    <span>
+                      Page {searchCurrentPage} of {searchTotalPages}
+                    </span>
+                    <button
+                      onClick={() => handleSearch(searchCurrentPage + 1)}
+                      disabled={searchCurrentPage >= searchTotalPages}
+                    >
+                      Next &raquo;
+                    </button>
+                  </div>
+                )}
+
+                {/* We will add Pagination controls here later */}
               </div>
             </motion.div>
           </div>

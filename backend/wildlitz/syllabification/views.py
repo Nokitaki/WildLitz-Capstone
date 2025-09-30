@@ -372,6 +372,11 @@ def generate_ai_content(request):
             content = ai_generator.generate_character_message(word, context, difficulty)
         elif content_type == 'syllable_tip':
             content = ai_generator.generate_syllable_tip(difficulty)
+        elif content_type == 'category_suggestion':
+            content = ai_generator.suggest_category(word)
+        # 👇 ADD THIS NEW CONDITION
+        elif content_type == 'syllable_breakdown_suggestion':
+            content = ai_generator.generate_syllable_breakdown(word)
         else:
             return Response({'error': 'Invalid content type'}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -380,3 +385,316 @@ def generate_ai_content(request):
     except Exception as e:
         logger.error(f"Error generating AI content: {str(e)}")
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+# ==========================================
+# NEW ENDPOINTS FOR CUSTOM WORDS
+# ==========================================
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def check_word_exists(request):
+    """
+    Check if a word already exists in the database
+    Returns existing word data if found
+    """
+    word = request.GET.get('word', '').strip()
+    
+    if not word:
+        return Response({'error': 'Word parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Use RPC function to query wildlitz schema
+        response = supabase.rpc('get_word_from_public', {'search_word': word}).execute()
+        
+        if response.data and len(response.data) > 0:
+            existing_word = response.data[0]
+            
+            return Response({
+                'exists': True,
+                'word': {
+                    'id': existing_word['id'],
+                    'word': existing_word['word'],
+                    'syllable_breakdown': existing_word['syllable_breakdown'],
+                    'syllable_count': existing_word['syllable_count'],
+                    'category': existing_word['category'],
+                    'difficulty_level': existing_word['difficulty_level'],
+                    'image_url': existing_word.get('image_url'),
+                    'pronunciation_guide': existing_word.get('syllable_breakdown'),
+                    'is_custom': existing_word.get('is_custom', False),
+                    'created_by_name': existing_word.get('created_by_name', 'Unknown'),
+                    'usage_count': existing_word.get('usage_count', 0),
+                    'rating': float(existing_word.get('rating', 0.0)),
+                    'fun_fact': existing_word.get('fun_fact'),
+                    'intro_message': existing_word.get('intro_message')
+                }
+            })
+        else:
+            return Response({
+                'exists': False,
+                'message': f'Word "{word}" not found in database'
+            })
+            
+    except Exception as e:
+        logger.error(f"Error checking word existence: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def validate_syllable_structure(request):
+    """
+    Use AI to validate teacher's syllable breakdown
+    """
+    try:
+        data = request.data
+        word = data.get('word', '').strip()
+        syllable_breakdown = data.get('syllable_breakdown', '').strip()
+        
+        if not word or not syllable_breakdown:
+            return Response(
+                {'error': 'Both word and syllable_breakdown are required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Use AI to validate
+        validation_result = ai_generator.validate_syllable_structure(word, syllable_breakdown)
+        
+        return Response({
+            'validation': validation_result,
+            'word': word,
+            'submitted_breakdown': syllable_breakdown
+        })
+        
+    except Exception as e:
+        logger.error(f"Error validating syllable structure: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_custom_word(request):
+    """
+    Create a new custom word with optional image and audio uploads
+    """
+    try:
+        # Get form data
+        word = request.data.get('word', '').strip()
+        syllable_breakdown = request.data.get('syllable_breakdown', '').strip()
+        category = request.data.get('category', '').strip()
+        
+        # Validate required fields
+        if not word or not syllable_breakdown:
+            return Response(
+                {'error': 'Word and syllable_breakdown are required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Calculate syllable count
+        syllable_count = len(syllable_breakdown.split('-'))
+        
+        # Determine difficulty based on syllable count
+        if syllable_count <= 2:
+            difficulty_level = 'easy'
+        elif syllable_count == 3:
+            difficulty_level = 'medium'
+        else:
+            difficulty_level = 'hard'
+        
+        # AI: Validate syllable structure
+        validation_result = ai_generator.validate_syllable_structure(word, syllable_breakdown)
+        
+        # AI: Suggest category if not provided
+        if not category:
+            category = 'Custom Words'
+        
+        # AI: Generate fun fact and intro message
+        fun_fact = ai_generator.generate_fun_fact(word, category)
+        intro_message = ai_generator.generate_character_message(word, 'intro', difficulty_level)
+        
+        # Handle file uploads
+        image_url = None
+        full_word_audio_url = None
+        syllable_audio_urls = []
+        
+        # Upload image if provided
+        if 'image' in request.FILES:
+            from .services_ai import upload_file_to_supabase_storage
+            image_file = request.FILES['image']
+            image_filename = f"{word.lower().replace(' ', '_')}.{image_file.name.split('.')[-1]}"
+            try:
+                image_url = upload_file_to_supabase_storage(
+                    image_file, 
+                    'syllable-word-images', 
+                    image_filename
+                )
+            except Exception as e:
+                logger.error(f"Error uploading image: {str(e)}")
+        
+        # Upload full word audio if provided
+        if 'full_word_audio' in request.FILES:
+            from .services_ai import upload_file_to_supabase_storage
+            audio_file = request.FILES['full_word_audio']
+            audio_filename = f"{word.lower().replace(' ', '_')}_full.{audio_file.name.split('.')[-1]}"
+            try:
+                full_word_audio_url = upload_file_to_supabase_storage(
+                    audio_file, 
+                    'syllable-word-audio', 
+                    audio_filename
+                )
+            except Exception as e:
+                logger.error(f"Error uploading full word audio: {str(e)}")
+        
+        # Upload syllable audio files if provided
+        syllables = syllable_breakdown.split('-')
+        for idx in range(len(syllables)):
+            field_name = f'syllable_audio_{idx}'
+            if field_name in request.FILES:
+                from .services_ai import upload_file_to_supabase_storage
+                syllable_file = request.FILES[field_name]
+                syllable_filename = f"{word.lower().replace(' ', '_')}_syl_{idx}.{syllable_file.name.split('.')[-1]}"
+                try:
+                    syllable_url = upload_file_to_supabase_storage(
+                        syllable_file, 
+                        'syllable-word-audio', 
+                        syllable_filename
+                    )
+                    syllable_audio_urls.append(syllable_url)
+                except Exception as e:
+                    logger.error(f"Error uploading syllable audio {idx}: {str(e)}")
+        
+        # Get user info if authenticated
+        created_by = None
+        created_by_name = 'Anonymous'
+        if request.user.is_authenticated:
+            created_by = str(request.user.id)
+            created_by_name = request.user.username or request.user.email
+        
+        # Use RPC function to insert into wildlitz schema
+        response = supabase.rpc('insert_custom_word_to_public', {
+            'p_word': word,
+            'p_syllable_breakdown': syllable_breakdown,
+            'p_syllable_count': syllable_count,
+            'p_difficulty_level': difficulty_level,
+            'p_category': category,
+            'p_image_url': image_url,
+            'p_full_word_audio_url': full_word_audio_url,
+            'p_syllable_audio_urls': syllable_audio_urls,
+            'p_fun_fact': fun_fact,
+            'p_intro_message': intro_message,
+            'p_ai_suggested_category': category,
+            'p_is_ai_validated': True,
+            'p_ai_validation_result': validation_result,
+            'p_created_by': created_by,
+            'p_created_by_name': created_by_name,
+            'p_is_custom': True,
+            'p_is_public': True
+        }).execute()
+        
+        if response.data and len(response.data) > 0:
+            created_word = response.data[0]
+            logger.info(f"Custom word created: {word} by {created_by_name}")
+            
+            return Response({
+                'success': True,
+                'message': f'Custom word "{word}" created successfully!',
+                'word': created_word,
+                'validation': validation_result
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response(
+                {'error': 'Failed to create word in database'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+    except Exception as e:
+        logger.error(f"Error creating custom word: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_custom_words(request):
+    """
+    Get custom words for the game
+    Can filter by word IDs or get all public custom words
+    """
+    try:
+        word_ids = request.GET.getlist('word_ids[]', [])
+        
+        # Use RPC function to query wildlitz schema
+        if word_ids:
+            # Convert to proper format for PostgreSQL array
+            response = supabase.rpc('get_custom_words_from_public', {'word_ids': word_ids}).execute()
+        else:
+            # Get all custom words (pass NULL)
+            response = supabase.rpc('get_custom_words_from_public', {'word_ids': None}).execute()
+        
+        words = response.data if response.data else []
+        
+        return Response({
+            'words': words,
+            'count': len(words)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching custom words: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def search_words(request):
+    """
+    Search and filter words from the database with pagination.
+    """
+    try:
+        # Get query parameters
+        search_term = request.GET.get('q', '').strip()
+        categories = request.GET.getlist('categories[]', [])
+        # The 'is_custom' variable has been removed
+        has_audio = request.GET.get('has_audio', 'false').lower() == 'true'
+        page = int(request.GET.get('page', 1))
+        page_size = 10  # Words per page
+
+        # Start building the Supabase query
+        query = supabase.table('syllable_words').select('*', count='exact')
+
+        # Apply filters
+        if search_term:
+            query = query.ilike('word', f'%{search_term}%')
+        
+        if categories:
+            query = query.in_('category', categories)
+            
+        # The 'if is_custom:' block has been removed
+
+        if has_audio:
+            query = query.not_.is_('full_word_audio_url', 'null')
+
+        # Apply pagination
+        start_index = (page - 1) * page_size
+        end_index = start_index + page_size - 1
+        query = query.range(start_index, end_index)
+        
+        # Order by creation date, newest first
+        query = query.order('created_at', desc=True)
+
+        # Execute the query
+        response = query.execute()
+        
+        words = response.data if response.data else []
+        total_count = response.count if response.count is not None else 0
+
+        return Response({
+            'results': words,
+            'count': total_count,
+            'page': page,
+            'totalPages': (total_count + page_size - 1) // page_size
+        })
+
+    except Exception as e:
+        logger.error(f"Error searching words: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
