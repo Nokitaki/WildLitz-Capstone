@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import styles from "../../../styles/games/syllable/SyllableConfigScreen.module.css";
+import EditWordModal from "./EditWordModal";
 
 const SyllableConfigScreen = ({ onStartGame }) => {
   // State management
@@ -21,10 +22,15 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   // AI Syllable Suggestion state
   const [isSuggestingBreakdown, setIsSuggestingBreakdown] = useState(false);
 
-  const [showCategoryNotice, setShowCategoryNotice] = useState('');
+  const [showCategoryNotice, setShowCategoryNotice] = useState("");
 
   const [showSearchModal, setShowSearchModal] = useState(false);
 
+  const [validationDismissed, setValidationDismissed] = useState(false);
+
+  const [editingWord, setEditingWord] = useState(null);
+
+  const [showEditWordModal, setShowEditWordModal] = useState(false);
   const [showCustomWordModal, setShowCustomWordModal] = useState(false);
   const [customWords, setCustomWords] = useState([]);
   // Enhanced custom word form state
@@ -78,8 +84,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
       setSpellingError(false);
     }
   };
-
-
 
   // AI Validation state
   const [isValidating, setIsValidating] = useState(false);
@@ -136,7 +140,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
       );
 
       const response = await axios.get(
-        // 👇 CORRECTED IP ADDRESS HERE
         `http://127.0.0.1:8000/api/syllabification/search-words/?${params.toString()}`
       );
 
@@ -165,7 +168,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     }
   }, [showCustomWordModal]);
   */
- 
+
   const loadCustomWordsFromDB = async () => {
     try {
       const response = await axios.get(
@@ -186,6 +189,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     { id: "schoolSupplies", name: "School Supplies", icon: "✏️" },
     { id: "nature", name: "Nature", icon: "🌿" },
     { id: "everydayWords", name: "Everyday Words", icon: "🗣️" },
+    { id: "everydayObjects", name: "Everyday Objects", icon: "🔧" },
   ];
 
   const difficultyInfo = {
@@ -259,26 +263,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     setValidationResult(null);
   };
 
-  // Consolidated useEffect for all debounced actions on the 'Word' input
-  useEffect(() => {
-    const trimmedWord = newCustomWord.word.trim();
-
-    // Set a single timer for 800ms
-    const timer = setTimeout(() => {
-      if (trimmedWord) {
-        // Run all suggestions and checks from one place
-        fetchAiSyllableBreakdown(trimmedWord);
-        fetchAiCategorySuggestion(trimmedWord);
-        checkSpelling(trimmedWord);
-        checkWordExists(trimmedWord);
-      }
-    }, 800);
-
-    // This cleanup function will run every time the user types a new letter,
-    // resetting the timer and preventing the functions from running too early.
-    return () => clearTimeout(timer);
-  }, [newCustomWord.word]);
-
   // Auto-validate when both word and syllable breakdown are present
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -288,6 +272,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         newCustomWord.syllableCount > 0
       ) {
         handleValidateSyllables();
+        setValidationDismissed(false);  // ✅ ADD THIS LINE
       }
     }, 2000); // Changed from 1000 to 1500 (1.5 seconds)
 
@@ -319,17 +304,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     }
   };
 
-  // Debounced word check
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (newCustomWord.word.trim()) {
-        checkWordExists(newCustomWord.word.trim());
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [newCustomWord.word]);
-
   const handleValidateSyllables = async () => {
     if (!newCustomWord.word || !newCustomWord.syllableBreakdown) {
       alert("Please enter both word and syllable breakdown");
@@ -358,24 +332,26 @@ const SyllableConfigScreen = ({ onStartGame }) => {
             word: newCustomWord.word,
           }
         );
-        
+
         const suggestedCategory = categoryResponse.data.content;
         if (suggestedCategory) {
           // 1. Automatically update the form's category
-          setNewCustomWord(prev => ({ ...prev, category: suggestedCategory }));
-          
+          setNewCustomWord((prev) => ({
+            ...prev,
+            category: suggestedCategory,
+          }));
+
           // 2. Show the notice with the suggested category
           setShowCategoryNotice(suggestedCategory);
 
           // 3. Set a timer to hide the notice after 5 seconds
           setTimeout(() => {
-            setShowCategoryNotice('');
+            setShowCategoryNotice("");
           }, 5000);
         }
       } catch (error) {
         console.error("Error getting AI category suggestion:", error);
       }
-
     } catch (error) {
       console.error("Error validating syllables:", error);
       alert("Failed to validate syllables. Please try again.");
@@ -384,10 +360,31 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     }
   };
 
+  // Consolidated useEffect for all debounced actions on the 'Word' input
+  useEffect(() => {
+    const trimmedWord = newCustomWord.word.trim();
 
+    // Set a single timer for 800ms
+    const timer = setTimeout(() => {
+      if (trimmedWord) {
+        // Run all suggestions and checks from one place
+        fetchAiSyllableBreakdown(trimmedWord);
+        fetchAiCategorySuggestion(trimmedWord);
+        checkSpelling(trimmedWord);
+        checkWordExists(trimmedWord);
+
+        setValidationDismissed(false);
+      }
+    }, 800);
+
+    // This cleanup function will run every time the user types a new letter,
+    // resetting the timer and preventing the functions from running too early.
+    return () => clearTimeout(timer);
+  }, [newCustomWord.word]);
 
   const fetchAiCategorySuggestion = async (word) => {
     if (!word || word.length < 2) return; // Don't run on very short words
+
     try {
       const categoryResponse = await axios.post(
         "http://127.0.0.1:8000/api/syllabification/generate-ai-content/",
@@ -396,20 +393,28 @@ const SyllableConfigScreen = ({ onStartGame }) => {
           word: word,
         }
       );
-      
+
       const suggestedCategory = categoryResponse.data.content;
-      if (suggestedCategory) {
+
+      // ✅ CHANGED: Only update if AI actually suggested something
+      if (
+        suggestedCategory &&
+        suggestedCategory !== "null" &&
+        suggestedCategory !== ""
+      ) {
         // Automatically update the form's category
-        setNewCustomWord(prev => ({ ...prev, category: suggestedCategory }));
-        
+        setNewCustomWord((prev) => ({ ...prev, category: suggestedCategory }));
+
         // Show the timed notice
         setShowCategoryNotice(suggestedCategory);
         setTimeout(() => {
-          setShowCategoryNotice('');
+          setShowCategoryNotice("");
         }, 5000);
       }
+      // ✅ NEW: If AI returns null/empty, do nothing - let teacher choose manually
     } catch (error) {
       console.error("Error getting AI category suggestion:", error);
+      // On error, also do nothing - let teacher choose manually
     }
   };
 
@@ -617,25 +622,31 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   };
 
   const resetCustomWordForm = () => {
-    setNewCustomWord({
-      word: "",
-      syllableBreakdown: "",
-      syllableCount: 0,
-      category: "",
-    });
-    setValidationResult(null);
-    setImageFile(null);
-    setImagePreview(null);
-    setFullWordAudio(null);
-    setSyllableAudios({});
-    setAiSuggestedCategory("");
-    setWordExists(false);
-    setExistingWordData(null);
-  };
+  setNewCustomWord({
+    word: "",
+    syllableBreakdown: "",
+    syllableCount: 0,
+    category: "",
+  });
+  setValidationResult(null);
+  setImageFile(null);
+  setImagePreview(null);
+  setFullWordAudio(null);
+  setSyllableAudios({});
+  setShowCategoryNotice("");
+  setWordExists(false);
+  setExistingWordData(null);
+  setEditingWord(null);
+  setValidationDismissed(false);  // ✅ ADD THIS LINE
+};
 
-   const deleteCustomWord = (wordId) => {
+  const deleteCustomWord = (wordId) => {
     // I've updated the confirmation text to be more accurate
-    if (!window.confirm("Are you sure you want to remove this word from the game list?")) {
+    if (
+      !window.confirm(
+        "Are you sure you want to remove this word from the game list?"
+      )
+    ) {
       return;
     }
 
@@ -670,6 +681,108 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   const syllables = newCustomWord.syllableBreakdown
     ? newCustomWord.syllableBreakdown.split("-")
     : [];
+
+  const handlePermanentDelete = async (wordId) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to PERMANENTLY delete this word from the database? This cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await axios.delete(
+        `http://127.0.0.1:8000/api/syllabification/delete-custom-word/${wordId}/`
+      );
+
+      // 👇 ADD THIS LINE to remove the word from the list on screen
+      setSearchResults((currentResults) =>
+        currentResults.filter((word) => word.id !== wordId)
+      );
+    } catch (error) {
+      console.error("Error permanently deleting word:", error);
+      alert("Failed to delete the word from the database. Please try again.");
+    }
+  };
+
+  const handleStartEdit = (word) => {
+    // Set the selected word as the one being edited
+    setEditingWord(word);
+
+    // Open the EDIT modal (not the custom word modal)
+    setShowEditWordModal(true);
+  };
+
+  const handleUpdateWord = async (editedData) => {
+    if (!editingWord) return;
+
+    setIsSaving(true);
+    try {
+      // Create FormData to handle file uploads
+      const formData = new FormData();
+
+      // Add basic text fields
+      formData.append("word", editedData.word);
+      formData.append("syllable_breakdown", editedData.syllableBreakdown);
+      formData.append("category", editedData.category);
+
+      // Add new full word audio if recorded
+      if (editedData.newFullWordAudio && editedData.newFullWordAudio.blob) {
+        formData.append(
+          "full_word_audio",
+          editedData.newFullWordAudio.blob,
+          `${editedData.word.toLowerCase().replace(/\s+/g, "_")}_full.webm`
+        );
+      }
+
+      // Add new syllable audios if recorded
+      const syllables = editedData.syllableBreakdown.split("-");
+      if (editedData.newSyllableAudios) {
+        Object.keys(editedData.newSyllableAudios).forEach((index) => {
+          const audioData = editedData.newSyllableAudios[index];
+          if (audioData && audioData.blob) {
+            formData.append(
+              `syllable_audio_${index}`,
+              audioData.blob,
+              `${editedData.word
+                .toLowerCase()
+                .replace(/\s+/g, "_")}_syl_${index}.webm`
+            );
+          }
+        });
+      }
+
+      // Send PUT request with FormData
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/syllabification/update-custom-word/${editingWord.id}/`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      // Update the search results list on screen with the new data
+      setSearchResults((currentResults) =>
+        currentResults.map((word) =>
+          word.id === editingWord.id ? response.data : word
+        )
+      );
+
+      // Close the edit modal and reset
+      setShowEditWordModal(false);
+      setEditingWord(null);
+
+      alert("Word updated successfully!");
+    } catch (error) {
+      console.error("Error updating word:", error);
+      alert("Failed to update word. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className={styles.fixedContainer}>
@@ -844,7 +957,14 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         </div>
       </div>
 
-      {/* ENHANCED CUSTOM WORD MODAL */}
+      {/* 
+  ==========================================
+  CUSTOM WORD MODAL - FOR CREATING NEW WORDS ONLY
+  ==========================================
+  Note: This modal is ONLY for adding NEW custom words to the database.
+  For EDITING existing words, use the EditWordModal which is opened
+  from the "Manage Database" search panel.
+*/}
       <AnimatePresence>
         {showCustomWordModal && (
           <div className={styles.modalOverlay}>
@@ -1041,6 +1161,23 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                         </span>
                       </div>
 
+                      {/* ✅ NEW DISMISS BUTTON */}
+                      <button
+                        onClick={() => setValidationDismissed(true)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#666",
+                          cursor: "pointer",
+                          fontSize: "1.2rem",
+                          padding: "0 0.5rem",
+                          lineHeight: 1,
+                        }}
+                        title="Dismiss AI validation - I'll verify manually"
+                      >
+                        ✕
+                      </button>
+
                       {validationResult.suggestion && (
                         <div className={styles.suggestion}>
                           💡 {validationResult.suggestion}
@@ -1052,6 +1189,29 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                           Suggested: {validationResult.alternative_breakdown}
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {/* ✅ NEW: Show message when dismissed */}
+                  {validationDismissed && (
+                    <div
+                      style={{
+                        backgroundColor: "#e3f2fd",
+                        border: "1px solid #90caf9",
+                        borderRadius: "8px",
+                        padding: "0.8rem",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        fontSize: "0.85rem",
+                        color: "#0d47a1",
+                      }}
+                    >
+                      <span>ℹ️</span>
+                      <span>
+                        AI validation dismissed. You're in manual control -
+                        verify the syllable breakdown yourself before saving.
+                      </span>
                     </div>
                   )}
                 </div>
@@ -1082,11 +1242,34 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                     <div className={styles.aiSuggestionBox}>
                       <span className={styles.aiIcon}>🤖</span>
                       <span className={styles.suggestionText}>
-                        AI suggested and selected: <strong>{showCategoryNotice}</strong>
+                        AI suggested and selected:{" "}
+                        <strong>{showCategoryNotice}</strong>
                       </span>
                     </div>
                   )}
                 </div>
+
+                {/* ✅ NEW: Show a different message when AI can't categorize */}
+                {newCustomWord.word.length > 2 &&
+                  !showCategoryNotice &&
+                  !newCustomWord.category && (
+                    <div
+                      className={styles.aiSuggestionBox}
+                      style={{
+                        backgroundColor: "#fff3cd",
+                        borderColor: "#ffc107",
+                      }}
+                    >
+                      <span className={styles.aiIcon}>💭</span>
+                      <span
+                        className={styles.suggestionText}
+                        style={{ color: "#856404" }}
+                      >
+                        AI couldn't categorize this word automatically. Please
+                        select a category manually.
+                      </span>
+                    </div>
+                  )}
 
                 {/* IMAGE UPLOAD */}
                 <div className={styles.imageUploadSection}>
@@ -1240,7 +1423,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                     onClick={saveCustomWordToDB}
                     disabled={
                       isSaving ||
-                      !validationResult ||
+                      (!validationResult && !validationDismissed) || // ✅ CHANGED: Allow if dismissed
                       !newCustomWord.word ||
                       !newCustomWord.syllableBreakdown ||
                       wordExists
@@ -1252,7 +1435,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                         Saving...
                       </>
                     ) : (
-                      <>💾 Save to Database</>
+                      "💾 Save to Database"
                     )}
                   </button>
                 </div>
@@ -1412,6 +1595,19 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                             {word.category}
                           </span>
                           {/* We will add Edit/Delete buttons here later */}
+                          <button
+                            className={styles.searchEditBtn}
+                            onClick={() => handleStartEdit(word)}
+                          >
+                            ✏️
+                          </button>
+
+                          <button
+                            className={styles.searchDeleteBtn}
+                            onClick={() => handlePermanentDelete(word.id)}
+                          >
+                            🗑️
+                          </button>
                         </div>
                       </div>
                     ))
@@ -1445,6 +1641,19 @@ const SyllableConfigScreen = ({ onStartGame }) => {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showEditWordModal && editingWord && (
+          <EditWordModal
+            word={editingWord}
+            onSave={handleUpdateWord}
+            onClose={() => {
+              setShowEditWordModal(false);
+              setEditingWord(null);
+            }}
+          />
         )}
       </AnimatePresence>
     </div>

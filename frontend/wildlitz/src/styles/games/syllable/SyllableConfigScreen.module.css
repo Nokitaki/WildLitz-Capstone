@@ -241,7 +241,7 @@ body {
   max-height: 170px;
   overflow-y: auto; 
   overflow-x: hidden; 
-  padding: 1px;
+  padding: .5rem;
 }
 .categoryCard {
   background: white;
@@ -1603,3 +1603,44 @@ body {
   color: #555;
 }
 
+.searchDeleteBtn {
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+  color: var(--danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  flex-shrink: 0; /* Prevents the button from shrinking */
+}
+
+.searchDeleteBtn:hover {
+  background-color: rgba(255, 77, 77, 0.1);
+  transform: scale(1.1);
+}
+
+.searchEditBtn {
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+  color: var(--primary); /* Use the primary theme color */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.searchEditBtn:hover {
+  background-color: rgba(106, 90, 205, 0.1); /* Light primary color on hover */
+  transform: scale(1.1);
+}

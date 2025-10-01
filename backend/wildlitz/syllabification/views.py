@@ -654,7 +654,6 @@ def search_words(request):
         # Get query parameters
         search_term = request.GET.get('q', '').strip()
         categories = request.GET.getlist('categories[]', [])
-        # The 'is_custom' variable has been removed
         has_audio = request.GET.get('has_audio', 'false').lower() == 'true'
         page = int(request.GET.get('page', 1))
         page_size = 10  # Words per page
@@ -668,8 +667,6 @@ def search_words(request):
         
         if categories:
             query = query.in_('category', categories)
-            
-        # The 'if is_custom:' block has been removed
 
         if has_audio:
             query = query.not_.is_('full_word_audio_url', 'null')
@@ -679,8 +676,8 @@ def search_words(request):
         end_index = start_index + page_size - 1
         query = query.range(start_index, end_index)
         
-        # Order by creation date, newest first
-        query = query.order('created_at', desc=True)
+        # ✅ ADD THIS LINE - Order alphabetically by word (A-Z)
+        query = query.order('word', desc=False)
 
         # Execute the query
         response = query.execute()
@@ -697,4 +694,123 @@ def search_words(request):
 
     except Exception as e:
         logger.error(f"Error searching words: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@csrf_exempt
+@api_view(['DELETE'])
+@permission_classes([AllowAny]) # Or IsAuthenticated if you want to protect it
+def delete_custom_word(request, word_id):
+    """
+    Permanently delete a custom word from the database.
+    """
+    try:
+        # Use the table in the public schema and delete the word matching the ID
+        response = supabase.table('syllable_words').delete().eq('id', word_id).execute()
+        
+        # Check if any data was returned (successful deletion)
+        if response.data:
+            logger.info(f"Successfully deleted word with ID: {word_id}")
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            logger.warning(f"Could not find word with ID: {word_id} to delete.")
+            return Response({'error': 'Word not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        logger.error(f"Error deleting word with ID {word_id}: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@csrf_exempt
+@api_view(['PUT'])
+@permission_classes([AllowAny])
+def update_custom_word(request, word_id):
+    """
+    Update an existing custom word in the database.
+    Now supports audio file uploads.
+    """
+    try:
+        data = request.data
+        word = data.get('word', '').strip()
+        syllable_breakdown = data.get('syllable_breakdown', '').strip()
+        category = data.get('category', '').strip()
+
+        if not word or not syllable_breakdown or not category:
+            return Response(
+                {'error': 'Word, syllable_breakdown, and category are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Recalculate syllable count and difficulty
+        syllable_count = len(syllable_breakdown.split('-'))
+        if syllable_count <= 2:
+            difficulty_level = 'easy'
+        elif syllable_count == 3:
+            difficulty_level = 'medium'
+        else:
+            difficulty_level = 'hard'
+
+        # Prepare the data for updating
+        update_data = {
+            'word': word,
+            'syllable_breakdown': syllable_breakdown,
+            'syllable_count': syllable_count,
+            'category': category,
+            'difficulty_level': difficulty_level
+        }
+
+        # Handle new audio uploads
+        full_word_audio_url = None
+        syllable_audio_urls = []
+
+        # Upload new full word audio if provided
+        if 'full_word_audio' in request.FILES:
+            from .services_ai import upload_file_to_supabase_storage
+            audio_file = request.FILES['full_word_audio']
+            audio_filename = f"{word.lower().replace(' ', '_')}_full.{audio_file.name.split('.')[-1]}"
+            try:
+                full_word_audio_url = upload_file_to_supabase_storage(
+                    audio_file, 
+                    'syllable-word-audio', 
+                    audio_filename
+                )
+                update_data['full_word_audio_url'] = full_word_audio_url
+            except Exception as e:
+                logger.error(f"Error uploading full word audio: {str(e)}")
+
+        # Upload new syllable audio files if provided
+        syllables = syllable_breakdown.split('-')
+        for idx in range(len(syllables)):
+            field_name = f'syllable_audio_{idx}'
+            if field_name in request.FILES:
+                from .services_ai import upload_file_to_supabase_storage
+                syllable_file = request.FILES[field_name]
+                syllable_filename = f"{word.lower().replace(' ', '_')}_syl_{idx}.{syllable_file.name.split('.')[-1]}"
+                try:
+                    syllable_url = upload_file_to_supabase_storage(
+                        syllable_file, 
+                        'syllable-word-audio', 
+                        syllable_filename
+                    )
+                    syllable_audio_urls.append(syllable_url)
+                except Exception as e:
+                    logger.error(f"Error uploading syllable audio {idx}: {str(e)}")
+
+        # If we have new syllable audios, update the field
+        if syllable_audio_urls:
+            update_data['syllable_audio_urls'] = syllable_audio_urls
+
+        # Execute the update query on the public.syllable_words table
+        response = supabase.table('syllable_words').update(update_data).eq('id', word_id).execute()
+
+        if response.data:
+            updated_word = response.data[0]
+            logger.info(f"Successfully updated word with ID: {word_id}")
+            return Response(updated_word, status=status.HTTP_200_OK)
+        else:
+            logger.warning(f"Could not find word with ID: {word_id} to update.")
+            return Response({'error': 'Word not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        logger.error(f"Error updating word with ID {word_id}: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

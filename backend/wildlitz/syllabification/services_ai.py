@@ -364,6 +364,8 @@ class AIContentGenerator:
             - Clothes (for any wearable items, shoes, accessories)
             - School Supplies (for educational items: pencils, books, backpacks, etc.)
             - Nature (for plants, weather, natural phenomena, landscapes)
+            - Everyday Words (for common action words, descriptive words, basic concepts)
+            - Everyday Objects (for common household items, tools, furniture, appliances)
             
             Examples:
             - "lion" → Animals
@@ -374,6 +376,9 @@ class AIContentGenerator:
             - "shirt" → Clothes
             - "pencil" → School Supplies
             - "tree" → Nature
+            - "chair" → Everyday Objects
+            - "lamp" → Everyday Objects
+            - "scissors" → Everyday Objects
             
             Respond with ONLY ONE category name from the list above.
             If "{word}" doesn't clearly fit any category, respond with "Custom Words".
@@ -389,13 +394,23 @@ class AIContentGenerator:
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=10,
-                temperature=0.1  # Lower temperature for more consistent results
+                temperature=0.1  # Low temperature for more consistent results
             )
             
             category = response.choices[0].message.content.strip()
             
-            # Validate it's one of our categories
-            valid_categories = ['Animals', 'Fruits', 'Food', 'Toys', 'Clothes', 'School Supplies', 'Nature']
+            # ✅ THIS IS THE VALIDATION LIST - Must match exactly!
+            valid_categories = [
+                'Animals', 
+                'Fruits', 
+                'Food', 
+                'Toys', 
+                'Clothes', 
+                'School Supplies', 
+                'Nature', 
+                'Everyday Words', 
+                'Everyday Objects'
+            ]
             
             # Check if response contains any valid category
             for valid_cat in valid_categories:
@@ -403,11 +418,11 @@ class AIContentGenerator:
                     return valid_cat
             
             # If no match, return Custom Words
-            return 'Custom Words'
+            return None
             
         except Exception as e:
             logger.error(f"Error suggesting category: {str(e)}")
-            return "Custom Words"
+            return None
         
     def generate_syllable_breakdown(self, word):
         """AI generates a syllable breakdown for a given word."""

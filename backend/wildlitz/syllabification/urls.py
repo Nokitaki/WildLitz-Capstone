@@ -18,6 +18,8 @@ urlpatterns = [
     path('create-custom-word/', views.create_custom_word, name='create_custom_word'),
     path('get-custom-words/', views.get_custom_words, name='get_custom_words'),
     path('search-words/', views.search_words, name='search_words'),
+    path('delete-custom-word/<uuid:word_id>/', views.delete_custom_word, name='delete_custom_word'),
+    path('update-custom-word/<uuid:word_id>/', views.update_custom_word, name='update_custom_word'),
 ]
 
 if settings.DEBUG:
