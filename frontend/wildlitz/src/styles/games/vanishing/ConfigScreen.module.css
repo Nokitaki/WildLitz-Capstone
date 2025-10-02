@@ -170,7 +170,7 @@
   color: var(--text-white);
   border: none;
   border-radius: var(--border-radius-xl);
-  padding: 16px 32px;
+  padding: 5px 16px;
   font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
@@ -1157,4 +1157,224 @@
   border: 2px solid var(--primary-green);
   min-width: 40px;
   text-align: center;
+}
+.quickActionsBar {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.quickStartButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 30px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+}
+
+.quickStartButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(102, 126, 234, 0.4);
+}
+
+.quickStartButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.analyticsButton {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 30px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+}
+
+.analyticsButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(76, 175, 80, 0.4);
+}
+
+@media (max-width: 768px) {
+  .quickActionsBar {
+    flex-direction: column;
+  }
+
+  .quickStartButton,
+  .analyticsButton {
+    width: 100%;
+  }
+}
+/* ANALYTICS ADDED: Add these styles to your existing ConfigScreen.module.css */
+
+/* ANALYTICS ADDED: Button layout fixes */
+
+/* FIXED: Button alignment and sizing */
+
+/* Quick start section container */
+.quickStartSection {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 30px;
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+  border-radius: 15px;
+  border: 2px dashed #dee2e6;
+}
+
+.quickStartSection h3 {
+  font-size: 1.4rem;
+  color: #333;
+  margin: 0 0 25px 0;
+  font-weight: 700;
+}
+
+/* Button container - centers both buttons */
+.quickStartButtons {
+  display: flex;
+  gap: 25px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+/* BOTH BUTTONS - Exact same base styles */
+.quickStartButton,
+.analyticsButton {
+  /* Sizing - MUST BE IDENTICAL */
+  text-align: left;
+  width: 240px;
+  height: 160px;
+  padding: 20px;
+  
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  
+  /* Styling */
+  border: none;
+  border-radius: 20px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  
+  /* Effects */
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* Quick Start Button - only the gradient is different */
+.quickStartButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+}
+
+.quickStartButton:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.quickStartButton:disabled {
+  background: linear-gradient(135deg, #bdbdbd, #9e9e9e);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Analytics Button - only the gradient is different */
+.analyticsButton {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+}
+
+.analyticsButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+}
+
+/* Active/pressed state for both buttons */
+.quickStartButton:active,
+.analyticsButton:active {
+  transform: translateY(0);
+}
+
+/* Button icon styling */
+.buttonIcon {
+  font-size: 2.5rem;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+
+/* Button subtext styling */
+.buttonSubtext {
+  font-size: 0.85rem;
+  font-weight: 400;
+  opacity: 0.95;
+  margin-top: 3px;
+}
+
+/* Divider with text BELOW the line */
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 45px 0 30px 0;
+  width: 100%;
+}
+
+/* The horizontal line at the top */
+.divider::before {
+  content: '';
+  position: absolute;
+  top: -15px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e0e0e0 20%, #e0e0e0 80%, transparent);
+}
+
+/* Text positioned below the line */
+.divider span {
+  display: inline-block;
+  background: #f8f9fa;
+  padding: 0 25px;
+  color: #999;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .quickStartButtons {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .quickStartButton,
+  .analyticsButton {
+    width: 100%;
+    max-width: 300px;
+    height: 150px;
+  }
+  
+  .buttonIcon {
+    font-size: 2rem;
+  }
 }

@@ -9,12 +9,16 @@ import random
 import logging
 import openai
 from django.conf import settings
+from supabase import create_client
+from datetime import datetime
+import uuid
 
 # Configure logger
 logger = logging.getLogger(__name__)
 
 # Configure OpenAI API key from settings
 openai.api_key = settings.OPENAI_API_KEY
+supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
 @csrf_exempt
 @api_view(['POST'])
@@ -346,6 +350,216 @@ def validate_word_structure(word_obj):
             return False
     
     return True
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def save_game_session(request):
+    """
+    Save a complete game session to Supabase
+    
+    Expected payload:
+    {
+        "timestamp": "2024-01-01T12:00:00Z",
+        "challengeLevel": "simple_words",
+        "learningFocus": "short_vowels",
+        "difficulty": "easy",
+        "wordsAttempted": 10,
+        "wordsRecognized": 8,
+        "successRate": 80.0,
+        "averageResponseTime": 2500.5,
+        "maxStreak": 5,
+        "timeSpent": 120000,
+        "patternStats": {...},
+        "wordList": [...],
+        "words": [...],
+        "recognized": [...],
+        "responseTimes": [...],
+        "teamPlay": false,
+        "teamScores": null
+    }
+    """
+    try:
+        data = request.data
+        user = request.user
+        
+        # Prepare session data for Supabase
+        session_data = {
+            'user_id': user.id if user.is_authenticated else None,
+            'user_email': user.email if user.is_authenticated else None,
+            'timestamp': data.get('timestamp', datetime.now().isoformat()),
+            'challenge_level': data.get('challengeLevel'),
+            'learning_focus': data.get('learningFocus'),
+            'difficulty': data.get('difficulty'),
+            'words_attempted': data.get('wordsAttempted', 0),
+            'words_recognized': data.get('wordsRecognized', 0),
+            'success_rate': data.get('successRate', 0.0),
+            'average_response_time': data.get('averageResponseTime', 0.0),
+            'max_streak': data.get('maxStreak', 0),
+            'time_spent': data.get('timeSpent', 0),
+            'pattern_stats': data.get('patternStats', {}),
+            'word_list': data.get('wordList', []),
+            'team_play': data.get('teamPlay', False),
+            'team_scores': data.get('teamScores'),
+            'completion_rate': data.get('completionRate', 0.0),
+            'words_per_minute': data.get('wordsPerMinute', 0.0),
+            'learning_efficiency': data.get('learningEfficiency', 0.0)
+        }
+        
+        # Insert into Supabase
+        response = supabase.table('phonics_game_sessions').insert(session_data).execute()
+        
+        if response.data:
+            logger.info(f"Game session saved for user: {user.email if user.is_authenticated else 'anonymous'}")
+            
+            # Save detailed word performance if provided
+            if 'words' in data and 'recognized' in data:
+                save_word_performance(
+                    response.data[0]['session_id'],
+                    user.email if user.is_authenticated else None,
+                    data
+                )
+            
+            return Response({
+                'success': True,
+                'message': 'Game session saved successfully',
+                'session_id': str(response.data[0]['session_id'])
+            })
+        else:
+            raise Exception("Failed to save session to Supabase")
+    
+    except Exception as e:
+        logger.error(f"Error saving game session: {str(e)}")
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def save_word_performance(session_id, user_email, session_data):
+    """Save individual word performance details"""
+    try:
+        words = session_data.get('words', [])
+        recognized = session_data.get('recognized', [])
+        response_times = session_data.get('responseTimes', [])
+        word_list = session_data.get('wordList', [])
+        
+        word_records = []
+        for i, word in enumerate(words):
+            word_records.append({
+                'session_id': session_id,
+                'user_email': user_email,
+                'word': word,
+                'pattern': word_list[i].get('pattern') if i < len(word_list) else None,
+                'difficulty': session_data.get('difficulty'),
+                'recognized': recognized[i] if i < len(recognized) else False,
+                'response_time': response_times[i] if i < len(response_times) else None,
+                'attempt_number': i + 1
+            })
+        
+        if word_records:
+            supabase.table('phonics_word_performance').insert(word_records).execute()
+            logger.info(f"Saved {len(word_records)} word performance records")
+    
+    except Exception as e:
+        logger.error(f"Error saving word performance: {str(e)}")
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_user_analytics(request):
+    """
+    Get analytics for the current user
+    
+    Query params:
+    - limit: number of sessions to return (default 10)
+    - pattern: filter by specific pattern
+    """
+    try:
+        user = request.user
+        
+        if not user.is_authenticated:
+            return Response({
+                'success': False,
+                'error': 'User must be authenticated'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        limit = int(request.GET.get('limit', 10))
+        pattern = request.GET.get('pattern', None)
+        
+        # Get recent sessions
+        sessions_query = supabase.table('phonics_game_sessions')\
+            .select('*')\
+            .eq('user_email', user.email)\
+            .order('timestamp', desc=True)\
+            .limit(limit)
+        
+        sessions_response = sessions_query.execute()
+        
+        # Get pattern performance
+        patterns_query = supabase.table('phonics_pattern_performance')\
+            .select('*')\
+            .eq('user_email', user.email)\
+            .order('success_rate', desc=True)
+        
+        if pattern:
+            patterns_query = patterns_query.eq('pattern', pattern)
+        
+        patterns_response = patterns_query.execute()
+        
+        return Response({
+            'success': True,
+            'sessions': sessions_response.data,
+            'patterns': patterns_response.data,
+            'total_sessions': len(sessions_response.data)
+        })
+    
+    except Exception as e:
+        logger.error(f"Error fetching user analytics: {str(e)}")
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_pattern_performance(request):
+    """Get aggregated pattern performance for a user"""
+    try:
+        user = request.user
+        
+        if not user.is_authenticated:
+            return Response({
+                'success': False,
+                'error': 'User must be authenticated'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        response = supabase.table('phonics_pattern_performance')\
+            .select('*')\
+            .eq('user_email', user.email)\
+            .order('total_attempts', desc=True)\
+            .execute()
+        
+        return Response({
+            'success': True,
+            'patterns': response.data
+        })
+    
+    except Exception as e:
+        logger.error(f"Error fetching pattern performance: {str(e)}")
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def log_game_result(request):
+    """
+    LEGACY ENDPOINT - Redirects to save_game_session
+    Kept for backwards compatibility
+    """
+    return save_game_session(request)
 
 def generate_static_fallback_words(challenge_level, learning_focus, word_count):
     """Generate fallback words when AI fails - EXPANDED with many more words"""

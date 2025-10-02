@@ -7,21 +7,25 @@ import styles from '../../../styles/games/vanishing/ConfigScreen.module.css';
  * Enhanced Configuration screen for the Vanishing Game
  * Features modern design, smooth animations, and intuitive user experience
  */
-const ConfigScreen = ({ onStartGame, loading = false, error = null }) => {
+const ConfigScreen = ({ 
+  onStartGame, 
+  onViewAnalytics, // ANALYTICS ADDED - Only change to props
+  loading = false, 
+  error = null 
+}) => {
   // Game configuration state - Start with no selections
   const [challengeLevel, setChallengeLevel] = useState('');
   const [learningFocus, setLearningFocus] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [highlightTarget, setHighlightTarget] = useState(true);
   const [vanishSpeed, setVanishSpeed] = useState('normal');
-  const [numberOfQuestions, setNumberOfQuestions] = useState(10); // New state for number of questions
+  const [numberOfQuestions, setNumberOfQuestions] = useState(10);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   
   // Configuration progress
   const [configProgress, setConfigProgress] = useState(0);
 
-
-    // ADD THESE NEW STATE VARIABLES after existing states:
+  // Audio and team settings
   const [enableAudio, setEnableAudio] = useState(true);
   const [voiceType, setVoiceType] = useState('happy');
   const [teamPlay, setTeamPlay] = useState(false);
@@ -57,28 +61,27 @@ const ConfigScreen = ({ onStartGame, loading = false, error = null }) => {
   const isConfigComplete = challengeLevel && learningFocus && difficulty;
 
   // Handle start game with custom settings
- const handleStartGame = () => {
-  if (!isConfigComplete || loading) return;
-  
-  const config = {
-    challengeLevel,
-    learningFocus,
-    difficulty,
-    highlightTarget,
-    vanishSpeed,
-    numberOfQuestions,
-    // ADD THESE NEW OPTIONS:
-    enableAudio,
-    voiceType,
-    teamPlay,
-    teamAName: teamPlay ? teamAName : null,
-    teamBName: teamPlay ? teamBName : null
+  const handleStartGame = () => {
+    if (!isConfigComplete || loading) return;
+    
+    const config = {
+      challengeLevel,
+      learningFocus,
+      difficulty,
+      highlightTarget,
+      vanishSpeed,
+      numberOfQuestions,
+      enableAudio,
+      voiceType,
+      teamPlay,
+      teamAName: teamPlay ? teamAName : null,
+      teamBName: teamPlay ? teamBName : null
+    };
+    
+    if (onStartGame) {
+      onStartGame(config);
+    }
   };
-  
-  if (onStartGame) {
-    onStartGame(config);
-  }
-};
   
   // Get the learning focus display name and icon
   const getLearningFocusInfo = (focus) => {
@@ -172,19 +175,36 @@ const ConfigScreen = ({ onStartGame, loading = false, error = null }) => {
         {/* Quick start section */}
         <motion.div className={styles.quickStartSection} variants={itemVariants}>
           <h3>🚀 Ready to Jump In?</h3>
-          <motion.button 
-            className={styles.quickStartButton}
-            variants={buttonVariants}
-            initial="idle"
-            whileHover="hover"
-            whileTap="tap"
-            onClick={handleQuickStart}
-            disabled={loading}
-          >
-            <span className={styles.buttonIcon}>⚡</span>
-            Quick Start
-            <span className={styles.buttonSubtext}>Default settings</span>
-          </motion.button>
+          <div className={styles.quickStartButtons}>
+            <motion.button 
+              className={styles.quickStartButton}
+              variants={buttonVariants}
+              initial="idle"
+              whileHover="hover"
+              whileTap="tap"
+              onClick={handleQuickStart}
+              disabled={loading}
+            >
+              <span className={styles.buttonIcon}>⚡</span>
+              Quick Start
+              <span className={styles.buttonSubtext}>Default settings</span>
+            </motion.button>
+            
+            {/* ANALYTICS ADDED: View Analytics Button */}
+            <motion.button 
+              className={styles.analyticsButton}
+              variants={buttonVariants}
+              initial="idle"
+              whileHover="hover"
+              whileTap="tap"
+              onClick={onViewAnalytics}
+            >
+              <span className={styles.buttonIcon}>📊</span>
+              View Analytics
+              <span className={styles.buttonSubtext}>Track progress</span>
+            </motion.button>
+            {/* END ANALYTICS ADDED */}
+          </div>
           <div className={styles.divider}>
             <span>or customize your experience</span>
           </div>
@@ -368,126 +388,114 @@ const ConfigScreen = ({ onStartGame, loading = false, error = null }) => {
                     </div>
                   </div>
 
-
-
-
-
-
-
-                    {/* Audio Settings */}
-                    <div className={styles.advancedRow}>
-                      <div className={styles.toggleGroup}>
-                        <label className={styles.toggleLabel}>
-                          <span>🔊 Play Audio</span>
-                          <span className={styles.toggleDescription}>Read words aloud with kid-friendly voice</span>
-                        </label>
-                        <motion.button
-                          className={`${styles.toggle} ${enableAudio ? styles.active : ''}`}
-                          onClick={() => setEnableAudio(!enableAudio)}
-                          whileTap={{ scale: 0.95 }}
-                          disabled={loading}
-                        >
-                          <motion.div
-                            className={styles.toggleHandle}
-                            animate={{ x: enableAudio ? 24 : 0 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                          />
-                        </motion.button>
-                      </div>
+                  {/* Audio Settings */}
+                  <div className={styles.advancedRow}>
+                    <div className={styles.toggleGroup}>
+                      <label className={styles.toggleLabel}>
+                        <span>🔊 Play Audio</span>
+                        <span className={styles.toggleDescription}>Read words aloud with kid-friendly voice</span>
+                      </label>
+                      <motion.button
+                        className={`${styles.toggle} ${enableAudio ? styles.active : ''}`}
+                        onClick={() => setEnableAudio(!enableAudio)}
+                        whileTap={{ scale: 0.95 }}
+                        disabled={loading}
+                      >
+                        <motion.div
+                          className={styles.toggleHandle}
+                          animate={{ x: enableAudio ? 24 : 0 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        />
+                      </motion.button>
                     </div>
+                  </div>
 
-                    {/* Voice Selection */}
-                    {enableAudio && (
-                      <div className={styles.advancedRow}>
-                        <div className={styles.sliderGroup}>
-                          <label className={styles.sliderLabel}>
-                            <span>🎭 Voice Character</span>
-                            <span className={styles.sliderDescription}>Choose the voice that kids will love</span>
-                          </label>
-                          <div className={styles.speedSelector}>
-                            {[
-                              { key: 'happy', label: 'Happy', emoji: '😊' },
-                              { key: 'gentle', label: 'Gentle', emoji: '🌸' },
-                              { key: 'playful', label: 'Playful', emoji: '🎪' },
-                              { key: 'friendly', label: 'Friendly', emoji: '🌟' }
-                            ].map((voice) => (
-                              <motion.button
-                                key={voice.key}
-                                className={`${styles.speedOption} ${voiceType === voice.key ? styles.active : ''}`}
-                                onClick={() => setVoiceType(voice.key)}
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                disabled={loading}
-                              >
-                                <span>{voice.emoji}</span>
-                                <span>{voice.label}</span>
-                              </motion.button>
-                            ))}
-                          </div>
+                  {/* Voice Selection */}
+                  {enableAudio && (
+                    <div className={styles.advancedRow}>
+                      <div className={styles.sliderGroup}>
+                        <label className={styles.sliderLabel}>
+                          <span>🎭 Voice Character</span>
+                          <span className={styles.sliderDescription}>Choose the voice that kids will love</span>
+                        </label>
+                        <div className={styles.speedSelector}>
+                          {[
+                            { key: 'happy', label: 'Happy', emoji: '😊' },
+                            { key: 'gentle', label: 'Gentle', emoji: '🌸' },
+                            { key: 'playful', label: 'Playful', emoji: '🎪' },
+                            { key: 'friendly', label: 'Friendly', emoji: '🌟' }
+                          ].map((voice) => (
+                            <motion.button
+                              key={voice.key}
+                              className={`${styles.speedOption} ${voiceType === voice.key ? styles.active : ''}`}
+                              onClick={() => setVoiceType(voice.key)}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              disabled={loading}
+                            >
+                              <span>{voice.emoji}</span>
+                              <span>{voice.label}</span>
+                            </motion.button>
+                          ))}
                         </div>
                       </div>
-                    )}
-
-                    {/* Team Play Setting */}
-                    <div className={styles.advancedRow}>
-                      <div className={styles.toggleGroup}>
-                        <label className={styles.toggleLabel}>
-                          <span>👥 Team Play Mode</span>
-                          <span className={styles.toggleDescription}>Split class into two teams and track scores</span>
-                        </label>
-                        <motion.button
-                          className={`${styles.toggle} ${teamPlay ? styles.active : ''}`}
-                          onClick={() => setTeamPlay(!teamPlay)}
-                          whileTap={{ scale: 0.95 }}
-                          disabled={loading}
-                        >
-                          <motion.div
-                            className={styles.toggleHandle}
-                            animate={{ x: teamPlay ? 24 : 0 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                          />
-                        </motion.button>
-                      </div>
                     </div>
+                  )}
 
-                    {/* Team Names */}
-                    {teamPlay && (
-                      <div className={styles.advancedRow}>
-                        <div className={styles.teamNamesGroup}>
-                          <label className={styles.teamLabel}>
-                            <span>Team Names</span>
-                            <span className={styles.teamDescription}>Customize your team names</span>
-                          </label>
-                          <div className={styles.teamInputs}>
-                            <input
-                              type="text"
-                              value={teamAName}
-                              onChange={(e) => setTeamAName(e.target.value)}
-                              placeholder="Team A"
-                              className={styles.teamInput}
-                              disabled={loading}
-                              maxLength={20}
-                            />
-                            <span className={styles.teamVs}>VS</span>
-                            <input
-                              type="text"
-                              value={teamBName}
-                              onChange={(e) => setTeamBName(e.target.value)}
-                              placeholder="Team B"
-                              className={styles.teamInput}
-                              disabled={loading}
-                              maxLength={20}
-                            />
-                          </div>
+                  {/* Team Play Setting */}
+                  <div className={styles.advancedRow}>
+                    <div className={styles.toggleGroup}>
+                      <label className={styles.toggleLabel}>
+                        <span>👥 Team Play Mode</span>
+                        <span className={styles.toggleDescription}>Split class into two teams and track scores</span>
+                      </label>
+                      <motion.button
+                        className={`${styles.toggle} ${teamPlay ? styles.active : ''}`}
+                        onClick={() => setTeamPlay(!teamPlay)}
+                        whileTap={{ scale: 0.95 }}
+                        disabled={loading}
+                      >
+                        <motion.div
+                          className={styles.toggleHandle}
+                          animate={{ x: teamPlay ? 24 : 0 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        />
+                      </motion.button>
+                    </div>
+                  </div>
+
+                  {/* Team Names */}
+                  {teamPlay && (
+                    <div className={styles.advancedRow}>
+                      <div className={styles.teamNamesGroup}>
+                        <label className={styles.teamLabel}>
+                          <span>Team Names</span>
+                          <span className={styles.teamDescription}>Customize your team names</span>
+                        </label>
+                        <div className={styles.teamInputs}>
+                          <input
+                            type="text"
+                            value={teamAName}
+                            onChange={(e) => setTeamAName(e.target.value)}
+                            placeholder="Team A"
+                            className={styles.teamInput}
+                            disabled={loading}
+                            maxLength={20}
+                          />
+                          <span className={styles.teamVs}>VS</span>
+                          <input
+                            type="text"
+                            value={teamBName}
+                            onChange={(e) => setTeamBName(e.target.value)}
+                            placeholder="Team B"
+                            className={styles.teamInput}
+                            disabled={loading}
+                            maxLength={20}
+                          />
                         </div>
                       </div>
-                    )}
-
-
-
-
-
-
+                    </div>
+                  )}
                   
                   <div className={styles.advancedRow}>
                     <div className={styles.toggleGroup}>
@@ -584,7 +592,7 @@ const ConfigScreen = ({ onStartGame, loading = false, error = null }) => {
           </motion.button>
         </motion.div>
         
-        {/* Configuration summary - Only show when at least one option is selected */}
+        {/* Configuration summary */}
         {(challengeLevel || learningFocus || difficulty) && (
           <motion.div className={styles.configSummary} variants={itemVariants}>
             <h4>🎯 Your Configuration:</h4>

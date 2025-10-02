@@ -7,7 +7,16 @@ import styles from '../../../styles/games/vanishing/GameCompleteScreen.module.cs
  * GameCompleteScreen component shown at the end of a game session
  * Displays summary statistics and recommendations
  */
-const GameCompleteScreen = ({ stats, config, score, totalWords, onPlayAgain, teamScores, teamNames }) => {
+const GameCompleteScreen = ({ 
+  stats, 
+  config, 
+  score, 
+  totalWords, 
+  onPlayAgain, 
+  onViewAnalytics, // ANALYTICS ADDED
+  teamScores, 
+  teamNames 
+}) => {
   // Add team winner logic
   const getTeamResults = () => {
     if (!config.teamPlay || !teamScores) return null;
@@ -90,8 +99,6 @@ const GameCompleteScreen = ({ stats, config, score, totalWords, onPlayAgain, tea
   
   // Get the practice words
   const getPracticeWords = () => {
-    // In a real app, this would come from actual gameplay data
-    // For now, return some sample words based on the learning focus
     const words = {
       'short_vowels': ['cat', 'bed', 'fish', 'stop', 'jump'],
       'long_vowels': ['cake', 'meet', 'bike', 'rope', 'cube'],
@@ -110,294 +117,210 @@ const GameCompleteScreen = ({ stats, config, score, totalWords, onPlayAgain, tea
     return "Practice Makes Perfect!";
   };
   
-  // Get trophy icon based on score
-  const getTrophyIcon = () => {
-    if (successRate >= 90) return "🏆";
-    if (successRate >= 70) return "🥇";
-    if (successRate >= 50) return "🥈";
-    return "🌟";
+  // Get achievement message
+  const getAchievementMessage = () => {
+    if (successRate >= 90) return "Outstanding! You're mastering phonics patterns!";
+    if (successRate >= 70) return "Great job! You're making excellent progress!";
+    if (successRate >= 50) return "Good work! Keep practicing to improve!";
+    return "Every attempt helps you learn and grow!";
   };
   
-  // Get trophy background color based on score
-  const getTrophyBackground = () => {
-    if (successRate >= 90) return "#FFD700";
-    if (successRate >= 70) return "#4CAF50";
-    if (successRate >= 50) return "#2196F3";
-    return "#FF9800";
-  };
-  
-  // Get stats color based on success rate
-  const getStatsColor = (rate) => {
-    if (rate >= 80) return "#4CAF50";
-    if (rate >= 60) return "#8BC34A";
-    if (rate >= 40) return "#FFC107";
-    return "#FF9800";
-  };
-  
-  // Get the pattern stats for display
   const patternStats = getPatternStats();
-  
-  // Get practice words
-  const practiceWords = getPracticeWords();
-  
-  // Get recommendations
   const recommendations = getRecommendations();
   
+  // Get color based on success rate
+  const getStatsColor = (rate) => {
+    if (rate >= 80) return '#4CAF50';
+    if (rate >= 60) return '#FF9800';
+    return '#E91E63';
+  };
+  
   return (
-    <div className={styles.completeContainer}>
-      <div className={styles.completeCard}>
-        {/* Confetti animation for celebration */}
-        <div className={styles.confettiContainer}>
-          {[...Array(30)].map((_, i) => (
-            <motion.div
-              key={i}
-              className={styles.confettiPiece}
-              style={{
-                backgroundColor: `hsl(${Math.random() * 360}, 80%, 60%)`,
-                width: `${Math.random() * 8 + 5}px`,
-                height: `${Math.random() * 8 + 5}px`,
-                top: `-20px`,
-                left: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [0, window.innerHeight],
-                x: [0, Math.random() * 200 - 100],
-                rotate: [0, Math.random() * 360 * (Math.random() > 0.5 ? 1 : -1)],
-              }}
-              transition={{
-                duration: Math.random() * 2 + 2,
-                ease: "linear",
-                repeat: Infinity,
-                delay: Math.random() * 2,
-              }}
-            />
-          ))}
+    <div className={styles.completeCard}>
+      {/* Celebration Header */}
+      <motion.div 
+        className={styles.completeHeader}
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
+      >
+        <div className={styles.celebrationIcon}>🎉</div>
+        <h1 className={styles.completeTitle}>Game Complete!</h1>
+        <div className={styles.messageBox}>
+          <div className={styles.messageTitle}>{getAchievementTitle()}</div>
+          <p className={styles.messageText}>{getAchievementMessage()}</p>
         </div>
-        
-        {/* Complete Header */}
-        <div className={styles.completeHeader}>
-          <h2 className={styles.completeTitle}>
-            Game Complete
-          </h2>
-        </div>
-        
-      {/* Completion message */}
-<div className={styles.completionMessage}>
-  <motion.div 
-    className={styles.messageBox}
-    initial={{ scale: 0.9, opacity: 0 }}
-    animate={{ scale: 1, opacity: 1 }}
-    transition={{ duration: 0.5 }}
-  >
-    <h3 className={styles.messageTitle}>Great work! Session Complete</h3>
-    <p className={styles.messageText}>You practiced important phonics patterns today!</p>
-  </motion.div>
-</div>
+      </motion.div>
 
-{/* PUT THE TEAM RESULTS CODE HERE */}
-{/* Team Results - Only show in team play mode */}
-{config.teamPlay && teamResults && (
-  <motion.div 
-    className={styles.teamResultsSection}
-    initial={{ y: 20, opacity: 0 }}
-    animate={{ y: 0, opacity: 1 }}
-    transition={{ duration: 0.5, delay: 0.3 }}
-  >
-    <div className={styles.teamResultsCard}>
-      {teamResults.tie ? (
-        <div className={styles.tieResult}>
-          <div className={styles.tieIcon}>🤝</div>
-          <h3>It's a Tie!</h3>
-          <p>Both teams scored {teamResults.winnerScore} points!</p>
-          <p>Great teamwork everyone! 🎉</p>
-        </div>
-      ) : (
-        <div className={styles.winnerResult}>
-          <div className={styles.winnerIcon}>🏆</div>
-          <h3>{teamResults.winner} Wins!</h3>
-          <div className={styles.finalScores}>
-            <span className={styles.winnerScore}>{teamResults.winner}: {teamResults.winnerScore}</span>
-            <span className={styles.loserScore}>{teamResults.loser}: {teamResults.loserScore}</span>
-          </div>
-          <p>Congratulations! Well played by both teams! 🎊</p>
-        </div>
+      {/* Team Results (if team play) */}
+      {teamResults && (
+        <motion.div
+          className={styles.teamResultsCard}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+        >
+          {teamResults.tie ? (
+            <div className={styles.tieResult}>
+              <h3>It's a Tie!</h3>
+              <div className={styles.tieScores}>
+                <span>{teamResults.winnerScore} - {teamResults.loserScore}</span>
+              </div>
+              <p>Amazing teamwork from both teams! 🎉</p>
+            </div>
+          ) : (
+            <div className={styles.winnerResult}>
+              <div className={styles.winnerIcon}>🏆</div>
+              <h3>{teamResults.winner} Wins!</h3>
+              <div className={styles.finalScores}>
+                <span className={styles.winnerScore}>{teamResults.winner}: {teamResults.winnerScore}</span>
+                <span className={styles.loserScore}>{teamResults.loser}: {teamResults.loserScore}</span>
+              </div>
+              <p>Congratulations! Well played by both teams! 🎊</p>
+            </div>
+          )}
+        </motion.div>
       )}
-    </div>
-  </motion.div>
-)}
-{/* END OF TEAM RESULTS CODE */}
 
-{/* Stats and recommendations area */}
-<div className={styles.completeContent}>
-  {/* Left section - Game stats */}
-  <motion.div 
-    className={styles.statsSection}
-    initial={{ x: -20, opacity: 0 }}
-    animate={{ x: 0, opacity: 1 }}
-    transition={{ duration: 0.5, delay: 0.2 }}
-  >
-            <div className={styles.sectionHeader}>
-              Game Statistics
+      {/* Stats and recommendations area */}
+      <div className={styles.completeContent}>
+        {/* Left section - Game stats */}
+        <motion.div 
+          className={styles.statsSection}
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <div className={styles.sectionHeader}>
+            Game Statistics
+          </div>
+          <div className={styles.statsGrid}>
+            <div className={styles.statItem}>
+              <div className={styles.statLabel}>Words Attempted</div>
+              <div className={styles.statValue}>{totalWords}</div>
             </div>
-            <div className={styles.statsGrid}>
-              <div className={styles.statItem}>
-                <div className={styles.statLabel}>Words Attempted</div>
-                <div className={styles.statValue}>{totalWords}</div>
-              </div>
-              <div className={styles.statItem}>
-                <div className={styles.statLabel}>Words Recognized</div>
-                <div className={styles.statValue}>{score}</div>
-              </div>
-              <div className={styles.statItem}>
-                <div className={styles.statLabel}>Success Rate</div>
-                <div 
-                  className={styles.statValue}
-                  style={{ color: getStatsColor(successRate) }}
-                >
-                  {successRate}%
-                </div>
-              </div>
+            <div className={styles.statItem}>
+              <div className={styles.statLabel}>Words Recognized</div>
+              <div className={styles.statValue}>{score}</div>
             </div>
-          </motion.div>
-          
-          {/* Center section - Phonics patterns */}
-          <motion.div 
-            className={styles.patternsSection}
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            <div className={styles.sectionHeader}>
-              Phonics Patterns Practiced
-            </div>
-            <div className={styles.patternsGrid}>
-              {patternStats.map((pattern, index) => (
-                <div 
-                  key={index} 
-                  className={styles.patternItem}
-                  style={{ 
-                    backgroundColor: `rgba(${pattern.pattern.includes('Short') ? '255, 193, 7' : 
-                      pattern.pattern.includes('Consonant') ? '33, 150, 243' : 
-                      pattern.pattern.includes('Digraph') ? '233, 30, 99' : '76, 175, 80'}, 0.15)`
-                  }}
-                >
-                  <div className={styles.patternName}>{pattern.pattern}</div>
-                  <div 
-                    className={styles.patternRate}
-                    style={{ color: getStatsColor(pattern.successRate) }}
-                  >
-                    {pattern.successRate}%
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-          
-          {/* Right section - Achievement */}
-          <motion.div 
-            className={styles.achievementSection}
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-          >
-            <div className={styles.trophyContainer}>
-              <motion.div 
-                className={styles.trophyIcon}
-                style={{ backgroundColor: getTrophyBackground() }}
-                animate={{ 
-                  scale: [1, 1.05, 1],
-                  boxShadow: [
-                    '0 0 0 0 rgba(255,255,255,0.5)',
-                    '0 0 10px 5px rgba(255,255,255,0.7)',
-                    '0 0 0 0 rgba(255,255,255,0.5)'
-                  ]
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
+            <div className={styles.statItem}>
+              <div className={styles.statLabel}>Success Rate</div>
+              <div 
+                className={styles.statValue}
+                style={{ color: getStatsColor(successRate) }}
               >
-                {getTrophyIcon()}
-              </motion.div>
-              <div className={styles.achievementTitle}>
-                {getAchievementTitle()}
+                {successRate}%
               </div>
             </div>
+          </div>
+        </motion.div>
+        
+        {/* Center section - Phonics patterns */}
+        <motion.div 
+          className={styles.patternsSection}
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <div className={styles.sectionHeader}>
+            Phonics Patterns Practiced
+          </div>
+          <div className={styles.patternsGrid}>
+            {patternStats.map((pattern, index) => (
+              <div 
+                key={index} 
+                className={styles.patternItem}
+                style={{ 
+                  backgroundColor: `rgba(${pattern.pattern.includes('Short') ? '255, 193, 7' : 
+                    pattern.pattern.includes('Consonant') ? '33, 150, 243' : 
+                    pattern.pattern.includes('Digraph') ? '156, 39, 176' : '76, 175, 80'}, 0.1)`,
+                  borderColor: pattern.pattern.includes('Short') ? '#FFC107' : 
+                    pattern.pattern.includes('Consonant') ? '#2196F3' : 
+                    pattern.pattern.includes('Digraph') ? '#9C27B0' : '#4CAF50'
+                }}
+              >
+                <div className={styles.patternName}>{pattern.pattern}</div>
+                <div className={styles.patternRate}>
+                  <span style={{ color: getStatsColor(pattern.successRate) }}>
+                    {pattern.successRate}%
+                  </span>
+                </div>
+                <div className={styles.patternAttempts}>
+                  {pattern.correct}/{pattern.attempted} correct
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+        
+        {/* Right section - Achievement */}
+        <motion.div 
+          className={styles.achievementSection}
+          initial={{ x: 20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <div className={styles.sectionHeader}>
+            Achievement
+          </div>
+          <motion.div 
+            className={styles.trophyIcon}
+            animate={{ rotate: [0, -10, 10, -10, 0] }}
+            transition={{ duration: 1, delay: 0.6 }}
+          >
+            {successRate >= 90 ? '🏆' : successRate >= 70 ? '🥈' : successRate >= 50 ? '🥉' : '⭐'}
           </motion.div>
-        </div>
-        
-        {/* Words practiced section */}
-        <motion.div 
-          className={styles.wordsPracticedSection}
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-        >
-          <div className={styles.sectionHeader}>
-            Words You Practiced Today:
-          </div>
-          <div className={styles.wordsGrid}>
-            {practiceWords.map((word, index) => (
-              <div key={index} className={styles.wordChip}>
-                {word}
-              </div>
-            ))}
-            {practiceWords.length > 5 && (
-              <div className={styles.wordChip}>...</div>
-            )}
-          </div>
-        </motion.div>
-        
-        {/* Recommendations section */}
-        <motion.div 
-          className={styles.recommendationsSection}
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-        >
-          <div className={styles.sectionHeader}>
-            Recommended Next Steps:
-          </div>
-          <div className={styles.recommendationsList}>
-            {recommendations.map((recommendation, index) => (
-              <div key={index} className={styles.recommendationItem}>
-                <span className={styles.recommendationBullet}>•</span>
-                <span className={styles.recommendationText}>{recommendation}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-        
-        {/* Action buttons */}
-        <motion.div 
-          className={styles.actionButtons}
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.7 }}
-        >
-          <motion.button 
-            className={styles.summaryButton}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Print Summary
-          </motion.button>
-          
-          <motion.button 
-            className={styles.saveButton}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Save Results
-          </motion.button>
-          
-          <motion.button 
-            className={styles.exitButton}
-            onClick={onPlayAgain}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Exit Game
-          </motion.button>
+          <div className={styles.achievementTitle}>{getAchievementTitle()}</div>
+          <div className={styles.achievementScore}>{score}/{totalWords}</div>
         </motion.div>
       </div>
+
+      {/* Recommendations Section */}
+      <motion.div 
+        className={styles.recommendationsSection}
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+      >
+        <div className={styles.sectionHeader}>💡 Recommendations</div>
+        <div className={styles.recommendationsList}>
+          {recommendations.map((rec, index) => (
+            <div key={index} className={styles.recommendationItem}>
+              <span className={styles.recommendationIcon}>✓</span>
+              <span className={styles.recommendationText}>{rec}</span>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Action Buttons */}
+      <motion.div 
+        className={styles.actionButtons}
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+      >
+        <button 
+          className={styles.summaryButton}
+          onClick={onPlayAgain}
+        >
+          🎮 Play Again
+        </button>
+        {/* ANALYTICS ADDED: View Analytics Button */}
+        <button 
+          className={styles.analyticsButton}
+          onClick={onViewAnalytics}
+        >
+          📊 View Analytics
+        </button>
+        {/* END ANALYTICS ADDED */}
+        <button 
+          className={styles.exitButton}
+          onClick={() => window.location.href = '/'}
+        >
+          🏠 Exit Game
+        </button>
+      </motion.div>
     </div>
   );
 };

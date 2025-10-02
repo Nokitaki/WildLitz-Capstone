@@ -12,7 +12,7 @@
 
 .completeCard {
   width: 100%;
-  height: 100%;
+  max-height: 100%;  /* Changed from height: 100% */
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 20px;
   padding: 20px;
@@ -21,7 +21,27 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;  /* Changed from overflow: hidden */
+  overflow-x: hidden;  /* Prevent horizontal scroll */
+}
+
+/* Optional: Style the scrollbar */
+.completeCard::-webkit-scrollbar {
+  width: 10px;
+}
+
+.completeCard::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.completeCard::-webkit-scrollbar-thumb {
+  background: #88b378;
+  border-radius: 10px;
+}
+
+.completeCard::-webkit-scrollbar-thumb:hover {
+  background: #6a9461;
 }
 
 /* Confetti animation */
@@ -557,4 +577,30 @@
   color: #5d4037;
   font-size: 1.1rem;
   margin: 0;
+}
+.analyticsButton {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+}
+
+.analyticsButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(76, 175, 80, 0.4);
+}
+
+/* Make sure your actionButtons has flex layout (should already exist) */
+.actionButtons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 20px;
 }
