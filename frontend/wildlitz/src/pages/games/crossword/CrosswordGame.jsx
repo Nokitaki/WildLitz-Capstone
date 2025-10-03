@@ -142,75 +142,77 @@ const CrosswordGame = () => {
    * Handle newly generated story - FIXED VERSION
    */
   const handleStoryGenerated = (data) => {
-    console.log('Story generated:', data);
-    console.log('Number of episodes:', data.story.episodes?.length);
-    
-    // IMPORTANT: Create new story object with proper structure
-    const newStory = {
-      ...data.story,
-      episodes: data.story.episodes || []
-    };
-    
-    // Add the new story to the available stories
-    const newStories = {
-      ...gameStories,
-      [newStory.id]: newStory
-    };
-    
-    console.log('Updated gameStories:', newStories);
-    console.log('New story episodes:', newStory.episodes.length);
-    
-    setGameStories(newStories);
-    
-    // Add the new puzzles to the available puzzles
-    const newPuzzles = {
-      ...gamePuzzles,
-      ...data.puzzles
-    };
-    
-    setGamePuzzles(newPuzzles);
+  console.log('=== Story Generation Debug ===');
+  console.log('Raw story data:', data);
+  console.log('Number of episodes received:', data.story.episodes?.length);
+  
+  // IMPORTANT: Ensure episodes array is properly set
+  const newStory = {
+    ...data.story,
+    episodes: Array.isArray(data.story.episodes) ? data.story.episodes : []
+  };
+  
+  console.log('Processed story:', newStory);
+  console.log('Episodes in processed story:', newStory.episodes.length);
+  console.log('Episode titles:', newStory.episodes.map(ep => ep.title));
+  
+  // Add the new story to the available stories
+  const newStories = {
+    ...gameStories,
+    [newStory.id]: newStory
+  };
+  
+  const newPuzzles = {
+    ...gamePuzzles,
+    ...data.puzzles
+  };
+  
+  setGamePuzzles(newPuzzles);
     
     // Configure game to use the new story
-    const config = {
-      storyMode: true,
-      adventureId: newStory.id
-    };
+     const config = {
+    storyMode: true,
+    adventureId: newStory.id
+  };
     
-    console.log('Setting game config:', config);
     setGameConfig(config);
     
     // Move to story screen directly with the first episode
     if (newStory.episodes && newStory.episodes.length > 0) {
-      const firstEpisode = newStory.episodes[0];
-      setCurrentStorySegment(firstEpisode);
-      setCurrentEpisode(1); // Start at episode 1
+    const firstEpisode = newStory.episodes[0];
+    setCurrentStorySegment(firstEpisode);
+    setCurrentEpisode(1);
       
-      console.log('Starting with episode 1 of', newStory.episodes.length);
+       console.log('Starting with episode 1 of', newStory.episodes.length);
+      console.log('First episode:', firstEpisode.title);
       
       // Load corresponding puzzle
       const puzzleData = data.puzzles[firstEpisode.crosswordPuzzleId];
+    if (puzzleData) {
       setCurrentPuzzle(puzzleData);
-      
-      // Reset game state
-      setSolvedWords([]);
-      setTimeSpent(0);
-      
-      // Go directly to story screen
-      setGameState('story');
+      console.log('Loaded puzzle:', puzzleData.title);
     } else {
-      console.error('No episodes found in generated story');
-      setGameState('generate-story');
+      console.error('No puzzle found for:', firstEpisode.crosswordPuzzleId);
     }
-  };
+    
+    // Reset game state
+    setSolvedWords([]);
+    setTimeSpent(0);
+      
+      setGameState('story');
+  } else {
+    console.error('No episodes found in generated story');
+    setGameState('generate-story');
+  }
+};
   
   /**
    * Handle moving from story to puzzle
    */
-  const handleContinueToPuzzle = () => {
-    setTimerActive(true);
-    setGameState('gameplay');
-  };
-  
+ const handleContinueToPuzzle = () => {
+  setTimerActive(true);
+  setGameState('gameplay');
+};
   /**
    * Toggle reading coach visibility
    */
@@ -420,23 +422,23 @@ const CrosswordGame = () => {
             </motion.div>
           )}
           
-          {gameState === 'story' && currentStorySegment && (
-            <motion.div
-              key="story"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={styles.screenContainer}
-            >
-              <StoryScreen 
-                storySegment={currentStorySegment}
-                onContinue={handleContinueToPuzzle}
-                onToggleReadingCoach={toggleReadingCoach}
-                vocabularyWords={getCurrentEpisodeVocabularyWords()}
-                currentEpisode={currentEpisode}
-              />
-            </motion.div>
-          )}
+        {gameState === 'story' && currentStorySegment && (
+  <motion.div
+    key="story"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className={styles.screenContainer}
+  >
+    <StoryScreen 
+      storySegment={currentStorySegment}
+      currentEpisode={currentEpisode}
+      vocabularyWords={getCurrentEpisodeVocabularyWords()}
+      onContinue={handleContinueToPuzzle}  // Direct connection to puzzle
+      onToggleReadingCoach={toggleReadingCoach}
+    />
+  </motion.div>
+)}
           
           {gameState === 'gameplay' && currentPuzzle && (
             <motion.div
@@ -461,50 +463,48 @@ const CrosswordGame = () => {
           )}
           
           {gameState === 'summary' && (
-            <motion.div
-              key="summary"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={styles.screenContainer}
-            >
-              {/* Debug logging */}
-              {(() => {
-                const currentAdventure = gameStories[gameConfig.adventureId];
-                const episodeCount = currentAdventure?.episodes?.length || 0;
-                const nextAvailable = currentEpisode < episodeCount;
-                
-                console.log('=== SUMMARY SCREEN DEBUG ===');
-                console.log('Adventure ID:', gameConfig.adventureId);
-                console.log('Current Episode:', currentEpisode);
-                console.log('Total Episodes:', episodeCount);
-                console.log('Episodes Array:', currentAdventure?.episodes?.map(ep => ep.title) || []);
-                console.log('Next Episode Available:', nextAvailable);
-                console.log('========================');
-                
-                return null;
-              })()}
-              
-              <SummaryScreen 
-                solvedWords={solvedWords}
-                timeSpent={timeSpent}
-                timeFormatted={formatTime(timeSpent)}
-                theme={"story"}
-                onPlayAgain={handleNextEpisode}
-                onBuildSentences={handleGoToSentenceBuilder}
-                onReturnToMenu={handleReturnToMenu}
-                totalWords={currentPuzzle ? currentPuzzle.words.length : 0}
-                isStoryMode={true}
-                nextEpisodeAvailable={currentEpisode < (gameStories[gameConfig.adventureId]?.episodes?.length || 0)}
-                currentEpisode={currentEpisode}
-                storyTitle={gameStories[gameConfig.adventureId]?.title}
-                storySegment={currentStorySegment}
-                onToggleReadingCoach={toggleReadingCoach}
-                currentPuzzleIndex={currentPuzzleIndex}
-                totalPuzzles={availablePuzzles.length}
-              />
-            </motion.div>
-          )}
+  <motion.div
+    key="summary"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className={styles.screenContainer}
+  >
+    {/* Debug logging - ADD THIS */}
+    {(() => {
+      const currentAdventure = gameStories[gameConfig.adventureId];
+      const episodeCount = currentAdventure?.episodes?.length || 0;
+      const nextAvailable = currentEpisode < episodeCount;
+      
+      console.log('=== SUMMARY SCREEN DEBUG ===');
+      console.log('Adventure ID:', gameConfig.adventureId);
+      console.log('Current Episode:', currentEpisode);
+      console.log('Total Episodes:', episodeCount);
+      console.log('Episodes Array:', currentAdventure?.episodes?.map(ep => ep.title) || []);
+      console.log('Next Episode Available:', nextAvailable);
+      console.log('Full adventure object:', currentAdventure);
+      console.log('========================');
+      
+      return null;
+    })()}
+    
+    <SummaryScreen 
+      solvedWords={solvedWords}
+      timeSpent={timeSpent}
+      timeFormatted={formatTime(timeSpent)}
+      theme={"story"}
+      onPlayAgain={handleNextEpisode}
+      onBuildSentences={handleGoToSentenceBuilder}
+      onReturnToMenu={handleReturnToMenu}
+      totalWords={currentPuzzle ? currentPuzzle.words.length : 0}
+      isStoryMode={true}
+      nextEpisodeAvailable={currentEpisode < (gameStories[gameConfig.adventureId]?.episodes?.length || 0)}
+      currentEpisode={currentEpisode}
+      storyTitle={gameStories[gameConfig.adventureId]?.title}
+      storySegment={currentStorySegment}
+    />
+  </motion.div>
+)}
           
           {gameState === 'sentence-builder' && (
             <motion.div

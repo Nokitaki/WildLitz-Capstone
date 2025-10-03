@@ -1,811 +1,388 @@
-/* src/styles/games/crossword/StoryScreen.module.css */
-/* Enhanced version with child-friendly colors and animations */
+/* StoryScreen.module.css - Updated and simplified */
 
-.storyContainer {
+.storyScreenContainer {
   width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0.5rem;
-  box-sizing: border-box;
-}
-
-.storyCard {
-  width: 100%;
-  max-width: 1200px;
-  height: 100%;
-  background-color: rgba(255, 255, 255, 0.95);
-  border-radius: 25px; /* Slightly more rounded corners */
-  padding: 25px;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25), 0 0 30px rgba(156, 39, 176, 0.2); /* Enhanced shadow with color */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   overflow: hidden;
-  position: relative;
 }
 
-/* Add a subtle pattern background for more fun */
-.storyCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239C27B0' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
-  opacity: 0.5;
-  z-index: -1;
-  border-radius: 25px;
-}
-
-.storyHeader {
-  background: linear-gradient(135deg, #9c27b0, #673ab7); /* Gradient background */
-  color: white;
-  padding: 18px;
-  border-radius: 20px;
-  margin-bottom: 20px;
+/* Header */
+.header {
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+  padding: 20px 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 10px rgba(156, 39, 176, 0.3);
-  position: relative;
-  overflow: hidden;
+  flex-shrink: 0;
+  border-bottom: 3px solid #9c27b0;
 }
 
-/* Add decorative elements to the header */
-.storyHeader::before {
-  content: '📚';
-  position: absolute;
-  left: 10px;
-  top: -15px;
-  font-size: 3rem;
-  opacity: 0.1;
-  transform: rotate(-10deg);
-}
-
-.storyHeader::after {
-  content: '✨';
-  position: absolute;
-  right: 10px;
-  bottom: -10px;
-  font-size: 2rem;
-  opacity: 0.1;
-  transform: rotate(10deg);
+.episodeInfo {
+  flex: 1;
 }
 
 .episodeTitle {
   font-size: 1.8rem;
-  margin: 0;
+  color: #4a148c;
+  margin: 0 0 8px 0;
   font-weight: 700;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  letter-spacing: 0.5px;
 }
 
 .stageLabel {
-  background-color: rgba(255, 255, 255, 0.3);
-  padding: 8px 15px;
+  display: inline-block;
+  background: linear-gradient(to right, #9c27b0, #673ab7);
+  color: white;
+  padding: 6px 16px;
   border-radius: 20px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.3);
 }
 
-.storyContent {
+.controls {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-  overflow-y: auto;
-  flex: 1;
-  padding: 5px;
-}
-
-/* Reading Pane */
-.readingPane {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.readingControls {
-  display: flex;
-  flex-wrap: wrap;
   gap: 12px;
-}
-
-.readButton, .stopButton, .readingCoachButton {
-  display: flex;
   align-items: center;
+}
+
+.readAloudControls {
+  display: flex;
   gap: 8px;
-  padding: 10px 18px;
+}
+
+.readAloudButton,
+.stopReadingButton,
+.readingHelperButton {
+  padding: 12px 20px;
   border: none;
-  border-radius: 30px;
-  font-size: 1.05rem;
-  font-weight: 500;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
-.readButton {
-  background: linear-gradient(to right, #8e2de2, #4a00e0);
+.readAloudButton {
+  background: linear-gradient(to right, #4caf50, #45a049);
   color: white;
 }
 
-.readButton:hover:not(.disabled) {
-  background: linear-gradient(to right, #7928ca, #3700b3);
+.readAloudButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4);
 }
 
-.readButton.disabled {
-  background: linear-gradient(to right, #b39ddb, #9575cd);
-  cursor: not-allowed;
-}
-
-.stopButton {
-  background: linear-gradient(to right, #ff416c, #ff4b2b);
+.stopReadingButton {
+  background: linear-gradient(to right, #ff5722, #f44336);
   color: white;
 }
 
-.stopButton:hover {
-  background: linear-gradient(to right, #e73955, #e74325);
+.stopReadingButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 15px rgba(255, 87, 34, 0.4);
 }
 
-.readingCoachButton {
-  background: linear-gradient(to right, #ff9100, #ff6d00);
+.readingHelperButton {
+  background: linear-gradient(to right, #2196f3, #1976d2);
   color: white;
-  margin-left: auto;
 }
 
-.readingCoachButton:hover {
-  background: linear-gradient(to right, #e68300, #e36200);
+.readingHelperButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 15px rgba(33, 150, 243, 0.4);
 }
 
-.buttonIcon {
-  font-size: 1.3rem;
+/* Main Content */
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 20px;
 }
 
-.storyTextWrapper {
-  background-color: #f9f8fe;
-  padding: 25px;
+.contentWrapper {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 20px;
+  overflow: hidden;
+}
+
+/* Story Panel */
+.storyPanel {
+  background: white;
   border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.storyScroll {
+  flex: 1;
   overflow-y: auto;
-  max-height: 400px; /* Increased height to show more content */
-  position: relative;
-  border: 2px dashed #e1bee7;
-  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 30px;
+}
+
+.storyScroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.storyScroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.storyScroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #9c27b0, #673ab7);
+  border-radius: 10px;
+}
+
+.storyScroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #7b1fa2, #512da8);
 }
 
 .storyText {
-  font-size: 1.4rem; /* Larger text for young readers */
-  line-height: 1.8;
+  font-size: 1.3rem;
+  line-height: 2;
   color: #333;
-  font-family: 'Comic Sans MS', 'Marker Felt', cursive; /* Kid-friendly font */
-  position: relative;
 }
 
-/* Sentence line-by-line styles */
-.sentenceLines {
+.storyText.reading {
+  user-select: none;
+}
+
+/* Sentences */
+.sentencesContainer {
   display: flex;
   flex-direction: column;
-  gap: 24px; /* Significant spacing between sentences */
+  gap: 12px;
 }
 
-.sentenceLine {
-  padding: 15px 20px;
-  border-radius: 15px;
-  font-size: 1.6rem; /* Larger text for young readers */
-  line-height: 1.6;
-  color: #333;
-  background-color: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+.sentence {
+  padding: 15px;
+  border-radius: 10px;
   transition: all 0.3s ease;
-  border-left: 4px solid #e1bee7;
-  font-family: 'Comic Sans MS', 'Marker Felt', 'Arial Rounded MT Bold', cursive; /* Kid-friendly font */
-  display: flex;
-  align-items: center;
-}
-
-.sentenceLine:hover {
-  background-color: rgba(255, 255, 255, 0.9);
-  transform: translateX(5px);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-}
-
-/* Current sentence animation */
-.currentSentence {
-  background-color: rgba(233, 30, 99, 0.1);
-  border-left: 4px solid #e91e63;
-  font-weight: 600;
-  box-shadow: 0 3px 15px rgba(233, 30, 99, 0.15);
-  
-  /* Add these zoom/pulse animation effects */
-  animation: sentenceHighlight 2s infinite alternate;
-  transform-origin: left center;
-  z-index: 10;
   position: relative;
-}
-
-/* Keyframes for the zoom/pulse animation */
-@keyframes sentenceHighlight {
-  0% {
-    transform: scale(1);
-    background-color: rgba(233, 30, 99, 0.1);
-  }
-  100% {
-    transform: scale(1.07);
-    background-color: rgba(233, 30, 99, 0.18);
-  }
-}
-
-/* Add a subtle bounce when the sentence first becomes active */
-.sentenceLine.currentSentence {
-  animation: sentenceBounce 0.5s ease-out, sentenceHighlight 2s infinite alternate 0.5s;
-}
-
-@keyframes sentenceBounce {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1.05); }
-}
-
-/* Make the number larger as well */
-.currentSentence .sentenceNumber {
-  animation: numberPulse 2s infinite alternate;
-}
-
-@keyframes numberPulse {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.2); }
-}
-
-.visitedSentence {
-  border-left: 4px solid #4caf50;
+  padding-left: 50px;
 }
 
 .sentenceNumber {
-  width: 30px;
-  height: 30px;
-  background-color: #4caf50;
-  color: white;
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  background: linear-gradient(to bottom right, #9c27b0, #673ab7);
   border-radius: 50%;
+  color: white;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  margin-right: 12px;
-  flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.currentSentence .sentenceNumber {
-  background-color: #ff4081;
-  transform: scale(1.1);
+.currentSentence {
+  background-color: rgba(156, 39, 176, 0.1);
+  border-left: 4px solid #9c27b0;
+  box-shadow: 0 3px 10px rgba(156, 39, 176, 0.2);
 }
 
-.sentenceContent {
-  flex: 1;
+.visitedSentence {
+  opacity: 0.85;
 }
 
-.highlightedWord, .vocabWord {
-  font-weight: 700;
-  border-radius: 6px;
+.highlightedWord {
+  background: linear-gradient(to right, #ffd54f, #ffb300);
   padding: 2px 6px;
-  margin: 0 2px;
-  position: relative;
-  display: inline-block;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
-}
-
-.highlightedWord:hover, .vocabWord:hover {
-  transform: scale(1.1) rotate(-1deg);
-}
-
-/* Add decorative elements for highlighted words */
-.highlightedWord::after, .vocabWord::after {
-  content: '✨';
-  position: absolute;
-  top: -8px;
-  right: -3px;
-  font-size: 0.8rem;
-  opacity: 0.7;
-}
-
-/* Reading animations */
-.readingAnimations {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.floatingCharacter {
-  position: absolute;
-  right: 20px;
-  top: 20px;
-  font-size: 3.5rem;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.2));
-}
-
-.readingProgress {
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: rgba(255, 255, 255, 0.95);
-  padding: 12px;
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
-  margin-top: 15px;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.progressLabel {
-  font-size: 0.9rem;
-  margin-bottom: 6px;
-  color: #653095;
-  text-align: center;
+  border-radius: 4px;
   font-weight: 600;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(255, 179, 0, 0.3);
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
-.progressBar {
-  height: 10px;
-  background-color: #e9ecef;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+.highlightedWord:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(255, 179, 0, 0.5);
 }
 
-.progressFill {
-  height: 100%;
-  background: linear-gradient(to right, #11998e, #38ef7d);
-  transition: width 0.5s ease;
-  border-radius: 10px;
-}
-
-.vocabularySection {
-  background: linear-gradient(to right, #fdfbfb, #ebedee);
-  padding: 18px;
+/* Vocabulary Sidebar */
+.vocabularySidebar {
+  background: white;
   border-radius: 15px;
-  border: 2px dashed #bbdefb;
-  position: relative;
-  overflow: hidden;
-}
-
-.vocabularySection::before {
-  content: '🔤';
-  position: absolute;
-  right: 10px;
-  top: 5px;
-  font-size: 2rem;
-  opacity: 0.1;
+  padding: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
 .vocabularyTitle {
-  font-size: 1.25rem;
-  color: #1565c0;
-  margin: 0 0 12px 0;
+  font-size: 1.3rem;
+  color: #4a148c;
+  margin: 0 0 20px 0;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  padding-bottom: 10px;
+  border-bottom: 3px solid #9c27b0;
 }
 
-.vocabularyWords {
+.vocabularyList {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 12px;
-  position: relative;
-  z-index: 1;
+  margin-bottom: 20px;
 }
 
 .vocabularyWord {
   color: white;
-  padding: 8px 16px;
-  border-radius: 30px;
-  font-size: 1.1rem;
+  padding: 12px 16px;
+  border-radius: 25px;
+  font-size: 1.05rem;
   font-weight: 600;
-  text-transform: lowercase;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s ease;
-  letter-spacing: 0.5px;
-  position: relative;
+  text-transform: capitalize;
+  text-align: center;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  cursor: default;
 }
 
 .vocabularyWord:hover {
-  transform: translateY(-3px) rotate(1deg);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
 }
 
-/* Discussion Pane */
-.discussionPane {
-  background: linear-gradient(to right, #fef9e7, #fcf3cf);
-  padding: 20px;
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 2px solid #f9e79f;
-  position: relative;
-}
-
-.discussionPane::before {
-  content: '💭';
-  position: absolute;
-  right: 10px;
-  top: 5px;
-  font-size: 2rem;
-  opacity: 0.1;
-}
-
-.discussionTitle {
-  font-size: 1.4rem;
-  color: #d35400;
-  margin: 0 0 15px 0;
-  font-weight: 700;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  position: relative;
-  display: inline-block;
-}
-
-.discussionTitle::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -5px;
-  width: 100%;
-  height: 3px;
-  background-color: #f39c12;
-  border-radius: 10px;
-}
-
-.discussionQuestions {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 20px 0;
-}
-
-.discussionQuestion {
-  display: flex;
-  margin-bottom: 12px;
-  align-items: flex-start;
-  background-color: rgba(255, 255, 255, 0.5);
-  padding: 12px;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
-}
-
-.discussionQuestion:hover {
-  background-color: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-  transform: translateX(5px);
-}
-
-.questionNumber {
-  width: 28px;
-  height: 28px;
-  background: linear-gradient(to bottom right, #e67e22, #d35400);
-  border-radius: 50%;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-right: 12px;
-  flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-.questionText {
-  font-size: 1.15rem;
-  line-height: 1.5;
-  color: #333;
-  font-weight: 500;
-}
-
-.teacherNote {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background-color: rgba(255, 255, 255, 0.7);
-  padding: 12px;
-  border-radius: 10px;
-  border-left: 4px solid #27ae60;
-}
-
-.teacherIcon {
-  font-size: 2rem;
-}
-
-.noteText {
-  font-size: 1rem;
-  color: #333;
-  line-height: 1.4;
-}
-
-.noteText strong {
-  color: #27ae60;
-}
-
-/* Puzzle Preparation Pane */
-.puzzlePreparationPane {
-  background: linear-gradient(to right, #e3f2fd, #bbdefb);
-  padding: 20px;
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 2px solid #90caf9;
-  position: relative;
-}
-
-.puzzlePreparationPane::before {
-  content: '🧩';
-  position: absolute;
-  right: 10px;
-  top: 5px;
-  font-size: 2rem;
-  opacity: 0.1;
-}
-
-.preparationTitle {
-  font-size: 1.4rem;
-  color: #1565c0;
-  margin: 0 0 15px 0;
-  font-weight: 700;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  position: relative;
-  display: inline-block;
-}
-
-.preparationTitle::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -5px;
-  width: 100%;
-  height: 3px;
-  background-color: #42a5f5;
-  border-radius: 10px;
-}
-
-.preparationInstructions {
-  margin-bottom: 15px;
-}
-
-.preparationInstructions p {
-  margin: 0 0 10px 0;
-  font-size: 1.1rem;
-  line-height: 1.5;
-  color: #333;
-}
-
-.highlightedWordExample {
-  background-color: #ffeb3b;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 600;
-  color: #5d4037;
-  position: relative;
-  display: inline-block;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.highlightedWordExample::after {
-  content: '✨';
-  position: absolute;
-  top: -8px;
-  right: -3px;
-  font-size: 0.8rem;
-  opacity: 0.7;
-}
-
-.puzzleTips {
-  background-color: rgba(255, 255, 255, 0.7);
+.vocabularyHint {
+  background: linear-gradient(135deg, #fff9c4, #fff59d);
   padding: 15px;
   border-radius: 10px;
-  border-left: 4px solid #2196f3;
+  border-left: 4px solid #fbc02d;
+  margin-top: auto;
 }
 
-.tipsTitle {
-  font-size: 1.15rem;
-  color: #1565c0;
-  margin: 0 0 10px 0;
-  font-weight: 600;
-}
-
-.tipsList {
+.vocabularyHint p {
   margin: 0;
-  padding-left: 25px;
-}
-
-.tipsList li {
-  font-size: 1rem;
-  margin-bottom: 8px;
-  color: #333;
-  position: relative;
-}
-
-.tipsList li::marker {
-  color: #1565c0;
-  font-weight: bold;
+  font-size: 0.95rem;
+  color: #f57f17;
+  font-weight: 600;
+  text-align: center;
 }
 
 /* Continue Button */
 .continueButtonContainer {
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 25px;
+  gap: 12px;
 }
 
 .continueButton {
-  background: linear-gradient(to right, #ff9800, #f57c00);
+  background: linear-gradient(to right, #4caf50, #45a049);
   color: white;
   border: none;
-  padding: 14px 35px;
-  border-radius: 50px;
-  font-size: 1.2rem;
+  padding: 18px 50px;
+  font-size: 1.3rem;
   font-weight: 700;
+  border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
   text-transform: uppercase;
   letter-spacing: 1px;
-  position: relative;
-  overflow: hidden;
-}
-
-.continueButton::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(255, 255, 255, 0.2), 
-    transparent
-  );
-  transition: 0.5s;
-}
-
-.continueButton:hover:not(:disabled)::before {
-  left: 100%;
 }
 
 .continueButton:hover:not(:disabled) {
-  background: linear-gradient(to right, #f57c00, #e65100);
   transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.5);
+  box-shadow: 0 10px 30px rgba(76, 175, 80, 0.5);
+}
+
+.continueButton:active:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .continueButton:disabled {
   background: linear-gradient(to right, #bdbdbd, #9e9e9e);
-  color: #eeeeee;
   cursor: not-allowed;
+  opacity: 0.6;
   box-shadow: none;
 }
 
 .continueDisabledMessage {
-  font-size: 0.95rem;
-  color: #f57c00;
-  margin-top: 10px;
-  font-weight: 500;
+  background: rgba(255, 255, 255, 0.95);
+  color: #f44336;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  border: 2px solid #f44336;
 }
 
-/* Sound button for individual sentences */
-.sentenceSoundButton {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: #9c27b0;
-  color: white;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-  margin-left: 15px;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  opacity: 0.7;
-}
-
-.sentenceSoundButton:hover {
-  background-color: #7b1fa2;
-  transform: scale(1.1);
-  opacity: 1;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-}
-
-.sentenceSoundButton:active {
-  transform: scale(0.95);
-  background-color: #6a1b9a;
-}
-
-.sentenceSoundButton:disabled {
-  background-color: #bdbdbd;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .storyCard {
-    padding: 15px;
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .contentWrapper {
+    grid-template-columns: 1fr 240px;
   }
   
-  .episodeTitle {
-    font-size: 1.3rem;
+  .vocabularyWord {
+    font-size: 0.95rem;
+    padding: 10px 14px;
+  }
+}
+
+@media (max-width: 968px) {
+  .contentWrapper {
+    grid-template-columns: 1fr;
+  }
+  
+  .vocabularySidebar {
+    display: none;
   }
   
   .storyText {
     font-size: 1.2rem;
-    line-height: 1.6;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px 20px;
   }
   
-  .storyTextWrapper {
-    max-height: 250px;
+  .controls {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .episodeTitle {
+    font-size: 1.4rem;
+  }
+  
+  .mainContent {
     padding: 15px;
   }
   
-  .readButton, .stopButton, .readingCoachButton {
-    padding: 8px 15px;
-    font-size: 0.9rem;
-  }
-  
-  .buttonIcon {
+  .storyText {
     font-size: 1.1rem;
-  }
-  
-  .vocabularyWord {
-    font-size: 0.9rem;
-    padding: 6px 12px;
+    line-height: 1.8;
   }
   
   .continueButton {
-    padding: 12px 30px;
+    padding: 15px 40px;
     font-size: 1.1rem;
   }
-  
-  .questionText {
-    font-size: 1rem;
-  }
-  
-  .floatingCharacter {
-    font-size: 2.5rem;
-  }
-}
-
-/* Small visual cue to indicate scrollability */
-.storyTextWrapper::after {
-  content: '⬇️';
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 1.5rem;
-  opacity: 0.3;
-  animation: bounceDown 1.5s infinite;
-}
-
-@keyframes bounceDown {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(10px); }
 }
