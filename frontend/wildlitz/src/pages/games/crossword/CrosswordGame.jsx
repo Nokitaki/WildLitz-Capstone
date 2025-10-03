@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/crossword/CrosswordGame.module.css';
 import { GameLoadingScreen, CrosswordGridLoader } from '../../../components/common/LoadingStates';
+
 // Import game screens
 import StoryScreen from './StoryScreen';
 import GameplayScreen from './GameplayScreen';
@@ -23,7 +24,6 @@ import { STORY_ADVENTURES, STORY_PUZZLES } from '../../../mock/storyData';
  */
 const CrosswordGame = () => {
   // Game states: 'intro', 'story', 'gameplay', 'summary', 'sentence-builder', 'generate-story'
-  // Set initial state to 'generate-story' to bypass intro screen
   const [gameState, setGameState] = useState('generate-story');
   
   // Game configuration
@@ -139,14 +139,26 @@ const CrosswordGame = () => {
   };
   
   /**
-   * Handle newly generated story
+   * Handle newly generated story - FIXED VERSION
    */
   const handleStoryGenerated = (data) => {
+    console.log('Story generated:', data);
+    console.log('Number of episodes:', data.story.episodes?.length);
+    
+    // IMPORTANT: Create new story object with proper structure
+    const newStory = {
+      ...data.story,
+      episodes: data.story.episodes || []
+    };
+    
     // Add the new story to the available stories
     const newStories = {
       ...gameStories,
-      [data.story.id]: data.story
+      [newStory.id]: newStory
     };
+    
+    console.log('Updated gameStories:', newStories);
+    console.log('New story episodes:', newStory.episodes.length);
     
     setGameStories(newStories);
     
@@ -159,26 +171,36 @@ const CrosswordGame = () => {
     setGamePuzzles(newPuzzles);
     
     // Configure game to use the new story
-    setGameConfig({
+    const config = {
       storyMode: true,
-      adventureId: data.story.id
-    });
+      adventureId: newStory.id
+    };
+    
+    console.log('Setting game config:', config);
+    setGameConfig(config);
     
     // Move to story screen directly with the first episode
-    const firstEpisode = data.story.episodes[0];
-    setCurrentStorySegment(firstEpisode);
-    setCurrentEpisode(1);
-    
-    // Load corresponding puzzle
-    const puzzleData = data.puzzles[firstEpisode.crosswordPuzzleId];
-    setCurrentPuzzle(puzzleData);
-    
-    // Reset game state
-    setSolvedWords([]);
-    setTimeSpent(0);
-    
-    // Go directly to story screen
-    setGameState('story');
+    if (newStory.episodes && newStory.episodes.length > 0) {
+      const firstEpisode = newStory.episodes[0];
+      setCurrentStorySegment(firstEpisode);
+      setCurrentEpisode(1); // Start at episode 1
+      
+      console.log('Starting with episode 1 of', newStory.episodes.length);
+      
+      // Load corresponding puzzle
+      const puzzleData = data.puzzles[firstEpisode.crosswordPuzzleId];
+      setCurrentPuzzle(puzzleData);
+      
+      // Reset game state
+      setSolvedWords([]);
+      setTimeSpent(0);
+      
+      // Go directly to story screen
+      setGameState('story');
+    } else {
+      console.error('No episodes found in generated story');
+      setGameState('generate-story');
+    }
   };
   
   /**
@@ -198,34 +220,27 @@ const CrosswordGame = () => {
   
   /**
    * Get words that will appear in the puzzle from story
-   * Updated to collect words from all episodes
    */
   const getWordsFromPuzzle = () => {
     if (!currentPuzzle) return [];
-    
-    // For the current puzzle, get all words
     return currentPuzzle.words.map(word => word.answer);
   };
   
   /**
    * Get vocabulary words for the CURRENT episode only
-   * This is used for highlighting words in the story text
    */
   const getCurrentEpisodeVocabularyWords = () => {
     if (!currentStorySegment) return [];
     
-    // Get all puzzles for the current episode
     const puzzleId = currentStorySegment.crosswordPuzzleId;
     const additionalIds = currentStorySegment.additionalPuzzleIds || [];
     const allPuzzleIds = [puzzleId, ...additionalIds].filter(Boolean);
     
     const episodeWords = [];
     
-    // Go through each puzzle for this episode
     allPuzzleIds.forEach(id => {
       const puzzle = gamePuzzles[id];
       if (puzzle && puzzle.words) {
-        // Add each word from this puzzle
         puzzle.words.forEach(word => {
           if (!episodeWords.includes(word.answer)) {
             episodeWords.push(word.answer);
@@ -234,7 +249,6 @@ const CrosswordGame = () => {
       }
     });
     
-    // Also include words from vocabularyFocus if available
     if (currentStorySegment.vocabularyFocus) {
       currentStorySegment.vocabularyFocus.forEach(word => {
         const upperWord = word.toUpperCase();
@@ -248,8 +262,7 @@ const CrosswordGame = () => {
   };
   
   /**
-   * Get ALL vocabulary words across ALL episodes in the current adventure
-   * Used for the reading coach
+   * Get ALL vocabulary words across ALL episodes
    */
   const getAllVocabularyWords = () => {
     if (!gameStories || !gameConfig || !gameConfig.adventureId) return [];
@@ -259,18 +272,14 @@ const CrosswordGame = () => {
     
     const allWords = [];
     
-    // Go through each episode
     adventure.episodes.forEach(episode => {
-      // Get all puzzles for this episode
       const puzzleId = episode.crosswordPuzzleId;
       const additionalIds = episode.additionalPuzzleIds || [];
       const allPuzzleIds = [puzzleId, ...additionalIds].filter(Boolean);
       
-      // Go through each puzzle
       allPuzzleIds.forEach(id => {
         const puzzle = gamePuzzles[id];
         if (puzzle && puzzle.words) {
-          // Add each word from this puzzle
           puzzle.words.forEach(word => {
             if (!allWords.includes(word.answer)) {
               allWords.push(word.answer);
@@ -289,9 +298,7 @@ const CrosswordGame = () => {
   const handleWordSolved = (word, definition, example) => {
     console.log("Word solved:", word);
     
-    // Check if word is already in solvedWords to avoid duplicates
     if (!solvedWords.some(solved => solved.word === word)) {
-      // Add to solved words
       setSolvedWords(prev => [
         ...prev, 
         {
@@ -307,10 +314,8 @@ const CrosswordGame = () => {
     
     // Check if puzzle is complete
     if (currentPuzzle && solvedWords.length + 1 >= currentPuzzle.words.length) {
-      // Stop timer
       setTimerActive(false);
       
-      // Move to summary screen after a short delay
       setTimeout(() => {
         setGameState('summary');
       }, 1000);
@@ -318,54 +323,55 @@ const CrosswordGame = () => {
   };
   
   /**
-   * Handle proceeding to next episode
+   * Handle proceeding to next episode - FIXED VERSION
    */
   const handleNextEpisode = () => {
     const adventure = gameStories[gameConfig.adventureId];
-    const nextEpisodeIndex = currentEpisode;
+    
+    if (!adventure || !adventure.episodes) {
+      console.error('No adventure or episodes found');
+      setGameState('generate-story');
+      return;
+    }
+    
+    console.log('=== handleNextEpisode called ===');
+    console.log('Current Episode:', currentEpisode);
+    console.log('Total Episodes:', adventure.episodes.length);
+    console.log('Adventure ID:', gameConfig.adventureId);
+    
+    // currentEpisode is 1-based, array is 0-based
+    // So if currentEpisode = 1, we want episodes[1] (the second episode)
+    const nextEpisodeIndex = currentEpisode; // This gets us the next episode in 0-based array
     
     if (nextEpisodeIndex < adventure.episodes.length) {
+      console.log('Loading next episode at index:', nextEpisodeIndex);
+      
       // Load next episode
       const nextEpisode = adventure.episodes[nextEpisodeIndex];
       setCurrentStorySegment(nextEpisode);
       setCurrentEpisode(currentEpisode + 1);
       
+      console.log('Next episode title:', nextEpisode.title);
+      
+      // Load corresponding puzzle
+      const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
+      if (puzzleData) {
+        setCurrentPuzzle(puzzleData);
+      } else {
+        console.error('No puzzle found for episode:', nextEpisode.crosswordPuzzleId);
+      }
+      
       // Reset game state
       setSolvedWords([]);
       setTimeSpent(0);
+      setTimerActive(false);
       
       // Move to story screen
       setGameState('story');
     } else {
-      // End of adventure - go back to story generator
+      console.log('No more episodes, ending adventure');
       setGameState('generate-story');
     }
-  };
-  
-  /**
-   * Handle going to sentence builder
-   */
-  const handleGoToSentenceBuilder = () => {
-    setGameState('sentence-builder');
-  };
-  
-  /**
-   * Handle returning to main menu
-   */
-  const handleReturnToMenu = () => {
-    setGameState('generate-story');
-  };
-  
-  /**
-   * Handle playing again
-   */
-  const handlePlayAgain = () => {
-    // Reset game state
-    setSolvedWords([]);
-    setTimeSpent(0);
-    
-    // Move directly to story generator screen
-    setGameState('generate-story');
   };
   
   /**
@@ -377,16 +383,27 @@ const CrosswordGame = () => {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
   
-  // Handle the cancel action from story generator
-  const handleGeneratorCancel = () => {
-    // Since there's no intro screen to go back to, 
-    // just keep the user on the generator screen
+  /**
+   * Return to main menu
+   */
+  const handleReturnToMenu = () => {
     setGameState('generate-story');
+    setCurrentEpisode(0);
+    setSolvedWords([]);
+    setTimeSpent(0);
+    setTimerActive(false);
   };
   
+  /**
+   * Go to sentence builder
+   */
+  const handleGoToSentenceBuilder = () => {
+    setGameState('sentence-builder');
+  };
+
   return (
     <div className={styles.gameContainer}>
-      <div className={styles.gameContent}>
+      <div className={styles.gameWrapper}>
         <AnimatePresence mode="wait">
           {gameState === 'generate-story' && (
             <motion.div
@@ -398,7 +415,7 @@ const CrosswordGame = () => {
             >
               <StoryGeneratorScreen 
                 onStoryGenerated={handleStoryGenerated}
-                onCancel={handleGeneratorCancel}
+                onCancel={handleReturnToMenu}
               />
             </motion.div>
           )}
@@ -414,20 +431,10 @@ const CrosswordGame = () => {
               <StoryScreen 
                 storySegment={currentStorySegment}
                 onContinue={handleContinueToPuzzle}
-                wordsToPuzzle={getCurrentEpisodeVocabularyWords()}
-                currentEpisode={currentEpisode}
                 onToggleReadingCoach={toggleReadingCoach}
+                vocabularyWords={getCurrentEpisodeVocabularyWords()}
+                currentEpisode={currentEpisode}
               />
-              
-              {showReadingCoach && (
-                <AIReadingCoach
-                  storyText={currentStorySegment.text}
-                  isVisible={showReadingCoach}
-                  onClose={() => setShowReadingCoach(false)}
-                  vocabularyWords={getCurrentEpisodeVocabularyWords()}
-                  grade={3}
-                />
-              )}
             </motion.div>
           )}
           
@@ -441,15 +448,13 @@ const CrosswordGame = () => {
             >
               <GameplayScreen 
                 puzzle={currentPuzzle}
-                theme={"story"}
+                theme="story"
                 onWordSolved={handleWordSolved}
                 solvedWords={solvedWords}
+                timeSpent={timeSpent}
                 timeFormatted={formatTime(timeSpent)}
                 storyContext={currentStorySegment}
-                // Pass multiple puzzle navigation props
-                puzzleIds={availablePuzzles}
                 currentPuzzleIndex={currentPuzzleIndex}
-                onChangePuzzle={handleChangePuzzle}
                 totalPuzzles={availablePuzzles.length}
               />
             </motion.div>
@@ -463,6 +468,23 @@ const CrosswordGame = () => {
               exit={{ opacity: 0 }}
               className={styles.screenContainer}
             >
+              {/* Debug logging */}
+              {(() => {
+                const currentAdventure = gameStories[gameConfig.adventureId];
+                const episodeCount = currentAdventure?.episodes?.length || 0;
+                const nextAvailable = currentEpisode < episodeCount;
+                
+                console.log('=== SUMMARY SCREEN DEBUG ===');
+                console.log('Adventure ID:', gameConfig.adventureId);
+                console.log('Current Episode:', currentEpisode);
+                console.log('Total Episodes:', episodeCount);
+                console.log('Episodes Array:', currentAdventure?.episodes?.map(ep => ep.title) || []);
+                console.log('Next Episode Available:', nextAvailable);
+                console.log('========================');
+                
+                return null;
+              })()}
+              
               <SummaryScreen 
                 solvedWords={solvedWords}
                 timeSpent={timeSpent}
@@ -473,7 +495,7 @@ const CrosswordGame = () => {
                 onReturnToMenu={handleReturnToMenu}
                 totalWords={currentPuzzle ? currentPuzzle.words.length : 0}
                 isStoryMode={true}
-                nextEpisodeAvailable={currentEpisode < gameStories[gameConfig.adventureId]?.episodes.length}
+                nextEpisodeAvailable={currentEpisode < (gameStories[gameConfig.adventureId]?.episodes?.length || 0)}
                 currentEpisode={currentEpisode}
                 storyTitle={gameStories[gameConfig.adventureId]?.title}
                 storySegment={currentStorySegment}
@@ -502,6 +524,15 @@ const CrosswordGame = () => {
           )}
         </AnimatePresence>
       </div>
+      
+      {/* AI Reading Coach Overlay */}
+      {showReadingCoach && (
+        <AIReadingCoach 
+          vocabularyWords={getAllVocabularyWords()}
+          currentStory={currentStorySegment}
+          onClose={toggleReadingCoach}
+        />
+      )}
       
       {/* Fixed reading coach button */}
       {(gameState === 'story' || gameState === 'summary') && (
