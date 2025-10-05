@@ -22,6 +22,7 @@ import {
   fetchSoundExamples,
   submitGameResults 
 } from '../../../services/soundSafariApi';
+import soundSafariAnalyticsService from '../../../services/soundSafariAnalyticsService';
 
 // Import only necessary constants for UI
 import { 
@@ -61,6 +62,8 @@ const SoundSafariGame = () => {
   
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionStartTime, setSessionStartTime] = useState(Date.now());
+  const [roundResults, setRoundResults] = useState([]);
   const [error, setError] = useState(null);
   
   // Character speech bubble
@@ -73,36 +76,84 @@ const SoundSafariGame = () => {
   /**
    * Handle starting a new game with the given configuration
    */
-  const handleStartGame = async (config) => {
-    setGameConfig(config);
-    setCurrentRound(1);
-    setScore(0);
-    setSoundsUsed([config.targetSound]);
-    setGameState('loading');
-    setFromIntroScreen(false);
-    setError(null);
+const handleStartGame = async (config) => {
+  setGameConfig(config);
+  
+  // 🆕 Reset analytics tracking for new game
+  setSessionStartTime(Date.now());
+  setRoundResults([]);
+  
+  setCurrentRound(1);
+  setScore(0);
+  setSoundsUsed([config.targetSound]);
+  setGameState('loading');
+  setFromIntroScreen(false);
+  setError(null);
+  
+  await prepareNewRound(config.targetSound, config.difficulty);
+  
+  setTimeout(() => {
+    setGameState('intro');
+    const introMessage = `Today we're learning about the "${config.targetSound}" sound. Listen and find it in animal names!`;
+    setBubbleMessage(introMessage);
+    setShowBubble(true);
     
-    // Prepare first round using Supabase data
-    await prepareNewRound(config.targetSound, config.difficulty);
-    
-    // Simulate loading time
     setTimeout(() => {
-      setGameState('intro');
-      // Show introduction message in the bubble when entering intro screen
-      const introMessage = `Today we're learning about the "${config.targetSound}" sound. Listen and find it in animal names!`;
-      setBubbleMessage(introMessage);
-      setShowBubble(true);
-      
-      // Hide the bubble after 8 seconds
-      setTimeout(() => {
-        setShowBubble(false);
-      }, 8000);
-    }, 2000);
-  };
+      setShowBubble(false);
+    }, 8000);
+  }, 2000);
+};
   
   /**
    * Prepare a new round of the game using Supabase data
    */
+  /**
+ * Save game session analytics to database
+ * Called when all rounds are completed
+ */
+  const saveGameSession = async () => {
+    try {
+      // Calculate totals from all rounds
+      const totalAnimals = roundResults.reduce((sum, r) => sum + r.animalsShown, 0);
+      const totalCorrect = roundResults.reduce((sum, r) => sum + r.correctSelections, 0);
+      const totalIncorrect = roundResults.reduce((sum, r) => sum + r.incorrectSelections, 0);
+      
+      const timeSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
+      const successRate = totalAnimals > 0 
+        ? parseFloat(((totalCorrect / totalAnimals) * 100).toFixed(2))
+        : 0;
+      
+      const sessionData = {
+        timestamp: new Date().toISOString(),
+        target_sound: gameConfig.targetSound,
+        sound_position: gameConfig.soundPosition,
+        environment: gameConfig.environment,
+        difficulty: gameConfig.difficulty,
+        animals_shown: totalAnimals,
+        correct_selections: totalCorrect,
+        incorrect_selections: totalIncorrect,
+        success_rate: successRate,
+        time_spent: timeSpent,
+        completed: true
+      };
+      
+      console.log('📊 Saving Sound Safari session:', sessionData);
+      
+      const result = await soundSafariAnalyticsService.saveGameSession(sessionData);
+      
+      if (result.success) {
+        console.log('✅ Session saved successfully!', result.session_id);
+      } else {
+        console.error('❌ Failed to save session:', result.error);
+        // Don't block game completion even if save fails
+      }
+      
+    } catch (error) {
+      console.error('❌ Error saving session:', error);
+      // Don't block game completion even if save fails
+    }
+  };
+
   const prepareNewRound = async (targetSound = gameConfig.targetSound, difficulty = gameConfig.difficulty) => {
     setIsLoading(true);
     setError(null);
@@ -249,79 +300,65 @@ const SoundSafariGame = () => {
   
   /**
    * Handle submitting answers
-   */
-  const handleSubmitAnswers = async (selected) => {
+    */
+  const handleSubmitAnswers = (selected) => {
     setSelectedAnimals(selected);
     
-    // Calculate correct answers
-    const correctAnimals = roundAnimals.filter(animal => animal.hasSound === gameConfig.targetSound);
+    // Calculate correct and incorrect
+    const correctAnimals = roundAnimals.filter(animal => 
+      animal.hasSound === gameConfig.targetSound
+    );
     
-    // Calculate score (percentage of correct animals found)
-    const correctSelected = selected.filter(animal => animal.hasSound === gameConfig.targetSound).length;
-    const roundScore = Math.round((correctSelected / correctAnimals.length) * 100);
+    const correctSelections = selected.filter(animal => 
+      animal.hasSound === gameConfig.targetSound
+    ).length;
     
-    setScore(prev => prev + roundScore);
+    const incorrectSelections = selected.length - correctSelections;
+    
+    // Calculate round score
+    const roundScore = (correctSelections / correctAnimals.length) * 100;
+    setScore(prevScore => prevScore + roundScore);
+    
+    // 🆕 Track this round's results for analytics
+    setRoundResults(prev => [...prev, {
+      round: currentRound,
+      animalsShown: roundAnimals.length,
+      correctSelections: correctSelections,
+      incorrectSelections: incorrectSelections,
+      roundScore: roundScore
+    }]);
+    
     setGameState('results');
-    
-    const scoreMessage = roundScore >= 80 
-      ? `Great job! You found ${correctSelected} of ${correctAnimals.length} animals with the "${gameConfig.targetSound}" sound!`
-      : `You found ${correctSelected} of ${correctAnimals.length} animals with the "${gameConfig.targetSound}" sound. Keep practicing!`;
-    
-    setBubbleMessage(scoreMessage);
-    setShowBubble(true);
-    
-    // Hide the bubble after 5 seconds
-    setTimeout(() => {
-      setShowBubble(false);
-    }, 5000);
-    
-    // Optionally submit results to the API
-    try {
-      await submitGameResults({
-        selected_animals: selected,
-        correct_animals: correctAnimals,
-        target_sound: gameConfig.targetSound
-      });
-    } catch (error) {
-      console.error('Error submitting game results:', error);
-      // Don't interrupt the game flow for this error
-    }
   };
   
   /**
    * Handle moving to next round
    */
-  const handleNextRound = async () => {
-    if (currentRound >= totalRounds) {
-      setGameState('complete');
-    } else {
-      setCurrentRound(prev => prev + 1);
-      setFromIntroScreen(false);
-      
-      // Select a new target sound for the next round
-      const newSound = await selectNewTargetSound();
-      
-      // Prepare next round with the new sound
-      await prepareNewRound(newSound, gameConfig.difficulty);
-      
-      setGameState('loading');
-      
-      // Simulate loading time
-      setTimeout(() => {
-        setGameState('intro');
-        
-        // Show introduction message for the new sound
-        const introMessage = `Now let's learn about the "${newSound}" sound. Listen and find it in animal names!`;
-        setBubbleMessage(introMessage);
-        setShowBubble(true);
-        
-        // Hide the bubble after 8 seconds
-        setTimeout(() => {
-          setShowBubble(false);
-        }, 8000);
-      }, 2000);
-    }
-  };
+/**
+ * Save game session analytics to database
+ * Called when all rounds are completed
+ */
+
+const handleNextRound = async () => {
+  // Check if game is complete (all rounds finished)
+  if (currentRound >= totalRounds) {
+    console.log('🎮 Game complete! Saving analytics...');
+    await saveGameSession(); // ✅ Save analytics before showing complete screen
+    setGameState('complete');
+    return;
+  }
+  
+  // Continue to next round
+  setCurrentRound(prev => prev + 1);
+  const newSound = await selectNewTargetSound();
+  await prepareNewRound(newSound, gameConfig.difficulty);
+  
+  setGameState('loading');
+  
+  setTimeout(() => {
+    setGameState('intro');
+  }, 2000);
+};
   
   /**
    * Handle trying the same round again
@@ -348,33 +385,30 @@ const SoundSafariGame = () => {
    * Handle playing again after game completion
    */
   const handlePlayAgain = async () => {
-    setCurrentRound(1);
-    setScore(0);
-    setFromIntroScreen(false);
+  // 🆕 Reset analytics tracking for new game
+  setSessionStartTime(Date.now());
+  setRoundResults([]);
+  
+  setCurrentRound(1);
+  setScore(0);
+  setFromIntroScreen(false);
+  
+  const newSound = await selectNewTargetSound();
+  await prepareNewRound(newSound, gameConfig.difficulty);
+  
+  setGameState('loading');
+  
+  setTimeout(() => {
+    setGameState('intro');
+    const introMessage = `Welcome back! Today we're learning about the "${newSound}" sound. Listen and find it in animal names!`;
+    setBubbleMessage(introMessage);
+    setShowBubble(true);
     
-    // Choose a new sound
-    const newSound = await selectNewTargetSound();
-    
-    // Prepare new round with this sound
-    await prepareNewRound(newSound, gameConfig.difficulty);
-    
-    setGameState('loading');
-    
-    // Simulate loading time
     setTimeout(() => {
-      setGameState('intro');
-      
-      // Show introduction message for the new game
-      const introMessage = `Welcome back! Today we're learning about the "${newSound}" sound. Listen and find it in animal names!`;
-      setBubbleMessage(introMessage);
-      setShowBubble(true);
-      
-      // Hide the bubble after 8 seconds
-      setTimeout(() => {
-        setShowBubble(false);
-      }, 8000);
-    }, 2000);
-  };
+      setShowBubble(false);
+    }, 8000);
+  }, 2000);
+};
   
   /**
    * Handle changing difficulty after game completion

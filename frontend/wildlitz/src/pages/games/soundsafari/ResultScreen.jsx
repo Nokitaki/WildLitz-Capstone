@@ -1,28 +1,22 @@
 // src/pages/games/soundsafari/ResultScreen.jsx
-// FIXED: Score shows 0% instead of NaN%
+// COMPLETE VERSION - All features working + No speech errors
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/safari/ResultsScreen.module.css';
 import { playCelebrationSound, playSpeech, stopAllSpeech } from '../../../utils/soundUtils';
-import WildLitzFox from '../../../assets/img/wildlitz-idle.png';
 
-/**
- * Results screen component displaying round results
- * FIXED: Handles NaN scores properly
- */
 const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
   const [isPlaying, setIsPlaying] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [feedbackPlayed, setFeedbackPlayed] = useState(false);
   
+  // Component lifecycle tracking
+  const isMountedRef = useRef(true);
+  const speechTimeoutRef = useRef(null);
+  
   // Extract results
-  const { 
-    correctAnimals, 
-    incorrectAnimals, 
-    selectedAnimals, 
-    targetSound 
-  } = results;
+  const { correctAnimals, incorrectAnimals, selectedAnimals, targetSound } = results;
   
   // Calculate results
   const correctSelected = selectedAnimals.filter(animal => 
@@ -37,28 +31,17 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
     !selectedAnimals.some(a => a.id === animal.id)
   );
   
-  // Calculate percentage score - FIXED: Handle NaN cases
+  // Calculate score
   const calculateScore = () => {
-    // If there are no correct animals, score is 0
-    if (!correctAnimals || correctAnimals.length === 0) {
-      return 0;
-    }
-    
-    // Calculate the score
+    if (!correctAnimals || correctAnimals.length === 0) return 0;
     const rawScore = (correctSelected.length / correctAnimals.length) * 100;
-    
-    // If result is NaN or Infinity, return 0
-    if (isNaN(rawScore) || !isFinite(rawScore)) {
-      return 0;
-    }
-    
-    // Return rounded score
+    if (isNaN(rawScore) || !isFinite(rawScore)) return 0;
     return Math.round(rawScore);
   };
   
   const score = calculateScore();
   
-  // Determine feedback message based on score
+  // Feedback messages
   const getFeedbackMessage = () => {
     if (score >= 90) return "Excellent Work!";
     if (score >= 70) return "Great Job!";
@@ -66,7 +49,6 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
     return "Keep Practicing!";
   };
   
-  // Get feedback icon based on score
   const getFeedbackIcon = () => {
     if (score >= 90) return "🏆";
     if (score >= 70) return "🌟";
@@ -74,41 +56,6 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
     return "🌱";
   };
   
-  // Play animal name sound
-  const handlePlaySound = (animal) => {
-    if (isPlaying) return;
-    
-    setIsPlaying(animal.id);
-    playSpeech(animal.name, 0.8, () => setIsPlaying(null));
-  };
-  
-  // Play celebration sound for high scores
-  useEffect(() => {
-    if (score > 70) {
-      setShowConfetti(true);
-      playCelebrationSound(score);
-    }
-    
-    // Play character feedback after a short delay
-    if (!feedbackPlayed) {
-      setTimeout(() => {
-        const feedbackMessage = getCharacterFeedback();
-        playSpeech(feedbackMessage, 0.9, () => {
-          setFeedbackPlayed(true);
-        });
-      }, 1000);
-    }
-  }, [score]);
-  
-  // Cleanup speech on unmount
-  useEffect(() => {
-    return () => {
-      console.log('ResultsScreen unmounting - stopping speech');
-      stopAllSpeech();
-    };
-  }, []);
-  
-  // Get character feedback based on score
   const getCharacterFeedback = () => {
     const correctMessage = `You found ${correctSelected.length} out of ${correctAnimals.length} animals with the "${targetSound}" sound!`;
     
@@ -119,27 +66,73 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
     } else if (score >= 50) {
       return `Good effort! ${correctMessage} Keep practicing and you'll get even better.`;
     } else if (score === 0) {
-      return `${correctMessage} Don't worry! Let's try again and listen more carefully to the sounds.`;
+      return `${correctMessage} Don't worry! Let's try listening more carefully next time.`;
     } else {
-      return `${correctMessage} Let's keep practicing to get better at hearing the sounds.`;
+      return `${correctMessage} Keep practicing to improve your sound recognition!`;
     }
   };
   
-  // Handle next round - stop speech before continuing
-  const handleNextRoundClick = () => {
-    stopAllSpeech();
-    onNextRound();
+  // Play animal sound
+  const handlePlaySound = (animal) => {
+    if (isPlaying || !isMountedRef.current) return;
+    
+    setIsPlaying(animal.id);
+    playSpeech(animal.name, 0.8, () => {
+      if (isMountedRef.current) {
+        setIsPlaying(null);
+      }
+    });
   };
   
-  // Handle try again - stop speech before retrying
+  // Initialize effects
+  useEffect(() => {
+    isMountedRef.current = true;
+    
+    // Play celebration
+    if (score > 70) {
+      setShowConfetti(true);
+      playCelebrationSound(score);
+    }
+    
+    // Play feedback
+    if (!feedbackPlayed) {
+      speechTimeoutRef.current = setTimeout(() => {
+        if (isMountedRef.current) {
+          playSpeech(getCharacterFeedback(), 0.9, () => {
+            if (isMountedRef.current) {
+              setFeedbackPlayed(true);
+            }
+          });
+        }
+      }, 1000);
+    }
+    
+    // Cleanup
+    return () => {
+      console.log('🧹 ResultsScreen unmounting');
+      isMountedRef.current = false;
+      if (speechTimeoutRef.current) {
+        clearTimeout(speechTimeoutRef.current);
+      }
+      stopAllSpeech();
+    };
+  }, []);
+  
+  // Navigation handlers
+  const handleNextRoundClick = () => {
+    stopAllSpeech();
+    setTimeout(() => onNextRound(), 100);
+  };
+  
   const handleTryAgainClick = () => {
     stopAllSpeech();
-    onTryAgain();
+    setTimeout(() => onTryAgain(), 100);
   };
   
   return (
     <div className={styles.resultsContainer}>
       <div className={styles.resultsCard}>
+        {/* Confetti */}
         {showConfetti && (
           <div className={styles.confettiContainer}>
             {Array.from({ length: 30 }).map((_, i) => (
@@ -169,7 +162,7 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
           </div>
         )}
         
-        {/* Results Header */}
+        {/* Header */}
         <div className={styles.resultsHeader}>
           <h2 className={styles.resultsTitle}>
             <span className={styles.titleEmoji}>🔍</span>
@@ -182,38 +175,30 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
           <div className={styles.scoreBanner} style={{ 
             backgroundImage: `linear-gradient(to right, 
               ${score >= 70 ? '#4caf50' : score >= 50 ? '#ff9800' : '#f44336'}, 
-              ${score >= 70 ? '#81c784' : score >= 50 ? '#ffb74d' : '#e57373'})` 
+              ${score >= 70 ? '#81c784' : score >= 50 ? '#ffb74d' : '#ef5350'})` 
           }}>
-            <div className={styles.scoreInfo}>
-              <div className={styles.scoreText}>
-                Score: <span>{score}%</span>
-              </div>
-              <div className={styles.feedbackMessage}>
-                <span className={styles.feedbackIcon}>{getFeedbackIcon()}</span>
-                {getFeedbackMessage()}
-              </div>
+            <div className={styles.scoreIcon}>{getFeedbackIcon()}</div>
+            <div className={styles.scoreContent}>
+              <div className={styles.scoreLabel}>{getFeedbackMessage()}</div>
+              <div className={styles.scoreValue}>{score}%</div>
             </div>
-            <div className={styles.scoreDetails}>
-              You found {correctSelected.length} of {correctAnimals.length} animals with the "{targetSound}" sound!
-            </div>
+          </div>
+          
+          <div className={styles.scoreInfo}>
+            <span className={styles.scoreText}>
+              You found: <span>{correctSelected.length}/{correctAnimals.length}</span>
+            </span>
           </div>
         </div>
         
-        {/* Feedback Message Box */}
-        <div className={styles.feedbackMessageBox}>
-          <div className={styles.feedbackContent}>
-            {getCharacterFeedback()}
-          </div>
-        </div>
-        
-        {/* Results Content */}
+        {/* Results Content - Three Columns */}
         <div className={styles.resultsContent}>
-          {/* Correct Answers Column */}
+          {/* Correct Animals Column */}
           <div className={styles.resultsColumn}>
             <div className={styles.resultSection}>
               <div className={styles.sectionHeader}>
                 <span className={styles.sectionIcon}>✅</span>
-                <h3>Correct Answers!</h3>
+                <h3>Correct Animals</h3>
               </div>
               
               {correctSelected.length > 0 ? (
@@ -226,22 +211,22 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
                       onClick={() => handlePlaySound(animal)}
                     >
                       <div className={styles.animalResultImage}>
-                        {animal.image && (animal.image.startsWith('http') || animal.image.startsWith('data:')) ? (
-                          <img src={animal.image} alt={animal.name} />
+                        {animal.image_url ? (
+                          <img src={animal.image_url} alt={animal.name} />
                         ) : (
-                          <span>{animal.image || '🐾'}</span>
+                          <span>🐾</span>
                         )}
                       </div>
                       <div className={styles.animalResultName}>{animal.name}</div>
                       <button className={styles.playSoundBtn}>
-                        {isPlaying === animal.id ? '🔊' : '🔊'}
+                        {isPlaying === animal.id ? '🔊' : '🔈'}
                       </button>
                     </motion.div>
                   ))}
                 </div>
               ) : (
                 <div className={styles.emptyState}>
-                  <p>You didn't find any animals with the "{targetSound}" sound.</p>
+                  <p>No correct animals selected</p>
                 </div>
               )}
             </div>
@@ -265,15 +250,15 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
                       onClick={() => handlePlaySound(animal)}
                     >
                       <div className={styles.animalResultImage}>
-                        {animal.image && (animal.image.startsWith('http') || animal.image.startsWith('data:')) ? (
-                          <img src={animal.image} alt={animal.name} />
+                        {animal.image_url ? (
+                          <img src={animal.image_url} alt={animal.name} />
                         ) : (
-                          <span>{animal.image || '🐾'}</span>
+                          <span>🐾</span>
                         )}
                       </div>
                       <div className={styles.animalResultName}>{animal.name}</div>
                       <button className={styles.playSoundBtn}>
-                        {isPlaying === animal.id ? '🔊' : '🔊'}
+                        {isPlaying === animal.id ? '🔊' : '🔈'}
                       </button>
                     </motion.div>
                   ))}
@@ -300,15 +285,15 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
                       onClick={() => handlePlaySound(animal)}
                     >
                       <div className={styles.animalResultImage}>
-                        {animal.image && (animal.image.startsWith('http') || animal.image.startsWith('data:')) ? (
-                          <img src={animal.image} alt={animal.name} />
+                        {animal.image_url ? (
+                          <img src={animal.image_url} alt={animal.name} />
                         ) : (
-                          <span>{animal.image || '🐾'}</span>
+                          <span>🐾</span>
                         )}
                       </div>
                       <div className={styles.animalResultName}>{animal.name}</div>
                       <button className={styles.playSoundBtn}>
-                        {isPlaying === animal.id ? '🔊' : '🔊'}
+                        {isPlaying === animal.id ? '🔊' : '🔈'}
                       </button>
                     </motion.div>
                   ))}
@@ -329,6 +314,7 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
             <span className={styles.buttonIcon}>🔄</span>
             Try Again
           </motion.button>
+          
           <motion.button
             className={styles.nextButton}
             whileHover={{ scale: 1.03, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" }}
@@ -336,7 +322,7 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
             onClick={handleNextRoundClick}
           >
             <span className={styles.buttonIcon}>▶️</span>
-            Next Challenge
+            Next Round
           </motion.button>
         </div>
       </div>

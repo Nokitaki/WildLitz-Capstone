@@ -1,0 +1,299 @@
+/* frontend/wildlitz/src/styles/games/safari/SoundSafariAnalytics.module.css */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Bubblegum+Sans:wght@400&family=Nunito:wght@400;600;700;800&display=swap');
+
+.analyticsContainer {
+  width: 100%;
+  min-height: 100vh;
+  background: #4B352A;
+  padding: 20px;
+  font-family: 'Nunito', sans-serif;
+  color: white;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(93, 64, 55, 0.9) 0%, rgba(75, 53, 42, 0.9) 100%);
+  border-radius: 20px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.header h2 {
+  font-family: 'Fredoka One', cursive;
+  font-size: 2rem;
+  margin: 0;
+  background: linear-gradient(45deg, #FFD700, #FFA500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.refreshButton {
+  padding: 12px 24px;
+  background: linear-gradient(45deg, #4ECDC4, #44A08D);
+  border: none;
+  border-radius: 20px;
+  color: white;
+  font-weight: bold;
+  font-family: 'Bubblegum Sans', cursive;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+}
+
+.refreshButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(78, 205, 196, 0.5);
+}
+
+/* Summary Cards Grid */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.summaryCard {
+  background: linear-gradient(135deg, rgba(93, 64, 55, 0.9) 0%, rgba(75, 53, 42, 0.9) 100%);
+  border-radius: 20px;
+  padding: 25px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: all 0.3s ease;
+}
+
+.summaryCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+  border-color: rgba(255, 215, 0, 0.6);
+}
+
+.cardIcon {
+  font-size: 3rem;
+  flex-shrink: 0;
+}
+
+.cardContent h3 {
+  margin: 0 0 10px 0;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+}
+
+.statValue {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: bold;
+  font-family: 'Fredoka One', cursive;
+  color: #FFD700;
+}
+
+/* Charts Grid */
+.chartsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.chartCard {
+  background: linear-gradient(135deg, rgba(93, 64, 55, 0.9) 0%, rgba(75, 53, 42, 0.9) 100%);
+  border-radius: 20px;
+  padding: 25px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.chartCard h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.3rem;
+  color: #FFD700;
+  font-family: 'Bubblegum Sans', cursive;
+}
+
+/* Table Card */
+.tableCard {
+  background: linear-gradient(135deg, rgba(93, 64, 55, 0.9) 0%, rgba(75, 53, 42, 0.9) 100%);
+  border-radius: 20px;
+  padding: 25px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.tableCard h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.3rem;
+  color: #FFD700;
+  font-family: 'Bubblegum Sans', cursive;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.sessionsTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sessionsTable thead {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.sessionsTable th {
+  padding: 15px;
+  text-align: left;
+  font-weight: bold;
+  color: #FFD700;
+  border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.sessionsTable td {
+  padding: 12px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sessionsTable tbody tr:hover {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.soundCell {
+  font-weight: bold;
+  color: #4ECDC4;
+  font-size: 1.1rem;
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.badge.easy {
+  background: #4CAF50;
+  color: white;
+}
+
+.badge.medium {
+  background: #FFC107;
+  color: #5D4037;
+}
+
+.badge.hard {
+  background: #F44336;
+  color: white;
+}
+
+/* Loading State */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.spinner {
+  font-size: 5rem;
+  animation: bounce 1s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+.loadingContainer p {
+  margin-top: 20px;
+  font-size: 1.3rem;
+  color: #FFD700;
+  font-family: 'Bubblegum Sans', cursive;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  padding: 40px;
+}
+
+.emptyIcon {
+  font-size: 6rem;
+  margin-bottom: 20px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.emptyState h3 {
+  font-family: 'Fredoka One', cursive;
+  font-size: 2rem;
+  color: #FFD700;
+  margin: 0 0 15px 0;
+}
+
+.emptyState p {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 500px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .chartsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .tableWrapper {
+    overflow-x: scroll;
+  }
+}
+
+@media (max-width: 480px) {
+  .analyticsContainer {
+    padding: 10px;
+  }
+  
+  .summaryCard {
+    padding: 15px;
+  }
+  
+  .cardIcon {
+    font-size: 2rem;
+  }
+  
+  .statValue {
+    font-size: 2rem;
+  }
+  
+  .chartCard, .tableCard {
+    padding: 15px;
+  }
+}

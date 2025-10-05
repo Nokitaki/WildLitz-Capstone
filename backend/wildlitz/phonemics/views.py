@@ -2,10 +2,12 @@
 from django.http import JsonResponse 
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
+from datetime import datetime
+from rest_framework.authentication import TokenAuthentication
 import json
 import random
 import time
@@ -455,4 +457,205 @@ def update_animal_images(request):
             'success': False,
             'error': str(e),
             'message': 'Failed to update animal images'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+# ==========================================
+# SOUND SAFARI ANALYTICS ENDPOINTS
+# ==========================================
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def save_safari_game_session(request):
+    """
+    Save a Sound Safari game session to Supabase
+    Works for both authenticated and anonymous users
+    """
+    try:
+        data = request.data
+        user = request.user
+        
+        # Check authentication status
+        is_authenticated = user.is_authenticated
+        
+        logger.info(f"Saving Sound Safari session")
+        logger.info(f"User authenticated: {is_authenticated}")
+        if is_authenticated:
+            logger.info(f"User: {user.email} (ID: {user.id})")
+        
+        # Validate required fields
+        required_fields = ['target_sound', 'difficulty']
+        for field in required_fields:
+            if not data.get(field):
+                logger.error(f"Missing required field: {field}")
+                return Response({
+                    'success': False,
+                    'error': f'Missing required field: {field}'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Use timezone-aware datetime
+        current_time = datetime.now().isoformat()
+        
+        # Prepare session data for Supabase (WITHOUT user_id to avoid UUID error)
+        session_data = {
+            'user_email': user.email if is_authenticated else None,
+            'timestamp': data.get('timestamp', current_time),
+            'target_sound': str(data.get('target_sound')),
+            'sound_position': str(data.get('sound_position', 'beginning')),
+            'environment': str(data.get('environment', 'jungle')),
+            'difficulty': str(data.get('difficulty')),
+            'animals_shown': int(data.get('animals_shown', 0)),
+            'correct_selections': int(data.get('correct_selections', 0)),
+            'incorrect_selections': int(data.get('incorrect_selections', 0)),
+            'success_rate': float(data.get('success_rate', 0.0)),
+            'time_spent': int(data.get('time_spent', 0)),
+            'completed': bool(data.get('completed', True))
+        }
+        
+        logger.info(f"Prepared session data: {session_data}")
+        
+        # Insert into Supabase
+        try:
+            response = supabase.table('sound_safari_game_sessions').insert(session_data).execute()
+            
+            if response.data and len(response.data) > 0:
+                session_id = response.data[0].get('session_id') or response.data[0].get('id')
+                logger.info(f"Sound Safari session saved! Session ID: {session_id}")
+                
+                return Response({
+                    'success': True,
+                    'message': 'Game session saved successfully',
+                    'session_id': str(session_id) if session_id else 'unknown',
+                    'user_email': user.email if is_authenticated else None
+                }, status=status.HTTP_201_CREATED)
+            else:
+                logger.error("No data returned from Supabase insert")
+                return Response({
+                    'success': False,
+                    'error': 'No session data returned from database'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
+        except Exception as supabase_error:
+            logger.error(f"Supabase insert error: {str(supabase_error)}")
+            return Response({
+                'success': False,
+                'error': f'Database error: {str(supabase_error)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    except Exception as e:
+        logger.error(f"Error saving Sound Safari session: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_safari_user_analytics(request):
+    """
+    Get Sound Safari analytics for the current user
+    
+    Query params:
+    - limit: number of sessions to return (default 20)
+    """
+    try:
+        user = request.user
+        
+        if not user.is_authenticated:
+            return Response({
+                'success': False,
+                'error': 'User must be authenticated'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        limit = int(request.GET.get('limit', 20))
+        
+        logger.info(f"Fetching Sound Safari analytics for user: {user.email}, limit: {limit}")
+        
+        # Get recent sessions from Supabase
+        sessions_query = supabase.table('sound_safari_game_sessions')\
+            .select('*')\
+            .eq('user_email', user.email)\
+            .order('timestamp', desc=True)\
+            .limit(limit)
+        
+        sessions_response = sessions_query.execute()
+        
+        # Calculate aggregate stats
+        sessions = sessions_response.data if sessions_response.data else []
+        
+        if sessions:
+            total_sessions = len(sessions)
+            total_animals = sum(s.get('animals_shown', 0) for s in sessions)
+            total_correct = sum(s.get('correct_selections', 0) for s in sessions)
+            avg_success = sum(s.get('success_rate', 0) for s in sessions) / total_sessions
+            avg_time = sum(s.get('time_spent', 0) for s in sessions) / total_sessions
+            
+            # Get sound-specific performance
+            sound_stats = {}
+            for session in sessions:
+                sound = session.get('target_sound')
+                if sound:
+                    if sound not in sound_stats:
+                        sound_stats[sound] = {
+                            'attempts': 0,
+                            'correct': 0,
+                            'total_animals': 0
+                        }
+                    sound_stats[sound]['attempts'] += 1
+                    sound_stats[sound]['correct'] += session.get('correct_selections', 0)
+                    sound_stats[sound]['total_animals'] += session.get('animals_shown', 0)
+            
+            # Calculate success rate per sound
+            sound_performance = []
+            for sound, stats in sound_stats.items():
+                success_rate = (stats['correct'] / stats['total_animals'] * 100) if stats['total_animals'] > 0 else 0
+                sound_performance.append({
+                    'sound': sound,
+                    'attempts': stats['attempts'],
+                    'success_rate': round(success_rate, 2),
+                    'total_correct': stats['correct']
+                })
+            
+            sound_performance.sort(key=lambda x: x['success_rate'], reverse=True)
+            
+            aggregate_stats = {
+                'total_sessions': total_sessions,
+                'total_animals': total_animals,
+                'total_correct': total_correct,
+                'average_success_rate': round(avg_success, 2),
+                'average_time_per_game': round(avg_time, 2)
+            }
+            
+            logger.info(f"Analytics fetched successfully for {user.email}")
+        else:
+            aggregate_stats = {
+                'total_sessions': 0,
+                'total_animals': 0,
+                'total_correct': 0,
+                'average_success_rate': 0,
+                'average_time_per_game': 0
+            }
+            sound_performance = []
+            logger.info(f"No sessions found for user: {user.email}")
+        
+        return Response({
+            'success': True,
+            'sessions': sessions,
+            'sound_performance': sound_performance,
+            'aggregate_stats': aggregate_stats,
+            'total_sessions': len(sessions)
+        })
+    
+    except Exception as e:
+        logger.error(f"Error fetching Sound Safari analytics: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        
+        return Response({
+            'success': False,
+            'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -1,9 +1,10 @@
-// src/pages/profile/ProfilePage.jsx
+// src/pages/profile/ProfilePage.jsx - COMPLETE FILE WITH SOUND SAFARI ANALYTICS
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/components/profile.module.css';
+import SoundSafariAnalytics from '../games/soundsafari/SoundSafariAnalytics';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -180,19 +181,31 @@ const ProfilePage = () => {
 
       {/* Navigation Tabs */}
       <motion.div className={styles.profileTabs} variants={itemVariants}>
-        {['overview', 'progress', 'achievements'].map((tab) => (
-          <button
-            key={tab}
-            className={`${styles.tabButton} ${activeTab === tab ? styles.active : ''}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab === 'overview' && '📊'} 
-            {tab === 'progress' && '📈'} 
-            {tab === 'achievements' && '🏆'}
-            {' '}
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
+        <button
+          className={`${styles.tabButton} ${activeTab === 'overview' ? styles.active : ''}`}
+          onClick={() => setActiveTab('overview')}
+        >
+          📊 Overview
+        </button>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'progress' ? styles.active : ''}`}
+          onClick={() => setActiveTab('progress')}
+        >
+          📈 Progress
+        </button>
+        {/* NEW: Sound Safari Tab */}
+        <button
+          className={`${styles.tabButton} ${activeTab === 'soundsafari' ? styles.active : ''}`}
+          onClick={() => setActiveTab('soundsafari')}
+        >
+          🦁 Sound Safari
+        </button>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'achievements' ? styles.active : ''}`}
+          onClick={() => setActiveTab('achievements')}
+        >
+          🏆 Achievements
+        </button>
       </motion.div>
 
       {/* Content */}
@@ -245,52 +258,20 @@ const ProfilePage = () => {
                   <h3>📅 Recent Activity</h3>
                   {progress.length > 0 ? (
                     <div className={styles.activityList}>
-                      {progress.slice(0, 3).map((item, index) => (
+                      {progress.slice(0, 5).map((item, index) => (
                         <div key={index} className={styles.activityItem}>
-                          <span className={styles.activityIcon}>
-                            {getModuleDisplayName(item.module) === 'Syllable Clapping' && '👏'}
-                            {getModuleDisplayName(item.module) === 'Sound Safari' && '🦁'}
-                            {getModuleDisplayName(item.module) === 'Vanishing Game' && '✨'}
-                            {getModuleDisplayName(item.module) === 'Crossword Puzzle' && '📝'}
+                          <span className={styles.activityModule}>
+                            {getModuleDisplayName(item.module)}
                           </span>
-                          <div className={styles.activityDetails}>
-                            <p className={styles.activityName}>{getModuleDisplayName(item.module)}</p>
-                            <p className={styles.activityStat}>{item.accuracy_percentage}% accuracy • {item.total_attempts} attempts</p>
-                          </div>
+                          <span className={styles.activityAccuracy}>
+                            {Math.round(item.accuracy_percentage)}%
+                          </span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className={styles.noData}>No recent activity. Start learning to see your progress!</p>
+                    <p className={styles.noData}>No recent activity</p>
                   )}
-                </div>
-
-                {/* Next Steps */}
-                <div className={styles.nextStepsCard}>
-                  <h3>🚀 Suggested Next Steps</h3>
-                  <div className={styles.suggestions}>
-                    <div className={styles.suggestionItem}>
-                      <span className={styles.suggestionIcon}>👏</span>
-                      <div>
-                        <p className={styles.suggestionTitle}>Try Syllable Clapping</p>
-                        <p className={styles.suggestionDesc}>Improve your reading rhythm</p>
-                      </div>
-                    </div>
-                    <div className={styles.suggestionItem}>
-                      <span className={styles.suggestionIcon}>🦁</span>
-                      <div>
-                        <p className={styles.suggestionTitle}>Explore Sound Safari</p>
-                        <p className={styles.suggestionDesc}>Master phoneme recognition</p>
-                      </div>
-                    </div>
-                    <div className={styles.suggestionItem}>
-                      <span className={styles.suggestionIcon}>✨</span>
-                      <div>
-                        <p className={styles.suggestionTitle}>Challenge Vanishing Game</p>
-                        <p className={styles.suggestionDesc}>Boost your reading speed</p>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -298,50 +279,48 @@ const ProfilePage = () => {
 
           {activeTab === 'progress' && (
             <div className={styles.progressContent}>
-              <div className={styles.progressHeader}>
-                <h3>📈 Your Learning Progress</h3>
-                <p>Track your improvement across all games</p>
-              </div>
-              
+              <h3>📊 Your Learning Progress</h3>
               {progress.length > 0 ? (
                 <div className={styles.progressGrid}>
                   {progress.map((item, index) => (
                     <motion.div
                       key={index}
                       className={styles.progressCard}
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ type: "spring", stiffness: 300 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
                     >
-                      <div className={styles.progressCardHeader}>
-                        <h4>{getModuleDisplayName(item.module)}</h4>
-                        <span className={styles.progressDifficulty}>{item.difficulty}</span>
-                      </div>
-                      
+                      <h4>{getModuleDisplayName(item.module)}</h4>
                       <div className={styles.progressStats}>
                         <div className={styles.progressStat}>
-                          <span className={styles.progressValue}>{item.total_attempts}</span>
-                          <span className={styles.progressLabel}>Attempts</span>
+                          <span className={styles.statLabel}>Difficulty</span>
+                          <span className={styles.statValue}>{item.difficulty}</span>
                         </div>
                         <div className={styles.progressStat}>
-                          <span className={styles.progressValue}>{item.correct_answers}</span>
-                          <span className={styles.progressLabel}>Correct</span>
+                          <span className={styles.statLabel}>Accuracy</span>
+                          <span className={styles.statValue}>{Math.round(item.accuracy_percentage)}%</span>
                         </div>
                         <div className={styles.progressStat}>
-                          <span className={styles.progressValue}>{Math.round(item.accuracy_percentage)}%</span>
-                          <span className={styles.progressLabel}>Accuracy</span>
+                          <span className={styles.statLabel}>Attempts</span>
+                          <span className={styles.statValue}>{item.total_attempts}</span>
+                        </div>
+                        <div className={styles.progressStat}>
+                          <span className={styles.statLabel}>Correct</span>
+                          <span className={styles.statValue}>{item.correct_answers}</span>
                         </div>
                       </div>
                       
-                      <div className={styles.progressBarContainer}>
-                        <div className={styles.progressBar}>
-                          <motion.div
-                            className={styles.progressFill}
-                            initial={{ width: 0 }}
-                            animate={{ width: `${item.accuracy_percentage}%` }}
-                            transition={{ duration: 1, delay: index * 0.1 }}
-                          />
-                        </div>
-                        <span className={styles.progressPercentage}>{Math.round(item.accuracy_percentage)}%</span>
+                      <div className={styles.progressBar}>
+                        <motion.div 
+                          className={styles.progressFill}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${item.accuracy_percentage}%` }}
+                          transition={{ duration: 1, delay: index * 0.1 }}
+                          style={{
+                            backgroundColor: item.accuracy_percentage >= 80 ? '#4CAF50' : 
+                                           item.accuracy_percentage >= 60 ? '#FFC107' : '#F44336'
+                          }}
+                        />
                       </div>
                     </motion.div>
                   ))}
@@ -364,6 +343,13 @@ const ProfilePage = () => {
             </div>
           )}
 
+          {/* NEW: Sound Safari Analytics Tab */}
+          {activeTab === 'soundsafari' && (
+            <div className={styles.soundSafariContent}>
+              <SoundSafariAnalytics />
+            </div>
+          )}
+
           {activeTab === 'achievements' && (
             <div className={styles.achievementsContent}>
               <div className={styles.achievementsHeader}>
@@ -372,7 +358,7 @@ const ProfilePage = () => {
               </div>
               
               <div className={styles.achievementsGrid}>
-                {/* Sample achievements - you can expand this */}
+                {/* Sample achievements */}
                 <div className={`${styles.achievementCard} ${analytics?.overall_stats.total_activities > 0 ? styles.unlocked : styles.locked}`}>
                   <div className={styles.achievementIcon}>🎮</div>
                   <div className={styles.achievementInfo}>
