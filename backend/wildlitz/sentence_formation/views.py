@@ -955,7 +955,7 @@ def log_story_activity(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_story_analytics(request):
-    """Get story game analytics for a user or all users"""
+    """Get story game analytics for dashboard - returns flat structure"""
     try:
         user_email = request.GET.get('user_email')
         user_id = request.GET.get('user_id')
@@ -965,7 +965,7 @@ def get_story_analytics(request):
         # Calculate date filter
         date_filter = (datetime.now() - timedelta(days=days)).isoformat()
         
-        # Build query
+        # Get sessions from Supabase
         query = supabase.table('story_game_sessions').select('*')
         
         if user_email:
@@ -978,52 +978,79 @@ def get_story_analytics(request):
         response = query.execute()
         sessions = response.data if response.data else []
         
-        # Calculate aggregate statistics - FIX: Handle None values explicitly
+        # Get activities from Supabase
+        activities_query = supabase.table('story_game_activities').select('*')
+        
+        if user_email:
+            activities_query = activities_query.eq('user_email', user_email)
+        elif user_id:
+            activities_query = activities_query.eq('user_id', user_id)
+            
+        activities_query = activities_query.gte('created_at', date_filter).limit(500)
+        activities_response = activities_query.execute()
+        activities = activities_response.data if activities_response.data else []
+        
+        # Calculate statistics
         total_sessions = len(sessions)
         completed_sessions = len([s for s in sessions if s.get('is_completed', False)])
-        total_episodes_completed = sum((s.get('episodes_completed') or 0) for s in sessions)
-        total_words_solved = sum((s.get('total_words_solved') or 0) for s in sessions)
-        total_time_spent = sum((s.get('total_duration_seconds') or 0) for s in sessions)
         
-        # Theme distribution
-        theme_counts = {}
-        for session in sessions:
-            theme = session.get('theme', 'unknown')
-            theme_counts[theme] = theme_counts.get(theme, 0) + 1
+        # Count words from activities
+        word_activities = [a for a in activities if a.get('activity_type') == 'word_solved']
+        total_words_attempted = len(word_activities)
+        correct_words = len([a for a in word_activities if a.get('is_correct', False)])
         
-        # Skills distribution
-        skill_counts = {}
-        for session in sessions:
-            skills = session.get('focus_skills', [])
-            if skills:  # Only process if skills exist
-                for skill in skills:
-                    skill_counts[skill] = skill_counts.get(skill, 0) + 1
+        # Calculate accuracy
+        overall_accuracy = (correct_words / total_words_attempted * 100) if total_words_attempted > 0 else 0
         
-        # Average metrics
-        avg_completion_rate = (completed_sessions / total_sessions * 100) if total_sessions > 0 else 0
-        avg_episodes_per_session = total_episodes_completed / total_sessions if total_sessions > 0 else 0
-        avg_words_per_session = total_words_solved / total_sessions if total_sessions > 0 else 0
-        avg_session_duration = total_time_spent / total_sessions if total_sessions > 0 else 0
+        # Calculate average time
+        game_completed_activities = [a for a in activities if a.get('activity_type') == 'game_completed']
+        total_time = sum([a.get('time_spent_seconds', 0) for a in game_completed_activities])
+        avg_time_per_game = (total_time / len(game_completed_activities)) if len(game_completed_activities) > 0 else 0
         
-        logger.info(f"Analytics retrieved: {total_sessions} sessions")
+        # Get top words
+        word_stats = {}
+        for activity in word_activities:
+            word_data = activity.get('word_data', {})
+            word = word_data.get('word', 'Unknown') if isinstance(word_data, dict) else str(word_data)
+            
+            if word not in word_stats:
+                word_stats[word] = {'attempts': 0, 'correct': 0}
+            word_stats[word]['attempts'] += 1
+            if activity.get('is_correct', False):
+                word_stats[word]['correct'] += 1
         
+        # Convert to list and sort
+        top_words = [
+            {
+                'word': word,
+                'attempts': stats['attempts'],
+                'correct': stats['correct'],
+                'accuracy': (stats['correct'] / stats['attempts'] * 100) if stats['attempts'] > 0 else 0
+            }
+            for word, stats in word_stats.items()
+        ]
+        top_words.sort(key=lambda x: x['attempts'], reverse=True)
+        
+        logger.info(f"Analytics retrieved: {total_sessions} sessions, {total_words_attempted} words")
+        
+        # 🔥 FIX: Return FLAT structure that dashboard expects
         return Response({
             'success': True,
             'analytics': {
+                'total_games_played': completed_sessions,  # ✅ Flat field
+                'total_words_attempted': total_words_attempted,  # ✅ Flat field
+                'total_correct_words': correct_words,
+                'overall_accuracy': round(overall_accuracy, 1),  # ✅ Flat field
+                'average_time_per_game': round(avg_time_per_game, 1),  # ✅ Flat field
+                'top_words': top_words[:10],  # ✅ Flat field
+                'recent_activities': [],
+                # Keep the detailed summary for other uses
                 'summary': {
                     'total_sessions': total_sessions,
                     'completed_sessions': completed_sessions,
-                    'total_episodes_completed': total_episodes_completed,
-                    'total_words_solved': total_words_solved,
-                    'total_time_spent_seconds': total_time_spent,
-                    'avg_completion_rate': round(avg_completion_rate, 2),
-                    'avg_episodes_per_session': round(avg_episodes_per_session, 2),
-                    'avg_words_per_session': round(avg_words_per_session, 2),
-                    'avg_session_duration_seconds': round(avg_session_duration, 2)
-                },
-                'theme_distribution': theme_counts,
-                'skill_distribution': skill_counts,
-                'recent_sessions': sessions[:10]  # Return last 10 sessions
+                    'total_words_solved': total_words_attempted,
+                    'avg_completion_rate': (completed_sessions / total_sessions * 100) if total_sessions > 0 else 0
+                }
             }
         })
         
@@ -1031,8 +1058,17 @@ def get_story_analytics(request):
         logger.error(f"Error fetching story analytics: {str(e)}")
         logger.error(traceback.format_exc())
         return Response({
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            'success': False,
+            'error': str(e),
+            'analytics': {
+                'total_games_played': 0,
+                'total_words_attempted': 0,
+                'total_correct_words': 0,
+                'overall_accuracy': 0,
+                'average_time_per_game': 0,
+                'top_words': []
+            }
+        }, status=status.HTTP_200_OK) 
 
 
 @api_view(['GET'])

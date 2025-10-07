@@ -266,3 +266,24 @@ INFO 2025-10-07 22:17:16,598 views Activity logged: game_completed
 INFO 2025-10-07 22:17:16,742 views Activity logged: game_completed
 INFO 2025-10-07 22:17:24,189 views Analytics retrieved: 8 sessions
 INFO 2025-10-07 22:17:24,332 views Analytics retrieved: 8 sessions
+INFO 2025-10-07 22:35:38,471 views Analytics retrieved: 8 sessions, 26 words
+INFO 2025-10-07 22:35:38,555 views Analytics retrieved: 8 sessions, 26 words
+INFO 2025-10-07 22:36:50,819 views Analytics retrieved: 8 sessions, 26 words
+INFO 2025-10-07 22:36:51,157 views Analytics retrieved: 8 sessions, 26 words
+INFO 2025-10-07 22:37:45,717 views Raw GPT response received (length: 4921)
+INFO 2025-10-07 22:37:45,718 views Successfully parsed GPT response as JSON
+INFO 2025-10-07 22:37:46,843 views Story session created: 7b78031b-5233-413d-ba8f-e22d1fcfdd6a
+INFO 2025-10-07 22:39:55,772 views Analytics retrieved: 9 sessions, 26 words
+INFO 2025-10-07 22:39:56,074 views Analytics retrieved: 9 sessions, 26 words
+INFO 2025-10-07 22:40:14,900 views Raw GPT response received (length: 8619)
+INFO 2025-10-07 22:40:14,900 views Successfully parsed GPT response as JSON
+INFO 2025-10-07 22:40:15,698 views Story session created: ae64a5bf-8b11-4db2-bfae-17d37a746081
+INFO 2025-10-07 22:41:55,750 views Activity logged: word_solved
+INFO 2025-10-07 22:41:58,370 views Activity logged: word_solved
+INFO 2025-10-07 22:42:01,054 views Activity logged: word_solved
+INFO 2025-10-07 22:42:03,598 views Activity logged: word_solved
+INFO 2025-10-07 22:42:10,348 views Activity logged: word_solved
+INFO 2025-10-07 22:42:11,649 views Activity logged: game_completed
+INFO 2025-10-07 22:42:11,796 views Activity logged: game_completed
+INFO 2025-10-07 22:47:28,962 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-07 22:47:29,185 views Analytics retrieved: 10 sessions, 31 words
