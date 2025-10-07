@@ -1644,3 +1644,53 @@ body {
   background-color: rgba(106, 90, 205, 0.1); /* Light primary color on hover */
   transform: scale(1.1);
 }
+
+.dismissButton {
+  background-color: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #666;
+  padding: 0.2rem 0.6rem;
+  border-radius: 10px; /* This gives it the rounded corners */
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto; /* Pushes the button to the far right */
+}
+
+.dismissButton:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.audioActionButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.uploadButton {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border: 2px solid #ddd;
+  border-radius: var(--radius);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  background-color: #f5f5f5;
+  color: #555;
+  flex: 1; /* Allows it to share space with the record button */
+  justify-content: center;
+}
+
+.uploadButton:hover {
+  border-color: var(--primary);
+  background-color: rgba(106, 90, 205, 0.05);
+}
+
+.uploadButton span {
+  font-size: 1.1rem;
+}

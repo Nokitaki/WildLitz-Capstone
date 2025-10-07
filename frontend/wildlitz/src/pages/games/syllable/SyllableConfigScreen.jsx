@@ -266,15 +266,16 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   // Auto-validate when both word and syllable breakdown are present
   useEffect(() => {
     const timer = setTimeout(() => {
+      // 👇 ADD THIS CHECK
       if (
         newCustomWord.word.trim() &&
         newCustomWord.syllableBreakdown.trim() &&
-        newCustomWord.syllableCount > 0
+        newCustomWord.syllableCount > 0 &&
+        !validationDismissed // <-- Only run if it has NOT been dismissed
       ) {
         handleValidateSyllables();
-        setValidationDismissed(false);  // ✅ ADD THIS LINE
       }
-    }, 2000); // Changed from 1000 to 1500 (1.5 seconds)
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [newCustomWord.word, newCustomWord.syllableBreakdown]);
@@ -622,23 +623,23 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   };
 
   const resetCustomWordForm = () => {
-  setNewCustomWord({
-    word: "",
-    syllableBreakdown: "",
-    syllableCount: 0,
-    category: "",
-  });
-  setValidationResult(null);
-  setImageFile(null);
-  setImagePreview(null);
-  setFullWordAudio(null);
-  setSyllableAudios({});
-  setShowCategoryNotice("");
-  setWordExists(false);
-  setExistingWordData(null);
-  setEditingWord(null);
-  setValidationDismissed(false);  // ✅ ADD THIS LINE
-};
+    setNewCustomWord({
+      word: "",
+      syllableBreakdown: "",
+      syllableCount: 0,
+      category: "",
+    });
+    setValidationResult(null);
+    setImageFile(null);
+    setImagePreview(null);
+    setFullWordAudio(null);
+    setSyllableAudios({});
+    setShowCategoryNotice("");
+    setWordExists(false);
+    setExistingWordData(null);
+    setEditingWord(null);
+    setValidationDismissed(false);  // ✅ ADD THIS LINE
+  };
 
   const deleteCustomWord = (wordId) => {
     // I've updated the confirmation text to be more accurate
@@ -784,6 +785,29 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     }
   };
 
+  const handleAudioUpload = (event, type, syllableIndex = null) => {
+    const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
+
+    const audioUrl = URL.createObjectURL(file);
+    const audioBlob = file; // The selected file is already in the right format (a Blob)
+
+    if (type === 'fullWord') {
+      setFullWordAudio({ blob: audioBlob, url: audioUrl });
+    } else if (type === 'syllable' && syllableIndex !== null) {
+      setSyllableAudios(prev => ({
+        ...prev,
+        [syllableIndex]: { blob: audioBlob, url: audioUrl },
+      }));
+    }
+
+    // It's important to reset the file input's value.
+    // This allows the user to select the same file again if they need to.
+    event.target.value = null;
+  };
+
   return (
     <div className={styles.fixedContainer}>
       <div className={styles.gameCard}>
@@ -800,18 +824,17 @@ const SyllableConfigScreen = ({ onStartGame }) => {
               {Object.entries(difficultyInfo).map(([level, info]) => (
                 <motion.button
                   key={level}
-                  className={`${styles.difficultyBtn} ${
-                    difficulty === level ? styles.active : ""
-                  }`}
+                  className={`${styles.difficultyBtn} ${difficulty === level ? styles.active : ""
+                    }`}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => setDifficulty(level)}
                   style={
                     difficulty === level
                       ? {
-                          backgroundColor: info.color,
-                          borderColor: info.color,
-                        }
+                        backgroundColor: info.color,
+                        borderColor: info.color,
+                      }
                       : {}
                   }
                 >
@@ -859,9 +882,8 @@ const SyllableConfigScreen = ({ onStartGame }) => {
               {categories.map((category) => (
                 <motion.div
                   key={category.id}
-                  className={`${styles.categoryCard} ${
-                    selectedCategories[category.id] ? styles.selected : ""
-                  }`}
+                  className={`${styles.categoryCard} ${selectedCategories[category.id] ? styles.selected : ""
+                    }`}
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => toggleCategory(category.id)}
@@ -913,9 +935,8 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                 style={{
                   background: `linear-gradient(to right, 
                     ${difficultyInfo[difficulty].color} 0%, 
-                    ${difficultyInfo[difficulty].color} ${
-                    ((questionCount - 5) / 15) * 100
-                  }%, 
+                    ${difficultyInfo[difficulty].color} ${((questionCount - 5) / 15) * 100
+                    }%, 
                     #ddd ${((questionCount - 5) / 15) * 100}%, 
                     #ddd 100%)`,
                 }}
@@ -1114,9 +1135,8 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                   </label>
                   {/* 👇 Add a conditional 'loading' class here */}
                   <div
-                    className={`${styles.syllableBreakdownGroup} ${
-                      isSuggestingBreakdown ? styles.loading : ""
-                    }`}
+                    className={`${styles.syllableBreakdownGroup} ${isSuggestingBreakdown ? styles.loading : ""
+                      }`}
                   >
                     <input
                       id="syllable-breakdown"
@@ -1142,13 +1162,12 @@ const SyllableConfigScreen = ({ onStartGame }) => {
 
                 {/* AI VALIDATION */}
                 <div className={styles.aiValidationSection}>
-                  {validationResult && (
+                  {validationResult && !validationDismissed && (
                     <div
-                      className={`${styles.validationResult} ${
-                        validationResult.is_correct
-                          ? styles.correct
-                          : styles.incorrect
-                      }`}
+                      className={`${styles.validationResult} ${validationResult.is_correct
+                        ? styles.correct
+                        : styles.incorrect
+                        }`}
                     >
                       <div>
                         <span className={styles.resultIcon}>
@@ -1163,19 +1182,11 @@ const SyllableConfigScreen = ({ onStartGame }) => {
 
                       {/* ✅ NEW DISMISS BUTTON */}
                       <button
+                        className={styles.dismissButton}
                         onClick={() => setValidationDismissed(true)}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: "#666",
-                          cursor: "pointer",
-                          fontSize: "1.2rem",
-                          padding: "0 0.5rem",
-                          lineHeight: 1,
-                        }}
                         title="Dismiss AI validation - I'll verify manually"
                       >
-                        ✕
+                        Dismiss
                       </button>
 
                       {validationResult.suggestion && (
@@ -1275,9 +1286,8 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                 <div className={styles.imageUploadSection}>
                   <label>Word Image (Optional)</label>
                   <div
-                    className={`${styles.imageUploadBox} ${
-                      imagePreview ? styles.hasImage : ""
-                    }`}
+                    className={`${styles.imageUploadBox} ${imagePreview ? styles.hasImage : ""
+                      }`}
                     onClick={() =>
                       document.getElementById("image-upload-input").click()
                     }
@@ -1320,23 +1330,32 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                   </div>
 
                   {!fullWordAudio ? (
-                    <button
-                      className={`${styles.recordButton} ${
-                        isRecordingFullWord ? styles.recording : ""
-                      }`}
-                      onClick={() => {
-                        if (isRecordingFullWord) {
-                          stopRecording();
-                        } else {
-                          startRecording("fullWord");
-                        }
-                      }}
-                    >
-                      <span className={styles.micIcon}>🎤</span>
-                      {isRecordingFullWord
-                        ? "Stop Recording"
-                        : "Record Full Word"}
-                    </button>
+                    <>
+                      <div className={styles.audioActionButtons}>
+                        <button
+                          className={`${styles.recordButton} ${isRecordingFullWord ? styles.recording : ""
+                            }`}
+                          onClick={() => isRecordingFullWord ? stopRecording() : startRecording("fullWord")}
+                        >
+                          <span className={styles.micIcon}>🎤</span>
+                          {isRecordingFullWord ? "Stop" : "Record"}
+                        </button>
+                        <button
+                          className={styles.uploadButton}
+                          onClick={() => document.getElementById('full-word-audio-upload').click()}
+                        >
+                          <span>☁️</span>
+                          Upload
+                        </button>
+                      </div>
+                      <input
+                        type="file"
+                        accept="audio/mp3, audio/wav, audio/m4a, audio/webm"
+                        style={{ display: 'none' }}
+                        id="full-word-audio-upload"
+                        onChange={(e) => handleAudioUpload(e, 'fullWord')}
+                      />
+                    </>
                   ) : (
                     <div className={styles.audioPreview}>
                       <audio src={fullWordAudio.url} controls />
@@ -1363,25 +1382,32 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                           <div className={styles.syllableLabel}>{syllable}</div>
 
                           {!syllableAudios[index] ? (
-                            <button
-                              className={`${styles.recordButton} ${
-                                recordingSyllableIndex === index
-                                  ? styles.recording
-                                  : ""
-                              }`}
-                              onClick={() => {
-                                if (recordingSyllableIndex === index) {
-                                  stopRecording();
-                                } else {
-                                  startRecording("syllable", index);
-                                }
-                              }}
-                            >
-                              <span className={styles.micIcon}>🎤</span>
-                              {recordingSyllableIndex === index
-                                ? "Stop"
-                                : "Record"}
-                            </button>
+                            <>
+                              <div className={styles.audioActionButtons}>
+                                <button
+                                  className={`${styles.recordButton} ${recordingSyllableIndex === index ? styles.recording : ""
+                                    }`}
+                                  onClick={() => recordingSyllableIndex === index ? stopRecording() : startRecording("syllable", index)}
+                                >
+                                  <span className={styles.micIcon}>🎤</span>
+                                  {recordingSyllableIndex === index ? "Stop" : "Record"}
+                                </button>
+                                <button
+                                  className={styles.uploadButton}
+                                  onClick={() => document.getElementById(`syllable-audio-upload-${index}`).click()}
+                                >
+                                  <span>☁️</span>
+                                  Upload
+                                </button>
+                              </div>
+                              <input
+                                type="file"
+                                accept="audio/mp3, audio/wav, audio/m4a, audio/webm"
+                                style={{ display: 'none' }}
+                                id={`syllable-audio-upload-${index}`}
+                                onChange={(e) => handleAudioUpload(e, 'syllable', index)}
+                              />
+                            </>
                           ) : (
                             <div className={styles.audioPreview}>
                               <audio src={syllableAudios[index].url} controls />
@@ -1411,6 +1437,14 @@ const SyllableConfigScreen = ({ onStartGame }) => {
 
                 {/* FORM ACTIONS */}
                 <div className={styles.formActions}>
+
+                  <input
+                    type="file"
+                    accept="audio/mp3, audio/wav, audio/m4a, audio/webm"
+                    style={{ display: 'none' }}
+                    id="audio-upload-input"
+                  />
+
                   <button
                     className={styles.cancelFormButton}
                     onClick={resetCustomWordForm}
@@ -1423,10 +1457,12 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                     onClick={saveCustomWordToDB}
                     disabled={
                       isSaving ||
-                      (!validationResult && !validationDismissed) || // ✅ CHANGED: Allow if dismissed
                       !newCustomWord.word ||
                       !newCustomWord.syllableBreakdown ||
-                      wordExists
+                      wordExists ||
+                      // This is the new, correct logic:
+                      // Disable if validation has failed AND it has NOT been dismissed.
+                      (validationResult && !validationResult.is_correct && !validationDismissed)
                     }
                   >
                     {isSaving ? (
