@@ -88,3 +88,93 @@ ERROR 2025-10-02 11:14:52,695 basehttp "POST /api/auth/refresh/ HTTP/1.1" 500 12
 ERROR 2025-10-02 11:14:52,695 basehttp "POST /api/auth/refresh/ HTTP/1.1" 500 124283
 ERROR 2025-10-02 11:14:52,696 basehttp "POST /api/auth/refresh/ HTTP/1.1" 500 124283
 ERROR 2025-10-02 11:14:52,696 basehttp "POST /api/auth/refresh/ HTTP/1.1" 500 124283
+ERROR 2025-10-07 14:41:14,383 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:41:14,392 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 123
+ERROR 2025-10-07 14:41:14,392 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 123
+ERROR 2025-10-07 14:41:15,972 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:41:15,973 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:41:15,973 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 243
+ERROR 2025-10-07 14:41:15,973 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 243
+ERROR 2025-10-07 14:41:15,973 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 243
+ERROR 2025-10-07 14:41:15,973 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 243
+ERROR 2025-10-07 14:44:05,695 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:44:05,696 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 119
+ERROR 2025-10-07 14:44:05,696 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 119
+ERROR 2025-10-07 14:44:34,184 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:44:34,185 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 120
+ERROR 2025-10-07 14:44:34,185 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 120
+ERROR 2025-10-07 14:44:40,932 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:44:40,933 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 119
+ERROR 2025-10-07 14:44:40,933 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 119
+ERROR 2025-10-07 14:44:43,334 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:44:43,335 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 119
+ERROR 2025-10-07 14:44:43,335 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 119
+ERROR 2025-10-07 14:44:46,155 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:44:46,155 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 118
+ERROR 2025-10-07 14:44:46,155 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 118
+ERROR 2025-10-07 14:44:49,058 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:44:49,058 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 120
+ERROR 2025-10-07 14:44:49,058 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 120
+ERROR 2025-10-07 14:44:51,702 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:44:51,703 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 118
+ERROR 2025-10-07 14:44:51,703 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 118
+ERROR 2025-10-07 14:44:53,533 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:44:53,534 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 119
+ERROR 2025-10-07 14:44:53,534 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 119
+ERROR 2025-10-07 14:44:55,172 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:44:55,173 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:44:55,173 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 1144
+ERROR 2025-10-07 14:44:55,173 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 1144
+ERROR 2025-10-07 14:44:55,173 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 1144
+ERROR 2025-10-07 14:44:55,173 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 1144
+ERROR 2025-10-07 14:50:12,321 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:50:12,322 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 119
+ERROR 2025-10-07 14:50:12,322 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 119
+ERROR 2025-10-07 14:50:30,081 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:50:30,081 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 118
+ERROR 2025-10-07 14:50:30,081 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 118
+ERROR 2025-10-07 14:50:42,716 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:50:42,716 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 118
+ERROR 2025-10-07 14:50:42,716 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 118
+ERROR 2025-10-07 14:50:45,082 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:50:45,082 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 120
+ERROR 2025-10-07 14:50:45,082 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 120
+ERROR 2025-10-07 14:50:47,125 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:50:47,125 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 119
+ERROR 2025-10-07 14:50:47,125 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 119
+ERROR 2025-10-07 14:50:48,602 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:50:48,603 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 756
+ERROR 2025-10-07 14:50:48,603 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 756
+ERROR 2025-10-07 14:50:48,724 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 14:50:48,725 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 756
+ERROR 2025-10-07 14:50:48,725 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 756
+ERROR 2025-10-07 15:02:18,820 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-07 15:02:18,821 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 15:02:18,821 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 15:02:19,012 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-07 15:02:19,013 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 15:02:19,013 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 15:02:26,281 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-07 15:02:26,281 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 15:02:26,281 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 15:02:26,450 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-07 15:02:26,450 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 15:02:26,450 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 15:05:04,928 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-07 15:05:04,929 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 15:05:04,929 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 15:05:05,053 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-07 15:05:05,054 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 15:05:05,054 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 21:22:40,690 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-07 21:22:40,691 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 21:22:40,691 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 21:22:40,908 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-07 21:22:40,909 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 21:22:40,909 basehttp "GET /api/sentence_formation/story/analytics/?days=30&limit=50 HTTP/1.1" 500 67
+ERROR 2025-10-07 21:55:37,213 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 21:55:37,214 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 124
+ERROR 2025-10-07 21:55:37,214 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 124
+ERROR 2025-10-07 21:55:48,460 log Internal Server Error: /api/sentence_formation/story/activity/log/
+ERROR 2025-10-07 21:55:48,460 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 123
+ERROR 2025-10-07 21:55:48,460 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 123

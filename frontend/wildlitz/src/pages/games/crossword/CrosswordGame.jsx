@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/crossword/CrosswordGame.module.css';
 import { GameLoadingScreen, CrosswordGridLoader } from '../../../components/common/LoadingStates';
-
+import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
 // Import game screens
 import StoryScreen from './StoryScreen';
 import GameplayScreen from './GameplayScreen';
@@ -22,7 +22,7 @@ import { STORY_ADVENTURES, STORY_PUZZLES } from '../../../mock/storyData';
  * Main Crossword Puzzle Game component that manages game state and flow
  */
 const CrosswordGame = () => {
-  // Game states: 'intro', 'story', 'gameplay', 'summary', 'sentence-builder', 'generate-story'
+  // Game states
   const [gameState, setGameState] = useState('generate-story');
   
   // Game configuration
@@ -34,6 +34,9 @@ const CrosswordGame = () => {
   // Story tracking
   const [currentEpisode, setCurrentEpisode] = useState(0);
   const [storyProgress, setStoryProgress] = useState({});
+  
+  // ADD THIS LINE - Session ID for analytics
+  const [sessionId, setSessionId] = useState(null);  // ✨ ADD THIS
   
   // Game data
   const [gameStories, setGameStories] = useState({
@@ -128,54 +131,76 @@ const CrosswordGame = () => {
   /**
    * Handle newly generated story
    */
-  const handleStoryGenerated = (data) => {
-    console.log('Story generated with', data.story.episodes?.length, 'episodes');
-    
-    const newStory = {
-      ...data.story,
-      episodes: Array.isArray(data.story.episodes) ? data.story.episodes : []
-    };
-    
-    const newStories = {
-      ...gameStories,
-      [newStory.id]: newStory
-    };
-    
-    const newPuzzles = {
-      ...gamePuzzles,
-      ...data.puzzles
-    };
-    
-    // Update state with new stories and puzzles
-    setGameStories(newStories);
-    setGamePuzzles(newPuzzles);
-    
-    const config = {
-      storyMode: true,
-      adventureId: newStory.id
-    };
-    
-    setGameConfig(config);
-    
-    if (newStory.episodes && newStory.episodes.length > 0) {
-      const firstEpisode = newStory.episodes[0];
-      setCurrentStorySegment(firstEpisode);
-      setCurrentEpisode(1);
-      
-      const puzzleData = data.puzzles[firstEpisode.crosswordPuzzleId];
-      if (puzzleData) {
-        setCurrentPuzzle(puzzleData);
-      }
-      
-      setSolvedWords([]);
-      setTimeSpent(0);
-      
-      setGameState('story');
-    } else {
-      console.error('No episodes found in generated story');
-      setGameState('generate-story');
-    }
+  const handleStoryGenerated = async (data) => {
+  console.log('Story generated with', data.story.episodes?.length, 'episodes');
+  
+  const newStory = {
+    ...data.story,
+    episodes: Array.isArray(data.story.episodes) ? data.story.episodes : []
   };
+  
+  const newStories = {
+    ...gameStories,
+    [newStory.id]: newStory
+  };
+  
+  const newPuzzles = {
+    ...gamePuzzles,
+    ...data.puzzles
+  };
+  
+  // Update state with new stories and puzzles
+  setGameStories(newStories);
+  setGamePuzzles(newPuzzles);
+  
+  const config = {
+    storyMode: true,
+    adventureId: newStory.id
+  };
+  
+  setGameConfig(config);
+  
+  // CREATE A SESSION for analytics tracking
+  try {
+    const sessionData = {
+      user_email: 'guest@wildlitz.com',
+      story_id: newStory.id,
+      story_title: newStory.title,
+      theme: newStory.theme,
+      focus_skills: [],
+      episode_count: newStory.totalEpisodes || newStory.episodes?.length || 0,
+      character_names: ''
+    };
+    
+    const sessionResponse = await crosswordAnalyticsService.createSession(sessionData);
+    
+    if (sessionResponse.success && sessionResponse.session_id) {
+      setSessionId(sessionResponse.session_id);
+      console.log('✅ Session created:', sessionResponse.session_id);
+    }
+  } catch (error) {
+    console.log('⚠️ Could not create session (analytics disabled):', error.message);
+  }
+  
+  if (newStory.episodes && newStory.episodes.length > 0) {
+    const firstEpisode = newStory.episodes[0];
+    setCurrentStorySegment(firstEpisode);
+    setCurrentEpisode(1);
+    
+    const puzzleData = data.puzzles[firstEpisode.crosswordPuzzleId];
+    if (puzzleData) {
+      setCurrentPuzzle(puzzleData);
+    }
+    
+    setSolvedWords([]);
+    setTimeSpent(0);
+    
+    setGameState('story');
+  } else {
+    console.error('No episodes found in generated story');
+    setGameState('generate-story');
+  }
+};
   
   /**
    * Handle moving from story to puzzle
@@ -345,28 +370,29 @@ const CrosswordGame = () => {
           )}
           
           {gameState === 'gameplay' && currentPuzzle && (
-            <motion.div
-              key="gameplay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={styles.screenContainer}
-            >
-              <GameplayScreen 
-                puzzle={currentPuzzle}
-                theme="story"
-                onWordSolved={handleWordSolved}
-                solvedWords={solvedWords}
-                timeSpent={timeSpent}
-                timeFormatted={formatTime(timeSpent)}
-                storyContext={currentStorySegment}
-                currentPuzzleIndex={currentPuzzleIndex}
-                totalPuzzles={availablePuzzles.length}
-              />
-            </motion.div>
-          )}
+  <motion.div
+    key="gameplay"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className={styles.screenContainer}
+  >
+    <GameplayScreen 
+      puzzle={currentPuzzle}
+      theme="story"
+      onWordSolved={handleWordSolved}
+      solvedWords={solvedWords}
+      timeSpent={timeSpent}
+      timeFormatted={formatTime(timeSpent)}
+      storyContext={currentStorySegment}
+      currentPuzzleIndex={currentPuzzleIndex}
+      totalPuzzles={availablePuzzles.length}
+      sessionId={sessionId}  
+    />
+  </motion.div>
+)}
           
-          {gameState === 'summary' && (
+ {gameState === 'summary' && (
   <motion.div
     key="summary"
     initial={{ opacity: 0 }}
@@ -374,23 +400,26 @@ const CrosswordGame = () => {
     exit={{ opacity: 0 }}
     className={styles.screenContainer}
   >
-    <SummaryScreen 
-      solvedWords={solvedWords}
-      timeSpent={timeSpent}
-      timeFormatted={formatTime(timeSpent)}
-      theme="story"
-      onPlayAgain={handleNextEpisode}
-      onBuildSentences={handleGoToSentenceBuilder}
-      onReturnToMenu={handleReturnToMenu}
-      totalWords={currentPuzzle ? currentPuzzle.words.length : 0}
-      isStoryMode={true}
-      nextEpisodeAvailable={currentEpisode < (gameStories[gameConfig.adventureId]?.episodes?.length || 0)}
-      hasNextEpisode={currentEpisode < (gameStories[gameConfig.adventureId]?.episodes?.length || 0)}
-      currentEpisode={currentEpisode}
-      totalEpisodes={gameStories[gameConfig.adventureId]?.episodes?.length || 0}
-      storyTitle={gameStories[gameConfig.adventureId]?.title || 'Adventure'}
-      storySegment={currentStorySegment}
-    />
+
+
+    
+  <SummaryScreen 
+    solvedWords={solvedWords}
+    timeSpent={timeSpent}
+    timeFormatted={formatTime(timeSpent)}
+    theme="story"
+    onPlayAgain={handleNextEpisode}
+    onBuildSentences={() => setGameState('sentence-builder')}
+    onReturnToMenu={handleReturnToMenu}
+    totalWords={currentPuzzle ? currentPuzzle.words.length : 0}
+    isStoryMode={true}
+    currentEpisode={currentEpisode}                    // ← Check this
+    totalEpisodes={gameStories[gameConfig.adventureId]?.episodes?.length || 0}  // ← And this
+    hasNextEpisode={currentEpisode < (gameStories[gameConfig.adventureId]?.episodes?.length || 0)}
+    storyTitle={gameStories[gameConfig.adventureId]?.title || 'Adventure'}
+    storySegment={currentStorySegment}
+    sessionId={sessionId}
+  />
   </motion.div>
 )}
           

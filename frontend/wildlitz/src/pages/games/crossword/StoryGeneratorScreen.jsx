@@ -4,6 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../../styles/games/crossword/StoryGeneratorScreen.module.css';
 import { StoryLoadingScreen } from '../../../components/common/LoadingStates';
+// ADD THIS IMPORT at the top with other imports
+import CrosswordAnalyticsDashboard from '../../../pages/games/crossword/CrosswordAnalyticsDashboard';
+import { API_ENDPOINTS } from '../../../config/api';
+
 
 const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   const navigate = useNavigate();
@@ -63,99 +67,99 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   
   // Generate story with AI
   const generateStory = async (e) => {
-    if (e && e.preventDefault) {
-      e.preventDefault();
+  if (e && e.preventDefault) {
+    e.preventDefault();
+  }
+  
+  setIsGenerating(true);
+  setGenerationProgress(0);
+  setError(null);
+  setTimeoutWarning(false);
+  
+  // Set a timeout warning after 30 seconds
+  const warningId = setTimeout(() => {
+    setTimeoutWarning(true);
+  }, 30000);
+  
+  setTimeoutId(warningId);
+  
+  // Simulated progress updates
+  const progressInterval = setInterval(() => {
+    setGenerationProgress(prev => {
+      if (prev >= 90) {
+        clearInterval(progressInterval);
+        return 90;
+      }
+      return prev + (prev < 50 ? 4 : (prev < 80 ? 2 : 1));
+    });
+  }, 1000);
+  
+  try {
+    const controller = new AbortController();
+    const fetchTimeout = setTimeout(() => controller.abort(), 60000);
+    
+    const requestBody = {
+      theme,
+      focusSkills: focusSkills.slice(0, 3),
+      characterNames: characterNames || undefined,
+      episodeCount: Math.min(episodeCount, 5),
+      gradeLevel: 3,
+    };
+    
+    console.log("Sending request with data:", requestBody);
+    
+    // Updated API call using API_ENDPOINTS
+    const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/generate-story/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal
+    });
+    
+    clearTimeout(fetchTimeout);
+    
+    if (!response.ok) {
+      throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+    }
+  
+    const responseText = await response.text();
+    console.log("Response text:", responseText.substring(0, 200) + "...");
+    
+    const responseData = JSON.parse(responseText);
+    
+    clearInterval(progressInterval);
+    clearTimeout(warningId);
+    setTimeoutId(null);
+    
+    if (!responseData || !responseData.story || !responseData.puzzles) {
+      throw new Error("Response does not contain expected story data");
     }
     
-    setIsGenerating(true);
-    setGenerationProgress(0);
-    setError(null);
-    setTimeoutWarning(false);
+    setGenerationProgress(100);
     
-    // Set a timeout warning after 30 seconds
-    const warningId = setTimeout(() => {
-      setTimeoutWarning(true);
-    }, 30000);
-    
-    setTimeoutId(warningId);
-    
-    // Simulated progress updates
-    const progressInterval = setInterval(() => {
-      setGenerationProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return 90;
-        }
-        return prev + (prev < 50 ? 4 : (prev < 80 ? 2 : 1));
-      });
-    }, 1000);
-    
-    try {
-      const controller = new AbortController();
-      const fetchTimeout = setTimeout(() => controller.abort(), 60000);
-      
-      const requestBody = {
-        theme,
-        focusSkills: focusSkills.slice(0, 3),
-        characterNames: characterNames || undefined,
-        episodeCount: Math.min(episodeCount, 5),
-        gradeLevel: 3,
-      };
-      
-      console.log("Sending request with data:", requestBody);
-      
-      // Real API call
-      const response = await fetch('/api/sentence_formation/generate-story/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal
-      });
-      
-      clearTimeout(fetchTimeout);
-      
-      if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-      }
-    
-      const responseText = await response.text();
-      console.log("Response text:", responseText.substring(0, 200) + "...");
-      
-      const responseData = JSON.parse(responseText);
-      
-      clearInterval(progressInterval);
-      clearTimeout(warningId);
-      setTimeoutId(null);
-      
-      if (!responseData || !responseData.story || !responseData.puzzles) {
-        throw new Error("Response does not contain expected story data");
-      }
-      
-      setGenerationProgress(100);
-      
-      setTimeout(() => {
-        if (onStoryGenerated) {
-          onStoryGenerated(responseData);
-        }
-        setIsGenerating(false);
-      }, 500);
-      
-    } catch (err) {
-      clearInterval(progressInterval);
-      clearTimeout(warningId);
-      setTimeoutId(null);
-      
-      if (err.name === 'AbortError') {
-        setError('Request timed out. The server is taking too long to respond. Try with fewer episodes or a simpler theme.');
-      } else {
-        setError(err.message || 'An error occurred while generating the story');
+    setTimeout(() => {
+      if (onStoryGenerated) {
+        onStoryGenerated(responseData);
       }
       setIsGenerating(false);
-      console.error('Error generating story:', err);
+    }, 500);
+    
+  } catch (err) {
+    clearInterval(progressInterval);
+    clearTimeout(warningId);
+    setTimeoutId(null);
+    
+    if (err.name === 'AbortError') {
+      setError('Request timed out. The server is taking too long to respond. Try with fewer episodes or a simpler theme.');
+    } else {
+      setError(err.message || 'An error occurred while generating the story');
     }
-  };
+    setIsGenerating(false);
+    console.error('Error generating story:', err);
+  }
+};
   
   const handleRetry = () => {
     setError(null);
@@ -172,6 +176,10 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   return (
     <div className={styles.generatorContainer}>
       <div className={styles.generatorCard}>
+
+        <CrosswordAnalyticsDashboard />
+
+        
         <div className={styles.titleContainer}>
           <h1 className={styles.generatorTitle}>Story Adventure Creator</h1>
           <div className={styles.subtitleContainer}>

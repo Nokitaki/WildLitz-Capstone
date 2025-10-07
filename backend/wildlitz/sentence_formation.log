@@ -86,3 +86,165 @@ INFO 2025-10-04 15:19:08,962 views Raw GPT response received
 INFO 2025-10-04 15:19:08,963 views Successfully parsed GPT response as JSON
 INFO 2025-10-04 15:22:52,265 views Raw GPT response received
 INFO 2025-10-04 15:22:52,265 views Successfully parsed GPT response as JSON
+INFO 2025-10-07 14:07:30,769 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:07:30,934 views Analytics retrieved: 0 sessions
+ERROR 2025-10-07 14:07:39,904 views Error in generate_story: type object 'datetime.datetime' has no attribute 'datetime'
+ERROR 2025-10-07 14:07:39,905 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 104, in generate_story
+    story_id = f"{theme}_generated_{int(datetime.datetime.now().timestamp())}"
+                                        ^^^^^^^^^^^^^^^^^
+AttributeError: type object 'datetime.datetime' has no attribute 'datetime'
+
+INFO 2025-10-07 14:15:28,898 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:15:29,031 views Analytics retrieved: 0 sessions
+ERROR 2025-10-07 14:15:30,865 views Error in generate_story: type object 'datetime.datetime' has no attribute 'datetime'
+ERROR 2025-10-07 14:15:30,865 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 104, in generate_story
+    story_id = f"{theme}_generated_{int(datetime.datetime.now().timestamp())}"
+                                        ^^^^^^^^^^^^^^^^^
+AttributeError: type object 'datetime.datetime' has no attribute 'datetime'
+
+INFO 2025-10-07 14:21:20,947 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:21:21,103 views Analytics retrieved: 0 sessions
+ERROR 2025-10-07 14:21:25,465 views Error in generate_story: type object 'datetime.datetime' has no attribute 'datetime'
+ERROR 2025-10-07 14:21:25,466 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 104, in generate_story
+    story_id = f"{theme}_generated_{int(datetime.datetime.now().timestamp())}"
+                                        ^^^^^^^^^^^^^^^^^
+AttributeError: type object 'datetime.datetime' has no attribute 'datetime'
+
+ERROR 2025-10-07 14:33:39,584 views Error in generate_story: type object 'datetime.datetime' has no attribute 'datetime'
+ERROR 2025-10-07 14:33:39,585 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 104, in generate_story
+    story_id = f"{theme}_generated_{int(datetime.datetime.now().timestamp())}"
+                                        ^^^^^^^^^^^^^^^^^
+AttributeError: type object 'datetime.datetime' has no attribute 'datetime'
+
+INFO 2025-10-07 14:34:51,792 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:34:51,911 views Analytics retrieved: 0 sessions
+ERROR 2025-10-07 14:34:58,767 views Error in generate_story: type object 'datetime.datetime' has no attribute 'datetime'
+ERROR 2025-10-07 14:34:58,768 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 104, in generate_story
+    story_id = f"{theme}_generated_{int(datetime.datetime.now().timestamp())}"
+                                        ^^^^^^^^^^^^^^^^^
+AttributeError: type object 'datetime.datetime' has no attribute 'datetime'
+
+INFO 2025-10-07 14:37:32,326 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:37:32,455 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:37:52,332 views Raw GPT response received
+INFO 2025-10-07 14:37:52,332 views Successfully parsed GPT response as JSON
+INFO 2025-10-07 14:40:51,628 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:40:51,786 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:41:01,764 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:41:01,920 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:41:08,478 views Raw GPT response received
+WARNING 2025-10-07 14:41:08,479 views Failed to parse GPT response as JSON: Expecting value: line 1 column 1 (char 0)
+ERROR 2025-10-07 14:41:14,382 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "VENTURED"'}
+ERROR 2025-10-07 14:41:15,971 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "[{"word":"VENTURED","definition":"Went on a risky journey","example":"","timestamp":"2025-10-07T06:41:14.393Z"}]"'}
+ERROR 2025-10-07 14:41:15,971 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "[{"word":"VENTURED","definition":"Went on a risky journey","example":"","timestamp":"2025-10-07T06:41:14.393Z"}]"'}
+INFO 2025-10-07 14:41:24,460 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:41:24,599 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:41:42,220 views Raw GPT response received
+INFO 2025-10-07 14:41:42,220 views Successfully parsed GPT response as JSON
+INFO 2025-10-07 14:43:19,564 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:43:19,758 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:43:31,184 views Raw GPT response received
+INFO 2025-10-07 14:43:31,185 views Successfully parsed GPT response as JSON
+ERROR 2025-10-07 14:44:05,695 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "tree"'}
+ERROR 2025-10-07 14:44:34,184 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "house"'}
+ERROR 2025-10-07 14:44:40,932 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "find"'}
+ERROR 2025-10-07 14:44:43,334 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "help"'}
+ERROR 2025-10-07 14:44:46,154 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "run"'}
+ERROR 2025-10-07 14:44:49,057 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "small"'}
+ERROR 2025-10-07 14:44:51,702 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "big"'}
+ERROR 2025-10-07 14:44:53,533 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "blue"'}
+ERROR 2025-10-07 14:44:55,171 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "[{"word":"tree","definition":"A tall plant with branches and leaves","example":"","timestamp":"2025-10-07T06:44:05.697Z"},{"word":"house","definition":"A building where people live","example":"","timestamp":"2025-10-07T06:44:34.186Z"},{"word":"find","definition":"To discover something","example":"","timestamp":"2025-10-07T06:44:40.935Z"},{"word":"help","definition":"To make it easier for someone to do something","example":"","timestamp":"2025-10-07T06:44:43.336Z"},{"word":"run","definition":"To move quickly on foot","example":"","timestamp":"2025-10-07T06:44:46.157Z"},{"word":"small","definition":"The opposite of large","example":"","timestamp":"2025-10-07T06:44:49.060Z"},{"word":"big","definition":"Of considerable size","example":"","timestamp":"2025-10-07T06:44:51.704Z"},{"word":"blue","definition":"Having the color of the clear sky","example":"","timestamp":"2025-10-07T06:44:53.535Z"}]"'}
+ERROR 2025-10-07 14:44:55,172 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "[{"word":"tree","definition":"A tall plant with branches and leaves","example":"","timestamp":"2025-10-07T06:44:05.697Z"},{"word":"house","definition":"A building where people live","example":"","timestamp":"2025-10-07T06:44:34.186Z"},{"word":"find","definition":"To discover something","example":"","timestamp":"2025-10-07T06:44:40.935Z"},{"word":"help","definition":"To make it easier for someone to do something","example":"","timestamp":"2025-10-07T06:44:43.336Z"},{"word":"run","definition":"To move quickly on foot","example":"","timestamp":"2025-10-07T06:44:46.157Z"},{"word":"small","definition":"The opposite of large","example":"","timestamp":"2025-10-07T06:44:49.060Z"},{"word":"big","definition":"Of considerable size","example":"","timestamp":"2025-10-07T06:44:51.704Z"},{"word":"blue","definition":"Having the color of the clear sky","example":"","timestamp":"2025-10-07T06:44:53.535Z"}]"'}
+INFO 2025-10-07 14:45:40,368 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:45:40,532 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:49:15,969 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:49:16,106 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:49:28,892 views Raw GPT response received
+INFO 2025-10-07 14:49:28,892 views Successfully parsed GPT response as JSON
+ERROR 2025-10-07 14:50:12,320 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "LOST"'}
+ERROR 2025-10-07 14:50:30,080 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "RUN"'}
+ERROR 2025-10-07 14:50:42,715 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "BIG"'}
+ERROR 2025-10-07 14:50:45,081 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "SMALL"'}
+ERROR 2025-10-07 14:50:47,124 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "HELP"'}
+ERROR 2025-10-07 14:50:48,601 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "[{"word":"LOST","definition":"To be unable to find the way","example":"","timestamp":"2025-10-07T06:50:12.324Z"},{"word":"RUN","definition":"Move fast on foot","example":"The word \\"RUN\\" is in the story.","timestamp":"2025-10-07T06:50:30.082Z"},{"word":"BIG","definition":"Opposite of small","example":"","timestamp":"2025-10-07T06:50:42.717Z"},{"word":"SMALL","definition":"Not large in size","example":"","timestamp":"2025-10-07T06:50:45.083Z"},{"word":"HELP","definition":"Assist or aid someone","example":"","timestamp":"2025-10-07T06:50:47.126Z"}]"'}
+ERROR 2025-10-07 14:50:48,724 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type uuid: "[{"word":"LOST","definition":"To be unable to find the way","example":"","timestamp":"2025-10-07T06:50:12.324Z"},{"word":"RUN","definition":"Move fast on foot","example":"The word \\"RUN\\" is in the story.","timestamp":"2025-10-07T06:50:30.082Z"},{"word":"BIG","definition":"Opposite of small","example":"","timestamp":"2025-10-07T06:50:42.717Z"},{"word":"SMALL","definition":"Not large in size","example":"","timestamp":"2025-10-07T06:50:45.083Z"},{"word":"HELP","definition":"Assist or aid someone","example":"","timestamp":"2025-10-07T06:50:47.126Z"}]"'}
+INFO 2025-10-07 14:53:50,975 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:53:51,137 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:59:03,454 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:59:03,612 views Analytics retrieved: 0 sessions
+INFO 2025-10-07 14:59:14,949 views Raw GPT response received
+WARNING 2025-10-07 14:59:14,949 views Failed to parse GPT response as JSON: Expecting value: line 1 column 1 (char 0)
+INFO 2025-10-07 14:59:16,055 views Story session created: 01518b3a-6210-4c9d-9bb4-79fc8a4d79f2
+ERROR 2025-10-07 15:02:18,820 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+ERROR 2025-10-07 15:02:19,012 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+ERROR 2025-10-07 15:02:26,280 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+ERROR 2025-10-07 15:02:26,450 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+ERROR 2025-10-07 15:05:04,927 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+ERROR 2025-10-07 15:05:05,053 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+ERROR 2025-10-07 21:22:40,689 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+ERROR 2025-10-07 21:22:40,908 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+INFO 2025-10-07 21:23:17,668 views Raw GPT response received
+INFO 2025-10-07 21:23:17,668 views Successfully parsed GPT response as JSON
+INFO 2025-10-07 21:23:19,318 views Story session created: 6e7abb97-b0ab-4cb1-a42f-06974b1c9420
+INFO 2025-10-07 21:35:57,722 views Analytics retrieved: 2 sessions
+INFO 2025-10-07 21:35:57,903 views Analytics retrieved: 2 sessions
+INFO 2025-10-07 21:36:17,485 views Raw GPT response received
+INFO 2025-10-07 21:36:17,486 views Successfully parsed GPT response as JSON
+INFO 2025-10-07 21:36:18,350 views Story session created: 3794633b-7f21-45b8-aa9d-5c84273ba32f
+INFO 2025-10-07 21:36:41,523 views Activity logged: game_completed
+INFO 2025-10-07 21:36:41,526 views Activity logged: game_completed
+INFO 2025-10-07 21:37:27,076 views Analytics retrieved: 3 sessions
+INFO 2025-10-07 21:37:27,272 views Analytics retrieved: 3 sessions
+INFO 2025-10-07 21:37:47,797 views Raw GPT response received
+INFO 2025-10-07 21:37:47,798 views Successfully parsed GPT response as JSON
+INFO 2025-10-07 21:37:48,588 views Story session created: d7d9bbf7-11e2-4583-b6fb-d13842dff546
+INFO 2025-10-07 21:54:11,616 views Analytics retrieved: 4 sessions
+INFO 2025-10-07 21:54:11,824 views Analytics retrieved: 4 sessions
+INFO 2025-10-07 21:54:35,976 views Raw GPT response received
+INFO 2025-10-07 21:54:35,977 views Successfully parsed GPT response as JSON
+INFO 2025-10-07 21:54:37,100 views Story session created: 9c1f64e4-f5d2-4f06-9bd8-ca1f3d72054e
+INFO 2025-10-07 21:55:19,178 views Activity logged: word_solved
+ERROR 2025-10-07 21:55:37,213 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "20.388"'}
+INFO 2025-10-07 21:55:40,402 views Activity logged: word_solved
+ERROR 2025-10-07 21:55:48,459 views Error logging story activity: {'code': '22P02', 'details': None, 'hint': None, 'message': 'invalid input syntax for type integer: "31.56"'}
+INFO 2025-10-07 21:56:51,892 views Activity logged: word_solved
+INFO 2025-10-07 21:56:52,876 views Activity logged: game_completed
+INFO 2025-10-07 21:56:52,993 views Activity logged: game_completed
+INFO 2025-10-07 22:03:29,572 views Analytics retrieved: 5 sessions
+INFO 2025-10-07 22:03:29,745 views Analytics retrieved: 5 sessions
+INFO 2025-10-07 22:03:47,733 views Raw GPT response received
+INFO 2025-10-07 22:03:47,734 views Successfully parsed GPT response as JSON
+INFO 2025-10-07 22:03:48,689 views Story session created: 41eb3f50-2c04-43b7-8adb-5c358ec51c0c
+INFO 2025-10-07 22:04:39,996 views Activity logged: word_solved
+INFO 2025-10-07 22:04:50,684 views Activity logged: word_solved
+INFO 2025-10-07 22:04:56,730 views Activity logged: word_solved
+INFO 2025-10-07 22:04:59,152 views Activity logged: word_solved
+INFO 2025-10-07 22:05:01,921 views Activity logged: word_solved
+INFO 2025-10-07 22:05:03,576 views Activity logged: game_completed
+INFO 2025-10-07 22:05:03,577 views Activity logged: game_completed
+INFO 2025-10-07 22:05:53,574 views Activity logged: word_solved
+INFO 2025-10-07 22:05:56,472 views Activity logged: word_solved
+INFO 2025-10-07 22:05:59,155 views Activity logged: word_solved
+INFO 2025-10-07 22:06:01,659 views Activity logged: word_solved
+INFO 2025-10-07 22:06:04,045 views Activity logged: word_solved
+INFO 2025-10-07 22:06:05,448 views Activity logged: game_completed
+INFO 2025-10-07 22:06:05,449 views Activity logged: game_completed
+INFO 2025-10-07 22:06:10,409 views Analytics retrieved: 6 sessions
+INFO 2025-10-07 22:06:10,605 views Analytics retrieved: 6 sessions
+INFO 2025-10-07 22:09:19,632 views Analytics retrieved: 6 sessions
+INFO 2025-10-07 22:09:19,768 views Analytics retrieved: 6 sessions
+INFO 2025-10-07 22:09:38,296 views Raw GPT response received
+INFO 2025-10-07 22:09:38,296 views Successfully parsed GPT response as JSON
+INFO 2025-10-07 22:09:39,023 views Story session created: d064d5f2-9313-4003-819b-e29898240e6f
+INFO 2025-10-07 22:10:16,284 views Activity logged: word_solved
+INFO 2025-10-07 22:10:18,731 views Activity logged: word_solved
+INFO 2025-10-07 22:10:42,544 views Activity logged: word_solved
+INFO 2025-10-07 22:10:45,316 views Activity logged: word_solved
+INFO 2025-10-07 22:10:48,374 views Activity logged: word_solved
+INFO 2025-10-07 22:10:49,774 views Activity logged: game_completed
+INFO 2025-10-07 22:10:49,776 views Activity logged: game_completed

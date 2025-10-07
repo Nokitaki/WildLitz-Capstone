@@ -14,6 +14,8 @@ import random
 import datetime
 import logging
 import traceback
+from supabase import create_client
+from datetime import datetime, timedelta
 
 # Import progress tracking
 from api.models import UserProgress, UserActivity
@@ -23,6 +25,9 @@ logger = logging.getLogger(__name__)
 
 # Configure OpenAI API key from settings
 openai.api_key = settings.OPENAI_API_KEY
+
+
+supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
 def log_sentence_formation_activity(user, activity_type, question_data, user_answer, correct_answer, is_correct, time_spent, difficulty='medium', challenge_level='', learning_focus=''):
     """Helper function to log sentence formation activities"""
@@ -96,8 +101,8 @@ def generate_story(request):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
         # Create a unique ID for this story
-        story_id = f"{theme}_generated_{int(datetime.datetime.now().timestamp())}"
-        
+       
+        story_id = f"{theme}_generated_{int(datetime.now().timestamp())}"
         # Create a more detailed prompt that ensures vocabulary words are used in the story text
         prompt = f"""
         Create a {episode_count}-episode educational story for grade {grade_level} students with a {theme} theme.
@@ -221,8 +226,8 @@ def generate_story(request):
 
 def create_fallback_story(theme, episode_count, grade_level, focus_skills):
     """Create a fallback story if AI generation fails"""
-    story_id = f"{theme}_fallback_{int(datetime.datetime.now().timestamp())}"
     
+    story_id = f"{theme}_fallback_{int(datetime.now().timestamp())}"
     # Grade 3 appropriate vocabulary
     grade3_vocab = [
         {"word": "RUN", "clue": "Move fast with your legs", "definition": "To move quickly on foot"},
@@ -649,3 +654,421 @@ def log_crossword_activity(request):
     except Exception as e:
         logger.error(f"Error logging crossword activity: {str(e)}")
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@csrf_exempt
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_crossword_analytics(request):
+    """
+    Get basic analytics for crossword game sessions
+    Teachers can see: total games played, words solved, accuracy, time spent
+    """
+    try:
+        # Get all crossword-related activities
+        crossword_activities = UserActivity.objects.filter(
+            module='sentence_formation',
+            activity_type__in=['crossword_word_solved', 'crossword_game_completed']
+        )
+        
+        # Basic stats
+        total_games = crossword_activities.filter(activity_type='crossword_game_completed').count()
+        total_words_attempted = crossword_activities.filter(activity_type='crossword_word_solved').count()
+        correct_words = crossword_activities.filter(
+            activity_type='crossword_word_solved',
+            is_correct=True
+        ).count()
+        
+        # Calculate accuracy
+        accuracy = (correct_words / total_words_attempted * 100) if total_words_attempted > 0 else 0
+        
+        # Calculate average time per game
+        completed_games = crossword_activities.filter(activity_type='crossword_game_completed')
+        total_time = sum([game.time_spent for game in completed_games], 0)
+        avg_time_per_game = (total_time / total_games) if total_games > 0 else 0
+        
+        # Get recent activities (last 10)
+        recent_activities = crossword_activities.order_by('-timestamp')[:10].values(
+            'activity_type',
+            'is_correct',
+            'time_spent',
+            'timestamp',
+            'question_data'
+        )
+        
+        # Most solved words
+        word_stats = {}
+        for activity in crossword_activities.filter(activity_type='crossword_word_solved'):
+            word = activity.question_data.get('word', 'Unknown')
+            if word not in word_stats:
+                word_stats[word] = {'attempts': 0, 'correct': 0}
+            word_stats[word]['attempts'] += 1
+            if activity.is_correct:
+                word_stats[word]['correct'] += 1
+        
+        # Convert to list and sort by attempts
+        popular_words = [
+            {
+                'word': word,
+                'attempts': stats['attempts'],
+                'correct': stats['correct'],
+                'accuracy': (stats['correct'] / stats['attempts'] * 100) if stats['attempts'] > 0 else 0
+            }
+            for word, stats in word_stats.items()
+        ]
+        popular_words.sort(key=lambda x: x['attempts'], reverse=True)
+        top_words = popular_words[:10]
+        
+        return JsonResponse({
+            'success': True,
+            'analytics': {
+                'total_games_played': total_games,
+                'total_words_attempted': total_words_attempted,
+                'total_correct_words': correct_words,
+                'overall_accuracy': round(accuracy, 1),
+                'average_time_per_game': round(avg_time_per_game, 1),
+                'recent_activities': list(recent_activities),
+                'top_words': top_words
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching crossword analytics: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def log_crossword_activity(request):
+    """
+    Log crossword game activity
+    Call this when: 1) A word is solved, 2) A game is completed
+    """
+    try:
+        data = request.data
+        
+        # Create activity record
+        activity = UserActivity.objects.create(
+            user=request.user if request.user.is_authenticated else User.objects.get(id=1),  # Use guest user if not authenticated
+            module='sentence_formation',
+            activity_type=data.get('activity_type'),  # 'crossword_word_solved' or 'crossword_game_completed'
+            question_data=data.get('question_data', {}),
+            user_answer=data.get('user_answer', {}),
+            correct_answer=data.get('correct_answer', {}),
+            is_correct=data.get('is_correct', False),
+            time_spent=data.get('time_spent', 0),
+            difficulty=data.get('difficulty', 'medium'),
+            challenge_level=data.get('challenge_level', ''),
+            learning_focus=data.get('learning_focus', '')
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'activity_id': activity.id,
+            'message': 'Activity logged successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error logging crossword activity: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+    
+    # ==================== ADD THESE TO THE END OF YOUR views.py FILE ====================
+
+# STORY GENERATOR ANALYTICS VIEWS
+# Add these 6 functions at the very end of your sentence_formation/views.py
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_story_session(request):
+    """Create a new story game session"""
+    try:
+        data = request.data
+        user_email = data.get('user_email', 'guest@wildlitz.com')
+        user_id = data.get('user_id')
+        
+        session_data = {
+            'user_id': user_id,
+            'user_email': user_email,
+            'story_id': data.get('story_id'),
+            'story_title': data.get('story_title'),
+            'theme': data.get('theme'),
+            'focus_skills': data.get('focus_skills', []),
+            'episode_count': data.get('episode_count', 0),
+            'character_names': data.get('character_names', ''),
+            'current_episode': 1,
+            'metadata': data.get('metadata', {})
+        }
+        
+        response = supabase.table('story_game_sessions').insert(session_data).execute()
+        
+        if response.data:
+            logger.info(f"Story session created: {response.data[0]['id']}")
+            return Response({
+                'success': True,
+                'session_id': response.data[0]['id'],
+                'session': response.data[0]
+            }, status=status.HTTP_201_CREATED)
+        else:
+            logger.error("Failed to create session - no data returned")
+            return Response({
+                'error': 'Failed to create session'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    except Exception as e:
+        logger.error(f"Error creating story session: {str(e)}")
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['PUT'])
+@permission_classes([AllowAny])
+def update_story_session(request, session_id):
+    """Update an existing story game session"""
+    try:
+        data = request.data
+        update_data = {}
+        
+        # Update fields if provided
+        if 'episodes_completed' in data:
+            update_data['episodes_completed'] = data['episodes_completed']
+        if 'current_episode' in data:
+            update_data['current_episode'] = data['current_episode']
+        if 'total_words_solved' in data:
+            update_data['total_words_solved'] = data['total_words_solved']
+        if 'total_puzzles_completed' in data:
+            update_data['total_puzzles_completed'] = data['total_puzzles_completed']
+        if 'total_hints_used' in data:
+            update_data['total_hints_used'] = data['total_hints_used']
+        if 'average_time_per_word' in data:
+            update_data['average_time_per_word'] = data['average_time_per_word']
+        if 'story_reading_time_seconds' in data:
+            update_data['story_reading_time_seconds'] = data['story_reading_time_seconds']
+        if 'vocabulary_words_learned' in data:
+            update_data['vocabulary_words_learned'] = data['vocabulary_words_learned']
+        if 'reading_coach_interactions' in data:
+            update_data['reading_coach_interactions'] = data['reading_coach_interactions']
+        if 'is_completed' in data:
+            update_data['is_completed'] = data['is_completed']
+            if data['is_completed']:
+                update_data['session_end'] = datetime.now().isoformat()
+        if 'completion_percentage' in data:
+            update_data['completion_percentage'] = data['completion_percentage']
+        if 'total_duration_seconds' in data:
+            update_data['total_duration_seconds'] = data['total_duration_seconds']
+        if 'metadata' in data:
+            update_data['metadata'] = data['metadata']
+        
+        response = supabase.table('story_game_sessions').update(update_data).eq('id', session_id).execute()
+        
+        if response.data:
+            logger.info(f"Story session updated: {session_id}")
+            return Response({
+                'success': True,
+                'session': response.data[0]
+            })
+        else:
+            logger.warning(f"Session not found: {session_id}")
+            return Response({
+                'error': 'Session not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+            
+    except Exception as e:
+        logger.error(f"Error updating story session: {str(e)}")
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def log_story_activity(request):
+    """Log a story game activity"""
+    try:
+        data = request.data
+        user_email = data.get('user_email', 'guest@wildlitz.com')
+        time_spent = data.get('time_spent_seconds', 0)
+        time_spent_int = int(round(time_spent)) if time_spent else 0
+
+
+        activity_data = {
+            'session_id': data.get('session_id'),
+            'user_id': data.get('user_id'),
+            'user_email': user_email,
+            'activity_type': data.get('activity_type'),
+            'episode_number': data.get('episode_number'),
+            'puzzle_id': data.get('puzzle_id'),
+            'word_data': data.get('word_data', {}),
+            'user_answer': data.get('user_answer'),
+            'is_correct': data.get('is_correct', False),
+            'time_spent_seconds': time_spent_int,  
+            'hint_count': data.get('hint_count', 0)
+        }
+        
+        response = supabase.table('story_game_activities').insert(activity_data).execute()
+        
+        if response.data:
+            logger.info(f"Activity logged: {data.get('activity_type')}")
+            return Response({
+                'success': True,
+                'activity_id': response.data[0]['id']
+            }, status=status.HTTP_201_CREATED)
+        else:
+            logger.error("Failed to log activity")
+            return Response({
+                'error': 'Failed to log activity'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    except Exception as e:
+        logger.error(f"Error logging story activity: {str(e)}")
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_story_analytics(request):
+    """Get story game analytics for a user or all users"""
+    try:
+        user_email = request.GET.get('user_email')
+        user_id = request.GET.get('user_id')
+        limit = int(request.GET.get('limit', 50))
+        days = int(request.GET.get('days', 30))
+        
+        # Calculate date filter
+        date_filter = (datetime.now() - timedelta(days=days)).isoformat()
+        
+        # Build query
+        query = supabase.table('story_game_sessions').select('*')
+        
+        if user_email:
+            query = query.eq('user_email', user_email)
+        elif user_id:
+            query = query.eq('user_id', user_id)
+        
+        query = query.gte('created_at', date_filter).order('created_at', desc=True).limit(limit)
+        
+        response = query.execute()
+        sessions = response.data if response.data else []
+        
+        # Calculate aggregate statistics - FIX: Handle None values explicitly
+        total_sessions = len(sessions)
+        completed_sessions = len([s for s in sessions if s.get('is_completed', False)])
+        total_episodes_completed = sum((s.get('episodes_completed') or 0) for s in sessions)
+        total_words_solved = sum((s.get('total_words_solved') or 0) for s in sessions)
+        total_time_spent = sum((s.get('total_duration_seconds') or 0) for s in sessions)
+        
+        # Theme distribution
+        theme_counts = {}
+        for session in sessions:
+            theme = session.get('theme', 'unknown')
+            theme_counts[theme] = theme_counts.get(theme, 0) + 1
+        
+        # Skills distribution
+        skill_counts = {}
+        for session in sessions:
+            skills = session.get('focus_skills', [])
+            if skills:  # Only process if skills exist
+                for skill in skills:
+                    skill_counts[skill] = skill_counts.get(skill, 0) + 1
+        
+        # Average metrics
+        avg_completion_rate = (completed_sessions / total_sessions * 100) if total_sessions > 0 else 0
+        avg_episodes_per_session = total_episodes_completed / total_sessions if total_sessions > 0 else 0
+        avg_words_per_session = total_words_solved / total_sessions if total_sessions > 0 else 0
+        avg_session_duration = total_time_spent / total_sessions if total_sessions > 0 else 0
+        
+        logger.info(f"Analytics retrieved: {total_sessions} sessions")
+        
+        return Response({
+            'success': True,
+            'analytics': {
+                'summary': {
+                    'total_sessions': total_sessions,
+                    'completed_sessions': completed_sessions,
+                    'total_episodes_completed': total_episodes_completed,
+                    'total_words_solved': total_words_solved,
+                    'total_time_spent_seconds': total_time_spent,
+                    'avg_completion_rate': round(avg_completion_rate, 2),
+                    'avg_episodes_per_session': round(avg_episodes_per_session, 2),
+                    'avg_words_per_session': round(avg_words_per_session, 2),
+                    'avg_session_duration_seconds': round(avg_session_duration, 2)
+                },
+                'theme_distribution': theme_counts,
+                'skill_distribution': skill_counts,
+                'recent_sessions': sessions[:10]  # Return last 10 sessions
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching story analytics: {str(e)}")
+        logger.error(traceback.format_exc())
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_session_details(request, session_id):
+    """Get detailed information about a specific session"""
+    try:
+        # Get session data
+        session_response = supabase.table('story_game_sessions').select('*').eq('id', session_id).execute()
+        
+        if not session_response.data:
+            logger.warning(f"Session not found: {session_id}")
+            return Response({
+                'error': 'Session not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        session = session_response.data[0]
+        
+        # Get all activities for this session
+        activities_response = supabase.table('story_game_activities').select('*').eq('session_id', session_id).order('created_at').execute()
+        
+        activities = activities_response.data if activities_response.data else []
+        
+        logger.info(f"Session details retrieved: {session_id}")
+        
+        return Response({
+            'success': True,
+            'session': session,
+            'activities': activities,
+            'total_activities': len(activities)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching session details: {str(e)}")
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['DELETE'])
+@permission_classes([AllowAny])
+def delete_story_session(request, session_id):
+    """Delete a story game session"""
+    try:
+        response = supabase.table('story_game_sessions').delete().eq('id', session_id).execute()
+        
+        logger.info(f"Session deleted: {session_id}")
+        
+        return Response({
+            'success': True,
+            'message': 'Session deleted successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error deleting story session: {str(e)}")
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

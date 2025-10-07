@@ -1,14 +1,12 @@
 // src/services/crosswordService.js
 import axios from 'axios';
-
-// Base URL for the API
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+import { API_ENDPOINTS } from '../config/api';
 
 // Crossword service functions
 const crosswordService = {
   // Generate clues for crossword words
   generateClues: async (words, theme, gradeLevel = 3, storyContext = '') => {
-    const response = await axios.post(`${API_BASE_URL}/sentence_formation/generate-clues/`, {
+    const response = await axios.post(`${API_ENDPOINTS.SENTENCE_FORMATION}/generate-clues/`, {
       words,
       theme,
       grade_level: gradeLevel,
@@ -20,7 +18,7 @@ const crosswordService = {
   
   // Generate answer choices for a word
   generateAnswerChoices: async (correctAnswer, theme, gradeLevel = 3, numChoices = 3) => {
-    const response = await axios.post(`${API_BASE_URL}/sentence_formation/generate-choices/`, {
+    const response = await axios.post(`${API_ENDPOINTS.SENTENCE_FORMATION}/generate-choices/`, {
       correct_answer: correctAnswer,
       theme,
       grade_level: gradeLevel,
@@ -32,7 +30,7 @@ const crosswordService = {
   
   // Generate both clues and choices in one call
   generateCrosswordContent: async (words, theme, gradeLevel = 3, storyContext = '') => {
-    const response = await axios.post(`${API_BASE_URL}/sentence_formation/generate-crossword-content/`, {
+    const response = await axios.post(`${API_ENDPOINTS.SENTENCE_FORMATION}/generate-crossword-content/`, {
       words,
       theme,
       grade_level: gradeLevel,

@@ -1,12 +1,10 @@
 // src/services/apiClient.js
 import axios from 'axios';
-
-// Base URL for the API
-const API_BASE_URL = 'http://127.0.0.1:8000/api/syllabification';
+import { API_ENDPOINTS } from '../config/api';
 
 // Create an axios instance with the base URL
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_ENDPOINTS.SYLLABIFICATION,
   headers: {
     'Content-Type': 'application/json',
   },

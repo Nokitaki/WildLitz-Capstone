@@ -836,3 +836,33 @@
     width: 100%;
   }
 }
+
+/* Add these styles to the end of your SummaryScreen.module.css file */
+
+/* Episode Progress Indicator */
+.episodeProgress {
+  text-align: center;
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #E1BEE7, #F3E5F5);
+  border-radius: 15px;
+  box-shadow: 0 3px 10px rgba(156, 39, 176, 0.15);
+}
+
+.episodeProgress p {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #7B1FA2;
+  margin: 5px 0;
+}
+
+.nextEpisodeText {
+  font-size: 1.1rem;
+  color: #9C27B0 !important;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}

@@ -3,14 +3,20 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/crossword/GameplayScreen.module.css';
 
+// ADD THIS IMPORT at the top with other imports
+import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
+
 const GameplayScreen = ({ 
   puzzle, 
-  theme = 'story', 
+  theme, 
   onWordSolved, 
   solvedWords = [], 
-  timeSpent = 0,
-  timeFormatted = '0:00', 
-  storyContext = {} 
+  timeSpent, 
+  timeFormatted,
+  storyContext,
+  currentPuzzleIndex = 0,
+  totalPuzzles = 1,
+  sessionId
 }) => {
   const [selectedClue, setSelectedClue] = useState(null);
   const [hintsRemaining, setHintsRemaining] = useState(3);
@@ -24,8 +30,12 @@ const GameplayScreen = ({
   const [solvedClues, setSolvedClues] = useState({});
 
   const gridInitializedRef = useRef(false);
+  const startTime = useRef(Date.now());
 
-  if (!puzzle || !puzzle.words || !Array.isArray(puzzle.words)) {
+  const INITIAL_HINTS = 3;
+  const hintsUsed = INITIAL_HINTS - hintsRemaining;
+
+   if (!puzzle || !puzzle.words || !Array.isArray(puzzle.words)) {
     return (
       <div className={styles.crosswordContainer}>
         <div className={styles.crosswordCard}>
@@ -136,13 +146,16 @@ const GameplayScreen = ({
     setFeedback(null);
   };
 
-  const handleSubmitAnswer = () => {
+    const handleSubmitAnswer = async () => {
     if (!selectedAnswer || !selectedClue) return;
 
     const correctAnswer = selectedClue.answer;
-
+    
     if (selectedAnswer.toUpperCase() === correctAnswer.toUpperCase()) {
-      setFeedback({ type: 'success', message: 'Correct!' });
+      setFeedback({ 
+        type: 'success', 
+        message: `Correct! "${correctAnswer}" is the right answer!` 
+      });
 
       const key = selectedClue.answer;
       setSolvedClues(prev => ({ ...prev, [key]: true }));
@@ -163,6 +176,28 @@ const GameplayScreen = ({
         });
         return newCells;
       });
+
+      // Log the word solved to analytics - FIX: Use calculated hintsUsed
+      if (sessionId) {
+        try {
+          const timeForWord = (Date.now() - startTime.current) / 1000;
+          await crosswordAnalyticsService.logWordSolved(
+            sessionId,
+            {
+              word: correctAnswer,
+              definition: selectedClue.definition || '',
+              clue: selectedClue.clue || '',
+              episodeNumber: storyContext?.episodeNumber || 1,
+              puzzleId: puzzle?.id || 'unknown'
+            },
+            timeForWord,
+            hintsUsed  // FIX: Now this is properly defined
+          );
+          console.log('✅ Word solved logged:', correctAnswer);
+        } catch (error) {
+          console.log('⚠️ Analytics failed (continuing game):', error.message);
+        }
+      }
 
       if (onWordSolved) {
         onWordSolved(
@@ -187,15 +222,24 @@ const GameplayScreen = ({
     }
   };
 
-  const handleMarkSolved = () => {
-    if (!selectedClue) return;
 
-    const correctAnswer = selectedClue.answer;
-    const key = correctAnswer;
+  const handleMarkSolved = async () => {
+  if (selectedClue) {
+    const word = selectedClue.answer;
+    const definition = selectedClue.definition || '';
+    const example = selectedClue.example || '';
     
-    setSolvedClues(prev => ({ ...prev, [key]: true }));
-
-    const wordIdx = puzzle.words.findIndex(w => w.answer === correctAnswer);
+    // Call parent handler
+    onWordSolved(word, definition, example);
+    
+    // Mark as solved in state
+    setSolvedClues(prev => ({
+      ...prev,
+      [word]: true
+    }));
+    
+    // ✅ FIX: Reveal the word in the grid
+    const wordIdx = puzzle.words.findIndex(w => w.answer === word);
     
     setGridCells(prevCells => {
       const newCells = [...prevCells];
@@ -203,25 +247,47 @@ const GameplayScreen = ({
         if (cell.wordIndex === wordIdx) {
           newCells[idx] = {
             ...cell,
-            value: cell.letter,
-            revealed: true
+            value: cell.letter,  // Show the letter
+            revealed: true       // Mark as revealed
           };
         }
       });
       return newCells;
     });
-
-    if (onWordSolved) {
-      onWordSolved(correctAnswer, selectedClue.clue || '', '');
-    }
-
-    setFeedback({ type: 'success', message: 'Word marked as solved!' });
     
+    // Log to analytics if we have a session
+    if (sessionId) {
+      try {
+        await crosswordAnalyticsService.logWordSolved(
+          sessionId,
+          {
+            word,
+            definition,
+            example,
+            episodeNumber: storyContext?.episodeNumber || 1,
+            puzzleId: puzzle?.id || 'unknown'
+          },
+          timeSpent,
+          hintsUsed
+        );
+        console.log('✅ Word marked as solved logged:', word);
+      } catch (error) {
+        console.log('⚠️ Analytics failed (continuing game):', error.message);
+      }
+    }
+    
+    // Clear selection and move to next word
     setTimeout(() => {
       const nextClue = findNextUnsolved();
-      if (nextClue) setSelectedClue(nextClue);
-    }, 800);
-  };
+      if (nextClue) {
+        setSelectedClue(nextClue);
+        setSelectedAnswer(null);
+        setFeedback(null);
+        setAnswerChoices([]);
+      }
+    }, 1000);
+  }
+};
 
   const findNextUnsolved = () => {
     for (const word of puzzle.words) {

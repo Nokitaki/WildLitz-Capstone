@@ -1,12 +1,10 @@
 // src/services/authService.js
 import axios from 'axios';
-
-// Configure base URL for your Django backend
-const API_BASE_URL = 'http://localhost:8000/api';
+import { API_BASE_URL } from '../config/api';
 
 // Create axios instance for auth requests
 const authAPI = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: `${API_BASE_URL}/api`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -38,7 +36,7 @@ authAPI.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('refresh_token');
         if (refreshToken) {
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
+          const response = await axios.post(`${API_BASE_URL}/api/auth/refresh/`, {
             refresh: refreshToken,
           });
 
@@ -53,7 +51,7 @@ authAPI.interceptors.response.use(
         // Refresh failed, redirect to login
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        window.location.href = '/'; // Redirect to landing page
+        window.location.href = '/';
         return Promise.reject(refreshError);
       }
     }
@@ -66,7 +64,7 @@ export const authService = {
   // Authentication endpoints
   async login(email, password) {
     const response = await authAPI.post('/auth/login/', {
-      username: email, // Django expects 'username' field
+      username: email,
       password,
     });
     return response.data;
@@ -83,7 +81,7 @@ export const authService = {
   },
 
   async refreshToken(refreshToken) {
-    const response = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
+    const response = await axios.post(`${API_BASE_URL}/api/auth/refresh/`, {
       refresh: refreshToken,
     });
     return response.data;
@@ -120,25 +118,23 @@ export const authService = {
     delete authAPI.defaults.headers.common['Authorization'];
   },
 
-  // Check if user is authenticated
   isAuthenticated() {
     return !!localStorage.getItem('access_token');
   },
 
-  // Get stored token
   getToken() {
     return localStorage.getItem('access_token');
   },
 };
 
-// Export configured axios instance for use in game components
+// Export configured axios instance
 export const apiClient = authAPI;
 
-// Export a function to create authenticated requests for existing game code
+// Export function to create authenticated requests
 export const createAuthenticatedRequest = () => {
   const token = localStorage.getItem('access_token');
   return axios.create({
-    baseURL: API_BASE_URL.replace('/api', ''), // Remove /api for full backend URL
+    baseURL: API_BASE_URL,
     headers: {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),

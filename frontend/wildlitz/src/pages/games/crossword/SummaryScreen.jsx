@@ -1,31 +1,63 @@
 // src/pages/games/crossword/SummaryScreen.jsx
-import React from 'react';
+import React, { useEffect } from 'react'; // Update the React import to include useEffect
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/crossword/SummaryScreen.module.css';
+import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
 
 /**
  * SummaryScreen component shows the words learned after completing the crossword puzzle
  */
-const SummaryScreen = ({ 
-  solvedWords, 
-  timeSpent, 
+
+
+const SummaryScreen = ({
+  solvedWords,
+  timeSpent,
   timeFormatted,
-  theme, 
+  theme,
   onPlayAgain,
   onBuildSentences,
   onReturnToMenu,
   totalWords,
-  isStoryMode = false,
-  nextEpisodeAvailable = false,
-  currentEpisode = 1,
-  totalEpisodes = 0,
-  hasNextEpisode = false,
-  storyTitle = '',
-  storySegment = null
+  isStoryMode,
+  nextEpisodeAvailable,
+  hasNextEpisode,
+  currentEpisode,
+  totalEpisodes,
+  storyTitle,
+  storySegment,
+  sessionId  // ADD THIS
 }) => {
 
+   useEffect(() => {
+    const logGameCompletion = async () => {
+  if (!sessionId) {
+    console.log('⚠️ No session ID, skipping game completion log');
+    return;
+  }
+
+  try {
+    const gameData = {
+      totalTime: timeSpent,
+      totalHints: 0,
+      wordsLearned: solvedWords.length,
+      accuracy: totalWords > 0 ? Math.round((solvedWords.length / totalWords) * 100) : 0
+    };
+
+    await crosswordAnalyticsService.logGameCompleted(sessionId, gameData);
+    console.log('✅ Game completion logged successfully');
+  } catch (error) {
+    console.log('⚠️ Analytics failed (game continues):', error.message);
+  }
+};
+
+    // Only log if we have solved words
+    if (solvedWords && solvedWords.length > 0) {
+      logGameCompletion();
+    }
+  }, []);
+
   // Get theme name with proper capitalization
-  const themeName = theme === "story" ? "Story Adventure" : theme.charAt(0).toUpperCase() + theme.slice(1);
+   const themeName = theme === "story" ? "Story Adventure" : theme.charAt(0).toUpperCase() + theme.slice(1);
   
   const Confetti = () => {
     return (
@@ -184,38 +216,57 @@ const SummaryScreen = ({
         
         {/* Action buttons */}
         <div className={styles.actionButtons}>
-          <motion.button
-            className={styles.playAgainButton}
-            onClick={onPlayAgain}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {isStoryMode 
-              ? shouldShowNextEpisode 
-                ? "▶️ Continue to Next Episode" 
-                : "🏁 Finish Adventure"
-              : "🔄 Play Again"
-            }
-          </motion.button>
-          
-          <motion.button
-            className={styles.sentenceBuilderButton}
-            onClick={onBuildSentences}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            📝 Build Sentences
-          </motion.button>
-          
-          <motion.button
-            className={styles.mainMenuButton}
-            onClick={onReturnToMenu}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            🏠 Main Menu
-          </motion.button>
-        </div>
+  {/* Show "Next Episode" button if there are more episodes */}
+  {hasNextEpisode && currentEpisode < totalEpisodes ? (
+    <motion.button
+      className={styles.playAgainButton}
+      onClick={onPlayAgain}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      Continue to Episode {currentEpisode + 1}
+    </motion.button>
+  ) : (
+    <motion.button
+      className={styles.playAgainButton}
+      onClick={onReturnToMenu}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      Create New Story
+    </motion.button>
+  )}
+  
+  <motion.button
+    className={styles.sentenceBuilderButton}
+    onClick={onBuildSentences}
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+  >
+    Build Sentences
+  </motion.button>
+  
+  <motion.button
+    className={styles.mainMenuButton}
+    onClick={onReturnToMenu}
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+  >
+    Main Menu
+  </motion.button>
+</div>
+
+{/* Episode progress indicator (optional but helpful) */}
+{isStoryMode && totalEpisodes > 1 && (
+  <div className={styles.episodeProgress}>
+    <p>Episode {currentEpisode} of {totalEpisodes} completed!</p>
+    {hasNextEpisode && (
+      <p className={styles.nextEpisodeText}>
+        🎉 More adventure awaits in the next episode!
+      </p>
+    )}
+  </div>
+)}
         
         {/* Teacher controls */}
         <div className={styles.teacherControls}>

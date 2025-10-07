@@ -1,5 +1,5 @@
 // src/services/wordService.js
-const API_URL = 'http://127.0.0.1:8000/api';
+import { API_ENDPOINTS } from '../config/api';
 
 /**
  * Fetches a syllable word from the backend based on difficulty and categories
@@ -15,7 +15,7 @@ export const fetchSyllableWord = async (difficulty = 'medium', categories = []) 
     categories.forEach(cat => params.append('categories[]', cat));
     
     // Make the request
-    const response = await fetch(`${API_URL}/syllabification/get-word-supabase/?${params}`);
+    const response = await fetch(`${API_ENDPOINTS.SYLLABIFICATION}/get-word-supabase/?${params}`);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch word: ${response.status}`);
@@ -36,7 +36,7 @@ export const fetchSyllableWord = async (difficulty = 'medium', categories = []) 
  */
 export const checkSyllableAnswer = async (wordData, clapCount) => {
   try {
-    const response = await fetch(`${API_URL}/syllabification/check-clapping/`, {
+    const response = await fetch(`${API_ENDPOINTS.SYLLABIFICATION}/check-clapping/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -62,43 +62,7 @@ export const checkSyllableAnswer = async (wordData, clapCount) => {
       user_count: clapCount,
       feedback: clapCount === wordData.count 
         ? `Great job! "${wordData.word}" has ${wordData.count} syllables.`
-        : `Nice try! "${wordData.word}" actually has ${wordData.count} syllables: ${wordData.syllables}.`
+        : `Nice try! "${wordData.word}" has ${wordData.count} syllables, not ${clapCount}.`
     };
   }
-};
-
-/**
- * Fetches word pronunciation data
- * @param {string} word - The word to pronounce
- * @param {string} syllableBreakdown - Syllable breakdown of the word
- * @returns {Promise} - Promise resolving to pronunciation data
- */
-export const getWordPronunciation = async (word, syllableBreakdown) => {
-  try {
-    const response = await fetch(`${API_URL}/syllabification/pronounce-word/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        word: word,
-        syllable_breakdown: syllableBreakdown
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to get pronunciation');
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching pronunciation:', error);
-    throw error;
-  }
-};
-
-export default {
-  fetchSyllableWord,
-  checkSyllableAnswer,
-  getWordPronunciation
 };
