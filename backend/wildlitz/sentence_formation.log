@@ -248,3 +248,21 @@ INFO 2025-10-07 22:10:45,316 views Activity logged: word_solved
 INFO 2025-10-07 22:10:48,374 views Activity logged: word_solved
 INFO 2025-10-07 22:10:49,774 views Activity logged: game_completed
 INFO 2025-10-07 22:10:49,776 views Activity logged: game_completed
+INFO 2025-10-07 22:14:53,659 views Analytics retrieved: 7 sessions
+INFO 2025-10-07 22:14:53,806 views Analytics retrieved: 7 sessions
+INFO 2025-10-07 22:15:21,681 views Analytics retrieved: 7 sessions
+INFO 2025-10-07 22:15:21,819 views Analytics retrieved: 7 sessions
+ERROR 2025-10-07 22:15:35,467 views OpenAI API error: Error code: 400 - {'error': {'message': 'max_tokens is too large: 6500. This model supports at most 4096 completion tokens, whereas you provided 6500.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+INFO 2025-10-07 22:15:36,316 views Story session created: 2ee2d7e2-79fe-4875-9ef9-2a4ea2f7d9fe
+INFO 2025-10-07 22:16:21,511 views Activity logged: word_solved
+INFO 2025-10-07 22:16:24,516 views Activity logged: word_solved
+INFO 2025-10-07 22:16:28,167 views Activity logged: word_solved
+INFO 2025-10-07 22:16:30,325 views Activity logged: word_solved
+INFO 2025-10-07 22:16:32,608 views Activity logged: word_solved
+INFO 2025-10-07 22:16:35,341 views Activity logged: word_solved
+INFO 2025-10-07 22:17:12,621 views Activity logged: word_solved
+INFO 2025-10-07 22:17:15,183 views Activity logged: word_solved
+INFO 2025-10-07 22:17:16,598 views Activity logged: game_completed
+INFO 2025-10-07 22:17:16,742 views Activity logged: game_completed
+INFO 2025-10-07 22:17:24,189 views Analytics retrieved: 8 sessions
+INFO 2025-10-07 22:17:24,332 views Analytics retrieved: 8 sessions

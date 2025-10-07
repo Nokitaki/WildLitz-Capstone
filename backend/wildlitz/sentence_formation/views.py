@@ -75,7 +75,7 @@ def test_endpoint(request):
 @permission_classes([AllowAny])
 def generate_story(request):
     """
-    Generate a story adventure with episodes and multiple crossword puzzles per episode
+    Generate an interactive story with multiple episodes and multiple crossword puzzles per episode
     
     Expects JSON with:
     - theme: theme of the story (e.g., 'jungle', 'space')
@@ -101,17 +101,25 @@ def generate_story(request):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
         # Create a unique ID for this story
-       
         story_id = f"{theme}_generated_{int(datetime.now().timestamp())}"
+        
+        # 🔥 FIX: Calculate max_tokens dynamically based on episode count
+        # Each episode needs ~1200 tokens, plus 500 for story wrapper
+        max_tokens = max(3000, episode_count * 1200 + 500)
+        
+        logger.info(f"📚 Generating {episode_count} episodes with max_tokens={max_tokens}")
+        
         # Create a more detailed prompt that ensures vocabulary words are used in the story text
         prompt = f"""
-        Create a {episode_count}-episode educational story for grade {grade_level} students with a {theme} theme.
+        Create EXACTLY {episode_count} complete episodes for an educational story for grade {grade_level} students with a {theme} theme.
         
         {character_names and f"Use these character names: {character_names}" or ""}
         
+        CRITICAL: You MUST create all {episode_count} episodes. Do not create fewer episodes than requested!
+        
         IMPORTANT REQUIREMENTS FOR GRADE 3 STUDENTS:
         1. Each episode should be 150-200 words long (appropriate reading length)
-        2. Each episode must include 5-8 simple vocabulary words that focus on {', '.join(focus_skills)}
+        2. Each episode must include 5-7 simple vocabulary words that focus on {', '.join(focus_skills)}
         3. ALL vocabulary words MUST appear naturally in the story text
         4. Use ONLY grade 3 appropriate vocabulary (3-6 letters, simple words)
         5. Each vocabulary word should appear at least once in the episode text where it's listed
@@ -122,7 +130,7 @@ def generate_story(request):
         - Words should be 3-6 letters long
         - Avoid complex vocabulary or abstract concepts
         
-        For each episode, provide:
+        For EACH of the {episode_count} episodes, provide:
         1. Episode number and title
         2. Story text (150-200 words, engaging and age-appropriate)
         3. Brief recap sentence
@@ -150,6 +158,7 @@ def generate_story(request):
                 "additionalPuzzleIds": [],
                 "vocabularyFocus": ["word1", "word2", "word3", "word4", "word5"]
               }}
+              ... CONTINUE for all {episode_count} episodes ...
             ]
           }},
           "puzzles": {{
@@ -169,30 +178,40 @@ def generate_story(request):
                 }}
               ]
             }}
+            ... CONTINUE for all {episode_count} puzzles ...
           }}
         }}
+        
+        CRITICAL REMINDER: Your response must include ALL {episode_count} episodes in the episodes array!
         """
         
         try:
-            # Call OpenAI API with the updated interface
+            # Call OpenAI API with the updated interface and dynamic max_tokens
             response = openai.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are an educational content creator specializing in stories and puzzles for elementary school students. Always respond with valid JSON."},
+                    {"role": "system", "content": "You are an educational content creator specializing in stories and puzzles for elementary school students. You ALWAYS create the EXACT number of episodes requested. Always respond with valid JSON."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
-                max_tokens=4000
+                max_tokens=max_tokens  # 🔥 FIX: Use dynamic max_tokens
             )
             
             # Get the response content
             response_content = response.choices[0].message.content
-            logger.info("Raw GPT response received")
+            logger.info(f"Raw GPT response received (length: {len(response_content)})")
             
             try:
                 # Try to parse the JSON response
                 story_data = json.loads(response_content)
                 logger.info("Successfully parsed GPT response as JSON")
+                
+                # 🔥 VALIDATE: Check if we got the correct number of episodes
+                episodes_generated = len(story_data.get('story', {}).get('episodes', []))
+                logger.info(f"✅ AI generated {episodes_generated} episodes (requested {episode_count})")
+                
+                if episodes_generated < episode_count:
+                    logger.warning(f"⚠️ AI only generated {episodes_generated} episodes instead of {episode_count}")
                 
                 return Response(story_data)
                 
