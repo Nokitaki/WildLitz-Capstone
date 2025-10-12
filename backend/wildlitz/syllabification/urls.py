@@ -20,6 +20,7 @@ urlpatterns = [
     path('search-words/', views.search_words, name='search_words'),
     path('delete-custom-word/<uuid:word_id>/', views.delete_custom_word, name='delete_custom_word'),
     path('update-custom-word/<uuid:word_id>/', views.update_custom_word, name='update_custom_word'),
+    path('rate-word/<uuid:word_id>/', views.rate_word, name='rate_word'),
 ]
 
 if settings.DEBUG:

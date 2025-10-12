@@ -1694,3 +1694,132 @@ body {
 .uploadButton span {
   font-size: 1.1rem;
 }
+
+/* Rating Display in Search Results */
+.wordRating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.ratingValue {
+  color: #666;
+  font-size: 0.75rem;
+}
+
+.noRating {
+  color: #999;
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+/* Rate Button */
+.searchRateBtn {
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+  color: #ffc107;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.searchRateBtn:hover {
+  background-color: rgba(255, 193, 7, 0.1);
+  transform: scale(1.1);
+}
+
+/* Rating Modal */
+.ratingModal {
+  background: white;
+  border-radius: var(--radius);
+  width: 400px;
+  max-width: 95vw;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.ratingModalContent {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.ratingModalContent p {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  color: #555;
+}
+
+.currentRatingDisplay {
+  background-color: #f0f4ff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.currentRatingDisplay strong {
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+/* Star Rating Selector */
+.starRatingSelector {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+.starButton {
+  background: none;
+  border: none;
+  font-size: 2.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #ddd;
+}
+
+.starButton.selected {
+  color: #ffc107;
+}
+
+.starButton:hover {
+  transform: scale(1.2);
+}
+
+.ratingLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #777;
+  margin-top: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .wordRating {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+  
+  .ratingModal {
+    width: 90vw;
+  }
+  
+  .starButton {
+    font-size: 2rem;
+  }
+}

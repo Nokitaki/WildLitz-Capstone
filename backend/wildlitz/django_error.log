@@ -174,3 +174,6 @@ ERROR 2025-09-30 21:21:52,665 views Error searching words: name 'is_custom' is n
 ERROR 2025-09-30 21:21:52,666 log Internal Server Error: /api/syllabification/search-words/
 ERROR 2025-09-30 21:21:52,666 basehttp "GET /api/syllabification/search-words/?q=&page=1&has_audio=false HTTP/1.1" 500 43
 ERROR 2025-09-30 21:21:52,666 basehttp "GET /api/syllabification/search-words/?q=&page=1&has_audio=false HTTP/1.1" 500 43
+ERROR 2025-10-12 13:13:28,936 views Error generating pronunciation guide: 'AIContentGenerator' object has no attribute 'generate_pronunciation_guide'
+ERROR 2025-10-12 13:49:20,260 views Error generating pronunciation guide: 'AIContentGenerator' object has no attribute 'generate_pronunciation_guide'
+ERROR 2025-10-12 13:54:42,406 views Error generating pronunciation guide: 'AIContentGenerator' object has no attribute 'generate_pronunciation_guide'

@@ -405,25 +405,6 @@ const EditWordModal = ({ word, onSave, onClose }) => {
                 </div>
               </div>
             )}
-
-            {/* Pronunciation Guide Display */}
-            {word?.pronunciation_guide &&
-              word.pronunciation_guide !== word.syllable_breakdown && (
-                <div style={{ marginTop: "1rem" }}>
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "#666",
-                      display: "block",
-                    }}
-                  >
-                    Pronunciation Guide:
-                  </span>
-                  <strong style={{ fontSize: "0.95rem", color: "#5c6bc0" }}>
-                    {word.pronunciation_guide}
-                  </strong>
-                </div>
-              )}
           </div>
 
           <hr

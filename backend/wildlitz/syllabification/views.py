@@ -106,14 +106,15 @@ def get_syllabification_word_from_supabase(request):
             fun_fact = ai_generator.generate_fun_fact(selected_word['word'], selected_word['category'])
             intro_message = ai_generator.generate_character_message(selected_word['word'], 'intro', difficulty)
             
-            # Return word data with AI content
+            # Return word data with AI content AND AUDIO URLS
             word_data = {
                 'word': selected_word['word'],
                 'syllables': selected_word['syllable_breakdown'],
                 'count': selected_word['syllable_count'],
                 'category': selected_word['category'],
                 'image_url': selected_word.get('image_url', ''),
-                'pronunciation_guide': selected_word.get('pronunciation_guide', selected_word['syllable_breakdown']),
+                'full_word_audio_url': selected_word.get('full_word_audio_url'),      # ← ADDED
+                'syllable_audio_urls': selected_word.get('syllable_audio_urls', []),  # ← ADDED
                 'fun_fact': fun_fact,
                 'intro_message': intro_message
             }
@@ -313,13 +314,15 @@ def get_word_batch(request):
                 fun_fact = ai_generator.generate_fun_fact(word['word'], word['category'])
                 intro_message = ai_generator.generate_character_message(word['word'], 'intro', difficulty)
                 
+                # Append word data with AI content AND AUDIO URLS
                 words_with_content.append({
                     'word': word['word'],
                     'syllables': word['syllable_breakdown'],
                     'count': word['syllable_count'],
                     'category': word['category'],
                     'image_url': word.get('image_url', ''),
-                    'pronunciation_guide': word.get('pronunciation_guide', word['syllable_breakdown']),
+                    'full_word_audio_url': word.get('full_word_audio_url'),      # ← ADDED
+                    'syllable_audio_urls': word.get('syllable_audio_urls', []),  # ← ADDED
                     'fun_fact': fun_fact,
                     'intro_message': intro_message
                 })
@@ -410,24 +413,23 @@ def check_word_exists(request):
             existing_word = response.data[0]
             
             return Response({
-                'exists': True,
-                'word': {
-                    'id': existing_word['id'],
-                    'word': existing_word['word'],
-                    'syllable_breakdown': existing_word['syllable_breakdown'],
-                    'syllable_count': existing_word['syllable_count'],
-                    'category': existing_word['category'],
-                    'difficulty_level': existing_word['difficulty_level'],
-                    'image_url': existing_word.get('image_url'),
-                    'pronunciation_guide': existing_word.get('syllable_breakdown'),
-                    'is_custom': existing_word.get('is_custom', False),
-                    'created_by_name': existing_word.get('created_by_name', 'Unknown'),
-                    'usage_count': existing_word.get('usage_count', 0),
-                    'rating': float(existing_word.get('rating', 0.0)),
-                    'fun_fact': existing_word.get('fun_fact'),
-                    'intro_message': existing_word.get('intro_message')
-                }
-            })
+            'exists': True,
+            'word': {
+                'id': existing_word['id'],
+                'word': existing_word['word'],
+                'syllable_breakdown': existing_word['syllable_breakdown'],
+                'syllable_count': existing_word['syllable_count'],
+                'category': existing_word['category'],
+                'difficulty_level': existing_word['difficulty_level'],
+                'image_url': existing_word.get('image_url'),
+                'is_custom': existing_word.get('is_custom', False),
+                'created_by_name': existing_word.get('created_by_name', 'Unknown'),
+                'usage_count': existing_word.get('usage_count', 0),
+                'rating': float(existing_word.get('rating', 0.0)),
+                'fun_fact': existing_word.get('fun_fact'),
+                'intro_message': existing_word.get('intro_message')
+            }
+        })
         else:
             return Response({
                 'exists': False,
@@ -684,6 +686,11 @@ def search_words(request):
         
         words = response.data if response.data else []
         total_count = response.count if response.count is not None else 0
+        
+        for word in words:
+            validation_result = word.get('ai_validation_result', {})
+            ratings_data = validation_result.get('ratings_data', {})
+            word['rating_count'] = ratings_data.get('rating_count', 0)
 
         return Response({
             'results': words,
@@ -725,7 +732,7 @@ def delete_custom_word(request, word_id):
 def update_custom_word(request, word_id):
     """
     Update an existing custom word in the database.
-    Now supports audio file uploads.
+    Now supports audio file uploads with proper merging.
     """
     try:
         data = request.data
@@ -754,14 +761,11 @@ def update_custom_word(request, word_id):
             'syllable_breakdown': syllable_breakdown,
             'syllable_count': syllable_count,
             'category': category,
-            'difficulty_level': difficulty_level
+            'difficulty_level': difficulty_level,
+            'updated_at': 'now()'  # PostgreSQL function for current timestamp
         }
 
-        # Handle new audio uploads
-        full_word_audio_url = None
-        syllable_audio_urls = []
-
-        # Upload new full word audio if provided
+        # Handle new full word audio upload if provided
         if 'full_word_audio' in request.FILES:
             from .services_ai import upload_file_to_supabase_storage
             audio_file = request.FILES['full_word_audio']
@@ -773,11 +777,35 @@ def update_custom_word(request, word_id):
                     audio_filename
                 )
                 update_data['full_word_audio_url'] = full_word_audio_url
+                logger.info(f"Uploaded new full word audio for word ID {word_id}")
             except Exception as e:
                 logger.error(f"Error uploading full word audio: {str(e)}")
 
-        # Upload new syllable audio files if provided
+        # 🔹 IMPROVED SYLLABLE AUDIO MERGING LOGIC
         syllables = syllable_breakdown.split('-')
+
+        # STEP 1: Get existing syllable audio URLs from database
+        try:
+            existing_word_response = supabase.table('syllable_words').select('syllable_audio_urls').eq('id', word_id).execute()
+            if existing_word_response.data and len(existing_word_response.data) > 0:
+                existing_syllable_urls = existing_word_response.data[0].get('syllable_audio_urls', [])
+                # Ensure it's a list
+                if not isinstance(existing_syllable_urls, list):
+                    existing_syllable_urls = []
+            else:
+                existing_syllable_urls = []
+        except Exception as e:
+            logger.error(f"Error fetching existing syllable URLs: {str(e)}")
+            existing_syllable_urls = []
+
+        # STEP 2: Create a copy to preserve old URLs
+        merged_syllable_urls = existing_syllable_urls.copy()
+
+        # STEP 3: Ensure the array has enough slots for all syllables
+        while len(merged_syllable_urls) < len(syllables):
+            merged_syllable_urls.append(None)
+
+        # STEP 4: Only replace syllables that were re-recorded
         for idx in range(len(syllables)):
             field_name = f'syllable_audio_{idx}'
             if field_name in request.FILES:
@@ -790,13 +818,14 @@ def update_custom_word(request, word_id):
                         'syllable-word-audio', 
                         syllable_filename
                     )
-                    syllable_audio_urls.append(syllable_url)
+                    # Replace at specific index (merge, don't overwrite)
+                    merged_syllable_urls[idx] = syllable_url
+                    logger.info(f"Updated syllable {idx} audio for word ID {word_id}")
                 except Exception as e:
                     logger.error(f"Error uploading syllable audio {idx}: {str(e)}")
 
-        # If we have new syllable audios, update the field
-        if syllable_audio_urls:
-            update_data['syllable_audio_urls'] = syllable_audio_urls
+        # STEP 5: Save the merged array
+        update_data['syllable_audio_urls'] = merged_syllable_urls
 
         # Execute the update query on the public.syllable_words table
         response = supabase.table('syllable_words').update(update_data).eq('id', word_id).execute()
@@ -811,6 +840,85 @@ def update_custom_word(request, word_id):
 
     except Exception as e:
         logger.error(f"Error updating word with ID {word_id}: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def rate_word(request, word_id):
+    """
+    Submit a rating for a word (1-5 stars).
+    Calculates and updates the average rating.
+    """
+    try:
+        data = request.data
+        new_rating = data.get('rating')
+        
+        # Validate rating value
+        if not new_rating or not isinstance(new_rating, (int, float)):
+            return Response(
+                {'error': 'Rating must be a number between 1 and 5'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        new_rating = float(new_rating)
+        if new_rating < 1 or new_rating > 5:
+            return Response(
+                {'error': 'Rating must be between 1 and 5'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get current word data
+        response = supabase.table('syllable_words').select('rating, ai_validation_result').eq('id', word_id).execute()
+        
+        if not response.data or len(response.data) == 0:
+            return Response({'error': 'Word not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        word_data = response.data[0]
+        current_rating = word_data.get('rating') or 0
+        validation_result = word_data.get('ai_validation_result') or {}
+        
+        # Store ratings in ai_validation_result JSONB field (repurposing it for ratings storage)
+        # Structure: {"ratings": [5, 4, 5, 3], "rating_count": 4, "average": 4.25}
+        ratings_data = validation_result.get('ratings_data', {})
+        ratings_list = ratings_data.get('ratings', [])
+        
+        # Add new rating to the list
+        ratings_list.append(new_rating)
+        
+        # Calculate new average
+        average_rating = sum(ratings_list) / len(ratings_list)
+        
+        # Update ratings data
+        ratings_data['ratings'] = ratings_list
+        ratings_data['rating_count'] = len(ratings_list)
+        ratings_data['average'] = round(average_rating, 2)
+        
+        # Store back in validation_result
+        validation_result['ratings_data'] = ratings_data
+        
+        # Update the word
+        update_response = supabase.table('syllable_words').update({
+            'rating': average_rating,
+            'ai_validation_result': validation_result,
+            'updated_at': 'now()'
+        }).eq('id', word_id).execute()
+        
+        if update_response.data:
+            logger.info(f"Rating submitted for word ID {word_id}: {new_rating} (new average: {average_rating})")
+            return Response({
+                'success': True,
+                'message': 'Rating submitted successfully',
+                'new_average': round(average_rating, 2),
+                'rating_count': len(ratings_list)
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Failed to update rating'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    except Exception as e:
+        logger.error(f"Error rating word with ID {word_id}: {str(e)}")
         import traceback
         logger.error(traceback.format_exc())
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
