@@ -113,8 +113,9 @@ def get_syllabification_word_from_supabase(request):
                 'count': selected_word['syllable_count'],
                 'category': selected_word['category'],
                 'image_url': selected_word.get('image_url', ''),
-                'full_word_audio_url': selected_word.get('full_word_audio_url'),      # ← ADDED
-                'syllable_audio_urls': selected_word.get('syllable_audio_urls', []),  # ← ADDED
+                'full_word_audio_url': selected_word.get('full_word_audio_url'),
+                'syllable_audio_urls': selected_word.get('syllable_audio_urls', []),
+                'phonetic_guide': selected_word.get('phonetic_guide'),  # ✅ ADD THIS LINE
                 'fun_fact': fun_fact,
                 'intro_message': intro_message
             }
@@ -151,9 +152,17 @@ def check_syllable_answer(request):
         # Calculate time spent (if provided)
         time_spent = data.get('timeSpent', time.time() - start_time)
         
-        # Generate appropriate feedback message
+        # Generate appropriate feedback message (for the speech bubble)
         context = 'correct' if is_correct else 'incorrect'
         feedback_message = ai_generator.generate_character_message(word, context)
+        
+        # 🆕 NEW: Generate personalized learning feedback for AI Learning Assistant section
+        learning_feedback = ai_generator.generate_learning_feedback(
+            word=word,
+            is_correct=is_correct,
+            syllable_count=correct_count,
+            difficulty=difficulty
+        )
         
         # Log activity for authenticated users
         if request.user.is_authenticated:
@@ -174,7 +183,8 @@ def check_syllable_answer(request):
         
         response_data = {
             'is_correct': is_correct,
-            'feedback_message': feedback_message
+            'feedback_message': feedback_message,
+            'learning_feedback': learning_feedback  # 🆕 NEW: Add learning feedback to response
         }
         
         # Add progress info for authenticated users
@@ -315,14 +325,16 @@ def get_word_batch(request):
                 intro_message = ai_generator.generate_character_message(word['word'], 'intro', difficulty)
                 
                 # Append word data with AI content AND AUDIO URLS
+                # Append word data with AI content AND AUDIO URLS
                 words_with_content.append({
                     'word': word['word'],
                     'syllables': word['syllable_breakdown'],
                     'count': word['syllable_count'],
                     'category': word['category'],
                     'image_url': word.get('image_url', ''),
-                    'full_word_audio_url': word.get('full_word_audio_url'),      # ← ADDED
-                    'syllable_audio_urls': word.get('syllable_audio_urls', []),  # ← ADDED
+                    'full_word_audio_url': word.get('full_word_audio_url'),
+                    'syllable_audio_urls': word.get('syllable_audio_urls', []),
+                    'phonetic_guide': word.get('phonetic_guide'),  # ✅ ADD THIS LINE
                     'fun_fact': fun_fact,
                     'intro_message': intro_message
                 })
@@ -425,7 +437,7 @@ def check_word_exists(request):
                 'is_custom': existing_word.get('is_custom', False),
                 'created_by_name': existing_word.get('created_by_name', 'Unknown'),
                 'usage_count': existing_word.get('usage_count', 0),
-                'rating': float(existing_word.get('rating', 0.0)),
+                'rating': float(existing_word.get('rating') or 0.0),
                 'fun_fact': existing_word.get('fun_fact'),
                 'intro_message': existing_word.get('intro_message')
             }
@@ -515,6 +527,9 @@ def create_custom_word(request):
         fun_fact = ai_generator.generate_fun_fact(word, category)
         intro_message = ai_generator.generate_character_message(word, 'intro', difficulty_level)
         
+        # 🆕 NEW: Generate phonetic guide
+        phonetic_guide = ai_generator.generate_phonetic_guide(word, syllable_breakdown)
+        
         # Handle file uploads
         image_url = None
         full_word_audio_url = None
@@ -570,9 +585,10 @@ def create_custom_word(request):
         created_by = None
         created_by_name = 'Anonymous'
         if request.user.is_authenticated:
-            created_by = str(request.user.id)
+            created_by = request.user.id
             created_by_name = request.user.username or request.user.email
         
+        syllable_audio_urls_json = json.dumps(syllable_audio_urls) if syllable_audio_urls else '[]'
         # Use RPC function to insert into wildlitz schema
         response = supabase.rpc('insert_custom_word_to_public', {
             'p_word': word,
@@ -582,12 +598,13 @@ def create_custom_word(request):
             'p_category': category,
             'p_image_url': image_url,
             'p_full_word_audio_url': full_word_audio_url,
-            'p_syllable_audio_urls': syllable_audio_urls,
+            'p_syllable_audio_urls': syllable_audio_urls_json,
             'p_fun_fact': fun_fact,
             'p_intro_message': intro_message,
             'p_ai_suggested_category': category,
             'p_is_ai_validated': True,
             'p_ai_validation_result': validation_result,
+            'p_phonetic_guide': phonetic_guide,  # 🆕 NEW: Add phonetic guide
             'p_created_by': created_by,
             'p_created_by_name': created_by_name,
             'p_is_custom': True,
@@ -755,6 +772,9 @@ def update_custom_word(request, word_id):
         else:
             difficulty_level = 'hard'
 
+        # 🆕 NEW: Regenerate phonetic guide when syllable breakdown changes
+        phonetic_guide = ai_generator.generate_phonetic_guide(word, syllable_breakdown)
+
         # Prepare the data for updating
         update_data = {
             'word': word,
@@ -762,6 +782,7 @@ def update_custom_word(request, word_id):
             'syllable_count': syllable_count,
             'category': category,
             'difficulty_level': difficulty_level,
+            'phonetic_guide': phonetic_guide,  # 🆕 NEW: Add phonetic guide
             'updated_at': 'now()'  # PostgreSQL function for current timestamp
         }
 
@@ -846,15 +867,18 @@ def update_custom_word(request, word_id):
     
 @csrf_exempt
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])  # ← CHANGED: Now requires authentication
 def rate_word(request, word_id):
     """
     Submit a rating for a word (1-5 stars).
-    Calculates and updates the average rating.
+    One rating per user - updates if already rated.
     """
     try:
         data = request.data
         new_rating = data.get('rating')
+        
+        # Get authenticated user ID
+        user_id = str(request.user.id)
         
         # Validate rating value
         if not new_rating or not isinstance(new_rating, (int, float)):
@@ -877,23 +901,26 @@ def rate_word(request, word_id):
             return Response({'error': 'Word not found'}, status=status.HTTP_404_NOT_FOUND)
         
         word_data = response.data[0]
-        current_rating = word_data.get('rating') or 0
         validation_result = word_data.get('ai_validation_result') or {}
         
-        # Store ratings in ai_validation_result JSONB field (repurposing it for ratings storage)
-        # Structure: {"ratings": [5, 4, 5, 3], "rating_count": 4, "average": 4.25}
+        # Get or initialize ratings data structure
         ratings_data = validation_result.get('ratings_data', {})
-        ratings_list = ratings_data.get('ratings', [])
+        user_ratings = ratings_data.get('user_ratings', {})
         
-        # Add new rating to the list
-        ratings_list.append(new_rating)
+        # Check if user already rated this word
+        had_previous_rating = user_id in user_ratings
+        previous_rating = user_ratings.get(user_id)
         
-        # Calculate new average
-        average_rating = sum(ratings_list) / len(ratings_list)
+        # Update or add user's rating
+        user_ratings[user_id] = new_rating
         
-        # Update ratings data
-        ratings_data['ratings'] = ratings_list
-        ratings_data['rating_count'] = len(ratings_list)
+        # Calculate new average from all user ratings
+        all_ratings = list(user_ratings.values())
+        average_rating = sum(all_ratings) / len(all_ratings)
+        
+        # Update ratings data structure
+        ratings_data['user_ratings'] = user_ratings
+        ratings_data['rating_count'] = len(user_ratings)
         ratings_data['average'] = round(average_rating, 2)
         
         # Store back in validation_result
@@ -907,12 +934,17 @@ def rate_word(request, word_id):
         }).eq('id', word_id).execute()
         
         if update_response.data:
-            logger.info(f"Rating submitted for word ID {word_id}: {new_rating} (new average: {average_rating})")
+            action = "updated" if had_previous_rating else "submitted"
+            logger.info(f"Rating {action} for word ID {word_id} by user {user_id}: {new_rating} (new average: {average_rating})")
+            
             return Response({
                 'success': True,
-                'message': 'Rating submitted successfully',
+                'message': f'Rating {action} successfully',
                 'new_average': round(average_rating, 2),
-                'rating_count': len(ratings_list)
+                'rating_count': len(user_ratings),
+                'your_rating': new_rating,
+                'previous_rating': previous_rating if had_previous_rating else None,
+                'is_update': had_previous_rating
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Failed to update rating'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -922,3 +954,75 @@ def rate_word(request, word_id):
         import traceback
         logger.error(traceback.format_exc())
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_rating(request, word_id):
+    """
+    Check if the authenticated user has already rated this word.
+    Returns their rating if they have, or indicates they haven't rated.
+    """
+    try:
+        # Get authenticated user ID
+        user_id = str(request.user.id)
+        
+        # Get word data with ratings
+        response = supabase.table('syllable_words').select('ai_validation_result').eq('id', word_id).execute()
+        
+        if not response.data or len(response.data) == 0:
+            return Response({'error': 'Word not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        word_data = response.data[0]
+        validation_result = word_data.get('ai_validation_result') or {}
+        ratings_data = validation_result.get('ratings_data', {})
+        user_ratings = ratings_data.get('user_ratings', {})
+        
+        # Check if this user has rated
+        if user_id in user_ratings:
+            user_rating = user_ratings[user_id]
+            logger.info(f"User {user_id} has rated word {word_id}: {user_rating}")
+            return Response({
+                'has_rated': True,
+                'user_rating': user_rating
+            })
+        else:
+            logger.info(f"User {user_id} has not rated word {word_id}")
+            return Response({
+                'has_rated': False,
+                'user_rating': None
+            })
+        
+    except Exception as e:
+        logger.error(f"Error checking user rating for word {word_id}: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def generate_phonetic_guide_endpoint(request):
+    """
+    Generate phonetic guide on-demand for words that don't have one
+    """
+    try:
+        data = request.data
+        word = data.get('word', '')
+        syllable_breakdown = data.get('syllable_breakdown', '')
+        
+        if not word or not syllable_breakdown:
+            return Response(
+                {'error': 'Word and syllable_breakdown are required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Generate phonetic guide
+        phonetic_guide = ai_generator.generate_phonetic_guide(word, syllable_breakdown)
+        
+        return Response({
+            'phonetic_guide': phonetic_guide
+        })
+    
+    except Exception as e:
+        logger.error(f"Error generating phonetic guide: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

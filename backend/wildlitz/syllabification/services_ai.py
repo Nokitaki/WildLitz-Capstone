@@ -373,7 +373,316 @@ class AIContentGenerator:
         except Exception as e:
             logger.error(f"Error generating syllable breakdown for '{word}': {str(e)}")
             return word # Fallback to the original word if AI fails
+        
+    def generate_learning_feedback(self, word, is_correct, syllable_count, difficulty='medium'):
+        """
+        Generate personalized learning feedback based on student performance
+        """
+        try:
+            # Determine syllable category and strategies
+            if syllable_count == 1:
+                syllable_tips = {
+                    'easy': "Short words with one beat are the easiest to identify!",
+                    'medium': "Single-syllable words have just one vowel sound - listen for that beat!",
+                    'hard': "One-syllable words are the building blocks of language - you're mastering the fundamentals!"
+                }
+            elif syllable_count == 2:
+                syllable_tips = {
+                    'easy': "Two-syllable words have two beats - try clapping: [first part] (clap) [second part] (clap)!",
+                    'medium': "For 2-syllable words, find where the word naturally breaks - like 'ti-ger' or 'pen-cil'.",
+                    'hard': "Two-syllable words often follow patterns - listen for the stress on the first or second syllable."
+                }
+            elif syllable_count == 3:
+                syllable_tips = {
+                    'easy': "Three syllables means three beats - count them slowly as you say the word!",
+                    'medium': "Break 3-syllable words into smaller chunks - each chunk has one vowel sound.",
+                    'hard': "Three-syllable words can be compound words or have prefixes/suffixes - look for those patterns!"
+                }
+            else:
+                syllable_tips = {
+                    'easy': f"{syllable_count} syllables is a long word - take your time and count each beat carefully!",
+                    'medium': f"For long words with {syllable_count} syllables, break them into 2-syllable chunks first, then count.",
+                    'hard': f"{syllable_count}-syllable words often combine familiar word parts - identify those chunks!"
+                }
+            
+            tip = syllable_tips.get(difficulty, syllable_tips['medium'])
+            
+            # Build the prompt with STRICT requirements
+            if is_correct:
+                prompt = f"""Generate feedback for a student who CORRECTLY identified "{word}" as having {syllable_count} syllables.
 
+    Word: "{word}"
+    Syllables: {syllable_count}
+    Difficulty: {difficulty}
+    Result: CORRECT ✓
+
+    YOU MUST follow this EXACT structure with DOUBLE LINE BREAKS between sections:
+
+    1. PRAISE LINE (15-20 words):
+    - Start with enthusiastic praise
+    - State the word and syllable count
+    - Add 1 emoji (🎉, ⭐, 🏆, ✨)
+
+    [ADD \\n\\n HERE - DOUBLE LINE BREAK]
+
+    2. EDUCATIONAL INSIGHT (15-20 words):
+    - Explain the skill they're building
+    - Be specific to {syllable_count}-syllable words
+
+    [ADD \\n\\n HERE - DOUBLE LINE BREAK]
+
+    3. LEARNING TIP with 💡 (20-25 words):
+    - Start with "💡 Tip:"
+    - Concrete technique: {tip}
+
+    CRITICAL: You MUST include two newline characters (\\n\\n) between each section.
+    Total: 50-65 words. Short sentences. Clear structure."""
+
+            else:
+                prompt = f"""Generate feedback for a student who INCORRECTLY guessed "{word}". Correct answer: {syllable_count} syllables.
+
+    Word: "{word}"
+    Actual syllables: {syllable_count}
+    Difficulty: {difficulty}
+    Result: NEEDS PRACTICE
+
+    YOU MUST follow this EXACT structure with DOUBLE LINE BREAKS between sections:
+
+    1. GENTLE CORRECTION (12-15 words):
+    - Start warmly ("Nice try!", "Almost there!")
+    - State correct syllable count
+    - Add 1 emoji (💙, 🌟, 🎯)
+
+    [ADD \\n\\n HERE - DOUBLE LINE BREAK]
+
+    2. WHY IT'S TRICKY (12-15 words):
+    - Explain the challenge
+    - Validate difficulty
+
+    [ADD \\n\\n HERE - DOUBLE LINE BREAK]
+
+    3. HELPFUL STRATEGY with 💡 (20-25 words):
+    - Start with "💡 Strategy:"
+    - Actionable technique: {tip}
+
+    CRITICAL: You MUST include two newline characters (\\n\\n) between each section.
+    Total: 45-55 words. Short sentences. Never use "wrong" or "incorrect"."""
+
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {
+                        "role": "system", 
+                        "content": "You are an encouraging elementary teacher. CRITICAL REQUIREMENT: You must separate each section with two newline characters (\\n\\n). Follow the structure exactly. Keep sentences short and clear."
+                    },
+                    {
+                        "role": "user", 
+                        "content": prompt
+                    }
+                ],
+                max_tokens=200,
+                temperature=0.7
+            )
+            
+            feedback = response.choices[0].message.content.strip()
+            feedback = feedback.strip('"\'')
+            
+            logger.info(f"Generated learning feedback for '{word}': {feedback[:100]}...")
+            
+            return feedback
+            
+        except Exception as e:
+            logger.error(f"Error generating learning feedback: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            
+            # Better fallback messages with proper line breaks
+            if is_correct:
+                return f"""Excellent work! "{word}" has {syllable_count} syllable{'s' if syllable_count > 1 else ''}. 🎉
+
+    You're developing strong syllable awareness! This is a key reading skill.
+
+    💡 Tip: {syllable_tips.get(difficulty, syllable_tips['medium'])}"""
+            else:
+                return f"""Nice try! The word "{word}" has {syllable_count} syllable{'s' if syllable_count > 1 else ''}. 💙
+
+    This is a common challenge - many students need practice with {syllable_count}-syllable words.
+
+    💡 Strategy: {syllable_tips.get(difficulty, syllable_tips['medium'])}"""
+            
+    def generate_phonetic_guide(self, word, syllable_breakdown):
+        """
+        Generate phonetic guide with rhyming words and sound explanations
+        
+        Args:
+            word: The word to analyze
+            syllable_breakdown: Syllable breakdown (e.g., "but-ter-fly")
+        
+        Returns:
+            Dictionary with phonetic breakdown, rhyming words, and sound explanations
+        """
+        try:
+            prompt = f"""You are a phonetics expert helping elementary students learn pronunciation.
+
+    Analyze the word "{word}" with syllables: {syllable_breakdown}
+
+    Generate a phonetic guide in the following JSON structure:
+
+    {{
+    "phonetic_breakdown": "phonetic representation with hyphens",
+    "rhyming_words": ["word1", "word2", "word3", "word4"],
+    "sound_explanations": [
+        {{
+        "sound": "phoneme",
+        "explanation": "Description with example word"
+        }}
+    ]
+    }}
+
+    Requirements:
+
+    1. PHONETIC BREAKDOWN:
+    - Break the word into individual phonemes/sounds (not just syllables)
+    - Use simple phonetic notation that kids can understand
+    - Separate with hyphens
+    - Example: "pig" → "p-ih-g", "cat" → "k-a-t", "butterfly" → "b-uh-t-er-f-l-eye"
+
+    2. RHYMING WORDS (4-5 words):
+    - Must be real English words
+    - Should rhyme with "{word}"
+    - Use simple, kid-friendly words
+    - Age-appropriate (no complex or inappropriate words)
+
+    3. SOUND EXPLANATIONS:
+    - One explanation per phoneme in the phonetic breakdown
+    - Format: "As in the [first/middle/last] sound of [example word]"
+    - Use common, simple example words
+    - Keep explanations under 15 words each
+    - Be specific about WHERE the sound appears (first, middle, last)
+
+    Example 1:
+    Word: "pig"
+    {{
+    "phonetic_breakdown": "p-ih-g",
+    "rhyming_words": ["big", "dig", "wig", "fig"],
+    "sound_explanations": [
+        {{
+        "sound": "p",
+        "explanation": "As in the first sound of pen or pie."
+        }},
+        {{
+        "sound": "ih",
+        "explanation": "Short 'i' sound, as in the middle of ship or igloo."
+        }},
+        {{
+        "sound": "g",
+        "explanation": "As in the first sound of give or go."
+        }}
+    ]
+    }}
+
+    Example 2:
+    Word: "cat"
+    {{
+    "phonetic_breakdown": "k-a-t",
+    "rhyming_words": ["bat", "hat", "mat", "rat"],
+    "sound_explanations": [
+        {{
+        "sound": "k",
+        "explanation": "As in the first sound of kite or cup."
+        }},
+        {{
+        "sound": "a",
+        "explanation": "Short 'a' sound, as in the middle of apple or ant."
+        }},
+        {{
+        "sound": "t",
+        "explanation": "As in the first sound of top or toy."
+        }}
+    ]
+    }}
+
+    Now generate for "{word}":
+    Return ONLY the JSON object, no additional text."""
+
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a phonetics expert. Return ONLY valid JSON. No markdown, no code blocks, no additional text. Just pure JSON."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                max_tokens=400,
+                temperature=0.5  # Lower temperature for more consistent output
+            )
+
+            response_text = response.choices[0].message.content.strip()
+            
+            # Remove markdown code blocks if present
+            if response_text.startswith('```'):
+                response_text = response_text.split('```')[1]
+                if response_text.startswith('json'):
+                    response_text = response_text[4:]
+                response_text = response_text.strip()
+            
+            # Parse JSON
+            phonetic_data = json.loads(response_text)
+            
+            # Validate structure
+            required_keys = ['phonetic_breakdown', 'rhyming_words', 'sound_explanations']
+            for key in required_keys:
+                if key not in phonetic_data:
+                    raise ValueError(f"Missing required key: {key}")
+            
+            # Ensure rhyming_words is a list
+            if not isinstance(phonetic_data['rhyming_words'], list):
+                phonetic_data['rhyming_words'] = []
+            
+            # Ensure sound_explanations is a list of dicts
+            if not isinstance(phonetic_data['sound_explanations'], list):
+                phonetic_data['sound_explanations'] = []
+            
+            logger.info(f"Generated phonetic guide for '{word}': {phonetic_data['phonetic_breakdown']}")
+            
+            return phonetic_data
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON parsing error for phonetic guide: {str(e)}")
+            logger.error(f"Response was: {response_text}")
+            
+            # Return basic fallback structure
+            return {
+                "phonetic_breakdown": syllable_breakdown,
+                "rhyming_words": [],
+                "sound_explanations": [
+                    {
+                        "sound": syllable_breakdown,
+                        "explanation": f"Listen carefully to the sounds in '{word}'."
+                    }
+                ]
+            }
+            
+        except Exception as e:
+            logger.error(f"Error generating phonetic guide: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            
+            # Return basic fallback structure
+            return {
+                "phonetic_breakdown": syllable_breakdown,
+                "rhyming_words": [],
+                "sound_explanations": [
+                    {
+                        "sound": syllable_breakdown,
+                        "explanation": f"Listen carefully to the sounds in '{word}'."
+                    }
+                ]
+            }
 
 # ==========================================
 # Helper Functions for File Upload

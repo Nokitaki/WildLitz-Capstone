@@ -28,7 +28,7 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound }) => {
   useEffect(() => {
     if (!word) return;
 
-    setIsLoading(true);
+    setIsLoading(false);
 
     // Generate a word-specific demo message
     const generateDemoMessage = async () => {
@@ -94,14 +94,24 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound }) => {
     }
   };
 
-  // Function to play a specific syllable sound using audio URLs
   const playSyllableSound = (syllable, index) => {
     if (!syllable) return;
 
     setIsPlaying(true);
 
     // Get syllable audio URLs from word data
-    const syllableAudioUrls = word?.syllable_audio_urls || [];
+    let syllableAudioUrls = word?.syllable_audio_urls || [];
+    
+    // ✅ FIX: If it's a JSON string, parse it to an array
+    if (typeof syllableAudioUrls === 'string') {
+      try {
+        syllableAudioUrls = JSON.parse(syllableAudioUrls);
+      } catch (error) {
+        console.error('Error parsing syllable_audio_urls:', error);
+        syllableAudioUrls = [];
+      }
+    }
+    
     const audioUrl = syllableAudioUrls[index];
 
     if (audioUrl) {
@@ -233,9 +243,8 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound }) => {
               {syllableArray.map((syllable, index) => (
                 <div
                   key={index}
-                  className={`${styles.syllableUnit} ${
-                    selectedSyllable === syllable ? styles.highlighted : ""
-                  }`}
+                  className={`${styles.syllableUnit} ${selectedSyllable === syllable ? styles.highlighted : ""
+                    }`}
                   onClick={() => setSelectedSyllable(syllable)}
                 >
                   {syllable}
@@ -251,9 +260,8 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound }) => {
                 </div>
               ))}
               <button
-                className={`${styles.fullWordButton} ${
-                  selectedSyllable === "all" ? styles.active : ""
-                }`}
+                className={`${styles.fullWordButton} ${selectedSyllable === "all" ? styles.active : ""
+                  }`}
                 onClick={() => setSelectedSyllable("all")}
               >
                 Full Word
@@ -290,14 +298,13 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound }) => {
                   {isLoading
                     ? "Loading..."
                     : isPlaying
-                    ? "Playing..."
-                    : "Play Sound"}
+                      ? "Playing..."
+                      : "Play Sound"}
                 </button>
 
                 <button
-                  className={`${styles.speedToggle} ${
-                    playbackSpeed === "slow" ? styles.active : ""
-                  }`}
+                  className={`${styles.speedToggle} ${playbackSpeed === "slow" ? styles.active : ""
+                    }`}
                   onClick={() =>
                     setPlaybackSpeed(
                       playbackSpeed === "normal" ? "slow" : "normal"
@@ -314,25 +321,77 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound }) => {
             <div className={styles.soundExplanation}>
               <h3>How to Pronounce</h3>
               <div className={styles.explanationContent}>
-                <p className={styles.phoneticGuide}>
-                  {selectedSyllable === "all"
-                    ? `Listen to the full word "${word.word}" and notice how each syllable flows together.`
-                    : `Listen carefully to the syllable "${selectedSyllable}" and try to repeat it.`}
-                </p>
+                {/* 🆕 Display phonetic guide if available */}
+                {word?.phonetic_guide ? (
+                  <>
+                    {/* Phonetic Breakdown */}
+                    {word.phonetic_guide.phonetic_breakdown && (
+                      <div className={styles.phoneticBreakdown}>
+                        <p className={styles.phoneticGuide}>
+                          <strong>Phonetic breakdown:</strong> ({word.phonetic_guide.phonetic_breakdown})
+                        </p>
+                      </div>
+                    )}
 
-                <div className={styles.examples}>
-                  {selectedSyllable === "all" ? (
-                    <p>
-                      <strong>Tip:</strong> Clap along as you hear each syllable
-                      to help you count them!
+                    {/* Rhyming Words */}
+                    {word.phonetic_guide.rhyming_words && word.phonetic_guide.rhyming_words.length > 0 && (
+                      <div className={styles.rhymingWords}>
+                        <p>
+                          <strong>Rhymes with:</strong> {word.phonetic_guide.rhyming_words.join(', ')}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Sound Explanations */}
+                    {word.phonetic_guide.sound_explanations && word.phonetic_guide.sound_explanations.length > 0 && (
+                      <div className={styles.soundBreakdown}>
+                        <p><strong>Sound-by-sound:</strong></p>
+                        <ul className={styles.soundList}>
+                          {word.phonetic_guide.sound_explanations.map((sound, index) => (
+                            <li key={index} className={styles.soundItem}>
+                              <span className={styles.soundSymbol}>({sound.sound})</span>
+                              <span className={styles.soundExplanationText}>{sound.explanation}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Tips Section */}
+                    <div className={styles.examples}>
+                      {selectedSyllable === "all" ? (
+                        <p>
+                          <strong>💡 Tip:</strong> Listen to the full word and notice how each sound flows together!
+                        </p>
+                      ) : (
+                        <p>
+                          <strong>💡 Tip:</strong> Pay attention to how your mouth moves when making this sound.
+                        </p>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  /* Fallback if no phonetic guide */
+                  <>
+                    <p className={styles.phoneticGuide}>
+                      {selectedSyllable === "all"
+                        ? `Listen to the full word "${word.word}" and notice how each syllable flows together.`
+                        : `Listen carefully to the syllable "${selectedSyllable}" and try to repeat it.`}
                     </p>
-                  ) : (
-                    <p>
-                      <strong>Tip:</strong> Pay attention to the vowel sound in
-                      this syllable.
-                    </p>
-                  )}
-                </div>
+
+                    <div className={styles.examples}>
+                      {selectedSyllable === "all" ? (
+                        <p>
+                          <strong>💡 Tip:</strong> Clap along as you hear each syllable to help you count them!
+                        </p>
+                      ) : (
+                        <p>
+                          <strong>💡 Tip:</strong> Pay attention to the vowel sound in this syllable.
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

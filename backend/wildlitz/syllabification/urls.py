@@ -21,6 +21,8 @@ urlpatterns = [
     path('delete-custom-word/<uuid:word_id>/', views.delete_custom_word, name='delete_custom_word'),
     path('update-custom-word/<uuid:word_id>/', views.update_custom_word, name='update_custom_word'),
     path('rate-word/<uuid:word_id>/', views.rate_word, name='rate_word'),
+    path('get-user-rating/<uuid:word_id>/', views.get_user_rating, name='get_user_rating'),  # ← ADD THIS
+    path('generate-phonetic-guide/', views.generate_phonetic_guide_endpoint, name='generate_phonetic_guide'),
 ]
 
 if settings.DEBUG:
