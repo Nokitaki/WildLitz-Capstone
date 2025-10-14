@@ -1,5 +1,5 @@
 // src/pages/games/syllable/SyllableClappingGame.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "../../../styles/games/syllable/SyllableClappingGame.module.css";
@@ -21,6 +21,8 @@ const SyllableClappingGame = () => {
   const [error, setError] = useState(null);
 
   const [speakingSyllable, setSpeakingSyllable] = useState(null);
+
+  const audioRef = useRef(null);
 
   const [currentWord, setCurrentWord] = useState({
     word: "",
@@ -90,14 +92,19 @@ const SyllableClappingGame = () => {
     }
   };
 
+  // NEW: Handle syllable pronunciation with robust loading and NO TTS
   const handleSyllablePronunciation = (syllable, syllableIndex) => {
-    // Set the currently speaking syllable for visual feedback
     setSpeakingSyllable(syllable);
 
-    // Check if we have syllable audio URLs
+    // Stop any existing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
+
     let syllableAudioUrls = currentWord.syllable_audio_urls || [];
 
-    // ✅ FIX: If it's a JSON string, parse it to an array
     if (typeof syllableAudioUrls === 'string') {
       try {
         syllableAudioUrls = JSON.parse(syllableAudioUrls);
@@ -107,45 +114,59 @@ const SyllableClappingGame = () => {
       }
     }
 
-    // ✅ ADD DEBUGGING
-    console.log('=== SYLLABLE AUDIO DEBUG ===');
-    console.log('Syllable:', syllable);
-    console.log('Index:', syllableIndex);
-    console.log('Parsed syllableAudioUrls:', syllableAudioUrls);
-    console.log('Audio URL at index:', syllableAudioUrls[syllableIndex]);
-    console.log('===========================');
-
     const audioUrl = syllableAudioUrls[syllableIndex];
 
-    if (audioUrl) {
-      // Play the recorded audio
-      const audio = new Audio(audioUrl);
-
-      audio.onended = () => {
-        setSpeakingSyllable(null);
-      };
-
-      audio.onerror = (error) => {
-        console.error(`Error playing syllable audio:`, error);
-        console.error('Failed URL was:', audioUrl);
-        setSpeakingSyllable(null);
-        alert("⚠️ No audio available for this syllable");
-      };
-
-      audio.play().catch((error) => {
-        console.error("Failed to play audio:", error);
-        console.error('Failed URL was:', audioUrl);
-        setSpeakingSyllable(null);
-        alert("⚠️ No audio available for this syllable");
-      });
-    } else {
-      // No audio available
-      console.warn(
-        `No audio available for syllable "${syllable}" at index ${syllableIndex}`
-      );
+    if (!audioUrl) {
+      console.warn(`No audio available for syllable "${syllable}" at index ${syllableIndex}`);
       setSpeakingSyllable(null);
       alert("⚠️ No audio available for this syllable");
+      return;
     }
+
+    const audio = new Audio();
+    audioRef.current = audio;
+
+    audio.src = audioUrl;
+    audio.preload = 'auto';
+    audio.load();
+
+    let hasPlayed = false;
+
+    const playAudio = () => {
+      if (hasPlayed) return;
+      hasPlayed = true;
+
+      audio.play().catch((error) => {
+        console.error("Failed to play syllable audio:", error);
+        setSpeakingSyllable(null);
+        audioRef.current = null;
+        alert("⚠️ Could not play syllable audio.");
+      });
+    };
+
+    audio.addEventListener('canplay', playAudio, { once: true });
+    audio.addEventListener('loadeddata', () => {
+      setTimeout(playAudio, 100);
+    }, { once: true });
+
+    audio.onended = () => {
+      setSpeakingSyllable(null);
+      audioRef.current = null;
+    };
+
+    audio.onerror = (error) => {
+      console.error("Error loading syllable audio:", error);
+      setSpeakingSyllable(null);
+      audioRef.current = null;
+      alert("⚠️ Syllable audio file not available.");
+    };
+
+    // Safety timeout
+    setTimeout(() => {
+      if (!hasPlayed && audioRef.current === audio) {
+        playAudio();
+      }
+    }, 3000);
   };
 
   const renderSyllableButtons = () => {
@@ -357,45 +378,71 @@ const SyllableClappingGame = () => {
     }
   };
 
-  // Show welcome message when a new word starts
+  // UPDATED: useEffect with longer delay and better state checking
   useEffect(() => {
     if (gamePhase === "playing") {
-      // Show message and bubble
       setShowBubble(true);
 
-      // Hide bubble after 6 seconds
       const bubbleTimer = setTimeout(() => {
         setShowBubble(false);
       }, 6000);
 
-      // Show image flip at the start
       setIsFlipped(true);
       setIsFlipping(true);
 
-      // Auto flip back to word after 3 seconds
       const flipTimer = setTimeout(() => {
         setIsFlipped(false);
         setIsFlipping(true);
 
-        // After flipping back to word, wait a moment then play the sound
+        // MUCH LONGER DELAY: Wait for flip animation to completely finish
         const audioTimer = setTimeout(() => {
-          // Make sure we have the current word before trying to play it
-          if (currentWord && currentWord.word) {
-            // Play the word using TTS
-            handlePlaySound(); // <-- Use your existing function
-          }
-        }, 500);
+          console.log("=== ATTEMPTING TO PLAY AUDIO ===");
+          console.log("Current word:", currentWord);
+          console.log("Audio URL:", currentWord?.full_word_audio_url);
 
-        // Clean up the audio timer
+          if (currentWord && currentWord.word && currentWord.full_word_audio_url) {
+            // Stop any existing audio first
+            if (audioRef.current) {
+              audioRef.current.pause();
+              audioRef.current.currentTime = 0;
+              audioRef.current = null;
+            }
+
+            // Now play the sound
+            handlePlaySound();
+          } else {
+            console.warn("Cannot play audio - missing word or audio URL");
+          }
+        }, 1500); // 1.5 seconds after flip completes
+
         return () => clearTimeout(audioTimer);
-      }, 3000);
+      }, 3000); // Flip animation duration
 
       return () => {
         clearTimeout(bubbleTimer);
         clearTimeout(flipTimer);
+        // Cleanup audio on unmount
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
+        }
       };
     }
-  }, [gamePhase]);
+  }, [gamePhase, currentWord]);
+
+
+  useEffect(() => {
+    return () => {
+      // Cleanup on component unmount
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   // Handle card flip transition end
   const handleFlipTransitionEnd = () => {
@@ -471,20 +518,24 @@ const SyllableClappingGame = () => {
 
   const playWordWithTTS = (word) => {
     if ('speechSynthesis' in window) {
+      // IMPORTANT: Cancel any ongoing speech first
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.rate = 0.35;
+      // Small delay to ensure cancel completes
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.rate = 0.35;
 
-      utterance.onend = () => {
-        setIsPlaying(false);
-      };
+        utterance.onend = () => {
+          setIsPlaying(false);
+        };
 
-      utterance.onerror = () => {
-        setIsPlaying(false);
-      };
+        utterance.onerror = () => {
+          setIsPlaying(false);
+        };
 
-      window.speechSynthesis.speak(utterance);
+        window.speechSynthesis.speak(utterance);
+      }, 100);
     } else {
       console.warn('Text-to-speech not supported in this browser');
       setTimeout(() => setIsPlaying(false), 2000);
@@ -498,44 +549,81 @@ const SyllableClappingGame = () => {
 
   // Handle play sound button
   const handlePlaySound = () => {
-    // Get the current word directly from state
     const word = currentWord?.word;
 
-    // Safety check to ensure we have a valid word
     if (!word) {
       console.warn("Attempted to play sound for undefined word");
       return;
     }
 
-    setIsPlaying(true);
+    // Stop any existing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
 
-    // Check if we have a recorded audio URL
     const fullWordAudioUrl = currentWord?.full_word_audio_url;
 
-    if (fullWordAudioUrl) {
-      // Play the recorded audio
-      const audio = new Audio(fullWordAudioUrl);
+    if (!fullWordAudioUrl) {
+      console.warn("No audio URL available for word:", word);
+      setIsPlaying(false);
+      return;
+    }
 
-      audio.onended = () => {
-        setIsPlaying(false);
-      };
+    setIsPlaying(true);
 
-      audio.onerror = (error) => {
-        console.error(`Error playing full word audio: ${error}`);
-        // Fallback to TTS if audio fails
-        playWordWithTTS(word);
-      };
+    const audio = new Audio();
+    audioRef.current = audio;
+
+    // Set source
+    audio.src = fullWordAudioUrl;
+
+    // Preload the audio
+    audio.preload = 'auto';
+    audio.load();
+
+    // Set up event listeners BEFORE loading
+    let hasPlayed = false;
+
+    const playAudio = () => {
+      if (hasPlayed) return;
+      hasPlayed = true;
 
       audio.play().catch((error) => {
         console.error("Failed to play audio:", error);
-        // Fallback to TTS if audio fails
-        playWordWithTTS(word);
+        setIsPlaying(false);
+        audioRef.current = null;
+        alert("⚠️ Could not play audio. Please try again.");
       });
-    } else {
-      // No recorded audio, use TTS as fallback
-      console.log("No recorded audio available, using TTS fallback");
-      playWordWithTTS(word);
-    }
+    };
+
+    // Multiple fallback events to ensure playback
+    audio.addEventListener('canplay', playAudio, { once: true });
+    audio.addEventListener('loadeddata', () => {
+      // Small delay to ensure audio is really ready
+      setTimeout(playAudio, 100);
+    }, { once: true });
+
+    audio.onended = () => {
+      setIsPlaying(false);
+      audioRef.current = null;
+    };
+
+    audio.onerror = (error) => {
+      console.error("Error loading/playing audio:", error);
+      setIsPlaying(false);
+      audioRef.current = null;
+      alert("⚠️ Audio file not available.");
+    };
+
+    // Safety timeout - if nothing plays after 3 seconds, give up
+    setTimeout(() => {
+      if (!hasPlayed && audioRef.current === audio) {
+        console.warn("Audio did not play after 3 seconds, forcing play attempt");
+        playAudio();
+      }
+    }, 3000);
   };
 
   // Handle checking the answer
@@ -775,27 +863,10 @@ const SyllableClappingGame = () => {
         // Then it flips back to show the word
         setTimeout(() => {
           if (wordData && wordData.word) {
-            // Cancel any ongoing speech
-            if ("speechSynthesis" in window) {
-              window.speechSynthesis.cancel();
-
-              const utterance = new SpeechSynthesisUtterance(wordData.word);
-              utterance.rate = 0.35; // Slightly slower for clarity
-
-              setIsPlaying(true);
-
-              utterance.onend = () => {
-                setIsPlaying(false);
-              };
-
-              utterance.onerror = () => {
-                setIsPlaying(false);
-              };
-
-              window.speechSynthesis.speak(utterance);
-            }
+            // Use the proper handlePlaySound function with audio preloading
+            handlePlaySound();
           }
-        }, 3500); // Wait for card flip animation to complete
+        }, 4000); // Increased delay for more stable playback
       }, 100);
     }, 1500);
   };
@@ -1031,7 +1102,7 @@ const SyllableClappingGame = () => {
                 </button>
               </div>
 
-              <div className={styles.flipInstruction}>Click to see image</div>
+              <div className={styles.flipInstruction}>Click to see big image</div>
             </div>
 
             {/* Back side - Real image */}
@@ -1201,7 +1272,7 @@ const SyllableClappingGame = () => {
                 </div>
               </div>
 
-              <div className={styles.flipInstruction}>Click to see image</div>
+              <div className={styles.flipInstruction}>Click to see big image</div>
             </div>
 
             {/* Back side - Real image */}

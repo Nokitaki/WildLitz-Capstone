@@ -1,5 +1,5 @@
 // src/pages/games/syllable/SyllableDemoScreen.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import styles from "../../../styles/games/syllable/SyllableDemoScreen.module.css";
 import wildLitzCharacter from "../../../assets/img/wildlitz-idle.png";
@@ -10,6 +10,7 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [characterMessage, setCharacterMessage] = useState("");
+  const audioRef = useRef(null);
 
   // Split syllables from syllable breakdown
   const syllableArray = word?.syllables?.split("-") || [
@@ -94,113 +95,183 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound }) => {
     }
   };
 
+
+
   const playSyllableSound = (syllable, index) => {
-    if (!syllable) return;
+  if (!syllable) return;
 
-    setIsPlaying(true);
+  if (audioRef.current) {
+    audioRef.current.pause();
+    audioRef.current.currentTime = 0;
+    audioRef.current = null;
+  }
 
-    // Get syllable audio URLs from word data
-    let syllableAudioUrls = word?.syllable_audio_urls || [];
-    
-    // ✅ FIX: If it's a JSON string, parse it to an array
-    if (typeof syllableAudioUrls === 'string') {
-      try {
-        syllableAudioUrls = JSON.parse(syllableAudioUrls);
-      } catch (error) {
-        console.error('Error parsing syllable_audio_urls:', error);
-        syllableAudioUrls = [];
-      }
+  setIsPlaying(true);
+
+  let syllableAudioUrls = word?.syllable_audio_urls || [];
+
+  if (typeof syllableAudioUrls === 'string') {
+    try {
+      syllableAudioUrls = JSON.parse(syllableAudioUrls);
+    } catch (error) {
+      console.error('Error parsing syllable_audio_urls:', error);
+      syllableAudioUrls = [];
     }
-    
-    const audioUrl = syllableAudioUrls[index];
+  }
 
-    if (audioUrl) {
-      // Play the recorded audio
-      const audio = new Audio(audioUrl);
-      audio.playbackRate = playbackSpeed === "slow" ? 0.7 : 1;
+  const audioUrl = syllableAudioUrls[index];
 
-      audio.onended = () => {
-        setIsPlaying(false);
-      };
+  if (!audioUrl) {
+    console.warn(`No audio available for syllable "${syllable}" at index ${index}`);
+    setIsPlaying(false);
+    alert("⚠️ No audio available for this syllable");
+    return;
+  }
 
-      audio.onerror = (error) => {
-        console.error("Failed to play syllable audio:", error);
-        setIsPlaying(false);
-        alert("⚠️ No audio available for this syllable");
-      };
+  const audio = new Audio();
+  audioRef.current = audio;
 
-      audio.play().catch((error) => {
-        console.error("Failed to play audio:", error);
-        setIsPlaying(false);
-        alert("⚠️ No audio available for this syllable");
-      });
-    } else {
-      // No audio available
-      console.warn(
-        `No audio available for syllable "${syllable}" at index ${index}`
-      );
+  audio.src = audioUrl;
+  // ✅ CHANGE: Use a more noticeable speed difference
+  const targetSpeed = playbackSpeed === "slow" ? 0.5 : 1;  // Changed from 0.65 to 0.5
+  audio.preload = 'auto';
+  audio.load();
+
+  let hasPlayed = false;
+
+  const playAudio = () => {
+    if (hasPlayed) return;
+    hasPlayed = true;
+
+    // ✅ FIX: Set playback rate RIGHT BEFORE playing
+    audio.playbackRate = targetSpeed;
+
+    audio.play().catch((error) => {
+      console.error("Failed to play syllable audio:", error);
       setIsPlaying(false);
-      alert("⚠️ No audio available for this syllable");
-    }
+      audioRef.current = null;
+      alert("⚠️ Could not play syllable audio.");
+    });
   };
 
-  // Function to play the whole word - keep using the whole word rather than pronunciation guide
-  // Function to play the whole word using audio URL with TTS fallback
+  audio.addEventListener('canplay', () => {
+    // ✅ FIX: Ensure playbackRate is set when audio is ready
+    audio.playbackRate = targetSpeed;
+    playAudio();
+  }, { once: true });
+
+  audio.addEventListener('loadeddata', () => {
+    audio.playbackRate = targetSpeed;  // ✅ Set again to be safe
+    setTimeout(playAudio, 100);
+  }, { once: true });
+
+  audio.onended = () => {
+    setIsPlaying(false);
+    audioRef.current = null;
+  };
+
+  audio.onerror = (error) => {
+    console.error("Failed to play syllable audio:", error);
+    setIsPlaying(false);
+    audioRef.current = null;
+    alert("⚠️ Syllable audio file not available.");
+  };
+
+  setTimeout(() => {
+    if (!hasPlayed && audioRef.current === audio) {
+      audio.playbackRate = targetSpeed;  // ✅ Set again before fallback play
+      playAudio();
+    }
+  }, 3000);
+};
+
+
+
   const playWordSound = () => {
-    setIsPlaying(true);
+  if (audioRef.current) {
+    audioRef.current.pause();
+    audioRef.current.currentTime = 0;
+    audioRef.current = null;
+  }
 
-    // Get full word audio URL
-    const fullWordAudioUrl = word?.full_word_audio_url;
+  setIsPlaying(true);
 
-    if (fullWordAudioUrl) {
-      // Play the recorded audio
-      const audio = new Audio(fullWordAudioUrl);
-      audio.playbackRate = playbackSpeed === "slow" ? 0.7 : 1;
+  const fullWordAudioUrl = word?.full_word_audio_url;
 
-      audio.onended = () => {
-        setIsPlaying(false);
-      };
+  if (!fullWordAudioUrl) {
+    console.warn("No audio URL available");
+    setIsPlaying(false);
+    alert("⚠️ No audio available for this word");
+    return;
+  }
 
-      audio.onerror = (error) => {
-        console.error("Failed to play word audio:", error);
-        // Fallback to TTS
-        useBrowserSpeech();
-      };
+  const audio = new Audio();
+  audioRef.current = audio;
 
-      audio.play().catch((error) => {
-        console.error("Failed to play audio:", error);
-        // Fallback to TTS
-        useBrowserSpeech();
-      });
-    } else {
-      // No recorded audio, use TTS as fallback
-      console.log("No recorded audio available, using TTS fallback");
-      useBrowserSpeech();
-    }
+  audio.src = fullWordAudioUrl;
+  // ✅ CHANGE: Use a more noticeable speed difference
+  const targetSpeed = playbackSpeed === "slow" ? 0.5 : 1;  // Changed from 0.65 to 0.5
+  audio.preload = 'auto';
+  audio.load();
 
-    function useBrowserSpeech() {
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
+  let hasPlayed = false;
 
-        const wordText = typeof word === "string" ? word : word.word;
-        const utterance = new SpeechSynthesisUtterance(wordText);
-        utterance.rate = playbackSpeed === "slow" ? 0.5 : 0.8;
+  const playAudio = () => {
+    if (hasPlayed) return;
+    hasPlayed = true;
 
-        utterance.onend = () => {
-          setIsPlaying(false);
-        };
+    // ✅ FIX: Set playback rate RIGHT BEFORE playing
+    audio.playbackRate = targetSpeed;
 
-        utterance.onerror = () => {
-          setIsPlaying(false);
-        };
-
-        window.speechSynthesis.speak(utterance);
-      } else {
-        setIsPlaying(false);
-      }
-    }
+    audio.play().catch((error) => {
+      console.error("Failed to play word audio:", error);
+      setIsPlaying(false);
+      audioRef.current = null;
+      alert("⚠️ Could not play audio.");
+    });
   };
 
+  audio.addEventListener('canplay', () => {
+    // ✅ FIX: Ensure playbackRate is set when audio is ready
+    audio.playbackRate = targetSpeed;
+    playAudio();
+  }, { once: true });
+
+  audio.addEventListener('loadeddata', () => {
+    audio.playbackRate = targetSpeed;  // ✅ Set again to be safe
+    setTimeout(playAudio, 100);
+  }, { once: true });
+
+  audio.onended = () => {
+    setIsPlaying(false);
+    audioRef.current = null;
+  };
+
+  audio.onerror = (error) => {
+    console.error("Failed to play word audio:", error);
+    setIsPlaying(false);
+    audioRef.current = null;
+    alert("⚠️ Audio file not available.");
+  };
+
+  setTimeout(() => {
+    if (!hasPlayed && audioRef.current === audio) {
+      audio.playbackRate = targetSpeed;  // ✅ Set again before fallback play
+      playAudio();
+    }
+  }, 3000);
+};
+
+
+  // Keep cleanup useEffect as is
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
   // Function to handle playing the selected syllable or whole word
   const handlePlaySelected = () => {
     if (selectedSyllable === "all") {
@@ -260,15 +331,14 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound }) => {
                 </div>
               ))}
               <button
-                className={`${styles.fullWordButton} ${selectedSyllable === "all" ? styles.active : ""
-                  }`}
+                className={`${styles.fullWordButton} ${selectedSyllable === "all" ? styles.active : ""}`}
                 onClick={() => setSelectedSyllable("all")}
               >
-                Full Word
+                {word?.word || "Full Word"}
               </button>
             </div>
             <p className={styles.breakdownTip}>
-              Click on a syllable to select it or use the "Full Word" button for
+              Click on a syllable to select it or use the "{word?.word}" button for
               the entire word.
             </p>
           </div>
@@ -303,8 +373,7 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound }) => {
                 </button>
 
                 <button
-                  className={`${styles.speedToggle} ${playbackSpeed === "slow" ? styles.active : ""
-                    }`}
+                  className={`${styles.speedToggle} ${playbackSpeed === "slow" ? styles.active : ""}`}
                   onClick={() =>
                     setPlaybackSpeed(
                       playbackSpeed === "normal" ? "slow" : "normal"
@@ -312,7 +381,7 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound }) => {
                   }
                   disabled={isPlaying || isLoading}
                 >
-                  {playbackSpeed === "slow" ? "Normal Speed" : "Slow Speed"}
+                  {playbackSpeed === "normal" ? "Speed Normal ⚡" : "Speed Slow 🐢"}
                 </button>
               </div>
             </div>

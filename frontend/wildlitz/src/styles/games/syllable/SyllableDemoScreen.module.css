@@ -82,7 +82,7 @@
 /* Demo header */
 .demoHeader {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem; /* ✅ CHANGE: Reduced from 1.5rem */
 }
 
 .demoHeader h1 {
@@ -110,7 +110,7 @@
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem; /* ✅ CHANGE: Reduced from 1.5rem */
 }
 
 .syllableBreakdown h3 {
@@ -207,7 +207,9 @@
 .pronunciationContainer {
   display: flex;
   gap: 2rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem; /* ✅ CHANGE: Reduced from 1.5rem */
+  flex: 1; 
+  overflow: hidden;
 }
 
 /* Sound player section */
@@ -300,6 +302,8 @@
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   padding: 1.5rem;
+  overflow-y: auto; /* ✅ ADD THIS: Enables vertical scrolling only when needed */
+  padding-right: 1rem; /* ✅ CHANGE THIS: Adds space for the scrollbar */
 }
 
 .soundExplanation h3 {
@@ -698,3 +702,4 @@
   color: #555;
   line-height: 1.5;
 }
+
