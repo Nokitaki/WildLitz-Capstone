@@ -82,7 +82,7 @@
 /* Demo header */
 .demoHeader {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem; /* ✅ CHANGE: Reduced from 1.5rem */
 }
 
 .demoHeader h1 {
@@ -110,7 +110,7 @@
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem; /* ✅ CHANGE: Reduced from 1.5rem */
 }
 
 .syllableBreakdown h3 {
@@ -207,7 +207,9 @@
 .pronunciationContainer {
   display: flex;
   gap: 2rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem; /* ✅ CHANGE: Reduced from 1.5rem */
+  flex: 1; 
+  overflow: hidden;
 }
 
 /* Sound player section */
@@ -300,6 +302,8 @@
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   padding: 1.5rem;
+  overflow-y: auto; /* ✅ ADD THIS: Enables vertical scrolling only when needed */
+  padding-right: 1rem; /* ✅ CHANGE THIS: Adds space for the scrollbar */
 }
 
 .soundExplanation h3 {
@@ -608,3 +612,94 @@
     margin-bottom: 0.75rem;
   }
 }
+
+/* Phonetic Guide Styles */
+.phoneticBreakdown {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #f0f4ff;
+  border-radius: 8px;
+  border-left: 4px solid #4a90e2;
+}
+
+.phoneticGuide {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.phoneticGuide strong {
+  color: #4a90e2;
+}
+
+.rhymingWords {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #fff8e1;
+  border-radius: 8px;
+  border-left: 4px solid #ffc107;
+}
+
+.rhymingWords p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.rhymingWords strong {
+  color: #f57c00;
+}
+
+.soundBreakdown {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #f1f8e9;
+  border-radius: 8px;
+  border-left: 4px solid #66bb6a;
+}
+
+.soundBreakdown > p {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.soundBreakdown strong {
+  color: #2e7d32;
+}
+
+.soundList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.soundItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  background-color: white;
+  border-radius: 6px;
+  transition: transform 0.2s;
+}
+
+.soundItem:hover {
+  transform: translateX(5px);
+}
+
+.soundSymbol {
+  font-weight: bold;
+  color: #2e7d32;
+  font-size: 1rem;
+  min-width: 50px;
+  font-family: 'Courier New', monospace;
+}
+
+.soundExplanationText {
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.5;
+}
+

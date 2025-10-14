@@ -101,20 +101,45 @@ body {
   flex-direction: column;
   gap: 15px;
   flex-grow: 1;
+  overflow-y: auto; /* Allow this container to scroll */
+  min-height: 0; /* Fixes a common flexbox bug */
+  padding-right: 10px; /* Adds space for the scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #ccc #f1f1f1;
 }
 
 .section {
   background: rgba(243, 245, 255, 0.7);
   padding: 0.7rem 0.8rem;
-  max-height: 45%;
   border-radius: var(--radius);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
   border: 2px solid rgba(106, 90, 205, 0.1);
   position: relative;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0; /* Prevents sections from shrinking */
   overflow: auto;
+  scrollbar-width: thin; /* Makes scrollbar thin in Firefox */
+  scrollbar-color: #ccc #f1f1f1; /* Sets thumb and track color in Firefox */
 }
+/* Add these NEW rules for Chrome, Safari, and other WebKit browsers */
+.section::-webkit-scrollbar {
+  width: 5px; /* --- Controls the scrollbar's thinness --- */
+}
+
+.section::-webkit-scrollbar-track {
+  background: #f1f1f1; /* --- The background of the scrollbar --- */
+}
+
+.section::-webkit-scrollbar-thumb {
+  background: #ccc; /* --- The gray color of the handle --- */
+  border-radius: 10px;
+}
+
+.section::-webkit-scrollbar-thumb:hover {
+  background: #aaa; /* --- A darker gray when you hover over it --- */
+}
+
 
 .section h2 {
   font-size: 1.2rem;
@@ -210,19 +235,19 @@ body {
 .categoriesGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(2, 1fr);
+  grid-auto-rows: minmax(55px, auto); /* Reduced size slightly for better fit */
   gap: 0.7rem;
   margin-top: 0.3rem;
-  flex-grow: 1;
-  height: auto;
   max-height: 170px;
+  overflow-y: auto; 
+  overflow-x: hidden; 
+  padding: .5rem;
 }
-
 .categoryCard {
   background: white;
   border: 1px solid #e8e8e8;
   border-radius: var(--radius);
-  padding: 0.5rem 0.7rem;
+  padding: 0.5rem 1rem;
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -230,18 +255,17 @@ body {
   transition: all 0.25s ease;
   box-shadow: var(--shadow-sm);
   overflow: hidden;
-  min-height: 30px;
   height: 100%;
 }
 
 .categoryIcon {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
 }
 
 .categoryName {
   color: #000;
   font-weight: bold;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -495,10 +519,31 @@ body {
   max-width: 95vw;
   max-height: 90vh;
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
+  overflow-y: auto;  /* ← Makes it scrollable */
   display: flex;
   flex-direction: column;
   padding: 0;
+  scrollbar-width: thin;  /* ← Firefox */
+  scrollbar-color: var(--primary) #f0f0f0;  /* ← Firefox */
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 10px;
+}
+
+.modal::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+}
+
+.modal::-webkit-scrollbar-thumb:hover {
+  background: #5849b8;
 }
 
 .modalHeader {
@@ -697,24 +742,31 @@ body {
 }
 
 .customWordsContainer {
-  padding: 1rem 1.5rem;
-  margin-top: 0.8rem;
-  border-top: 1px solid #eee;
-  max-height: 250px;
+  /* Removed top margin and adjusted padding */
+  padding: 0.5rem 1.5rem 1.5rem;
+  margin: 0 1.5rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  max-height: calc(90vh - 500px); /* Adjusted height for new layout */
+  min-height: 250px;
   overflow-y: auto;
+  background-color: #fafafa;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.customWordsContainer h3 {
+/* ADD THIS NEW RULE for the separated header */
+.customWordsHeader {
   color: #555;
-  margin-top: 0;
-  margin-bottom: 0.8rem;
   font-size: 1.1rem;
+  /* Adds space: 1rem on top, 1.5rem on sides, 0.5rem on bottom */
+  margin: 1rem 1.5rem 0.5rem;
 }
 
 .customList {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
+  padding-bottom: 0.5rem;  /* ← ADDED spacing at bottom */
 }
 
 .wordItem {
@@ -862,7 +914,6 @@ body {
 @media (max-width: 992px) {
   .categoriesGrid {
     grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 1fr);
   }
   
   .difficultyButtons {
@@ -876,10 +927,6 @@ body {
   
   .difficultyBtn span {
     font-size: 1.2rem;
-  }
-  
-  .section {
-    max-height: 35%;
   }
 }
 
@@ -896,7 +943,6 @@ body {
   
   .section {
     padding: 0.7rem;
-    max-height: none;
   }
   
   .sectionHeader {
@@ -948,4 +994,849 @@ body {
   .modal {
     width: 90vw;
   }
+}
+
+/* ==========================================
+   ENHANCED CUSTOM WORD FORM STYLES
+   ========================================== */
+
+/* Syllable Breakdown Section */
+.syllableBreakdownGroup {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  position: relative; /* Needed to position the spinner */
+}
+
+.inputSpinner {
+  position: absolute;
+  right: 110px; /* Adjust to position it before the badge */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(106, 90, 205, 0.2);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Optional: Slightly fade the input while loading */
+.syllableBreakdownGroup.loading .syllableBreakdownInput {
+  background-color: #f9f9f9;
+}
+
+.syllableBreakdownInput {
+  flex: 1;
+}
+
+.syllableCountBadge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary);
+  color: white;
+  border-radius: var(--radius);
+  padding: 0.5rem 1rem;
+  min-width: 80px;
+  text-align: center;
+}
+
+.syllableCountBadge .count {
+  font-size: 1.8rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.syllableCountBadge .label {
+  font-size: 0.7rem;
+  margin-top: 0.2rem;
+  opacity: 0.9;
+}
+
+/* AI Validation Section */
+.aiValidationSection {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.validateButton {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.6rem 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  transition: all 0.25s ease;
+}
+
+.validateButton:hover:not(:disabled) {
+  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.validateButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.validateButton .spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid white;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.validationResult {
+  background-color: #f5f5f5;
+  border-radius: var(--radius);
+  padding: 0.8rem;
+  border-left: 4px solid #ccc;
+}
+
+.validationResult.correct {
+  background-color: #e8f5e9;
+  border-left-color: #4caf50;
+}
+
+.validationResult.incorrect {
+  background-color: #ffebee;
+  border-left-color: #f44336;
+}
+
+.validationResult .resultIcon {
+  font-size: 1.2rem;
+  margin-right: 0.5rem;
+}
+
+.validationResult .resultText {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.validationResult .suggestion {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #666;
+  font-style: italic;
+}
+
+.validationResult .alternativeBreakdown {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(255,255,255,0.5);
+  border-radius: 8px;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+/* Image Upload Section */
+.imageUploadSection {
+  margin-top: 1rem;
+}
+
+.imageUploadBox {
+  border: 2px dashed #ddd;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  text-align: center;
+  background-color: #fafafa;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.imageUploadBox:hover {
+  border-color: var(--primary);
+  background-color: rgba(106, 90, 205, 0.05);
+}
+
+.imageUploadBox.hasImage {
+  border-style: solid;
+  border-color: var(--primary);
+}
+
+.uploadIcon {
+  font-size: 2rem;
+  color: #999;
+  margin-bottom: 0.5rem;
+}
+
+.uploadText {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.imagePreview {
+  margin-top: 0.8rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+  max-width: 200px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+}
+
+.imagePreview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.removeImageButton {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: var(--danger);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.removeImageButton:hover {
+  background-color: #d32f2f;
+  transform: scale(1.1);
+}
+
+/* Audio Recording Section */
+.audioRecordingSection {
+  margin-top: 1rem;
+}
+
+.audioSectionTitle {
+  font-weight: bold;
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.recordButton {
+  background-color: #f5f5f5;
+  color: #555;
+  border: 2px solid #ddd;
+  border-radius: var(--radius);
+  padding: 0.6rem 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.25s ease;
+  font-size: 0.9rem;
+}
+
+.recordButton:hover:not(:disabled) {
+  border-color: var(--danger);
+  background-color: rgba(255, 77, 77, 0.05);
+}
+
+.recordButton.recording {
+  background-color: var(--danger);
+  color: white;
+  border-color: var(--danger);
+  animation: pulse 1.5s infinite;
+}
+
+.recordButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.micIcon {
+  font-size: 1.1rem;
+}
+
+.audioPreview {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.audioPreview audio {
+  flex: 1;
+  height: 32px;
+}
+
+.deleteAudioButton {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0.2rem;
+  transition: all 0.2s ease;
+}
+
+.deleteAudioButton:hover {
+  transform: scale(1.2);
+  color: #d32f2f;
+}
+
+/* Syllable Audio Grid */
+.syllableAudioGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.syllableAudioItem {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: var(--radius);
+  padding: 0.6rem;
+}
+
+.syllableAudioItem .syllableLabel {
+  font-weight: bold;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.syllableAudioItem .recordButton {
+  width: 100%;
+  justify-content: center;
+  font-size: 0.85rem;
+  padding: 0.5rem;
+}
+
+/* Category AI Suggestion */
+.aiSuggestionBox {
+  background-color: #e3f2fd;
+  border: 1px solid #90caf9;
+  border-radius: var(--radius);
+  padding: 0.6rem 0.8rem;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.aiSuggestionBox .aiIcon {
+  font-size: 1.1rem;
+  color: #1976d2;
+}
+
+.aiSuggestionBox .suggestionText {
+  flex: 1;
+  color: #0d47a1;
+}
+
+.acceptSuggestionButton {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.acceptSuggestionButton:hover {
+  background-color: #1565c0;
+}
+
+/* Form Actions */
+.formActions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.cancelFormButton {
+  background-color: #f5f5f5;
+  color: #666;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.7rem 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.cancelFormButton:hover {
+  background-color: #e0e0e0;
+}
+
+.saveToDbButton {
+  background-color: var(--success);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.7rem 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.saveToDbButton:hover:not(:disabled) {
+  background-color: #3d9c40;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.saveToDbButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Success Message */
+.successMessage {
+  background-color: #e8f5e9;
+  border: 1px solid #4caf50;
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.successMessage .successIcon {
+  font-size: 1.5rem;
+  color: #4caf50;
+}
+
+.successMessage .successText {
+  flex: 1;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+/* --- Database Search Panel --- */
+.searchPanel {
+  padding: 1rem 1.5rem;
+}
+
+.searchHeader h3 {
+  color: var(--primary);
+  margin: 0 0 1rem 0;
+}
+
+.searchBar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.searchBar input {
+  flex-grow: 1;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+}
+
+.searchBar button {
+  padding: 0 1rem;
+  border: none;
+  background-color: var(--primary);
+  color: white;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.searchResults {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 0.5rem; /* Space for scrollbar */
+}
+
+.searchResultItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem;
+  background-color: #f9f9f9;
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+}
+
+.searchResultItem .wordInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.searchResultItem .wordActions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.searchError {
+  color: var(--danger);
+}
+
+.headerButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.manageDbBtn {
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.manageDbBtn:hover {
+  background-color: #e0e0e0;
+  box-shadow: var(--shadow-sm);
+  transform: translateY(0); /* Override hover effect from randomBtn if any */
+}
+
+/* Modifier to make the search modal wider */
+.searchModal {
+  width: 700px;
+}
+
+/* --- Search Filters --- */
+.searchFilters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  background-color: #f7f7f9;
+  padding: 0.8rem;
+  border-radius: var(--radius);
+}
+
+.filterGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: #555; /* Add this line to set a dark gray text color */
+}
+/* --- Pagination Controls --- */
+.paginationControls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.paginationControls button {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #ddd;
+  background-color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.paginationControls button:hover:not(:disabled) {
+  background-color: #f0f0f0;
+}
+
+.paginationControls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.paginationControls span {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #555;
+}
+
+.searchDeleteBtn {
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+  color: var(--danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  flex-shrink: 0; /* Prevents the button from shrinking */
+}
+
+.searchDeleteBtn:hover {
+  background-color: rgba(255, 77, 77, 0.1);
+  transform: scale(1.1);
+}
+
+.searchEditBtn {
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+  color: var(--primary); /* Use the primary theme color */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.searchEditBtn:hover {
+  background-color: rgba(106, 90, 205, 0.1); /* Light primary color on hover */
+  transform: scale(1.1);
+}
+
+.dismissButton {
+  background-color: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #666;
+  padding: 0.2rem 0.6rem;
+  border-radius: 10px; /* This gives it the rounded corners */
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto; /* Pushes the button to the far right */
+}
+
+.dismissButton:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.audioActionButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.uploadButton {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border: 2px solid #ddd;
+  border-radius: var(--radius);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  background-color: #f5f5f5;
+  color: #555;
+  flex: 1; /* Allows it to share space with the record button */
+  justify-content: center;
+}
+
+.uploadButton:hover {
+  border-color: var(--primary);
+  background-color: rgba(106, 90, 205, 0.05);
+}
+
+.uploadButton span {
+  font-size: 1.1rem;
+}
+
+/* Rating Display in Search Results */
+.wordRating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.ratingValue {
+  color: #666;
+  font-size: 0.75rem;
+}
+
+.noRating {
+  color: #999;
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+/* Rate Button */
+.searchRateBtn {
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+  color: #ffc107;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.searchRateBtn:hover {
+  background-color: rgba(255, 193, 7, 0.1);
+  transform: scale(1.1);
+}
+
+/* Rating Modal */
+.ratingModal {
+  background: white;
+  border-radius: var(--radius);
+  width: 400px;
+  max-width: 95vw;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.ratingModalContent {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.ratingModalContent p {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  color: #555;
+}
+
+.currentRatingDisplay {
+  background-color: #f0f4ff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.currentRatingDisplay strong {
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+/* Star Rating Selector */
+.starRatingSelector {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+.starButton {
+  background: none;
+  border: none;
+  font-size: 2.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #ddd;
+}
+
+.starButton.selected {
+  color: #ffc107;
+}
+
+.starButton:hover {
+  transform: scale(1.2);
+}
+
+.ratingLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #777;
+  margin-top: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .wordRating {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+  
+  .ratingModal {
+    width: 90vw;
+  }
+  
+  .starButton {
+    font-size: 2rem;
+  }
+}
+
+/* Your Rating Display */
+.yourRatingDisplay {
+  background-color: #e8f5e9;
+  border: 2px solid #4caf50;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #2e7d32;
+}
+
+.yourRatingDisplay strong {
+  color: #1b5e20;
+  font-size: 1.2rem;
 }

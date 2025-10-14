@@ -106,14 +106,16 @@ def get_syllabification_word_from_supabase(request):
             fun_fact = ai_generator.generate_fun_fact(selected_word['word'], selected_word['category'])
             intro_message = ai_generator.generate_character_message(selected_word['word'], 'intro', difficulty)
             
-            # Return word data with AI content
+            # Return word data with AI content AND AUDIO URLS
             word_data = {
                 'word': selected_word['word'],
                 'syllables': selected_word['syllable_breakdown'],
                 'count': selected_word['syllable_count'],
                 'category': selected_word['category'],
                 'image_url': selected_word.get('image_url', ''),
-                'pronunciation_guide': selected_word.get('pronunciation_guide', selected_word['syllable_breakdown']),
+                'full_word_audio_url': selected_word.get('full_word_audio_url'),
+                'syllable_audio_urls': selected_word.get('syllable_audio_urls', []),
+                'phonetic_guide': selected_word.get('phonetic_guide'),  # ✅ ADD THIS LINE
                 'fun_fact': fun_fact,
                 'intro_message': intro_message
             }
@@ -150,9 +152,17 @@ def check_syllable_answer(request):
         # Calculate time spent (if provided)
         time_spent = data.get('timeSpent', time.time() - start_time)
         
-        # Generate appropriate feedback message
+        # Generate appropriate feedback message (for the speech bubble)
         context = 'correct' if is_correct else 'incorrect'
         feedback_message = ai_generator.generate_character_message(word, context)
+        
+        # 🆕 NEW: Generate personalized learning feedback for AI Learning Assistant section
+        learning_feedback = ai_generator.generate_learning_feedback(
+            word=word,
+            is_correct=is_correct,
+            syllable_count=correct_count,
+            difficulty=difficulty
+        )
         
         # Log activity for authenticated users
         if request.user.is_authenticated:
@@ -173,7 +183,8 @@ def check_syllable_answer(request):
         
         response_data = {
             'is_correct': is_correct,
-            'feedback_message': feedback_message
+            'feedback_message': feedback_message,
+            'learning_feedback': learning_feedback  # 🆕 NEW: Add learning feedback to response
         }
         
         # Add progress info for authenticated users
@@ -313,13 +324,17 @@ def get_word_batch(request):
                 fun_fact = ai_generator.generate_fun_fact(word['word'], word['category'])
                 intro_message = ai_generator.generate_character_message(word['word'], 'intro', difficulty)
                 
+                # Append word data with AI content AND AUDIO URLS
+                # Append word data with AI content AND AUDIO URLS
                 words_with_content.append({
                     'word': word['word'],
                     'syllables': word['syllable_breakdown'],
                     'count': word['syllable_count'],
                     'category': word['category'],
                     'image_url': word.get('image_url', ''),
-                    'pronunciation_guide': word.get('pronunciation_guide', word['syllable_breakdown']),
+                    'full_word_audio_url': word.get('full_word_audio_url'),
+                    'syllable_audio_urls': word.get('syllable_audio_urls', []),
+                    'phonetic_guide': word.get('phonetic_guide'),  # ✅ ADD THIS LINE
                     'fun_fact': fun_fact,
                     'intro_message': intro_message
                 })
@@ -372,6 +387,11 @@ def generate_ai_content(request):
             content = ai_generator.generate_character_message(word, context, difficulty)
         elif content_type == 'syllable_tip':
             content = ai_generator.generate_syllable_tip(difficulty)
+        elif content_type == 'category_suggestion':
+            content = ai_generator.suggest_category(word)
+        # 👇 ADD THIS NEW CONDITION
+        elif content_type == 'syllable_breakdown_suggestion':
+            content = ai_generator.generate_syllable_breakdown(word)
         else:
             return Response({'error': 'Invalid content type'}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -379,4 +399,630 @@ def generate_ai_content(request):
     
     except Exception as e:
         logger.error(f"Error generating AI content: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+# ==========================================
+# NEW ENDPOINTS FOR CUSTOM WORDS
+# ==========================================
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def check_word_exists(request):
+    """
+    Check if a word already exists in the database
+    Returns existing word data if found
+    """
+    word = request.GET.get('word', '').strip()
+    
+    if not word:
+        return Response({'error': 'Word parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Use RPC function to query wildlitz schema
+        response = supabase.rpc('get_word_from_public', {'search_word': word}).execute()
+        
+        if response.data and len(response.data) > 0:
+            existing_word = response.data[0]
+            
+            return Response({
+            'exists': True,
+            'word': {
+                'id': existing_word['id'],
+                'word': existing_word['word'],
+                'syllable_breakdown': existing_word['syllable_breakdown'],
+                'syllable_count': existing_word['syllable_count'],
+                'category': existing_word['category'],
+                'difficulty_level': existing_word['difficulty_level'],
+                'image_url': existing_word.get('image_url'),
+                'is_custom': existing_word.get('is_custom', False),
+                'created_by_name': existing_word.get('created_by_name', 'Unknown'),
+                'usage_count': existing_word.get('usage_count', 0),
+                'rating': float(existing_word.get('rating') or 0.0),
+                'fun_fact': existing_word.get('fun_fact'),
+                'intro_message': existing_word.get('intro_message')
+            }
+        })
+        else:
+            return Response({
+                'exists': False,
+                'message': f'Word "{word}" not found in database'
+            })
+            
+    except Exception as e:
+        logger.error(f"Error checking word existence: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def validate_syllable_structure(request):
+    """
+    Use AI to validate teacher's syllable breakdown
+    """
+    try:
+        data = request.data
+        word = data.get('word', '').strip()
+        syllable_breakdown = data.get('syllable_breakdown', '').strip()
+        
+        if not word or not syllable_breakdown:
+            return Response(
+                {'error': 'Both word and syllable_breakdown are required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Use AI to validate
+        validation_result = ai_generator.validate_syllable_structure(word, syllable_breakdown)
+        
+        return Response({
+            'validation': validation_result,
+            'word': word,
+            'submitted_breakdown': syllable_breakdown
+        })
+        
+    except Exception as e:
+        logger.error(f"Error validating syllable structure: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_custom_word(request):
+    """
+    Create a new custom word with optional image and audio uploads
+    """
+    try:
+        # Get form data
+        word = request.data.get('word', '').strip()
+        syllable_breakdown = request.data.get('syllable_breakdown', '').strip()
+        category = request.data.get('category', '').strip()
+        
+        # Validate required fields
+        if not word or not syllable_breakdown:
+            return Response(
+                {'error': 'Word and syllable_breakdown are required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Calculate syllable count
+        syllable_count = len(syllable_breakdown.split('-'))
+        
+        # Determine difficulty based on syllable count
+        if syllable_count <= 2:
+            difficulty_level = 'easy'
+        elif syllable_count == 3:
+            difficulty_level = 'medium'
+        else:
+            difficulty_level = 'hard'
+        
+        # AI: Validate syllable structure
+        validation_result = ai_generator.validate_syllable_structure(word, syllable_breakdown)
+        
+        # AI: Suggest category if not provided
+        if not category:
+            category = 'Custom Words'
+        
+        # AI: Generate fun fact and intro message
+        fun_fact = ai_generator.generate_fun_fact(word, category)
+        intro_message = ai_generator.generate_character_message(word, 'intro', difficulty_level)
+        
+        # 🆕 NEW: Generate phonetic guide
+        phonetic_guide = ai_generator.generate_phonetic_guide(word, syllable_breakdown)
+        
+        # Handle file uploads
+        image_url = None
+        full_word_audio_url = None
+        syllable_audio_urls = []
+        
+        # Upload image if provided
+        if 'image' in request.FILES:
+            from .services_ai import upload_file_to_supabase_storage
+            image_file = request.FILES['image']
+            image_filename = f"{word.lower().replace(' ', '_')}.{image_file.name.split('.')[-1]}"
+            try:
+                image_url = upload_file_to_supabase_storage(
+                    image_file, 
+                    'syllable-word-images', 
+                    image_filename
+                )
+            except Exception as e:
+                logger.error(f"Error uploading image: {str(e)}")
+        
+        # Upload full word audio if provided
+        if 'full_word_audio' in request.FILES:
+            from .services_ai import upload_file_to_supabase_storage
+            audio_file = request.FILES['full_word_audio']
+            audio_filename = f"{word.lower().replace(' ', '_')}_full.{audio_file.name.split('.')[-1]}"
+            try:
+                full_word_audio_url = upload_file_to_supabase_storage(
+                    audio_file, 
+                    'syllable-word-audio', 
+                    audio_filename
+                )
+            except Exception as e:
+                logger.error(f"Error uploading full word audio: {str(e)}")
+        
+        # Upload syllable audio files if provided
+        syllables = syllable_breakdown.split('-')
+        for idx in range(len(syllables)):
+            field_name = f'syllable_audio_{idx}'
+            if field_name in request.FILES:
+                from .services_ai import upload_file_to_supabase_storage
+                syllable_file = request.FILES[field_name]
+                syllable_filename = f"{word.lower().replace(' ', '_')}_syl_{idx}.{syllable_file.name.split('.')[-1]}"
+                try:
+                    syllable_url = upload_file_to_supabase_storage(
+                        syllable_file, 
+                        'syllable-word-audio', 
+                        syllable_filename
+                    )
+                    syllable_audio_urls.append(syllable_url)
+                except Exception as e:
+                    logger.error(f"Error uploading syllable audio {idx}: {str(e)}")
+        
+        # Get user info if authenticated
+        created_by = None
+        created_by_name = 'Anonymous'
+        if request.user.is_authenticated:
+            created_by = request.user.id
+            created_by_name = request.user.username or request.user.email
+        
+        syllable_audio_urls_json = json.dumps(syllable_audio_urls) if syllable_audio_urls else '[]'
+        # Use RPC function to insert into wildlitz schema
+        response = supabase.rpc('insert_custom_word_to_public', {
+            'p_word': word,
+            'p_syllable_breakdown': syllable_breakdown,
+            'p_syllable_count': syllable_count,
+            'p_difficulty_level': difficulty_level,
+            'p_category': category,
+            'p_image_url': image_url,
+            'p_full_word_audio_url': full_word_audio_url,
+            'p_syllable_audio_urls': syllable_audio_urls_json,
+            'p_fun_fact': fun_fact,
+            'p_intro_message': intro_message,
+            'p_ai_suggested_category': category,
+            'p_is_ai_validated': True,
+            'p_ai_validation_result': validation_result,
+            'p_phonetic_guide': phonetic_guide,  # 🆕 NEW: Add phonetic guide
+            'p_created_by': created_by,
+            'p_created_by_name': created_by_name,
+            'p_is_custom': True,
+            'p_is_public': True
+        }).execute()
+        
+        if response.data and len(response.data) > 0:
+            created_word = response.data[0]
+            logger.info(f"Custom word created: {word} by {created_by_name}")
+            
+            return Response({
+                'success': True,
+                'message': f'Custom word "{word}" created successfully!',
+                'word': created_word,
+                'validation': validation_result
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response(
+                {'error': 'Failed to create word in database'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+    except Exception as e:
+        logger.error(f"Error creating custom word: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_custom_words(request):
+    """
+    Get custom words for the game
+    Can filter by word IDs or get all public custom words
+    """
+    try:
+        word_ids = request.GET.getlist('word_ids[]', [])
+        
+        # Use RPC function to query wildlitz schema
+        if word_ids:
+            # Convert to proper format for PostgreSQL array
+            response = supabase.rpc('get_custom_words_from_public', {'word_ids': word_ids}).execute()
+        else:
+            # Get all custom words (pass NULL)
+            response = supabase.rpc('get_custom_words_from_public', {'word_ids': None}).execute()
+        
+        words = response.data if response.data else []
+        
+        return Response({
+            'words': words,
+            'count': len(words)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching custom words: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def search_words(request):
+    """
+    Search and filter words from the database with pagination.
+    """
+    try:
+        # Get query parameters
+        search_term = request.GET.get('q', '').strip()
+        categories = request.GET.getlist('categories[]', [])
+        has_audio = request.GET.get('has_audio', 'false').lower() == 'true'
+        page = int(request.GET.get('page', 1))
+        page_size = 10  # Words per page
+
+        # Start building the Supabase query
+        query = supabase.table('syllable_words').select('*', count='exact')
+
+        # Apply filters
+        if search_term:
+            query = query.ilike('word', f'%{search_term}%')
+        
+        if categories:
+            query = query.in_('category', categories)
+
+        if has_audio:
+            query = query.not_.is_('full_word_audio_url', 'null')
+
+        # Apply pagination
+        start_index = (page - 1) * page_size
+        end_index = start_index + page_size - 1
+        query = query.range(start_index, end_index)
+        
+        # ✅ ADD THIS LINE - Order alphabetically by word (A-Z)
+        query = query.order('word', desc=False)
+
+        # Execute the query
+        response = query.execute()
+        
+        words = response.data if response.data else []
+        total_count = response.count if response.count is not None else 0
+        
+        for word in words:
+            validation_result = word.get('ai_validation_result', {})
+            ratings_data = validation_result.get('ratings_data', {})
+            word['rating_count'] = ratings_data.get('rating_count', 0)
+
+        return Response({
+            'results': words,
+            'count': total_count,
+            'page': page,
+            'totalPages': (total_count + page_size - 1) // page_size
+        })
+
+    except Exception as e:
+        logger.error(f"Error searching words: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@csrf_exempt
+@api_view(['DELETE'])
+@permission_classes([AllowAny]) # Or IsAuthenticated if you want to protect it
+def delete_custom_word(request, word_id):
+    """
+    Permanently delete a custom word from the database.
+    """
+    try:
+        # Use the table in the public schema and delete the word matching the ID
+        response = supabase.table('syllable_words').delete().eq('id', word_id).execute()
+        
+        # Check if any data was returned (successful deletion)
+        if response.data:
+            logger.info(f"Successfully deleted word with ID: {word_id}")
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            logger.warning(f"Could not find word with ID: {word_id} to delete.")
+            return Response({'error': 'Word not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        logger.error(f"Error deleting word with ID {word_id}: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@csrf_exempt
+@api_view(['PUT'])
+@permission_classes([AllowAny])
+def update_custom_word(request, word_id):
+    """
+    Update an existing custom word in the database.
+    Now supports audio file uploads with proper merging.
+    """
+    try:
+        data = request.data
+        word = data.get('word', '').strip()
+        syllable_breakdown = data.get('syllable_breakdown', '').strip()
+        category = data.get('category', '').strip()
+
+        if not word or not syllable_breakdown or not category:
+            return Response(
+                {'error': 'Word, syllable_breakdown, and category are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Recalculate syllable count and difficulty
+        syllable_count = len(syllable_breakdown.split('-'))
+        if syllable_count <= 2:
+            difficulty_level = 'easy'
+        elif syllable_count == 3:
+            difficulty_level = 'medium'
+        else:
+            difficulty_level = 'hard'
+
+        # 🆕 NEW: Regenerate phonetic guide when syllable breakdown changes
+        phonetic_guide = ai_generator.generate_phonetic_guide(word, syllable_breakdown)
+
+        # Prepare the data for updating
+        update_data = {
+            'word': word,
+            'syllable_breakdown': syllable_breakdown,
+            'syllable_count': syllable_count,
+            'category': category,
+            'difficulty_level': difficulty_level,
+            'phonetic_guide': phonetic_guide,  # 🆕 NEW: Add phonetic guide
+            'updated_at': 'now()'  # PostgreSQL function for current timestamp
+        }
+
+        # Handle new full word audio upload if provided
+        if 'full_word_audio' in request.FILES:
+            from .services_ai import upload_file_to_supabase_storage
+            audio_file = request.FILES['full_word_audio']
+            audio_filename = f"{word.lower().replace(' ', '_')}_full.{audio_file.name.split('.')[-1]}"
+            try:
+                full_word_audio_url = upload_file_to_supabase_storage(
+                    audio_file, 
+                    'syllable-word-audio', 
+                    audio_filename
+                )
+                update_data['full_word_audio_url'] = full_word_audio_url
+                logger.info(f"Uploaded new full word audio for word ID {word_id}")
+            except Exception as e:
+                logger.error(f"Error uploading full word audio: {str(e)}")
+
+        # 🔹 IMPROVED SYLLABLE AUDIO MERGING LOGIC
+        syllables = syllable_breakdown.split('-')
+
+        # STEP 1: Get existing syllable audio URLs from database
+        try:
+            existing_word_response = supabase.table('syllable_words').select('syllable_audio_urls').eq('id', word_id).execute()
+            if existing_word_response.data and len(existing_word_response.data) > 0:
+                existing_syllable_urls = existing_word_response.data[0].get('syllable_audio_urls', [])
+                # Ensure it's a list
+                if not isinstance(existing_syllable_urls, list):
+                    existing_syllable_urls = []
+            else:
+                existing_syllable_urls = []
+        except Exception as e:
+            logger.error(f"Error fetching existing syllable URLs: {str(e)}")
+            existing_syllable_urls = []
+
+        # STEP 2: Create a copy to preserve old URLs
+        merged_syllable_urls = existing_syllable_urls.copy()
+
+        # STEP 3: Ensure the array has enough slots for all syllables
+        while len(merged_syllable_urls) < len(syllables):
+            merged_syllable_urls.append(None)
+
+        # STEP 4: Only replace syllables that were re-recorded
+        for idx in range(len(syllables)):
+            field_name = f'syllable_audio_{idx}'
+            if field_name in request.FILES:
+                from .services_ai import upload_file_to_supabase_storage
+                syllable_file = request.FILES[field_name]
+                syllable_filename = f"{word.lower().replace(' ', '_')}_syl_{idx}.{syllable_file.name.split('.')[-1]}"
+                try:
+                    syllable_url = upload_file_to_supabase_storage(
+                        syllable_file, 
+                        'syllable-word-audio', 
+                        syllable_filename
+                    )
+                    # Replace at specific index (merge, don't overwrite)
+                    merged_syllable_urls[idx] = syllable_url
+                    logger.info(f"Updated syllable {idx} audio for word ID {word_id}")
+                except Exception as e:
+                    logger.error(f"Error uploading syllable audio {idx}: {str(e)}")
+
+        # STEP 5: Save the merged array
+        update_data['syllable_audio_urls'] = merged_syllable_urls
+
+        # Execute the update query on the public.syllable_words table
+        response = supabase.table('syllable_words').update(update_data).eq('id', word_id).execute()
+
+        if response.data:
+            updated_word = response.data[0]
+            logger.info(f"Successfully updated word with ID: {word_id}")
+            return Response(updated_word, status=status.HTTP_200_OK)
+        else:
+            logger.warning(f"Could not find word with ID: {word_id} to update.")
+            return Response({'error': 'Word not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        logger.error(f"Error updating word with ID {word_id}: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])  # ← CHANGED: Now requires authentication
+def rate_word(request, word_id):
+    """
+    Submit a rating for a word (1-5 stars).
+    One rating per user - updates if already rated.
+    """
+    try:
+        data = request.data
+        new_rating = data.get('rating')
+        
+        # Get authenticated user ID
+        user_id = str(request.user.id)
+        
+        # Validate rating value
+        if not new_rating or not isinstance(new_rating, (int, float)):
+            return Response(
+                {'error': 'Rating must be a number between 1 and 5'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        new_rating = float(new_rating)
+        if new_rating < 1 or new_rating > 5:
+            return Response(
+                {'error': 'Rating must be between 1 and 5'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get current word data
+        response = supabase.table('syllable_words').select('rating, ai_validation_result').eq('id', word_id).execute()
+        
+        if not response.data or len(response.data) == 0:
+            return Response({'error': 'Word not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        word_data = response.data[0]
+        validation_result = word_data.get('ai_validation_result') or {}
+        
+        # Get or initialize ratings data structure
+        ratings_data = validation_result.get('ratings_data', {})
+        user_ratings = ratings_data.get('user_ratings', {})
+        
+        # Check if user already rated this word
+        had_previous_rating = user_id in user_ratings
+        previous_rating = user_ratings.get(user_id)
+        
+        # Update or add user's rating
+        user_ratings[user_id] = new_rating
+        
+        # Calculate new average from all user ratings
+        all_ratings = list(user_ratings.values())
+        average_rating = sum(all_ratings) / len(all_ratings)
+        
+        # Update ratings data structure
+        ratings_data['user_ratings'] = user_ratings
+        ratings_data['rating_count'] = len(user_ratings)
+        ratings_data['average'] = round(average_rating, 2)
+        
+        # Store back in validation_result
+        validation_result['ratings_data'] = ratings_data
+        
+        # Update the word
+        update_response = supabase.table('syllable_words').update({
+            'rating': average_rating,
+            'ai_validation_result': validation_result,
+            'updated_at': 'now()'
+        }).eq('id', word_id).execute()
+        
+        if update_response.data:
+            action = "updated" if had_previous_rating else "submitted"
+            logger.info(f"Rating {action} for word ID {word_id} by user {user_id}: {new_rating} (new average: {average_rating})")
+            
+            return Response({
+                'success': True,
+                'message': f'Rating {action} successfully',
+                'new_average': round(average_rating, 2),
+                'rating_count': len(user_ratings),
+                'your_rating': new_rating,
+                'previous_rating': previous_rating if had_previous_rating else None,
+                'is_update': had_previous_rating
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Failed to update rating'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    except Exception as e:
+        logger.error(f"Error rating word with ID {word_id}: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_rating(request, word_id):
+    """
+    Check if the authenticated user has already rated this word.
+    Returns their rating if they have, or indicates they haven't rated.
+    """
+    try:
+        # Get authenticated user ID
+        user_id = str(request.user.id)
+        
+        # Get word data with ratings
+        response = supabase.table('syllable_words').select('ai_validation_result').eq('id', word_id).execute()
+        
+        if not response.data or len(response.data) == 0:
+            return Response({'error': 'Word not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        word_data = response.data[0]
+        validation_result = word_data.get('ai_validation_result') or {}
+        ratings_data = validation_result.get('ratings_data', {})
+        user_ratings = ratings_data.get('user_ratings', {})
+        
+        # Check if this user has rated
+        if user_id in user_ratings:
+            user_rating = user_ratings[user_id]
+            logger.info(f"User {user_id} has rated word {word_id}: {user_rating}")
+            return Response({
+                'has_rated': True,
+                'user_rating': user_rating
+            })
+        else:
+            logger.info(f"User {user_id} has not rated word {word_id}")
+            return Response({
+                'has_rated': False,
+                'user_rating': None
+            })
+        
+    except Exception as e:
+        logger.error(f"Error checking user rating for word {word_id}: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def generate_phonetic_guide_endpoint(request):
+    """
+    Generate phonetic guide on-demand for words that don't have one
+    """
+    try:
+        data = request.data
+        word = data.get('word', '')
+        syllable_breakdown = data.get('syllable_breakdown', '')
+        
+        if not word or not syllable_breakdown:
+            return Response(
+                {'error': 'Word and syllable_breakdown are required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Generate phonetic guide
+        phonetic_guide = ai_generator.generate_phonetic_guide(word, syllable_breakdown)
+        
+        return Response({
+            'phonetic_guide': phonetic_guide
+        })
+    
+    except Exception as e:
+        logger.error(f"Error generating phonetic guide: {str(e)}")
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
