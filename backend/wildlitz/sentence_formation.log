@@ -287,3 +287,220 @@ INFO 2025-10-07 22:42:11,649 views Activity logged: game_completed
 INFO 2025-10-07 22:42:11,796 views Activity logged: game_completed
 INFO 2025-10-07 22:47:28,962 views Analytics retrieved: 10 sessions, 31 words
 INFO 2025-10-07 22:47:29,185 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:08:31,269 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:08:31,479 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:11:04,912 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:11:05,175 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:35:42,466 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:35:42,810 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:37:10,853 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:37:35,046 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:37:35,344 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:37:38,669 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:37:38,926 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:37:41,691 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:37:41,888 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:37:50,364 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:37:50,661 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:38:04,532 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:38:04,826 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:44:32,358 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:44:32,751 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:45:45,811 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:45:46,207 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:52:41,549 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:52:41,925 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:52:49,465 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:52:49,741 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:53:26,291 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:53:26,544 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:56:32,409 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:56:32,690 views Analytics retrieved: 10 sessions, 31 words
+INFO 2025-10-15 02:56:55,298 views Raw GPT response received (length: 4187)
+INFO 2025-10-15 02:56:55,298 views Successfully parsed GPT response as JSON
+INFO 2025-10-15 02:56:56,056 views Story session created: 8f6a4a71-ff27-4143-876f-21034d2235c6
+INFO 2025-10-15 02:57:46,924 views Activity logged: word_solved
+INFO 2025-10-15 02:57:47,937 views Activity logged: game_completed
+INFO 2025-10-15 02:57:48,033 views Activity logged: game_completed
+INFO 2025-10-15 02:58:47,123 views Activity logged: word_solved
+INFO 2025-10-15 02:58:48,188 views Activity logged: game_completed
+INFO 2025-10-15 02:58:48,190 views Activity logged: game_completed
+INFO 2025-10-15 02:58:59,853 views Analytics retrieved: 11 sessions, 33 words
+INFO 2025-10-15 02:59:00,052 views Analytics retrieved: 11 sessions, 33 words
+INFO 2025-10-15 03:05:26,283 views Analytics retrieved: 11 sessions, 33 words
+INFO 2025-10-15 03:06:50,811 views Analytics retrieved: 11 sessions, 33 words
+INFO 2025-10-15 03:06:51,073 views Analytics retrieved: 11 sessions, 33 words
+INFO 2025-10-15 03:07:26,748 views Analytics retrieved: 11 sessions, 33 words
+INFO 2025-10-15 03:07:26,953 views Analytics retrieved: 11 sessions, 33 words
+INFO 2025-10-15 03:08:16,488 views Raw GPT response received (length: 8975)
+INFO 2025-10-15 03:08:16,489 views Successfully parsed GPT response as JSON
+INFO 2025-10-15 03:08:17,166 views Story session created: a86b1a62-291d-4070-b769-e69e3ef69b5e
+INFO 2025-10-15 03:09:07,460 views Activity logged: word_solved
+INFO 2025-10-15 03:09:11,072 views Activity logged: word_solved
+INFO 2025-10-15 03:09:13,669 views Activity logged: word_solved
+INFO 2025-10-15 03:09:15,636 views Activity logged: word_solved
+INFO 2025-10-15 03:09:17,947 views Activity logged: word_solved
+INFO 2025-10-15 03:09:19,370 views Story session updated: a86b1a62-291d-4070-b769-e69e3ef69b5e
+INFO 2025-10-15 03:09:19,498 views Story session updated: a86b1a62-291d-4070-b769-e69e3ef69b5e
+INFO 2025-10-15 03:09:19,634 views Activity logged: game_completed
+INFO 2025-10-15 03:09:19,636 views Activity logged: game_completed
+INFO 2025-10-15 03:10:10,725 views Activity logged: word_solved
+INFO 2025-10-15 03:10:13,766 views Activity logged: word_solved
+INFO 2025-10-15 03:10:16,381 views Activity logged: word_solved
+INFO 2025-10-15 03:10:18,529 views Activity logged: word_solved
+INFO 2025-10-15 03:10:20,603 views Activity logged: word_solved
+INFO 2025-10-15 03:10:21,956 views Story session updated: a86b1a62-291d-4070-b769-e69e3ef69b5e
+INFO 2025-10-15 03:10:21,958 views Story session updated: a86b1a62-291d-4070-b769-e69e3ef69b5e
+INFO 2025-10-15 03:10:22,075 views Activity logged: game_completed
+INFO 2025-10-15 03:10:22,112 views Activity logged: game_completed
+INFO 2025-10-15 03:10:34,808 views Analytics retrieved: 12 sessions, 43 words
+INFO 2025-10-15 03:10:35,009 views Analytics retrieved: 12 sessions, 43 words
+INFO 2025-10-15 03:10:37,535 views Analytics retrieved: 12 sessions, 43 words
+INFO 2025-10-15 03:10:37,741 views Analytics retrieved: 12 sessions, 43 words
+INFO 2025-10-15 03:11:46,567 views Raw GPT response received (length: 4195)
+INFO 2025-10-15 03:11:46,568 views Successfully parsed GPT response as JSON
+INFO 2025-10-15 03:11:47,816 views Story session created: c974bcf7-1a14-4038-9751-7784605983bb
+INFO 2025-10-15 03:13:22,192 views Activity logged: word_solved
+INFO 2025-10-15 03:13:24,606 views Activity logged: word_solved
+INFO 2025-10-15 03:13:26,988 views Activity logged: word_solved
+INFO 2025-10-15 03:13:29,215 views Activity logged: word_solved
+INFO 2025-10-15 03:13:31,203 views Activity logged: word_solved
+INFO 2025-10-15 03:13:32,585 views Story session updated: c974bcf7-1a14-4038-9751-7784605983bb
+INFO 2025-10-15 03:13:32,586 views Story session updated: c974bcf7-1a14-4038-9751-7784605983bb
+INFO 2025-10-15 03:13:32,716 views Activity logged: game_completed
+INFO 2025-10-15 03:13:32,717 views Activity logged: game_completed
+INFO 2025-10-15 03:13:41,808 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 03:13:42,126 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 03:14:22,217 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 03:14:22,425 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 03:14:24,067 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 03:14:24,261 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 03:15:16,547 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 03:15:16,803 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 03:15:51,241 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 03:15:51,471 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 13:50:57,428 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 13:50:57,708 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 13:53:03,941 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 13:53:04,162 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 13:53:39,614 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 13:53:39,949 views Analytics retrieved: 13 sessions, 48 words
+INFO 2025-10-15 13:54:02,341 views Raw GPT response received (length: 4435)
+INFO 2025-10-15 13:54:02,342 views Successfully parsed GPT response as JSON
+INFO 2025-10-15 13:54:03,200 views Story session created: 34a8fd81-d1b8-4cfc-b16c-9c8dc60ce9a7
+INFO 2025-10-15 13:55:49,282 views Activity logged: word_solved
+INFO 2025-10-15 13:55:53,830 views Activity logged: word_solved
+INFO 2025-10-15 13:55:56,555 views Activity logged: word_solved
+INFO 2025-10-15 13:56:24,421 views Activity logged: word_solved
+INFO 2025-10-15 13:56:26,811 views Activity logged: word_solved
+INFO 2025-10-15 13:56:28,177 views Story session updated: 34a8fd81-d1b8-4cfc-b16c-9c8dc60ce9a7
+INFO 2025-10-15 13:56:28,377 views Story session updated: 34a8fd81-d1b8-4cfc-b16c-9c8dc60ce9a7
+INFO 2025-10-15 13:56:28,545 views Activity logged: game_completed
+INFO 2025-10-15 13:56:28,546 views Activity logged: game_completed
+INFO 2025-10-15 13:56:43,729 views Analytics retrieved: 14 sessions, 53 words
+INFO 2025-10-15 13:56:44,014 views Analytics retrieved: 14 sessions, 53 words
+INFO 2025-10-15 14:01:14,892 views Analytics retrieved: 14 sessions, 53 words
+INFO 2025-10-15 14:01:15,251 views Analytics retrieved: 14 sessions, 53 words
+INFO 2025-10-15 14:01:17,535 views Analytics retrieved: 14 sessions, 53 words
+INFO 2025-10-15 14:01:35,898 views Raw GPT response received (length: 1949)
+INFO 2025-10-15 14:01:35,898 views Successfully parsed GPT response as JSON
+INFO 2025-10-15 14:01:37,008 views Story session created: 185b87e4-0cc8-489e-a5cb-91995526e000
+INFO 2025-10-15 14:01:54,073 views Activity logged: word_solved
+INFO 2025-10-15 14:01:55,313 views Story session updated: 185b87e4-0cc8-489e-a5cb-91995526e000
+INFO 2025-10-15 14:01:55,602 views Story session updated: 185b87e4-0cc8-489e-a5cb-91995526e000
+INFO 2025-10-15 14:01:55,604 views Activity logged: game_completed
+INFO 2025-10-15 14:01:55,765 views Activity logged: game_completed
+INFO 2025-10-15 14:02:05,879 views Analytics retrieved: 15 sessions, 54 words
+INFO 2025-10-15 14:02:06,210 views Analytics retrieved: 15 sessions, 54 words
+INFO 2025-10-15 14:02:12,775 views Analytics retrieved: 15 sessions, 54 words
+INFO 2025-10-15 14:11:12,492 views Analytics retrieved: 0 sessions, 0 words
+INFO 2025-10-15 14:11:12,686 views Analytics retrieved: 0 sessions, 0 words
+INFO 2025-10-15 14:11:34,271 views Raw GPT response received (length: 4360)
+INFO 2025-10-15 14:11:34,271 views Successfully parsed GPT response as JSON
+INFO 2025-10-15 14:11:34,973 views Story session created: 6290bbcc-5950-4409-a86d-b8f0d6890b1e
+INFO 2025-10-15 14:14:42,961 views Analytics retrieved: 1 sessions, 0 words
+INFO 2025-10-15 14:14:43,189 views Analytics retrieved: 1 sessions, 0 words
+INFO 2025-10-15 14:16:28,208 views Analytics retrieved: 1 sessions, 0 words
+INFO 2025-10-15 14:18:17,991 views Analytics retrieved: 1 sessions, 0 words
+INFO 2025-10-15 14:18:17,992 views Analytics retrieved: 15 sessions, 54 words
+INFO 2025-10-15 14:18:18,339 views Analytics retrieved: 1 sessions, 0 words
+INFO 2025-10-15 14:18:18,340 views Analytics retrieved: 15 sessions, 54 words
+INFO 2025-10-15 14:18:49,412 views Raw GPT response received (length: 8434)
+INFO 2025-10-15 14:18:49,413 views Successfully parsed GPT response as JSON
+INFO 2025-10-15 14:18:50,557 views Story session created: aa83afa8-58da-4588-b606-2685d59ce501
+INFO 2025-10-15 14:19:07,151 views Activity logged: word_solved
+INFO 2025-10-15 14:19:11,240 views Activity logged: word_solved
+INFO 2025-10-15 14:19:13,537 views Activity logged: word_solved
+INFO 2025-10-15 14:19:15,496 views Activity logged: word_solved
+INFO 2025-10-15 14:19:19,794 views Activity logged: word_solved
+INFO 2025-10-15 14:19:21,147 views Story session updated: aa83afa8-58da-4588-b606-2685d59ce501
+INFO 2025-10-15 14:19:21,466 views Story session updated: aa83afa8-58da-4588-b606-2685d59ce501
+INFO 2025-10-15 14:19:21,468 views Activity logged: game_completed
+INFO 2025-10-15 14:19:21,625 views Activity logged: game_completed
+INFO 2025-10-15 14:19:44,313 views Activity logged: word_solved
+INFO 2025-10-15 14:19:46,308 views Activity logged: word_solved
+INFO 2025-10-15 14:19:48,451 views Activity logged: word_solved
+INFO 2025-10-15 14:19:50,876 views Activity logged: word_solved
+INFO 2025-10-15 14:19:53,422 views Activity logged: word_solved
+INFO 2025-10-15 14:19:54,829 views Story session updated: aa83afa8-58da-4588-b606-2685d59ce501
+INFO 2025-10-15 14:19:54,829 views Story session updated: aa83afa8-58da-4588-b606-2685d59ce501
+INFO 2025-10-15 14:19:54,944 views Activity logged: game_completed
+INFO 2025-10-15 14:19:54,953 views Activity logged: game_completed
+INFO 2025-10-15 14:20:23,116 views Analytics retrieved: 2 sessions, 0 words
+INFO 2025-10-15 14:20:23,356 views Analytics retrieved: 2 sessions, 0 words
+INFO 2025-10-15 14:20:25,066 views Analytics retrieved: 2 sessions, 0 words
+INFO 2025-10-15 14:32:46,858 views Found 2 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:32:46,858 views Found 2 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:32:46,859 views Sample session: {'id': 'aa83afa8-58da-4588-b606-2685d59ce501', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760509108', 'story_title': 'Adventures in the Jungle', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-15T06:18:51.171437+00:00', 'session_end': '2025-10-15T14:19:54.654431+00:00', 'total_duration_seconds': 11, 'episodes_completed': 2, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:18:51.171437+00:00', 'updated_at': '2025-10-15T06:19:55.448118+00:00'}
+INFO 2025-10-15 14:32:46,859 views Sample session: {'id': 'aa83afa8-58da-4588-b606-2685d59ce501', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760509108', 'story_title': 'Adventures in the Jungle', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-15T06:18:51.171437+00:00', 'session_end': '2025-10-15T14:19:54.654431+00:00', 'total_duration_seconds': 11, 'episodes_completed': 2, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:18:51.171437+00:00', 'updated_at': '2025-10-15T06:19:55.448118+00:00'}
+ERROR 2025-10-15 14:32:46,860 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+ERROR 2025-10-15 14:32:46,860 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+INFO 2025-10-15 14:32:47,505 views Found 2 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:32:47,506 views Sample session: {'id': 'aa83afa8-58da-4588-b606-2685d59ce501', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760509108', 'story_title': 'Adventures in the Jungle', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-15T06:18:51.171437+00:00', 'session_end': '2025-10-15T14:19:54.654431+00:00', 'total_duration_seconds': 11, 'episodes_completed': 2, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:18:51.171437+00:00', 'updated_at': '2025-10-15T06:19:55.448118+00:00'}
+ERROR 2025-10-15 14:32:47,506 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+INFO 2025-10-15 14:32:51,493 views Found 2 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:32:51,494 views Found 2 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:32:51,494 views Sample session: {'id': 'aa83afa8-58da-4588-b606-2685d59ce501', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760509108', 'story_title': 'Adventures in the Jungle', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-15T06:18:51.171437+00:00', 'session_end': '2025-10-15T14:19:54.654431+00:00', 'total_duration_seconds': 11, 'episodes_completed': 2, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:18:51.171437+00:00', 'updated_at': '2025-10-15T06:19:55.448118+00:00'}
+INFO 2025-10-15 14:32:51,494 views Sample session: {'id': 'aa83afa8-58da-4588-b606-2685d59ce501', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760509108', 'story_title': 'Adventures in the Jungle', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-15T06:18:51.171437+00:00', 'session_end': '2025-10-15T14:19:54.654431+00:00', 'total_duration_seconds': 11, 'episodes_completed': 2, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:18:51.171437+00:00', 'updated_at': '2025-10-15T06:19:55.448118+00:00'}
+ERROR 2025-10-15 14:32:51,495 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+ERROR 2025-10-15 14:32:51,495 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+INFO 2025-10-15 14:33:30,785 views Found 2 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:33:30,785 views Sample session: {'id': 'aa83afa8-58da-4588-b606-2685d59ce501', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760509108', 'story_title': 'Adventures in the Jungle', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-15T06:18:51.171437+00:00', 'session_end': '2025-10-15T14:19:54.654431+00:00', 'total_duration_seconds': 11, 'episodes_completed': 2, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:18:51.171437+00:00', 'updated_at': '2025-10-15T06:19:55.448118+00:00'}
+ERROR 2025-10-15 14:33:30,786 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+INFO 2025-10-15 14:33:31,102 views Found 2 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:33:31,103 views Sample session: {'id': 'aa83afa8-58da-4588-b606-2685d59ce501', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760509108', 'story_title': 'Adventures in the Jungle', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-15T06:18:51.171437+00:00', 'session_end': '2025-10-15T14:19:54.654431+00:00', 'total_duration_seconds': 11, 'episodes_completed': 2, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:18:51.171437+00:00', 'updated_at': '2025-10-15T06:19:55.448118+00:00'}
+ERROR 2025-10-15 14:33:31,103 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+INFO 2025-10-15 14:33:31,409 views Found 2 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:33:31,409 views Sample session: {'id': 'aa83afa8-58da-4588-b606-2685d59ce501', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760509108', 'story_title': 'Adventures in the Jungle', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-15T06:18:51.171437+00:00', 'session_end': '2025-10-15T14:19:54.654431+00:00', 'total_duration_seconds': 11, 'episodes_completed': 2, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:18:51.171437+00:00', 'updated_at': '2025-10-15T06:19:55.448118+00:00'}
+ERROR 2025-10-15 14:33:31,409 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+INFO 2025-10-15 14:33:31,714 views Found 2 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:33:31,714 views Sample session: {'id': 'aa83afa8-58da-4588-b606-2685d59ce501', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760509108', 'story_title': 'Adventures in the Jungle', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-15T06:18:51.171437+00:00', 'session_end': '2025-10-15T14:19:54.654431+00:00', 'total_duration_seconds': 11, 'episodes_completed': 2, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:18:51.171437+00:00', 'updated_at': '2025-10-15T06:19:55.448118+00:00'}
+ERROR 2025-10-15 14:33:31,715 views Error fetching story analytics: unsupported operand type(s) for +: 'int' and 'NoneType'
+INFO 2025-10-15 14:36:23,064 views Found 2 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:36:23,064 views Sample session: {'id': 'aa83afa8-58da-4588-b606-2685d59ce501', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760509108', 'story_title': 'Adventures in the Jungle', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-15T06:18:51.171437+00:00', 'session_end': '2025-10-15T14:19:54.654431+00:00', 'total_duration_seconds': 11, 'episodes_completed': 2, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:18:51.171437+00:00', 'updated_at': '2025-10-15T06:19:55.448118+00:00'}
+INFO 2025-10-15 14:36:23,066 views Found 2 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:36:23,068 views Sample session: {'id': 'aa83afa8-58da-4588-b606-2685d59ce501', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760509108', 'story_title': 'Adventures in the Jungle', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-15T06:18:51.171437+00:00', 'session_end': '2025-10-15T14:19:54.654431+00:00', 'total_duration_seconds': 11, 'episodes_completed': 2, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:18:51.171437+00:00', 'updated_at': '2025-10-15T06:19:55.448118+00:00'}
+INFO 2025-10-15 14:36:23,186 views Found 2 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:36:23,187 views Sample session: {'id': 'aa83afa8-58da-4588-b606-2685d59ce501', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760509108', 'story_title': 'Adventures in the Jungle', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-15T06:18:51.171437+00:00', 'session_end': '2025-10-15T14:19:54.654431+00:00', 'total_duration_seconds': 11, 'episodes_completed': 2, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:18:51.171437+00:00', 'updated_at': '2025-10-15T06:19:55.448118+00:00'}
+INFO 2025-10-15 14:36:23,310 views Found 2 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:36:23,310 views Sample session: {'id': 'aa83afa8-58da-4588-b606-2685d59ce501', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760509108', 'story_title': 'Adventures in the Jungle', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-15T06:18:51.171437+00:00', 'session_end': '2025-10-15T14:19:54.654431+00:00', 'total_duration_seconds': 11, 'episodes_completed': 2, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:18:51.171437+00:00', 'updated_at': '2025-10-15T06:19:55.448118+00:00'}
+INFO 2025-10-15 14:37:09,697 views Raw GPT response received (length: 4463)
+INFO 2025-10-15 14:37:09,698 views Successfully parsed GPT response as JSON
+INFO 2025-10-15 14:37:11,613 views Story session created: 9a985dd0-1f7b-478f-b628-71b9a4eae21c
+INFO 2025-10-15 14:37:19,641 views Activity logged: word_solved
+INFO 2025-10-15 14:37:22,194 views Activity logged: word_solved
+INFO 2025-10-15 14:37:24,146 views Activity logged: word_solved
+INFO 2025-10-15 14:37:26,578 views Activity logged: word_solved
+INFO 2025-10-15 14:37:28,625 views Activity logged: word_solved
+INFO 2025-10-15 14:37:29,981 views Story session updated: 9a985dd0-1f7b-478f-b628-71b9a4eae21c
+INFO 2025-10-15 14:37:30,103 views Story session updated: 9a985dd0-1f7b-478f-b628-71b9a4eae21c
+INFO 2025-10-15 14:37:30,296 views Activity logged: game_completed
+INFO 2025-10-15 14:37:30,297 views Activity logged: game_completed
+INFO 2025-10-15 14:37:38,764 views Found 3 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:37:38,765 views Found 3 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:37:38,765 views Sample session: {'id': '9a985dd0-1f7b-478f-b628-71b9a4eae21c', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'space_generated_1760510216', 'story_title': 'Galactic Adventure', 'theme': 'space', 'focus_skills': [], 'episode_count': 1, 'character_names': '', 'session_start': '2025-10-15T06:37:12.19619+00:00', 'session_end': '2025-10-15T14:37:29.984006+00:00', 'total_duration_seconds': 10, 'episodes_completed': 1, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:37:12.19619+00:00', 'updated_at': '2025-10-15T06:37:30.700748+00:00'}
+INFO 2025-10-15 14:37:38,765 views Sample session: {'id': '9a985dd0-1f7b-478f-b628-71b9a4eae21c', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'space_generated_1760510216', 'story_title': 'Galactic Adventure', 'theme': 'space', 'focus_skills': [], 'episode_count': 1, 'character_names': '', 'session_start': '2025-10-15T06:37:12.19619+00:00', 'session_end': '2025-10-15T14:37:29.984006+00:00', 'total_duration_seconds': 10, 'episodes_completed': 1, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:37:12.19619+00:00', 'updated_at': '2025-10-15T06:37:30.700748+00:00'}
+INFO 2025-10-15 14:37:39,101 views Found 3 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:37:39,101 views Found 3 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 14:37:39,108 views Sample session: {'id': '9a985dd0-1f7b-478f-b628-71b9a4eae21c', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'space_generated_1760510216', 'story_title': 'Galactic Adventure', 'theme': 'space', 'focus_skills': [], 'episode_count': 1, 'character_names': '', 'session_start': '2025-10-15T06:37:12.19619+00:00', 'session_end': '2025-10-15T14:37:29.984006+00:00', 'total_duration_seconds': 10, 'episodes_completed': 1, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:37:12.19619+00:00', 'updated_at': '2025-10-15T06:37:30.700748+00:00'}
+INFO 2025-10-15 14:37:39,108 views Sample session: {'id': '9a985dd0-1f7b-478f-b628-71b9a4eae21c', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'space_generated_1760510216', 'story_title': 'Galactic Adventure', 'theme': 'space', 'focus_skills': [], 'episode_count': 1, 'character_names': '', 'session_start': '2025-10-15T06:37:12.19619+00:00', 'session_end': '2025-10-15T14:37:29.984006+00:00', 'total_duration_seconds': 10, 'episodes_completed': 1, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T06:37:12.19619+00:00', 'updated_at': '2025-10-15T06:37:30.700748+00:00'}

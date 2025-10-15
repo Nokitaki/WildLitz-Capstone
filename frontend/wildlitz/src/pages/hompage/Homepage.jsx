@@ -367,7 +367,7 @@ function HomePage() {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onStartGame={handleStartGameFromModal}
-        gameType={selectedGame}
+        game={selectedGame}
       />
       <AuthModal
         isOpen={authModalOpen}

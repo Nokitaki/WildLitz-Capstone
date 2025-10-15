@@ -177,7 +177,7 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
     <div className={styles.generatorContainer}>
       <div className={styles.generatorCard}>
 
-        <CrosswordAnalyticsDashboard />
+       
 
         
         <div className={styles.titleContainer}>

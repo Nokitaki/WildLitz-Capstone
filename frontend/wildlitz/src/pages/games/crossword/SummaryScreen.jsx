@@ -28,33 +28,70 @@ const SummaryScreen = ({
   sessionId  // ADD THIS
 }) => {
 
-   useEffect(() => {
-    const logGameCompletion = async () => {
-  if (!sessionId) {
-    console.log('⚠️ No session ID, skipping game completion log');
-    return;
-  }
+// REPLACE the entire useEffect in your SummaryScreen.jsx with this:
 
-  try {
-    const gameData = {
-      totalTime: timeSpent,
-      totalHints: 0,
-      wordsLearned: solvedWords.length,
-      accuracy: totalWords > 0 ? Math.round((solvedWords.length / totalWords) * 100) : 0
-    };
-
-    await crosswordAnalyticsService.logGameCompleted(sessionId, gameData);
-    console.log('✅ Game completion logged successfully');
-  } catch (error) {
-    console.log('⚠️ Analytics failed (game continues):', error.message);
-  }
-};
-
-    // Only log if we have solved words
-    if (solvedWords && solvedWords.length > 0) {
-      logGameCompletion();
+useEffect(() => {
+  console.log('📊 ========== SUMMARY SCREEN MOUNTED ==========');
+  console.log('🆔 SessionId:', sessionId);
+  console.log('📝 Solved words:', solvedWords?.length || 0);
+  console.log('📍 Current episode:', currentEpisode);
+  console.log('📍 Total episodes:', totalEpisodes);
+  console.log('⏱️ Time spent:', timeSpent);
+  
+  const logGameCompletion = async () => {
+    // Check if we have a valid session ID
+    if (!sessionId || sessionId === 'undefined' || sessionId === 'null') {
+      console.error('❌ NO SESSION ID - Cannot log completion!');
+      console.error('❌ Session value is:', sessionId);
+      return;
     }
-  }, []);
+
+    // Check if we have solved words
+    if (!solvedWords || solvedWords.length === 0) {
+      console.warn('⚠️ No solved words, skipping completion log');
+      return;
+    }
+
+    try {
+      console.log('📤 ========== LOGGING EPISODE COMPLETION ==========');
+      
+      // Determine if this is the final episode
+      const isFullyCompleted = currentEpisode >= totalEpisodes;
+      
+      const gameData = {
+        totalTime: timeSpent || 0,
+        totalHints: 0,
+        wordsLearned: solvedWords.length,
+        accuracy: totalWords > 0 ? Math.round((solvedWords.length / totalWords) * 100) : 100,
+        episodesCompleted: currentEpisode,
+        isFullyCompleted: isFullyCompleted
+      };
+
+      console.log('📤 Sending game data:', JSON.stringify(gameData, null, 2));
+      console.log('🎯 Target session:', sessionId);
+
+      const result = await crosswordAnalyticsService.logGameCompleted(sessionId, gameData);
+      
+      console.log('✅ ========== EPISODE COMPLETION LOGGED ==========');
+      console.log(`✅ Episode ${currentEpisode} of ${totalEpisodes} recorded`);
+      console.log('✅ Result:', result);
+      
+      if (isFullyCompleted) {
+        console.log('🎉 ========== ALL EPISODES COMPLETED ==========');
+        console.log('🎉 Session marked as complete!');
+      }
+    } catch (error) {
+      console.error('❌ ========== ANALYTICS LOGGING FAILED ==========');
+      console.error('❌ Error:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Stack:', error.stack);
+    }
+  };
+
+  // Always try to log, even if no solved words (for debugging)
+  logGameCompletion();
+  
+}, []); // Empty dependency array - run once on mount
 
   // Get theme name with proper capitalization
    const themeName = theme === "story" ? "Story Adventure" : theme.charAt(0).toUpperCase() + theme.slice(1);

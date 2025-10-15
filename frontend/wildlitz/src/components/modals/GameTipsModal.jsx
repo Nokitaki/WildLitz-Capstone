@@ -1,5 +1,7 @@
+// src/components/common/GameTipsModal.jsx
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 // Import the animation components
 import VanishingGameAnimation from '../animations/VanishingGameAnimation';
@@ -8,6 +10,8 @@ import CrosswordAnimation from '../animations/CrosswordAnimation';
 import SyllableClappingAnimation from '../animations/SyllableClappingAnimation';
 
 const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
+  const navigate = useNavigate();
+
   const gameInfo = {
     'syllable-clapping': {
       title: 'Syllable Clapping Game',
@@ -52,18 +56,24 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
       title: 'Crossword Puzzle',
       description: 'Build vocabulary and sentence structure with fun word puzzles!',
       component: <CrosswordAnimation />,
-      color: '#96CEB4',
+      color: '#9B59B6',
       emoji: '🧩',
       howToPlay: [
-        'Read each clue carefully before answering',
-        'Look for clues that might be easier to solve first',
-        'Use letter intersections to help figure out difficult words',
-        'Think about words that match both the clue and the available spaces'
+        'Read the clues carefully to understand what word you need to find',
+        'Select a clue from the list to see the available answer choices',
+        'Choose the correct answer from the multiple choice options',
+        'Watch as the word fills into the crossword grid when you get it right',
+        'Use hints wisely if you get stuck on a difficult clue'
       ]
     }
   };
 
   const currentGame = gameInfo[game] || gameInfo['syllable-clapping'];
+
+  const handleAnalytics = () => {
+    onClose();
+    navigate('/analytics/crossword');
+  };
 
   if (!isOpen) return null;
 
@@ -73,44 +83,35 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        onClick={onClose}
         style={{
           position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'linear-gradient(135deg, rgba(75, 53, 42, 0.95), rgba(93, 64, 55, 0.95))',
-          backdropFilter: 'blur(10px)',
+          background: 'rgba(0, 0, 0, 0.75)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 1000,
           padding: '20px'
         }}
-        onClick={onClose}
       >
         <motion.div
-          initial={{ scale: 0.7, opacity: 0, y: 50 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.7, opacity: 0, y: 50 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.8, opacity: 0 }}
+          transition={{ type: 'spring', damping: 20 }}
           style={{
-            background: `linear-gradient(135deg,
-              rgba(139, 95, 68, 0.98) 0%,
-              rgba(160, 116, 89, 0.98) 25%,
-              rgba(181, 137, 110, 0.98) 50%,
-              rgba(202, 158, 131, 0.98) 75%,
-              rgba(223, 179, 152, 0.98) 100%)`,
+            background: 'linear-gradient(135deg, #FFF8E1 0%, #FFE082 100%)',
             borderRadius: '25px',
-            padding: 0,
-            maxWidth: '600px',
+            maxWidth: '650px',
             width: '100%',
-            maxHeight: '85vh',
-            overflow: 'hidden',
+            maxHeight: '90vh',
+            overflow: 'auto',
             position: 'relative',
-            boxShadow: `0 20px 50px rgba(0, 0, 0, 0.4),
-                       0 0 0 3px ${currentGame.color}40,
-                       0 0 25px ${currentGame.color}30`,
+            boxShadow: `0 20px 60px rgba(0,0,0,0.3), 0 0 0 4px ${currentGame.color}40`,
             border: `3px solid ${currentGame.color}60`
           }}
           onClick={(e) => e.stopPropagation()}
@@ -266,27 +267,71 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
             </motion.ul>
           </div>
 
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onStartGame}
-            style={{
-              background: currentGame.color,
-              margin: '0 25px 25px',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '12px',
-              padding: '10px 20px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              fontSize: '1rem',
-              textAlign: 'center',
-              fontFamily: 'Poppins, sans-serif',
-              boxShadow: `0 4px 15px ${currentGame.color}70`
-            }}
-          >
-            Start Game
-          </motion.div>
+          {/* FOOTER WITH BUTTONS */}
+          <div style={{
+            padding: '0 25px 25px',
+            display: 'flex',
+            gap: '15px',
+            justifyContent: 'center',
+            flexWrap: 'wrap'
+          }}>
+            {/* Analytics Button - Only show for Crossword game */}
+            {game === 'crossword-puzzle' && (
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleAnalytics}
+                style={{
+                  background: 'linear-gradient(135deg, #2196f3, #42a5f5)',
+                  flex: '1',
+                  minWidth: '160px',
+                  maxWidth: '200px',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '12px 20px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '1rem',
+                  textAlign: 'center',
+                  fontFamily: 'Poppins, sans-serif',
+                  boxShadow: '0 4px 15px rgba(33, 150, 243, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                <span style={{ fontSize: '1.2rem' }}>📊</span>
+                <span>Analytics</span>
+              </motion.div>
+            )}
+            
+            {/* Start Game Button */}
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onStartGame}
+              style={{
+                background: currentGame.color,
+                flex: '1',
+                minWidth: '160px',
+                maxWidth: '200px',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '12px',
+                padding: '12px 20px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '1rem',
+                textAlign: 'center',
+                fontFamily: 'Poppins, sans-serif',
+                boxShadow: `0 4px 15px ${currentGame.color}70`
+              }}
+            >
+              Start Game
+            </motion.div>
+          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>

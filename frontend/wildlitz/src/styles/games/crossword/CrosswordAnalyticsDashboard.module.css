@@ -1,4 +1,4 @@
-/* src/components/crossword/CrosswordAnalyticsDashboard.module.css */
+/* src/styles/games/crossword/CrosswordAnalyticsDashboard.module.css */
 
 .dashboardContainer {
   width: 100%;
@@ -8,6 +8,49 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   min-height: 400px;
 }
+
+/* ADD THESE NEW STYLES FOR BACK BUTTON */
+.backButtonContainer {
+  margin-bottom: 20px;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  color: #9c27b0;
+  border: 2px solid #9c27b0;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.2);
+  font-family: 'Poppins', sans-serif;
+}
+
+.backButton:hover {
+  background: #9c27b0;
+  color: white;
+  transform: translateX(-5px);
+  box-shadow: 0 6px 16px rgba(156, 39, 176, 0.3);
+}
+
+.backButton:active {
+  transform: translateX(-3px);
+}
+
+.backArrow {
+  font-size: 20px;
+  transition: transform 0.3s ease;
+}
+
+.backButton:hover .backArrow {
+  transform: translateX(-3px);
+}
+/* END OF NEW BACK BUTTON STYLES */
 
 .dashboardHeader {
   text-align: center;
@@ -260,6 +303,11 @@
     padding: 15px;
   }
 
+  .backButton {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
   .dashboardTitle {
     font-size: 1.5rem;
   }
@@ -297,6 +345,11 @@
 }
 
 @media (max-width: 480px) {
+  .backButton {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
   .dashboardTitle {
     font-size: 1.3rem;
   }

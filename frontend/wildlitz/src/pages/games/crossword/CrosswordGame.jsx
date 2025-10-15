@@ -14,6 +14,7 @@ import StoryGeneratorScreen from './StoryGeneratorScreen';
 // Import AI components
 import AIReadingCoach from '../../../components/crossword/AIReadingCoach';
 import AdaptiveHintSystem from '../../../components/crossword/AdaptiveHintSystem';
+import { useAuth } from '../../../context/AuthContext';
 
 // Import mock data
 import { STORY_ADVENTURES, STORY_PUZZLES } from '../../../mock/storyData';
@@ -25,6 +26,9 @@ const CrosswordGame = () => {
   // Game states
   const [gameState, setGameState] = useState('generate-story');
   
+  const { user, isAuthenticated } = useAuth();
+
+
   // Game configuration
   const [gameConfig, setGameConfig] = useState({
     storyMode: true,
@@ -149,7 +153,6 @@ const CrosswordGame = () => {
     ...data.puzzles
   };
   
-  // Update state with new stories and puzzles
   setGameStories(newStories);
   setGamePuzzles(newPuzzles);
   
@@ -162,8 +165,15 @@ const CrosswordGame = () => {
   
   // CREATE A SESSION for analytics tracking
   try {
+    // ✅ USE LOGGED-IN USER EMAIL OR FALLBACK TO GUEST
+    const userEmail = (isAuthenticated && user?.email) 
+      ? user.email 
+      : 'guest@wildlitz.com';
+    
+    console.log('🔐 Creating session for user:', userEmail);
+    
     const sessionData = {
-      user_email: 'guest@wildlitz.com',
+      user_email: userEmail, // ✅ USING ACTUAL USER EMAIL!
       story_id: newStory.id,
       story_title: newStory.title,
       theme: newStory.theme,
@@ -177,6 +187,7 @@ const CrosswordGame = () => {
     if (sessionResponse.success && sessionResponse.session_id) {
       setSessionId(sessionResponse.session_id);
       console.log('✅ Session created:', sessionResponse.session_id);
+      console.log('✅ User email:', userEmail);
     }
   } catch (error) {
     console.log('⚠️ Could not create session (analytics disabled):', error.message);
@@ -400,26 +411,24 @@ const CrosswordGame = () => {
     exit={{ opacity: 0 }}
     className={styles.screenContainer}
   >
-
-
-    
-  <SummaryScreen 
-    solvedWords={solvedWords}
-    timeSpent={timeSpent}
-    timeFormatted={formatTime(timeSpent)}
-    theme="story"
-    onPlayAgain={handleNextEpisode}
-    onBuildSentences={() => setGameState('sentence-builder')}
-    onReturnToMenu={handleReturnToMenu}
-    totalWords={currentPuzzle ? currentPuzzle.words.length : 0}
-    isStoryMode={true}
-    currentEpisode={currentEpisode}                    // ← Check this
-    totalEpisodes={gameStories[gameConfig.adventureId]?.episodes?.length || 0}  // ← And this
-    hasNextEpisode={currentEpisode < (gameStories[gameConfig.adventureId]?.episodes?.length || 0)}
-    storyTitle={gameStories[gameConfig.adventureId]?.title || 'Adventure'}
-    storySegment={currentStorySegment}
-    sessionId={sessionId}
-  />
+    <SummaryScreen 
+      solvedWords={solvedWords}
+      timeSpent={timeSpent}
+      timeFormatted={formatTime(timeSpent)}
+      theme="story"
+      onPlayAgain={handleNextEpisode}
+      onBuildSentences={handleGoToSentenceBuilder}
+      onReturnToMenu={handleReturnToMenu}
+      totalWords={currentPuzzle ? currentPuzzle.words.length : 0}
+      isStoryMode={true}
+      nextEpisodeAvailable={currentEpisode < (gameStories[gameConfig.adventureId]?.episodes?.length || 0)}
+      hasNextEpisode={currentEpisode < (gameStories[gameConfig.adventureId]?.episodes?.length || 0)}
+      currentEpisode={currentEpisode}
+      totalEpisodes={gameStories[gameConfig.adventureId]?.episodes?.length || 0}
+      storyTitle={gameStories[gameConfig.adventureId]?.title || 'Adventure'}
+      storySegment={currentStorySegment}
+      sessionId={sessionId}  // ✅ MAKE SURE THIS LINE EXISTS!
+    />
   </motion.div>
 )}
           

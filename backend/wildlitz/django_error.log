@@ -178,3 +178,30 @@ ERROR 2025-10-07 21:55:37,214 basehttp "POST /api/sentence_formation/story/activ
 ERROR 2025-10-07 21:55:48,460 log Internal Server Error: /api/sentence_formation/story/activity/log/
 ERROR 2025-10-07 21:55:48,460 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 123
 ERROR 2025-10-07 21:55:48,460 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 123
+ERROR 2025-10-15 14:32:46,861 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-15 14:32:46,861 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-15 14:32:46,862 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760509965127 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:32:46,862 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760509965126 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:32:46,862 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760509965126 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:32:46,862 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760509965127 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:32:47,506 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-15 14:32:47,507 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:32:47,507 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:32:51,495 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-15 14:32:51,496 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-15 14:32:51,496 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760509971121 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:32:51,496 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760509971121 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:32:51,497 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760509971122 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:32:51,497 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760509971122 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:33:30,787 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-15 14:33:30,787 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760510010048 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:33:30,787 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760510010048 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:33:31,103 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-15 14:33:31,104 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760510010048 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:33:31,104 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760510010048 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:33:31,410 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-15 14:33:31,410 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760510010048 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:33:31,410 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760510010048 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:33:31,715 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-10-15 14:33:31,715 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760510010048 HTTP/1.1" 500 67
+ERROR 2025-10-15 14:33:31,715 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020@gmail.com&days=30&_t=1760510010048 HTTP/1.1" 500 67

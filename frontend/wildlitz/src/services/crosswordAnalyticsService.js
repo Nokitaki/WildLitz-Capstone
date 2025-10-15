@@ -1,14 +1,37 @@
 // src/services/crosswordAnalyticsService.js
-// Complete service for crossword game analytics
+// COMPLETE service for crossword game analytics
 import { API_ENDPOINTS } from '../config/api';
 
 class CrosswordAnalyticsService {
+  /**
+   * Helper: Get current user email from localStorage
+   */
+  getUserEmail() {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return user.email || 'guest@wildlitz.com';
+      } catch (e) {
+        return 'guest@wildlitz.com';
+      }
+    }
+    return 'guest@wildlitz.com';
+  }
+
   /**
    * Create a new crossword game session
    */
   async createSession(sessionData) {
     try {
-      const response = await fetch(`${API_ENDPOINTS.STORY}/session/create/`, {
+      // Use current user email if not provided
+      if (!sessionData.user_email) {
+        sessionData.user_email = this.getUserEmail();
+      }
+      
+      console.log('📤 Creating session with email:', sessionData.user_email);
+      
+      const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/story/session/create/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -22,6 +45,7 @@ class CrosswordAnalyticsService {
         throw new Error(data.error || 'Failed to create session');
       }
       
+      console.log('✅ Session created:', data.session_id);
       return data;
     } catch (error) {
       console.error('Error creating session:', error);
@@ -34,7 +58,9 @@ class CrosswordAnalyticsService {
    */
   async updateSession(sessionId, updates) {
     try {
-      const response = await fetch(`${API_ENDPOINTS.STORY}/session/${sessionId}/update/`, {
+      console.log('📤 Updating session:', sessionId, updates);
+      
+      const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/story/session/${sessionId}/update/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -48,9 +74,10 @@ class CrosswordAnalyticsService {
         throw new Error(data.error || 'Failed to update session');
       }
       
+      console.log('✅ Session updated:', data);
       return data;
     } catch (error) {
-      console.error('Error updating session:', error);
+      console.error('❌ Error updating session:', error);
       throw error;
     }
   }
@@ -60,7 +87,9 @@ class CrosswordAnalyticsService {
    */
   async logActivity(activityData) {
     try {
-      const response = await fetch(`${API_ENDPOINTS.STORY}/activity/log/`, {
+      console.log('📤 Logging activity:', activityData);
+      
+      const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/story/activity/log/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -74,9 +103,10 @@ class CrosswordAnalyticsService {
         throw new Error(data.error || 'Failed to log activity');
       }
       
+      console.log('✅ Activity logged:', data);
       return data;
     } catch (error) {
-      console.error('Error logging activity:', error);
+      console.error('❌ Error logging activity:', error);
       throw error;
     }
   }
@@ -99,15 +129,14 @@ class CrosswordAnalyticsService {
         is_correct: true,
         time_spent_seconds: timeSpent,
         hint_count: hintsUsed,
-        user_email: 'guest@wildlitz.com',
+        user_email: this.getUserEmail(),
         episode_number: wordData?.episodeNumber || 1,
         puzzle_id: wordData?.puzzleId || 'unknown'
       };
       
       return await this.logActivity(activityData);
     } catch (error) {
-      console.log('⚠️ Analytics logging skipped:', error.message);
-      // Don't throw - fail silently for analytics
+      console.log('⚠️ Word logging skipped:', error.message);
       return { success: false };
     }
   }
@@ -123,6 +152,21 @@ class CrosswordAnalyticsService {
         return { success: false, skipped: true };
       }
 
+      console.log('📤 Logging game completion for session:', sessionId);
+
+      // Update the session with completion data
+      const sessionUpdates = {
+        total_words_solved: gameData?.wordsLearned || 0,
+        total_duration_seconds: gameData?.totalTime || 0,
+        total_hints_used: gameData?.totalHints || 0,
+        episodes_completed: gameData?.episodesCompleted || 1,
+        completion_percentage: gameData?.accuracy || 0,
+        is_completed: gameData?.isFullyCompleted || false
+      };
+
+      await this.updateSession(sessionId, sessionUpdates);
+
+      // Also log as an activity
       const activityData = {
         session_id: sessionId,
         activity_type: 'game_completed',
@@ -130,14 +174,17 @@ class CrosswordAnalyticsService {
         is_correct: true,
         time_spent_seconds: gameData?.totalTime || 0,
         hint_count: gameData?.totalHints || 0,
-        user_email: 'guest@wildlitz.com'
+        user_email: this.getUserEmail()
       };
       
-      return await this.logActivity(activityData);
+      await this.logActivity(activityData);
+      
+      console.log('✅ Game completion logged successfully');
+      return { success: true };
     } catch (error) {
+      console.error('❌ Game completion logging failed:', error);
       console.log('⚠️ Analytics logging skipped:', error.message);
-      // Don't throw - fail silently for analytics
-      return { success: false };
+      return { success: false, error: error.message };
     }
   }
 
@@ -146,7 +193,7 @@ class CrosswordAnalyticsService {
    */
   async getSessionAnalytics(sessionId) {
     try {
-      const response = await fetch(`${API_ENDPOINTS.STORY}/session/${sessionId}/analytics/`);
+      const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/story/session/${sessionId}/`);
       
       const data = await response.json();
       
@@ -164,9 +211,12 @@ class CrosswordAnalyticsService {
   /**
    * Get analytics for a user
    */
-  async getUserAnalytics(userId, days = 30) {
+  async getUserAnalytics(userEmail = null, days = 30) {
     try {
-      const response = await fetch(`${API_ENDPOINTS.STORY}/analytics/?user_id=${userId}&days=${days}`);
+      const email = userEmail || this.getUserEmail();
+      const response = await fetch(
+        `${API_ENDPOINTS.SENTENCE_FORMATION}/story/analytics/?user_email=${email}&days=${days}`
+      );
       
       const data = await response.json();
       
@@ -188,12 +238,15 @@ class CrosswordAnalyticsService {
     try {
       const params = new URLSearchParams();
       
-      if (filters.user_email) params.append('user_email', filters.user_email);
+      // Use current user email if not specified
+      const userEmail = filters.user_email || this.getUserEmail();
+      params.append('user_email', userEmail);
+      
       if (filters.user_id) params.append('user_id', filters.user_id);
       if (filters.days) params.append('days', filters.days);
       if (filters.limit) params.append('limit', filters.limit);
       
-      const response = await fetch(`${API_ENDPOINTS.STORY}/analytics/?${params}`);
+      const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/story/analytics/?${params}`);
       const data = await response.json();
       
       if (!response.ok) {
