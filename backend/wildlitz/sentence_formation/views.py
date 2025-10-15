@@ -1075,7 +1075,7 @@ def get_story_analytics(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_session_details(request, session_id):
-    """Get detailed information about a specific session"""
+    """Get detailed information about a specific session including all activities"""
     try:
         # Get session data
         session_response = supabase.table('story_game_sessions').select('*').eq('id', session_id).execute()
@@ -1093,17 +1093,105 @@ def get_session_details(request, session_id):
         
         activities = activities_response.data if activities_response.data else []
         
+        # Separate word_solved activities from game_completed
+        word_activities = [a for a in activities if a.get('activity_type') == 'word_solved']
+        completion_activities = [a for a in activities if a.get('activity_type') == 'game_completed']
+        
+        # Calculate word-level stats
+        word_stats = []
+        for activity in word_activities:
+            word_data = activity.get('word_data', {})
+            word_stats.append({
+                'word': word_data.get('word', 'Unknown'),
+                'time_spent': activity.get('time_spent_seconds', 0),
+                'hints_used': activity.get('hint_count', 0),
+                'episode_number': activity.get('episode_number', 1),
+                'is_correct': activity.get('is_correct', True),
+                'created_at': activity.get('created_at')
+            })
+        
         logger.info(f"Session details retrieved: {session_id}")
         
         return Response({
             'success': True,
             'session': session,
             'activities': activities,
-            'total_activities': len(activities)
+            'word_activities': word_activities,
+            'word_stats': word_stats,
+            'total_activities': len(activities),
+            'total_words': len(word_activities)
         })
         
     except Exception as e:
         logger.error(f"Error fetching session details: {str(e)}")
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_word_performance(request):
+    """Get aggregated word performance across all sessions for a user"""
+    try:
+        user_email = request.GET.get('user_email', 'guest@wildlitz.com')
+        
+        # Get all word_solved activities for this user
+        activities_response = supabase.table('story_game_activities').select('*').eq('user_email', user_email).eq('activity_type', 'word_solved').execute()
+        
+        activities = activities_response.data if activities_response.data else []
+        
+        # Aggregate by word
+        word_performance = {}
+        for activity in activities:
+            word_data = activity.get('word_data', {})
+            word = word_data.get('word', 'Unknown')
+            
+            if word not in word_performance:
+                word_performance[word] = {
+                    'word': word,
+                    'total_attempts': 0,
+                    'total_time': 0,
+                    'total_hints': 0,
+                    'correct_attempts': 0
+                }
+            
+            word_performance[word]['total_attempts'] += 1
+            word_performance[word]['total_time'] += activity.get('time_spent_seconds', 0)
+            word_performance[word]['total_hints'] += activity.get('hint_count', 0)
+            if activity.get('is_correct', False):
+                word_performance[word]['correct_attempts'] += 1
+        
+        # Calculate averages and sort by difficulty (time + hints)
+        word_list = []
+        for word, stats in word_performance.items():
+            avg_time = stats['total_time'] / stats['total_attempts'] if stats['total_attempts'] > 0 else 0
+            avg_hints = stats['total_hints'] / stats['total_attempts'] if stats['total_attempts'] > 0 else 0
+            accuracy = (stats['correct_attempts'] / stats['total_attempts'] * 100) if stats['total_attempts'] > 0 else 0
+            difficulty_score = avg_time + (avg_hints * 5)  # Weighted difficulty
+            
+            word_list.append({
+                'word': word,
+                'attempts': stats['total_attempts'],
+                'avg_time': round(avg_time, 1),
+                'avg_hints': round(avg_hints, 1),
+                'accuracy': round(accuracy, 1),
+                'difficulty_score': round(difficulty_score, 1)
+            })
+        
+        # Sort by difficulty (hardest first)
+        word_list.sort(key=lambda x: x['difficulty_score'], reverse=True)
+        
+        return Response({
+            'success': True,
+            'words': word_list,
+            'total_unique_words': len(word_list)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching word performance: {str(e)}")
         return Response({
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

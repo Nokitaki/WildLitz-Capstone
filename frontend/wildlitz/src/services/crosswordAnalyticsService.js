@@ -155,7 +155,16 @@ class CrosswordAnalyticsService {
     console.log('📤 Logging game completion for session:', sessionId);
 
     // Extract vocabulary words from solvedWords array
-    const vocabularyWords = solvedWords.map(sw => sw.word || sw);
+    // FIX: Convert to a clean array to avoid mutation issues
+    const vocabularyWords = Array.from(
+      solvedWords.map(sw => {
+        if (typeof sw === 'string') return sw;
+        if (sw && sw.word) return sw.word;
+        return null;
+      }).filter(Boolean)  // Remove any null/undefined values
+    );
+
+    console.log('📚 Vocabulary words to save:', vocabularyWords);
 
     // Update the session with completion data INCLUDING vocabulary words
     const sessionUpdates = {
@@ -165,18 +174,22 @@ class CrosswordAnalyticsService {
       episodes_completed: gameData?.episodesCompleted || 1,
       completion_percentage: gameData?.accuracy || 0,
       is_completed: gameData?.isFullyCompleted || false,
-      vocabulary_words_learned: vocabularyWords  // NEW: Add vocabulary words
+      vocabulary_words_learned: vocabularyWords  // Clean array
     };
 
     await this.updateSession(sessionId, sessionUpdates);
 
-    // Also log as an activity
+    // Also log as an activity - FIX: Create a plain object to avoid mutation
     const activityData = {
       session_id: sessionId,
       activity_type: 'game_completed',
       word_data: {
-        ...gameData,
-        vocabulary_words: vocabularyWords  // Include in activity log too
+        wordsLearned: gameData?.wordsLearned || 0,
+        totalTime: gameData?.totalTime || 0,
+        totalHints: gameData?.totalHints || 0,
+        episodesCompleted: gameData?.episodesCompleted || 1,
+        accuracy: gameData?.accuracy || 0,
+        vocabulary_words: vocabularyWords.slice()  // Create a copy
       },
       is_correct: true,
       time_spent_seconds: gameData?.totalTime || 0,
