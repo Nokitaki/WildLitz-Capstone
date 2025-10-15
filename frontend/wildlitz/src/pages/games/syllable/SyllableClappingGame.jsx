@@ -9,6 +9,7 @@ import CompletionScreen from "./CompletionScreen";
 import SyllableLoadingScreen from "./SyllableLoadingScreen";
 import Character from "../../../assets/img/wildlitz-idle.png";
 import WordTransitionScreen from "./WordTransitionScreen";
+import soundManager from "../../../utils/soundManager";
 
 const SyllableClappingGame = () => {
   const navigate = useNavigate();
@@ -56,6 +57,16 @@ const SyllableClappingGame = () => {
   // Card flip state
   const [isFlipped, setIsFlipped] = useState(false);
   const [isFlipping, setIsFlipping] = useState(false);
+
+  // 🔊 Load sound effects when component mounts
+  useEffect(() => {
+    soundManager.loadSounds();
+
+    // Cleanup: stop all sounds when component unmounts
+    return () => {
+      soundManager.stopAll();
+    };
+  }, []);
 
   // Instead of making an API call, use these hardcoded tips
   const getSyllableTip = (difficulty) => {
@@ -313,7 +324,7 @@ const SyllableClappingGame = () => {
       // Update bubble message with AI feedback
       setBubbleMessage(response.data.feedback_message);
 
-      // 🆕 NEW: Store the learning feedback from API
+      // Store the learning feedback from API
       if (response.data.learning_feedback) {
         setLearningFeedback(response.data.learning_feedback);
       }
@@ -321,6 +332,13 @@ const SyllableClappingGame = () => {
       // Update correct answers count
       if (response.data.is_correct) {
         setCorrectAnswers((prev) => prev + 1);
+      }
+
+      // 🔊 NEW: Play sound based on whether answer is correct
+      if (response.data.is_correct) {
+        soundManager.playCorrectSound(); // Plays correct_soundEffect + yehey
+      } else {
+        soundManager.playWrongSound(); // Plays wrong_soundEffect
       }
 
       // Move to feedback phase
@@ -335,7 +353,7 @@ const SyllableClappingGame = () => {
         isCorrect ? "Great job! That's correct!" : "Nice try! Listen again."
       );
 
-      // 🆕 NEW: Set fallback learning feedback
+      // Set fallback learning feedback
       if (isCorrect) {
         setLearningFeedback(
           `Great job! "${currentWord.word}" has ${currentWord.count} syllable${currentWord.count !== 1 ? 's' : ''}. Keep up the excellent work!`
@@ -344,6 +362,13 @@ const SyllableClappingGame = () => {
         setLearningFeedback(
           `The word "${currentWord.word}" has ${currentWord.count} syllable${currentWord.count !== 1 ? 's' : ''}. Don't worry - keep practicing!`
         );
+      }
+
+      // 🔊 NEW: Play sound for fallback (in error handler)
+      if (isCorrect) {
+        soundManager.playCorrectSound(); // Plays correct_soundEffect + yehey
+      } else {
+        soundManager.playWrongSound(); // Plays wrong_soundEffect
       }
 
       if (isCorrect) {
@@ -777,6 +802,13 @@ const SyllableClappingGame = () => {
     // Disable the next button to prevent multiple clicks
     setNextButtonDisabled(true);
 
+    // 🔧 FIX: Stop any existing audio before transitioning
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
+
     // Increase the word index
     const nextIndex = currentIndex + 1;
 
@@ -796,7 +828,7 @@ const SyllableClappingGame = () => {
       setGameStats(gameStats);
       setGamePhase("complete");
       setNextButtonDisabled(false);
-      setLearningFeedback("");  // 🆕 ADD THIS LINE: Reset learning feedback
+      setLearningFeedback("");
       return;
     }
 
@@ -832,7 +864,7 @@ const SyllableClappingGame = () => {
           image_url: wordData.image_url || null,
           full_word_audio_url: wordData.full_word_audio_url || null,
           syllable_audio_urls: wordData.syllable_audio_urls || [],
-          phonetic_guide: wordData.phonetic_guide || null,  // ✅ ADD THIS LINE
+          phonetic_guide: wordData.phonetic_guide || null,
           fun_fact: wordData.fun_fact || `Fun fact about ${wordData.word}!`,
           intro_message: wordData.intro_message || `Let's listen and count the syllables!`
         });
@@ -857,17 +889,10 @@ const SyllableClappingGame = () => {
         setShowBubble(false);
       }, 6000);
 
-      // Auto-play the word only after the card flip animation
-      setTimeout(() => {
-        // First the card flips to show the image (3 seconds)
-        // Then it flips back to show the word
-        setTimeout(() => {
-          if (wordData && wordData.word) {
-            // Use the proper handlePlaySound function with audio preloading
-            handlePlaySound();
-          }
-        }, 4000); // Increased delay for more stable playback
-      }, 100);
+      // ✅ FIX: Removed the nested setTimeout that was calling handlePlaySound()
+      // The useEffect hook will handle playing audio automatically when
+      // gamePhase changes to "playing" and currentWord is updated
+
     }, 1500);
   };
 
@@ -1332,7 +1357,7 @@ const SyllableClappingGame = () => {
                 <span>🤖</span> AI Learning Assistant
               </div>
               <div className={styles.aiFeedbackContent}>
-                <div style={{ whiteSpace: 'pre-line' }}>
+                <div style={{ whiteSpace: 'pre-line', lineHeight: '1.2' }}>
                   {learningFeedback || `In "${currentWord.word}", we hear ${currentWord.count} distinct syllables: ${currentWord.syllables}. Keep practicing!`}
                 </div>
               </div>

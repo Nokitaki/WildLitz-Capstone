@@ -690,7 +690,7 @@ class AIContentGenerator:
 
 def upload_file_to_supabase_storage(file, bucket_name, file_path):
     """
-    Upload a file to Supabase Storage
+    Upload a file to Supabase Storage with improved error handling
     
     Args:
         file: Django UploadedFile object
@@ -711,22 +711,62 @@ def upload_file_to_supabase_storage(file, bucket_name, file_path):
         # Read file content
         file_content = file.read()
         
+        logger.info(f"📤 Uploading to bucket '{bucket_name}': {file_path}")
+        logger.info(f"   File size: {len(file_content)} bytes")
+        logger.info(f"   Content type: {file.content_type}")
+        
+        # ✅ IMPROVED: Validate file content
+        if len(file_content) == 0:
+            raise Exception("File is empty (0 bytes)")
+        
+        # ✅ IMPROVED: Handle content type properly
+        content_type = file.content_type
+        if not content_type:
+            # Guess content type from extension
+            extension = file_path.split('.')[-1].lower()
+            content_type_map = {
+                'jpg': 'image/jpeg',
+                'jpeg': 'image/jpeg',
+                'png': 'image/png',
+                'gif': 'image/gif',
+                'webp': 'image/webp',
+                'mp3': 'audio/mpeg',
+                'wav': 'audio/wav',
+                'webm': 'audio/webm',
+                'm4a': 'audio/mp4',
+            }
+            content_type = content_type_map.get(extension, 'application/octet-stream')
+            logger.info(f"   Guessed content type: {content_type}")
+        
         # Upload to Supabase Storage
         response = supabase.storage.from_(bucket_name).upload(
             path=file_path,
             file=file_content,
             file_options={
-                "content-type": file.content_type,
+                "content-type": content_type,
                 "upsert": "true"  # Overwrite if exists
             }
         )
         
+        logger.info(f"   Upload response: {response}")
+        
         # Get public URL
         public_url = supabase.storage.from_(bucket_name).get_public_url(file_path)
         
-        logger.info(f"File uploaded successfully: {public_url}")
+        logger.info(f"✅ File uploaded successfully: {public_url}")
         return public_url
         
     except Exception as e:
-        logger.error(f"Error uploading to Supabase Storage: {str(e)}")
-        raise Exception(f"Upload failed: {str(e)}")
+        error_detail = f"Upload failed for {file_path} to {bucket_name}: {str(e)}"
+        logger.error(f"❌ {error_detail}")
+        logger.error(f"   Exception type: {type(e).__name__}")
+        
+        # ✅ NEW: More specific error messages
+        if "bucket" in str(e).lower():
+            raise Exception(f"Supabase bucket '{bucket_name}' not found or not accessible. Check bucket exists and has proper permissions.")
+        elif "permission" in str(e).lower() or "unauthorized" in str(e).lower():
+            raise Exception(f"Permission denied when uploading to '{bucket_name}'. Check Supabase storage policies.")
+        elif "size" in str(e).lower():
+            raise Exception(f"File size limit exceeded when uploading to '{bucket_name}'.")
+        else:
+            raise Exception(error_detail)

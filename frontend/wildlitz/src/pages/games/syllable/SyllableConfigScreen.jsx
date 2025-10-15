@@ -9,16 +9,16 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   const [difficulty, setDifficulty] = useState("easy");
   const [questionCount, setQuestionCount] = useState(10);
   const [selectedCategories, setSelectedCategories] = useState({
-  animals: true,
-  fruits: false,
-  food: true,
-  toys: true,
-  clothes: false,
-  schoolSupplies: true,
-  nature: true,
-  everydayWords: true,
-  everydayObjects: false,  // ✅ ADD THIS LINE
-});
+    animals: true,
+    fruits: false,
+    food: true,
+    toys: true,
+    clothes: false,
+    schoolSupplies: true,
+    nature: true,
+    everydayWords: true,
+    everydayObjects: false,  // ✅ ADD THIS LINE
+  });
 
   // AI Syllable Suggestion state
   const [isSuggestingBreakdown, setIsSuggestingBreakdown] = useState(false);
@@ -40,6 +40,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     syllableBreakdown: "",
     syllableCount: 0,
     category: "",
+    difficulty: "",  // ✅ ADD THIS LINE - empty by default
   });
 
   // Spelling check state
@@ -633,10 +634,18 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   };
 
   // Save custom word to database
+  // In SyllableConfigScreen.jsx
+  // REPLACE the saveCustomWordToDB function with this improved version:
+
   const saveCustomWordToDB = async () => {
     // Validation
     if (!newCustomWord.word || !newCustomWord.syllableBreakdown) {
       alert("Please enter word and syllable breakdown");
+      return;
+    }
+
+    if (!newCustomWord.difficulty) {
+      alert("Please select a difficulty level");
       return;
     }
 
@@ -655,32 +664,65 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         "category",
         newCustomWord.category || aiSuggestedCategory || "Custom Words"
       );
+      formData.append("difficulty_level", newCustomWord.difficulty);
 
-      // Add image if uploaded
+      // ✅ IMPROVED: Add image with size check
       if (imageFile) {
+        // Check file size (limit to 5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+        if (imageFile.size > maxSize) {
+          alert("Image file is too large! Please use an image smaller than 5MB.");
+          setIsSaving(false);
+          return;
+        }
+
+        console.log("Adding image to form:", imageFile.name, imageFile.type, imageFile.size);
         formData.append("image", imageFile);
       }
 
-      // Add full word audio if recorded
+      // ✅ IMPROVED: Add full word audio with proper filename
       if (fullWordAudio) {
-        formData.append(
-          "full_word_audio",
-          fullWordAudio.blob,
-          "full_word.webm"
-        );
+        // Get the proper file extension
+        let extension = 'webm'; // default for recordings
+
+        // If it's an uploaded file (has a File object), get its extension
+        if (fullWordAudio.blob instanceof File) {
+          const fileName = fullWordAudio.blob.name;
+          extension = fileName.split('.').pop();
+        }
+
+        // Check file size (limit to 10MB)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (fullWordAudio.blob.size > maxSize) {
+          alert("Audio file is too large! Please use an audio file smaller than 10MB.");
+          setIsSaving(false);
+          return;
+        }
+
+        const audioFilename = `${newCustomWord.word.toLowerCase().replace(/\s+/g, '_')}_full.${extension}`;
+        console.log("Adding full word audio:", audioFilename, fullWordAudio.blob.type, fullWordAudio.blob.size);
+        formData.append("full_word_audio", fullWordAudio.blob, audioFilename);
       }
 
-      // Add syllable audios if recorded
+      // ✅ IMPROVED: Add syllable audios with proper filenames
       const syllables = newCustomWord.syllableBreakdown.split("-");
       syllables.forEach((syllable, index) => {
         if (syllableAudios[index]) {
-          formData.append(
-            `syllable_audio_${index}`,
-            syllableAudios[index].blob,
-            `syllable_${index}.webm`
-          );
+          let extension = 'webm'; // default for recordings
+
+          // If it's an uploaded file, get its extension
+          if (syllableAudios[index].blob instanceof File) {
+            const fileName = syllableAudios[index].blob.name;
+            extension = fileName.split('.').pop();
+          }
+
+          const syllableFilename = `${newCustomWord.word.toLowerCase().replace(/\s+/g, '_')}_syl_${index}.${extension}`;
+          console.log(`Adding syllable ${index} audio:`, syllableFilename, syllableAudios[index].blob.type);
+          formData.append(`syllable_audio_${index}`, syllableAudios[index].blob, syllableFilename);
         }
       });
+
+      console.log("Sending form data to backend...");
 
       const response = await axios.post(
         "http://127.0.0.1:8000/api/syllabification/create-custom-word/",
@@ -692,21 +734,44 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         }
       );
 
+      console.log("Response from backend:", response.data);
+
       if (response.data.success) {
-        setSaveSuccess(true);
+        // ✅ NEW: Check for upload warnings
+        const warnings = [];
+        if (imageFile && !response.data.word?.image_url) {
+          warnings.push("⚠️ Image failed to upload");
+        }
+        if (fullWordAudio && !response.data.word?.full_word_audio_url) {
+          warnings.push("⚠️ Full word audio failed to upload");
+        }
+
+        if (warnings.length > 0) {
+          alert(`Word saved, but some files failed to upload:\n${warnings.join('\n')}\n\nCheck the browser console for details.`);
+        } else {
+          setSaveSuccess(true);
+          // Reset form after 2 seconds
+          setTimeout(() => {
+            resetCustomWordForm();
+            setSaveSuccess(false);
+          }, 2000);
+        }
 
         // Reload custom words list
         await loadCustomWordsFromDB();
-
-        // Reset form after 2 seconds
-        setTimeout(() => {
-          resetCustomWordForm();
-          setSaveSuccess(false);
-        }, 2000);
       }
     } catch (error) {
       console.error("Error saving custom word:", error);
-      alert("Failed to save custom word. Please try again.");
+
+      // ✅ IMPROVED: Show detailed error message
+      let errorMessage = "Failed to save custom word. ";
+      if (error.response?.data?.error) {
+        errorMessage += error.response.data.error;
+      } else if (error.message) {
+        errorMessage += error.message;
+      }
+
+      alert(errorMessage + "\n\nCheck the browser console for more details.");
     } finally {
       setIsSaving(false);
     }
@@ -718,6 +783,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
       syllableBreakdown: "",
       syllableCount: 0,
       category: "",
+      difficulty: "",  // ✅ ADD THIS LINE
     });
     setValidationResult(null);
     setImageFile(null);
@@ -728,7 +794,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     setWordExists(false);
     setExistingWordData(null);
     setEditingWord(null);
-    setValidationDismissed(false); // ✅ ADD THIS LINE
+    setValidationDismissed(false);
   };
 
   const deleteCustomWord = (wordId) => {
@@ -1349,6 +1415,31 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                     </div>
                   )}
                 </div>
+
+                {/* ✅ NEW: DIFFICULTY SELECTION */}
+                <div className={styles.formGroup}>
+                  <label htmlFor="difficulty">
+                    Difficulty Level <span style={{ color: 'red' }}>*</span>
+                  </label>
+                  <select
+                    id="difficulty"
+                    value={newCustomWord.difficulty}
+                    onChange={(e) =>
+                      setNewCustomWord({
+                        ...newCustomWord,
+                        difficulty: e.target.value,
+                      })
+                    }
+                    className={styles.categorySelect}
+                  >
+                    <option value="">Select difficulty...</option>
+                    <option value="easy">😊 Easy (1-2 syllables)</option>
+                    <option value="medium">🤔 Medium (2-3 syllables)</option>
+                    <option value="hard">🧠 Hard (3+ syllables)</option>
+                  </select>
+                </div>
+
+
 
                 {/* ✅ NEW: Show a different message when AI can't categorize */}
                 {newCustomWord.word.length > 2 &&

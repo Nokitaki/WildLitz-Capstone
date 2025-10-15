@@ -208,3 +208,69 @@ ERROR 2025-10-15 14:33:31,715 basehttp "GET /api/sentence_formation/story/analyt
 ERROR 2025-10-15 15:02:24,156 log Internal Server Error: /api/sentence_formation/story/activity/log/
 ERROR 2025-10-15 15:02:24,157 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 42
 ERROR 2025-10-15 15:02:24,157 basehttp "POST /api/sentence_formation/story/activity/log/ HTTP/1.1" 500 42
+ERROR 2025-10-16 00:41:12,296 services_ai Error uploading to Supabase Storage: {'statusCode': 403, 'error': Unauthorized, 'message': new row violates row-level security policy}
+ERROR 2025-10-16 00:41:12,296 views Error uploading image: Upload failed: {'statusCode': 403, 'error': Unauthorized, 'message': new row violates row-level security policy}
+ERROR 2025-10-16 00:41:13,128 services_ai Error uploading to Supabase Storage: {'statusCode': 403, 'error': Unauthorized, 'message': new row violates row-level security policy}
+ERROR 2025-10-16 00:41:13,128 views Error uploading full word audio: Upload failed: {'statusCode': 403, 'error': Unauthorized, 'message': new row violates row-level security policy}
+ERROR 2025-10-16 00:41:13,882 services_ai Error uploading to Supabase Storage: {'statusCode': 403, 'error': Unauthorized, 'message': new row violates row-level security policy}
+ERROR 2025-10-16 00:41:13,882 views Error uploading syllable audio 0: Upload failed: {'statusCode': 403, 'error': Unauthorized, 'message': new row violates row-level security policy}
+ERROR 2025-10-16 00:47:39,336 services_ai Error uploading to Supabase Storage: {'statusCode': 403, 'error': Unauthorized, 'message': new row violates row-level security policy}
+ERROR 2025-10-16 00:47:39,336 views Error uploading image: Upload failed: {'statusCode': 403, 'error': Unauthorized, 'message': new row violates row-level security policy}
+ERROR 2025-10-16 00:47:40,079 services_ai Error uploading to Supabase Storage: {'statusCode': 403, 'error': Unauthorized, 'message': new row violates row-level security policy}
+ERROR 2025-10-16 00:47:40,080 views Error uploading full word audio: Upload failed: {'statusCode': 403, 'error': Unauthorized, 'message': new row violates row-level security policy}
+ERROR 2025-10-16 00:47:40,817 services_ai Error uploading to Supabase Storage: {'statusCode': 403, 'error': Unauthorized, 'message': new row violates row-level security policy}
+ERROR 2025-10-16 00:47:40,817 views Error uploading syllable audio 0: Upload failed: {'statusCode': 403, 'error': Unauthorized, 'message': new row violates row-level security policy}
+ERROR 2025-10-16 01:02:35,102 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:02:35,102 views Error uploading image 'frog.jpg': Permission denied when uploading to 'syllable-word-images'. Check Supabase storage policies.
+ERROR 2025-10-16 01:02:36,233 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:02:36,233 views Error uploading full word audio 'frog_full.mp3': Permission denied when uploading to 'syllable-word-audio'. Check Supabase storage policies.
+ERROR 2025-10-16 01:02:36,926 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:02:36,926 views Error uploading syllable audio 0: Permission denied when uploading to 'syllable-word-audio'. Check Supabase storage policies.
+ERROR 2025-10-16 01:11:00,947 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:11:00,947 views Error uploading image 'frog.jpg': Permission denied when uploading to 'syllable-word-images'. Check Supabase storage policies.
+ERROR 2025-10-16 01:14:42,908 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:14:42,908 views Error uploading image 'frog.jpg': Permission denied when uploading to 'syllable-word-images'. Check Supabase storage policies.
+ERROR 2025-10-16 01:14:44,049 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:14:44,049 views Error uploading full word audio 'frog_full.mp3': Permission denied when uploading to 'syllable-word-audio'. Check Supabase storage policies.
+ERROR 2025-10-16 01:14:44,835 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:14:44,835 views Error uploading syllable audio 0: Permission denied when uploading to 'syllable-word-audio'. Check Supabase storage policies.
+ERROR 2025-10-16 01:14:45,164 views Traceback (most recent call last):
+  File "C:\Users\GAMING\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\syllabification\views.py", line 639, in create_custom_word
+    }).execute()
+       ~~~~~~~^^
+  File "C:\Users\GAMING\Documents\GitHub\WildLitz-Capstone\capstone\Lib\site-packages\postgrest\_sync\request_builder.py", line 126, in execute
+    raise APIError(dict(json_obj))
+postgrest.exceptions.APIError: {'message': 'duplicate key value violates unique constraint "unique_word"', 'code': '23505', 'hint': None, 'details': 'Key (word)=(frog) already exists.'}
+
+ERROR 2025-10-16 01:18:23,559 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:18:23,559 views Error uploading image 'frog.jpg': Permission denied when uploading to 'syllable-word-images'. Check Supabase storage policies.
+ERROR 2025-10-16 01:18:24,272 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:18:24,272 views Error uploading full word audio 'frog_full.mp3': Permission denied when uploading to 'syllable-word-audio'. Check Supabase storage policies.
+ERROR 2025-10-16 01:18:25,227 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:18:25,227 views Error uploading syllable audio 0: Permission denied when uploading to 'syllable-word-audio'. Check Supabase storage policies.
+ERROR 2025-10-16 01:24:16,173 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:24:16,173 views Error uploading image 'frog.jpg': Permission denied when uploading to 'syllable-word-images'. Check Supabase storage policies.
+ERROR 2025-10-16 01:24:17,399 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:24:17,399 views Error uploading full word audio 'frog_full.mp3': Permission denied when uploading to 'syllable-word-audio'. Check Supabase storage policies.
+ERROR 2025-10-16 01:24:18,311 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:24:18,311 views Error uploading syllable audio 0: Permission denied when uploading to 'syllable-word-audio'. Check Supabase storage policies.
+ERROR 2025-10-16 01:29:47,818 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:29:47,818 views Error uploading image 'butterfly.jpg': Permission denied when uploading to 'syllable-word-images'. Check Supabase storage policies.
+ERROR 2025-10-16 01:38:40,783 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:38:40,783 views Error uploading image 'butterfly.jpg': Permission denied when uploading to 'syllable-word-images'. Check Supabase storage policies.
+ERROR 2025-10-16 01:38:41,794 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:38:41,795 views Error uploading full word audio 'butterfly_full.mp3': Permission denied when uploading to 'syllable-word-audio'. Check Supabase storage policies.
+ERROR 2025-10-16 01:38:42,451 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:38:42,451 views Error uploading syllable audio 0: Permission denied when uploading to 'syllable-word-audio'. Check Supabase storage policies.
+ERROR 2025-10-16 01:38:43,774 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:38:43,774 views Error uploading syllable audio 1: Permission denied when uploading to 'syllable-word-audio'. Check Supabase storage policies.
+ERROR 2025-10-16 01:38:44,471 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:38:44,471 views Error uploading syllable audio 2: Permission denied when uploading to 'syllable-word-audio'. Check Supabase storage policies.
+ERROR 2025-10-16 01:42:16,769 services_ai    Exception type: StorageApiError
+ERROR 2025-10-16 01:42:16,770 views Error uploading image 'tiger.jpg': Permission denied when uploading to 'syllable-word-images'. Check Supabase storage policies.
+ERROR 2025-10-16 01:56:44,414 views Traceback (most recent call last):
+  File "C:\Users\GAMING\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\syllabification\views.py", line 534, in create_custom_word
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                ^^^^^^^^
+NameError: name 'datetime' is not defined. Did you forget to import 'datetime'?
+

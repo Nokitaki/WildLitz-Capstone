@@ -497,6 +497,7 @@ def create_custom_word(request):
         word = request.data.get('word', '').strip()
         syllable_breakdown = request.data.get('syllable_breakdown', '').strip()
         category = request.data.get('category', '').strip()
+        difficulty_level = request.data.get('difficulty_level', '').strip()  # ✅ NEW: Get from request
         
         # Validate required fields
         if not word or not syllable_breakdown:
@@ -505,16 +506,18 @@ def create_custom_word(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+        # ✅ NEW: Validate difficulty_level is provided
+        if not difficulty_level or difficulty_level not in ['easy', 'medium', 'hard']:
+            return Response(
+                {'error': 'Valid difficulty_level is required (easy, medium, or hard)'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         # Calculate syllable count
         syllable_count = len(syllable_breakdown.split('-'))
         
-        # Determine difficulty based on syllable count
-        if syllable_count <= 2:
-            difficulty_level = 'easy'
-        elif syllable_count == 3:
-            difficulty_level = 'medium'
-        else:
-            difficulty_level = 'hard'
+        # ✅ REMOVED: The automatic difficulty calculation
+        # difficulty_level is now taken from the request instead of being calculated
         
         # AI: Validate syllable structure
         validation_result = ai_generator.validate_syllable_structure(word, syllable_breakdown)
@@ -534,34 +537,49 @@ def create_custom_word(request):
         image_url = None
         full_word_audio_url = None
         syllable_audio_urls = []
+        upload_warnings = []  # ✅ NEW: Track upload failures
         
         # Upload image if provided
         if 'image' in request.FILES:
             from .services_ai import upload_file_to_supabase_storage
             image_file = request.FILES['image']
             image_filename = f"{word.lower().replace(' ', '_')}.{image_file.name.split('.')[-1]}"
+            
+            # ✅ NEW: Log file details
+            logger.info(f"Attempting to upload image: {image_filename}, Size: {image_file.size} bytes, Type: {image_file.content_type}")
+            
             try:
                 image_url = upload_file_to_supabase_storage(
                     image_file, 
                     'syllable-word-images', 
                     image_filename
                 )
+                logger.info(f"✅ Image uploaded successfully: {image_url}")
             except Exception as e:
-                logger.error(f"Error uploading image: {str(e)}")
+                error_msg = f"Error uploading image '{image_filename}': {str(e)}"
+                logger.error(error_msg)
+                upload_warnings.append(f"Image upload failed: {str(e)}")
         
         # Upload full word audio if provided
         if 'full_word_audio' in request.FILES:
             from .services_ai import upload_file_to_supabase_storage
             audio_file = request.FILES['full_word_audio']
             audio_filename = f"{word.lower().replace(' ', '_')}_full.{audio_file.name.split('.')[-1]}"
+            
+            # ✅ NEW: Log file details
+            logger.info(f"Attempting to upload full word audio: {audio_filename}, Size: {audio_file.size} bytes, Type: {audio_file.content_type}")
+            
             try:
                 full_word_audio_url = upload_file_to_supabase_storage(
                     audio_file, 
                     'syllable-word-audio', 
                     audio_filename
                 )
+                logger.info(f"✅ Full word audio uploaded successfully: {full_word_audio_url}")
             except Exception as e:
-                logger.error(f"Error uploading full word audio: {str(e)}")
+                error_msg = f"Error uploading full word audio '{audio_filename}': {str(e)}"
+                logger.error(error_msg)
+                upload_warnings.append(f"Full word audio upload failed: {str(e)}")
         
         # Upload syllable audio files if provided
         syllables = syllable_breakdown.split('-')
@@ -571,6 +589,10 @@ def create_custom_word(request):
                 from .services_ai import upload_file_to_supabase_storage
                 syllable_file = request.FILES[field_name]
                 syllable_filename = f"{word.lower().replace(' ', '_')}_syl_{idx}.{syllable_file.name.split('.')[-1]}"
+                
+                # ✅ NEW: Log file details
+                logger.info(f"Attempting to upload syllable {idx} audio: {syllable_filename}, Size: {syllable_file.size} bytes")
+                
                 try:
                     syllable_url = upload_file_to_supabase_storage(
                         syllable_file, 
@@ -578,8 +600,11 @@ def create_custom_word(request):
                         syllable_filename
                     )
                     syllable_audio_urls.append(syllable_url)
+                    logger.info(f"✅ Syllable {idx} audio uploaded successfully: {syllable_url}")
                 except Exception as e:
-                    logger.error(f"Error uploading syllable audio {idx}: {str(e)}")
+                    error_msg = f"Error uploading syllable audio {idx}: {str(e)}"
+                    logger.error(error_msg)
+                    upload_warnings.append(f"Syllable {idx} audio upload failed: {str(e)}")
         
         # Get user info if authenticated
         created_by = None
@@ -589,7 +614,9 @@ def create_custom_word(request):
             created_by_name = request.user.username or request.user.email
         
         syllable_audio_urls_json = json.dumps(syllable_audio_urls) if syllable_audio_urls else '[]'
+        
         # Use RPC function to insert into wildlitz schema
+        logger.info(f"Inserting word '{word}' into database...")
         response = supabase.rpc('insert_custom_word_to_public', {
             'p_word': word,
             'p_syllable_breakdown': syllable_breakdown,
@@ -613,14 +640,21 @@ def create_custom_word(request):
         
         if response.data and len(response.data) > 0:
             created_word = response.data[0]
-            logger.info(f"Custom word created: {word} by {created_by_name}")
+            logger.info(f"✅ Custom word created: {word} by {created_by_name}")
             
-            return Response({
+            # ✅ NEW: Include warnings in response
+            response_data = {
                 'success': True,
                 'message': f'Custom word "{word}" created successfully!',
                 'word': created_word,
                 'validation': validation_result
-            }, status=status.HTTP_201_CREATED)
+            }
+            
+            if upload_warnings:
+                response_data['warnings'] = upload_warnings
+                logger.warning(f"⚠️ Word created with upload warnings: {upload_warnings}")
+            
+            return Response(response_data, status=status.HTTP_201_CREATED)
         else:
             return Response(
                 {'error': 'Failed to create word in database'}, 
@@ -628,7 +662,7 @@ def create_custom_word(request):
             )
         
     except Exception as e:
-        logger.error(f"Error creating custom word: {str(e)}")
+        logger.error(f"❌ Error creating custom word: {str(e)}")
         import traceback
         logger.error(traceback.format_exc())
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -756,6 +790,7 @@ def update_custom_word(request, word_id):
         word = data.get('word', '').strip()
         syllable_breakdown = data.get('syllable_breakdown', '').strip()
         category = data.get('category', '').strip()
+        difficulty_level = data.get('difficulty_level', '').strip()  # ✅ NEW: Get from request
 
         if not word or not syllable_breakdown or not category:
             return Response(
@@ -763,14 +798,18 @@ def update_custom_word(request, word_id):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Recalculate syllable count and difficulty
+        # ✅ NEW: Validate difficulty_level if provided (optional for backwards compatibility)
+        if difficulty_level and difficulty_level not in ['easy', 'medium', 'hard']:
+            return Response(
+                {'error': 'Valid difficulty_level must be easy, medium, or hard'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Recalculate syllable count
         syllable_count = len(syllable_breakdown.split('-'))
-        if syllable_count <= 2:
-            difficulty_level = 'easy'
-        elif syllable_count == 3:
-            difficulty_level = 'medium'
-        else:
-            difficulty_level = 'hard'
+        
+        # ✅ REMOVED: Automatic difficulty calculation
+        # difficulty_level is now taken from the request instead of being calculated
 
         # 🆕 NEW: Regenerate phonetic guide when syllable breakdown changes
         phonetic_guide = ai_generator.generate_phonetic_guide(word, syllable_breakdown)
@@ -781,10 +820,13 @@ def update_custom_word(request, word_id):
             'syllable_breakdown': syllable_breakdown,
             'syllable_count': syllable_count,
             'category': category,
-            'difficulty_level': difficulty_level,
             'phonetic_guide': phonetic_guide,  # 🆕 NEW: Add phonetic guide
             'updated_at': 'now()'  # PostgreSQL function for current timestamp
         }
+        
+        # ✅ NEW: Only update difficulty_level if provided
+        if difficulty_level:
+            update_data['difficulty_level'] = difficulty_level
 
         # Handle new full word audio upload if provided
         if 'full_word_audio' in request.FILES:
@@ -839,28 +881,28 @@ def update_custom_word(request, word_id):
                         'syllable-word-audio', 
                         syllable_filename
                     )
-                    # Replace at specific index (merge, don't overwrite)
+                    # Replace only this syllable's audio
                     merged_syllable_urls[idx] = syllable_url
-                    logger.info(f"Updated syllable {idx} audio for word ID {word_id}")
+                    logger.info(f"Uploaded new syllable audio {idx} for word ID {word_id}")
                 except Exception as e:
                     logger.error(f"Error uploading syllable audio {idx}: {str(e)}")
 
-        # STEP 5: Save the merged array
+        # Update the syllable_audio_urls in update_data
         update_data['syllable_audio_urls'] = merged_syllable_urls
 
-        # Execute the update query on the public.syllable_words table
+        # Execute the update in Supabase
         response = supabase.table('syllable_words').update(update_data).eq('id', word_id).execute()
 
-        if response.data:
+        if response.data and len(response.data) > 0:
             updated_word = response.data[0]
-            logger.info(f"Successfully updated word with ID: {word_id}")
+            logger.info(f"Successfully updated word: {word} (ID: {word_id})")
             return Response(updated_word, status=status.HTTP_200_OK)
         else:
-            logger.warning(f"Could not find word with ID: {word_id} to update.")
+            logger.warning(f"No word found with ID: {word_id}")
             return Response({'error': 'Word not found'}, status=status.HTTP_404_NOT_FOUND)
 
     except Exception as e:
-        logger.error(f"Error updating word with ID {word_id}: {str(e)}")
+        logger.error(f"Error updating word {word_id}: {str(e)}")
         import traceback
         logger.error(traceback.format_exc())
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

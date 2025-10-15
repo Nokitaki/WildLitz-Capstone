@@ -11,6 +11,7 @@ const EditWordModal = ({ word, onSave, onClose }) => {
     syllableBreakdown: "",
     syllableCount: 0,
     category: "",
+    difficulty: "",  // ✅ ADD THIS LINE
   });
 
   // State for dismissing validation
@@ -38,6 +39,7 @@ const EditWordModal = ({ word, onSave, onClose }) => {
         syllableBreakdown: word.syllable_breakdown || "",
         syllableCount: word.syllable_count || 0,
         category: word.category || "",
+        difficulty: word.difficulty_level || "",
       });
     }
   }, [word]);
@@ -469,11 +471,10 @@ const EditWordModal = ({ word, onSave, onClose }) => {
           <div className={styles.aiValidationSection}>
             {validationResult && (
               <div
-                className={`${styles.validationResult} ${
-                  validationResult.is_correct
+                className={`${styles.validationResult} ${validationResult.is_correct
                     ? styles.correct
                     : styles.incorrect
-                }`}
+                  }`}
               >
                 <div>
                   <span className={styles.resultIcon}>
@@ -518,6 +519,26 @@ const EditWordModal = ({ word, onSave, onClose }) => {
                   {cat}
                 </option>
               ))}
+            </select>
+          </div>
+
+          {/* ✅ NEW: DIFFICULTY SELECT */}
+          <div className={styles.formGroup}>
+            <label htmlFor="edit-difficulty">
+              Difficulty Level <span style={{ color: 'red' }}>*</span>
+            </label>
+            <select
+              id="edit-difficulty"
+              value={editedWord.difficulty}
+              onChange={(e) =>
+                setEditedWord({ ...editedWord, difficulty: e.target.value })
+              }
+              className={styles.categorySelect}
+            >
+              <option value="">Select difficulty...</option>
+              <option value="easy">😊 Easy (1-2 syllables)</option>
+              <option value="medium">🤔 Medium (2-3 syllables)</option>
+              <option value="hard">🧠 Hard (3+ syllables)</option>
             </select>
           </div>
 
@@ -605,9 +626,8 @@ const EditWordModal = ({ word, onSave, onClose }) => {
 
               {/* Recording Controls */}
               <button
-                className={`${styles.recordButton} ${
-                  isRecordingFullWord ? styles.recording : ""
-                }`}
+                className={`${styles.recordButton} ${isRecordingFullWord ? styles.recording : ""
+                  }`}
                 onClick={() => {
                   if (isRecordingFullWord) {
                     stopRecording();
@@ -621,8 +641,8 @@ const EditWordModal = ({ word, onSave, onClose }) => {
                 {isRecordingFullWord
                   ? "⏹ Stop Recording"
                   : newFullWordAudio
-                  ? "🔄 Re-record"
-                  : "🎙️ Record New Audio"}
+                    ? "🔄 Re-record"
+                    : "🎙️ Record New Audio"}
               </button>
 
               {!word?.full_word_audio_url && !newFullWordAudio && (
@@ -743,11 +763,10 @@ const EditWordModal = ({ word, onSave, onClose }) => {
 
                           {/* Recording Button */}
                           <button
-                            className={`${styles.recordButton} ${
-                              recordingSyllableIndex === index
+                            className={`${styles.recordButton} ${recordingSyllableIndex === index
                                 ? styles.recording
                                 : ""
-                            }`}
+                              }`}
                             onClick={() => {
                               if (recordingSyllableIndex === index) {
                                 stopRecording();
@@ -770,8 +789,8 @@ const EditWordModal = ({ word, onSave, onClose }) => {
                             {recordingSyllableIndex === index
                               ? "⏹ Stop"
                               : hasNewAudio
-                              ? "🔄"
-                              : "🎙️"}
+                                ? "🔄"
+                                : "🎙️"}
                           </button>
 
                           {!hasOriginalAudio && !hasNewAudio && (
