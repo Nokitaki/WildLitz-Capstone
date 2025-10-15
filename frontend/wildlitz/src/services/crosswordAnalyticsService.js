@@ -144,49 +144,56 @@ class CrosswordAnalyticsService {
   /**
    * Log when a game is completed (used by SummaryScreen)
    */
-  async logGameCompleted(sessionId, gameData) {
-    try {
-      // Skip logging if no valid session ID
-      if (!sessionId || sessionId === 'undefined' || sessionId === 'null') {
-        console.log('⚠️ No session ID available, skipping game completion logging');
-        return { success: false, skipped: true };
-      }
-
-      console.log('📤 Logging game completion for session:', sessionId);
-
-      // Update the session with completion data
-      const sessionUpdates = {
-        total_words_solved: gameData?.wordsLearned || 0,
-        total_duration_seconds: gameData?.totalTime || 0,
-        total_hints_used: gameData?.totalHints || 0,
-        episodes_completed: gameData?.episodesCompleted || 1,
-        completion_percentage: gameData?.accuracy || 0,
-        is_completed: gameData?.isFullyCompleted || false
-      };
-
-      await this.updateSession(sessionId, sessionUpdates);
-
-      // Also log as an activity
-      const activityData = {
-        session_id: sessionId,
-        activity_type: 'game_completed',
-        word_data: gameData,
-        is_correct: true,
-        time_spent_seconds: gameData?.totalTime || 0,
-        hint_count: gameData?.totalHints || 0,
-        user_email: this.getUserEmail()
-      };
-      
-      await this.logActivity(activityData);
-      
-      console.log('✅ Game completion logged successfully');
-      return { success: true };
-    } catch (error) {
-      console.error('❌ Game completion logging failed:', error);
-      console.log('⚠️ Analytics logging skipped:', error.message);
-      return { success: false, error: error.message };
+  async logGameCompleted(sessionId, gameData, solvedWords = []) {
+  try {
+    // Skip logging if no valid session ID
+    if (!sessionId || sessionId === 'undefined' || sessionId === 'null') {
+      console.log('⚠️ No session ID available, skipping game completion logging');
+      return { success: false, skipped: true };
     }
+
+    console.log('📤 Logging game completion for session:', sessionId);
+
+    // Extract vocabulary words from solvedWords array
+    const vocabularyWords = solvedWords.map(sw => sw.word || sw);
+
+    // Update the session with completion data INCLUDING vocabulary words
+    const sessionUpdates = {
+      total_words_solved: gameData?.wordsLearned || 0,
+      total_duration_seconds: gameData?.totalTime || 0,
+      total_hints_used: gameData?.totalHints || 0,
+      episodes_completed: gameData?.episodesCompleted || 1,
+      completion_percentage: gameData?.accuracy || 0,
+      is_completed: gameData?.isFullyCompleted || false,
+      vocabulary_words_learned: vocabularyWords  // NEW: Add vocabulary words
+    };
+
+    await this.updateSession(sessionId, sessionUpdates);
+
+    // Also log as an activity
+    const activityData = {
+      session_id: sessionId,
+      activity_type: 'game_completed',
+      word_data: {
+        ...gameData,
+        vocabulary_words: vocabularyWords  // Include in activity log too
+      },
+      is_correct: true,
+      time_spent_seconds: gameData?.totalTime || 0,
+      hint_count: gameData?.totalHints || 0,
+      user_email: this.getUserEmail()
+    };
+    
+    await this.logActivity(activityData);
+    
+    console.log('✅ Game completion logged successfully');
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Game completion logging failed:', error);
+    console.log('⚠️ Analytics logging skipped:', error.message);
+    return { success: false, error: error.message };
   }
+}
 
   /**
    * Get analytics for a specific session
