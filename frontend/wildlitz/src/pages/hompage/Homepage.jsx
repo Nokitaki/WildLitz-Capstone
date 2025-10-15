@@ -31,6 +31,7 @@ import syllableClappingGame from '../../assets/game/syllable-clapping-game.mp4';
 import soundSafariGame from '../../assets/game/sound-safari-game.mp4';
 import vanishingGame from '../../assets/game/vanishing-game.mp4';
 import crosswordGame from '../../assets/game/crossword-game.png';
+import CrosswordAnimation from '../../components/animations/CrosswordAnimation';
 
 function HomePage() {
   const navigate = useNavigate();
@@ -240,27 +241,147 @@ function HomePage() {
           </div>
 
            {/* --- Crossword Game --- */}
-          <div className={styles.gameEntry} key="game-4">
-            <div 
-              className={styles.gameImageContainer} 
-              onClick={() => handleGameClick('crossword-puzzle')}
-            >
-              <img src={crosswordGame} alt="Crossword Game" className={styles.gameVisual} />
-              <img src={syllableGameCardRight} alt="Fourth Game Card Frame" className={styles.gameFrameImage} />
-            </div>
-            <div className={styles.gameTextContent}>
-              <h3 className={styles.gameTitle}>Crossword Game</h3>
-              <p className={styles.gameDescription}>
-                A classic puzzle with a phonics twist. Kids use letter sounds and clues to fill in the words, reinforcing vocabulary and spelling skills.
-              </p>
-              <button 
-                className={styles.playButton} 
-                onClick={() => handleHowToPlayClick('crossword-puzzle')}
-              >
-                How to Play
-              </button>
-            </div>
-          </div>
+         <div className={styles.gameEntry} key="game-4">
+  <motion.div 
+    className={styles.gameImageContainer} 
+    onClick={() => handleGameClick('crossword-puzzle')}
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+      backgroundSize: '200% 200%',
+      borderRadius: '20px',
+      padding: '40px',
+      minHeight: '320px',
+      position: 'relative',
+      overflow: 'hidden',
+      boxShadow: '0 20px 60px rgba(102, 126, 234, 0.4), inset 0 0 30px rgba(255, 255, 255, 0.1)',
+      cursor: 'pointer'
+    }}
+    animate={{
+      backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+    }}
+    transition={{
+      duration: 6,
+      repeat: Infinity,
+      ease: "linear"
+    }}
+    whileHover={{
+      scale: 1.02,
+      boxShadow: '0 25px 70px rgba(102, 126, 234, 0.5), inset 0 0 40px rgba(255, 255, 255, 0.15)'
+    }}
+  >
+    {/* Floating orbs background */}
+    <div style={{
+      position: 'absolute',
+      width: '100%',
+      height: '100%',
+      top: 0,
+      left: 0,
+      overflow: 'hidden',
+      pointerEvents: 'none'
+    }}>
+      <motion.div 
+        style={{
+          position: 'absolute',
+          width: '150px',
+          height: '150px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%)',
+          top: '-50px',
+          left: '-50px',
+        }}
+        animate={{
+          x: [0, 30, 0],
+          y: [0, -30, 0],
+          scale: [1, 1.1, 0.9, 1]
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
+      <motion.div 
+        style={{
+          position: 'absolute',
+          width: '200px',
+          height: '200px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
+          bottom: '-80px',
+          right: '-80px',
+        }}
+        animate={{
+          x: [0, -30, 0],
+          y: [0, 20, 0],
+          scale: [1, 0.9, 1.1, 1]
+        }}
+        transition={{
+          duration: 10,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
+    </div>
+
+    {/* Main Animation Container */}
+    <motion.div
+      style={{ 
+        transform: 'scale(1.5)', 
+        position: 'relative',
+        zIndex: 1
+      }}
+      whileHover={{ 
+        scale: 1.6,
+        rotate: 3,
+        transition: { duration: 0.3, type: 'spring', stiffness: 300 }
+      }}
+      whileTap={{ scale: 1.45 }}
+      animate={{
+        y: [0, -10, 0],
+      }}
+      transition={{
+        y: {
+          duration: 4,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }
+      }}
+    >
+      <CrosswordAnimation />
+    </motion.div>
+    
+    <motion.img 
+      src={syllableGameCardRight} 
+      alt="Fourth Game Card Frame" 
+      className={styles.gameFrameImage}
+      animate={{
+        scale: [1, 1.02, 1],
+        opacity: [1, 0.95, 1]
+      }}
+      transition={{
+        duration: 3,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }}
+    />
+  </motion.div>
+  
+  <div className={styles.gameTextContent}>
+    <h3 className={styles.gameTitle}>Crossword Game</h3>
+    <p className={styles.gameDescription}>
+      A classic puzzle with a phonics twist. Kids use letter sounds and clues to fill in the words, reinforcing vocabulary and spelling skills.
+    </p>
+    <button 
+      className={styles.playButton} 
+      onClick={() => handleHowToPlayClick('crossword-puzzle')}
+    >
+      How to Play
+    </button>
+  </div>
+</div>
 
 
         {/* --- ADD THE PROJECT PURPOSE SECTION HERE --- */}
