@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/crossword/IntroScreen.module.css';
-
+import BackToHomeButton from '../../../components/common/BackToHomeButton';
 /**
  * Introduction screen for Story-Based Crossword Adventures
  * Allows selection of adventure stories
@@ -35,6 +35,7 @@ const IntroScreen = ({ onStartGame, storyAdventures, onStartStoryGeneration }) =
   
   return (
     <div className={styles.introContainer}>
+       <BackToHomeButton position="top-left" />
       <div className={styles.introCard}>
         <div className={styles.headerSection}>
           <h1 className={styles.mainTitle}>Reading Adventures: Crossword Quest</h1>

@@ -7,7 +7,7 @@ import { StoryLoadingScreen } from '../../../components/common/LoadingStates';
 // ADD THIS IMPORT at the top with other imports
 import CrosswordAnalyticsDashboard from '../../../pages/games/crossword/CrosswordAnalyticsDashboard';
 import { API_ENDPOINTS } from '../../../config/api';
-
+import BackToHomeButton from '../../games/crossword/BackToHomeButton';
 
 const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   const navigate = useNavigate();
@@ -175,6 +175,9 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   
   return (
     <div className={styles.generatorContainer}>
+      <BackToHomeButton position="top-left" />
+    
+
       <div className={styles.generatorCard}>
 
        

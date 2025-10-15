@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/crossword/GameplayScreen.module.css';
-
+import BackToHomeButton from '../crossword/BackToHomeButton';
 // ADD THIS IMPORT at the top with other imports
 import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
 
@@ -416,6 +416,13 @@ const GameplayScreen = ({
 
   return (
     <div className={styles.crosswordContainer}>
+       <BackToHomeButton 
+      position="top-left" 
+      customMessage="Are you sure you want to quit? Your crossword progress will be lost!"
+    />
+   
+    
+   
       <div className={styles.crosswordCard}>
         <div className={styles.teacherControls}>
           <button 

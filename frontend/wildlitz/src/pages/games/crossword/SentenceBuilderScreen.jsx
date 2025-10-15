@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/crossword/SentenceBuilderScreen.module.css';
-
+import BackToHomeButton from '../crossword/BackToHomeButton';
 /**
  * SentenceBuilderScreen allows students to create sentences using words they've learned
  */
@@ -146,6 +146,10 @@ const SentenceBuilderScreen = ({ words, onReturnToSummary, onReturnToMenu }) => 
   
   return (
     <div className={styles.builderContainer}>
+       <BackToHomeButton 
+      position="top-left"
+      customMessage="Are you sure you want to leave? Your sentences will not be saved!"
+    />
       <div className={styles.builderCard}>
         {/* Header with student info */}
         <div className={styles.builderHeader}>

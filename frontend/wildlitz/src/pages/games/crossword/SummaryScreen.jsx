@@ -3,7 +3,7 @@ import React, { useEffect } from 'react'; // Update the React import to include 
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/crossword/SummaryScreen.module.css';
 import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
-
+import BackToHomeButton from '../crossword/BackToHomeButton';
 /**
  * SummaryScreen component shows the words learned after completing the crossword puzzle
  */
@@ -144,6 +144,7 @@ useEffect(() => {
   
   return (
     <div className={styles.summaryContainer}>
+         <BackToHomeButton position="top-right" />
       <Confetti />
       <div className={styles.summaryCard}>
         {/* Header with theme info */}

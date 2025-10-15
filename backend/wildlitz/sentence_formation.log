@@ -687,3 +687,41 @@ INFO 2025-10-15 16:36:56,111 views Sample session: {'id': '599cc4f0-e15c-45cd-aa
 INFO 2025-10-15 16:36:56,440 views Found 8 sessions for user_email: kenjiermita2020@gmail.com
 INFO 2025-10-15 16:36:56,440 views Sample session: {'id': '599cc4f0-e15c-45cd-aaec-c75f05d6b231', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'farm_generated_1760516038', 'story_title': 'Adventures on the Farm', 'theme': 'farm', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-15T08:14:20.598267+00:00', 'session_end': None, 'total_duration_seconds': 56, 'episodes_completed': 1, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': ['FEED', 'COLLECT', 'RUN', 'FIND', 'HELP'], 'reading_coach_interactions': 0, 'is_completed': False, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T08:14:20.598267+00:00', 'updated_at': '2025-10-15T08:15:22.259924+00:00'}
 INFO 2025-10-15 16:37:00,148 views Session details retrieved: 599cc4f0-e15c-45cd-aaec-c75f05d6b231
+INFO 2025-10-15 16:47:22,713 views Raw GPT response received (length: 4464)
+INFO 2025-10-15 16:47:22,713 views Successfully parsed GPT response as JSON
+INFO 2025-10-15 16:47:23,822 views Story session created: 8b5dbb6d-21b3-42b7-939f-df51f9bc79e7
+INFO 2025-10-15 16:57:36,775 views Raw GPT response received (length: 4290)
+INFO 2025-10-15 16:57:36,775 views Successfully parsed GPT response as JSON
+INFO 2025-10-15 16:58:58,674 views Raw GPT response received (length: 4439)
+INFO 2025-10-15 16:58:58,674 views Successfully parsed GPT response as JSON
+INFO 2025-10-15 16:59:00,184 views Story session created: deb8c06a-bb94-4bdb-b728-318b897c83c8
+INFO 2025-10-15 17:01:01,186 views Activity logged: word_solved
+INFO 2025-10-15 17:01:04,658 views Activity logged: word_solved
+INFO 2025-10-15 17:01:07,415 views Activity logged: word_solved
+INFO 2025-10-15 17:01:09,894 views Activity logged: word_solved
+INFO 2025-10-15 17:01:12,748 views Activity logged: word_solved
+INFO 2025-10-15 17:01:14,099 views Story session updated: deb8c06a-bb94-4bdb-b728-318b897c83c8
+INFO 2025-10-15 17:01:14,230 views Story session updated: deb8c06a-bb94-4bdb-b728-318b897c83c8
+INFO 2025-10-15 17:01:14,498 views Activity logged: game_completed
+INFO 2025-10-15 17:01:14,500 views Activity logged: game_completed
+INFO 2025-10-15 17:02:56,760 views Raw GPT response received (length: 4662)
+INFO 2025-10-15 17:02:56,761 views Successfully parsed GPT response as JSON
+INFO 2025-10-15 17:02:58,203 views Story session created: dff48909-59d8-422c-a0bf-42472781294b
+INFO 2025-10-15 17:03:14,292 views Activity logged: word_solved
+INFO 2025-10-15 17:03:18,148 views Activity logged: word_solved
+INFO 2025-10-15 17:03:21,011 views Activity logged: word_solved
+INFO 2025-10-15 17:03:23,717 views Activity logged: word_solved
+INFO 2025-10-15 17:03:25,881 views Activity logged: word_solved
+INFO 2025-10-15 17:03:27,299 views Story session updated: dff48909-59d8-422c-a0bf-42472781294b
+INFO 2025-10-15 17:03:27,300 views Story session updated: dff48909-59d8-422c-a0bf-42472781294b
+INFO 2025-10-15 17:03:27,457 views Activity logged: game_completed
+INFO 2025-10-15 17:03:27,458 views Activity logged: game_completed
+INFO 2025-10-15 17:03:47,897 views Found 11 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 17:03:47,898 views Sample session: {'id': 'dff48909-59d8-422c-a0bf-42472781294b', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'fairytale_generated_1760518969', 'story_title': 'Enchanted Forest Adventure', 'theme': 'fairytale', 'focus_skills': [], 'episode_count': 1, 'character_names': '', 'session_start': '2025-10-15T09:02:59.0418+00:00', 'session_end': '2025-10-15T17:03:27.065029+00:00', 'total_duration_seconds': 23, 'episodes_completed': 1, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': ['explore', 'glow', 'pedestal', 'shimmering', 'excited'], 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T09:02:59.0418+00:00', 'updated_at': '2025-10-15T09:03:28.150953+00:00'}
+INFO 2025-10-15 17:03:48,181 views Found 11 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 17:03:48,181 views Sample session: {'id': 'dff48909-59d8-422c-a0bf-42472781294b', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'fairytale_generated_1760518969', 'story_title': 'Enchanted Forest Adventure', 'theme': 'fairytale', 'focus_skills': [], 'episode_count': 1, 'character_names': '', 'session_start': '2025-10-15T09:02:59.0418+00:00', 'session_end': '2025-10-15T17:03:27.065029+00:00', 'total_duration_seconds': 23, 'episodes_completed': 1, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': ['explore', 'glow', 'pedestal', 'shimmering', 'excited'], 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T09:02:59.0418+00:00', 'updated_at': '2025-10-15T09:03:28.150953+00:00'}
+INFO 2025-10-15 17:04:21,213 views Session details retrieved: dff48909-59d8-422c-a0bf-42472781294b
+INFO 2025-10-15 17:04:39,918 views Found 11 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 17:04:39,919 views Sample session: {'id': 'dff48909-59d8-422c-a0bf-42472781294b', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'fairytale_generated_1760518969', 'story_title': 'Enchanted Forest Adventure', 'theme': 'fairytale', 'focus_skills': [], 'episode_count': 1, 'character_names': '', 'session_start': '2025-10-15T09:02:59.0418+00:00', 'session_end': '2025-10-15T17:03:27.065029+00:00', 'total_duration_seconds': 23, 'episodes_completed': 1, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': ['explore', 'glow', 'pedestal', 'shimmering', 'excited'], 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T09:02:59.0418+00:00', 'updated_at': '2025-10-15T09:03:28.150953+00:00'}
+INFO 2025-10-15 17:04:40,307 views Found 11 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-15 17:04:40,307 views Sample session: {'id': 'dff48909-59d8-422c-a0bf-42472781294b', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'fairytale_generated_1760518969', 'story_title': 'Enchanted Forest Adventure', 'theme': 'fairytale', 'focus_skills': [], 'episode_count': 1, 'character_names': '', 'session_start': '2025-10-15T09:02:59.0418+00:00', 'session_end': '2025-10-15T17:03:27.065029+00:00', 'total_duration_seconds': 23, 'episodes_completed': 1, 'current_episode': 1, 'total_words_solved': 5, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': ['explore', 'glow', 'pedestal', 'shimmering', 'excited'], 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-15T09:02:59.0418+00:00', 'updated_at': '2025-10-15T09:03:28.150953+00:00'}
