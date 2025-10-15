@@ -649,10 +649,12 @@ const SyllableConfigScreen = ({ onStartGame }) => {
       return;
     }
 
-    if (!validationResult) {
-      alert("Please validate the syllable structure first");
-      return;
-    }
+    if (!validationResult && !validationDismissed) {
+  alert(
+    "Please wait for syllable validation to complete, or dismiss it to proceed manually"
+  );
+  return;
+}
 
     setIsSaving(true);
 
