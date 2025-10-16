@@ -75,14 +75,7 @@ def test_endpoint(request):
 @permission_classes([AllowAny])
 def generate_story(request):
     """
-    Generate an interactive story with multiple episodes and multiple crossword puzzles per episode
-    
-    Expects JSON with:
-    - theme: theme of the story (e.g., 'jungle', 'space')
-    - focusSkills: list of skills to focus on
-    - characterNames: (optional) names of characters
-    - episodeCount: number of episodes to generate
-    - gradeLevel: target grade level
+    Generate an educational story using OpenAI GPT with improved focus skill matching
     """
     try:
         # Parse request data
@@ -90,8 +83,10 @@ def generate_story(request):
         theme = data.get('theme', 'jungle')
         focus_skills = data.get('focusSkills', ['sight-words'])
         character_names = data.get('characterNames', '')
-        episode_count = min(int(data.get('episodeCount', 3)), 5)  # Limit to 5 episodes max
+        episode_count = min(int(data.get('episodeCount', 3)), 5)
         grade_level = data.get('gradeLevel', 3)
+        
+        logger.info(f"📚 Story generation request: theme={theme}, skills={focus_skills}, episodes={episode_count}")
         
         # Validate the OpenAI API key
         if not settings.OPENAI_API_KEY:
@@ -103,13 +98,15 @@ def generate_story(request):
         # Create a unique ID for this story
         story_id = f"{theme}_generated_{int(datetime.now().timestamp())}"
         
-        # 🔥 FIX: Calculate max_tokens dynamically based on episode count
-        # Each episode needs ~1200 tokens, plus 500 for story wrapper
+        # Calculate max_tokens dynamically
         max_tokens = max(3000, episode_count * 1200 + 500)
         
-        logger.info(f"📚 Generating {episode_count} episodes with max_tokens={max_tokens}")
+        # Get vocabulary guidance for selected focus skills
+        vocab_guidance = get_vocabulary_guidance(focus_skills)
         
-        # Create a more detailed prompt that ensures vocabulary words are used in the story text
+        logger.info(f"📝 Generating with focus skills: {focus_skills}")
+        
+        # IMPROVED PROMPT with specific vocabulary guidance
         prompt = f"""
         Create EXACTLY {episode_count} complete episodes for an educational story for grade {grade_level} students with a {theme} theme.
         
@@ -117,25 +114,36 @@ def generate_story(request):
         
         CRITICAL: You MUST create all {episode_count} episodes. Do not create fewer episodes than requested!
         
-        IMPORTANT REQUIREMENTS FOR GRADE 3 STUDENTS:
-        1. Each episode should be 150-200 words long (appropriate reading length)
-        2. Each episode must include 5-7 simple vocabulary words that focus on {', '.join(focus_skills)}
-        3. ALL vocabulary words MUST appear naturally in the story text
-        4. Use ONLY grade 3 appropriate vocabulary (3-6 letters, simple words)
-        5. Each vocabulary word should appear at least once in the episode text where it's listed
+        ================================
+        FOCUS SKILLS VOCABULARY REQUIREMENTS:
+        ================================
+        The vocabulary words MUST match these focus skills:
+        {vocab_guidance['detailed_guidance']}
         
-        GRADE 3 VOCABULARY GUIDELINES:
-        - Use simple, common words that 8-9 year olds know: run, jump, find, look, help, big, small, red, blue, tree, house, car, book, etc.
-        - Focus on sight words and basic phonics patterns
-        - Words should be 3-6 letters long
-        - Avoid complex vocabulary or abstract concepts
+        VOCABULARY SELECTION RULES:
+        1. Select 5-7 vocabulary words PER EPISODE that match the focus skills above
+        2. ONLY use words that fit the focus skill categories
+        3. Words must be 3-6 letters long (grade 3 appropriate)
+        4. Each vocabulary word MUST appear naturally in the story text
+        5. Words should be simple enough for 8-9 year olds to understand
+        
+        EXAMPLE VOCABULARY WORDS YOU CAN USE:
+        {', '.join(vocab_guidance['example_words'][:30])}
+        
+        ================================
+        STORY REQUIREMENTS:
+        ================================
+        For EACH episode:
+        - 150-200 words total (appropriate reading length)
+        - Engaging narrative with the vocabulary words used naturally
+        - The vocabulary words should be integral to the story, not forced
         
         For EACH of the {episode_count} episodes, provide:
         1. Episode number and title
-        2. Story text (150-200 words, engaging and age-appropriate)
+        2. Story text (150-200 words) that naturally includes the vocabulary words
         3. Brief recap sentence
         4. 2-3 discussion questions
-        5. List of vocabulary words that appear in the episode
+        5. List of vocabulary words (5-7 words that match the focus skills)
         6. Simple crossword clues for each vocabulary word
         
         Return ONLY a valid JSON object in this exact format:
@@ -146,19 +154,18 @@ def generate_story(request):
             "theme": "{theme}",
             "gradeLevel": {grade_level},
             "totalEpisodes": {episode_count},
+            "focusSkills": {json.dumps(focus_skills)},
             "episodes": [
               {{
                 "id": "episode_1",
                 "episodeNumber": 1,
                 "title": "Episode Title",
-                "text": "Story text that includes the vocabulary words naturally...",
-                "recap": "Brief summary of the episode",
-                "discussionQuestions": ["Question 1?", "Question 2?", "Question 3?"],
+                "text": "Story text that naturally uses the vocabulary words...",
+                "recap": "Brief summary",
+                "discussionQuestions": ["Question 1?", "Question 2?"],
                 "crosswordPuzzleId": "puzzle_1",
-                "additionalPuzzleIds": [],
                 "vocabularyFocus": ["word1", "word2", "word3", "word4", "word5"]
               }}
-              ... CONTINUE for all {episode_count} episodes ...
             ]
           }},
           "puzzles": {{
@@ -170,54 +177,53 @@ def generate_story(request):
                 {{
                   "direction": "across",
                   "number": 1,
-                  "clue": "Age-appropriate clue for the word",
+                  "clue": "Simple grade 3 clue",
                   "answer": "WORD",
-                  "definition": "Simple definition",
-                  "example": "Example sentence using the word",
-                  "cells": [{{"row": 0, "col": 0}}, {{"row": 0, "col": 1}}, {{"row": 0, "col": 2}}, {{"row": 0, "col": 3}}]
+                  "definition": "Kid-friendly definition",
+                  "example": "Example sentence",
+                  "cells": [{{"row": 0, "col": 0}}]
                 }}
               ]
             }}
-            ... CONTINUE for all {episode_count} puzzles ...
           }}
         }}
-        
-        CRITICAL REMINDER: Your response must include ALL {episode_count} episodes in the episodes array!
         """
         
         try:
-            # Call OpenAI API with the updated interface and dynamic max_tokens
+            # Call OpenAI API
             response = openai.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are an educational content creator specializing in stories and puzzles for elementary school students. You ALWAYS create the EXACT number of episodes requested. Always respond with valid JSON."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system", 
+                        "content": "You are an expert educational content creator for elementary students. You always create vocabulary that matches the specified focus skills perfectly."
+                    },
+                    {
+                        "role": "user", 
+                        "content": prompt
+                    }
                 ],
-                temperature=0.7,
-                max_tokens=max_tokens  # 🔥 FIX: Use dynamic max_tokens
+                max_tokens=max_tokens,
+                temperature=0.7
             )
             
-            # Get the response content
-            response_content = response.choices[0].message.content
-            logger.info(f"Raw GPT response received (length: {len(response_content)})")
+            response_content = response.choices[0].message.content.strip()
+            logger.info(f"✅ Received response from OpenAI (length: {len(response_content)})")
             
+            # Parse the JSON response
             try:
-                # Try to parse the JSON response
                 story_data = json.loads(response_content)
-                logger.info("Successfully parsed GPT response as JSON")
                 
-                # 🔥 VALIDATE: Check if we got the correct number of episodes
-                episodes_generated = len(story_data.get('story', {}).get('episodes', []))
-                logger.info(f"✅ AI generated {episodes_generated} episodes (requested {episode_count})")
-                
-                if episodes_generated < episode_count:
-                    logger.warning(f"⚠️ AI only generated {episodes_generated} episodes instead of {episode_count}")
+                # Validate that we got the right number of episodes
+                episodes_received = len(story_data.get('story', {}).get('episodes', []))
+                if episodes_received < episode_count:
+                    logger.warning(f"⚠️ Generated only {episodes_received} episodes, expected {episode_count}")
                 
                 return Response(story_data)
                 
             except json.JSONDecodeError as json_error:
-                logger.warning(f"Failed to parse GPT response as JSON: {json_error}")
-                # Try to extract JSON from the response if it's wrapped in other text
+                logger.error(f"JSON parsing error: {json_error}")
+                # Try to extract JSON
                 import re
                 json_match = re.search(r'{[\s\S]*}', response_content)
                 if json_match:
@@ -227,14 +233,14 @@ def generate_story(request):
                     except json.JSONDecodeError:
                         pass
                 
-                logger.error("Could not extract valid JSON from GPT response, falling back to default")
                 # Fall back to default story
-                return Response(create_fallback_story(theme, episode_count, grade_level, focus_skills))
+                logger.info("Falling back to default story")
+                return Response(create_improved_fallback_story(theme, episode_count, grade_level, focus_skills))
                 
         except Exception as openai_error:
             logger.error(f"OpenAI API error: {openai_error}")
-            # Return a fallback story
-            return Response(create_fallback_story(theme, episode_count, grade_level, focus_skills))
+            logger.error(traceback.format_exc())
+            return Response(create_improved_fallback_story(theme, episode_count, grade_level, focus_skills))
     
     except Exception as e:
         logger.error(f"Error in generate_story: {str(e)}")
@@ -243,21 +249,30 @@ def generate_story(request):
             'error': str(e)
         }, status=status.HTTP_400_BAD_REQUEST)
 
-def create_fallback_story(theme, episode_count, grade_level, focus_skills):
-    """Create a fallback story if AI generation fails"""
+
+def create_improved_fallback_story(theme, episode_count, grade_level, focus_skills):
+    """Create a fallback story with vocabulary matching the focus skills"""
     
     story_id = f"{theme}_fallback_{int(datetime.now().timestamp())}"
-    # Grade 3 appropriate vocabulary
-    grade3_vocab = [
-        {"word": "RUN", "clue": "Move fast with your legs", "definition": "To move quickly on foot"},
-        {"word": "BIG", "clue": "Not small", "definition": "Large in size"},
-        {"word": "TREE", "clue": "Tall plant with leaves", "definition": "A tall woody plant"},
-        {"word": "HELP", "clue": "Give aid to someone", "definition": "To assist or aid"},
-        {"word": "JUMP", "clue": "Leap up high", "definition": "To spring up from the ground"},
-        {"word": "LOOK", "clue": "Use your eyes", "definition": "To see or observe"},
-        {"word": "PLAY", "clue": "Have fun", "definition": "To engage in games or activities"},
-        {"word": "FIND", "clue": "Discover something", "definition": "To locate or discover"}
-    ]
+    
+    # Get appropriate vocabulary based on focus skills
+    all_vocab = []
+    for skill in focus_skills:
+        if skill in FOCUS_SKILL_VOCABULARY:
+            all_vocab.extend(FOCUS_SKILL_VOCABULARY[skill]['examples'][:5])
+    
+    # If no vocabulary found, use default action verbs
+    if not all_vocab:
+        all_vocab = ['run', 'jump', 'look', 'find', 'help', 'walk', 'play']
+    
+    # Create vocabulary list with crossword data
+    vocab_list = []
+    for word in all_vocab[:7]:  # Limit to 7 words
+        vocab_list.append({
+            "word": word.upper(),
+            "clue": f"A word for grade {grade_level}",
+            "definition": f"A {grade_level}rd grade word"
+        })
     
     fallback_story = {
         "story": {
@@ -266,71 +281,56 @@ def create_fallback_story(theme, episode_count, grade_level, focus_skills):
             "theme": theme,
             "gradeLevel": grade_level,
             "totalEpisodes": episode_count,
+            "focusSkills": focus_skills,
             "episodes": []
-        }
+        },
+        "puzzles": {}
     }
-    
-    fallback_puzzles = {}
     
     for i in range(episode_count):
         episode_id = f"episode_{i+1}"
         puzzle_id = f"puzzle_{i+1}"
         
-        episode_text = f"""The kids go to the {theme}. They can run and play there. They look for big things to see. 
-They see many big and cool things. They find new places to play. It is so much fun to go and see new things!
-The kids help each other. They jump and run all day. They look at everything. When they find something new, they play with it.
-They see many big and cool things. They find new places to play. It is so much fun to go and see new things!"""
+        # Create story text using the vocabulary words
+        vocab_words = [v['word'].lower() for v in vocab_list]
+        episode_text = f"""The kids {vocab_words[0]} to the {theme}. They {vocab_words[1]} and {vocab_words[2]} around. 
+They {vocab_words[3]} so many cool things! They {vocab_words[4]} each other all day. 
+It is fun to {vocab_words[5]} and {vocab_words[6]}!"""
         
         fallback_story["story"]["episodes"].append({
             "id": episode_id,
             "episodeNumber": i + 1,
             "title": f"Episode {i+1}: Fun Times",
             "text": episode_text,
-            "recap": f"The kids have fun in the {theme}.",
+            "recap": f"The kids have adventures in the {theme}.",
             "discussionQuestions": [
-                "What did the kids see?",
+                "What did the kids do?",
                 "Did they have fun?",
-                "What would you like to see?"
+                "What would you do?"
             ],
             "crosswordPuzzleId": puzzle_id,
-            "additionalPuzzleIds": [],
-            "vocabularyFocus": [word["word"] for word in grade3_vocab]
+            "vocabularyFocus": vocab_words
         })
         
-        # Create corresponding puzzle
-        fallback_puzzles[puzzle_id] = generate_simple_crossword(grade3_vocab, theme)
+        # Create puzzle
+        fallback_story["puzzles"][puzzle_id] = generate_simple_crossword(vocab_list, theme)
     
-    fallback_story["puzzles"] = fallback_puzzles
     return fallback_story
 
 def generate_simple_crossword(vocab_words, theme):
     """Generate a simple crossword puzzle from vocabulary words"""
-    # Create a basic crossword structure
     words = []
-    grid_cells = []
     
-    # Get the words from vocab_words
-    word_list = [word.get("word", "").upper() for word in vocab_words]
-    
-    # Calculate a simple grid layout - ensure it's large enough for all words
-    grid_width = max(10, max([len(word) for word in word_list] + [0]) + 2)
-    grid_height = max(10, len(word_list) * 2)
-    
-    # Process each vocabulary word
     for i, word_data in enumerate(vocab_words):
         word = word_data.get("word", "").upper()
-        # Use the AI-generated clue directly, or generate a basic one if missing
         clue = word_data.get("clue", f"Something related to {theme}")
         definition = word_data.get("definition", f"A word related to {theme}")
         
         if not word:
-            continue  # Skip empty words
+            continue
             
-        # In a real implementation, you would calculate proper grid positions
-        # Here we're creating a simplified version with basic positioning
         direction = "across" if i % 2 == 0 else "down"
         
-        # Basic cell calculations
         if direction == "across":
             start_row = i * 2
             start_col = 0
@@ -340,10 +340,6 @@ def generate_simple_crossword(vocab_words, theme):
             start_col = i * 2
             cells = [{"row": start_row + j, "col": start_col} for j in range(len(word))]
             
-        # Add each cell to the grid
-        grid_cells.extend(cells)
-        
-        # Add the word data
         words.append({
             "direction": direction,
             "number": i + 1,
@@ -354,7 +350,9 @@ def generate_simple_crossword(vocab_words, theme):
             "cells": cells
         })
     
-    # Create a basic puzzle structure
+    grid_width = max(10, max([len(word) for word in [w.get("answer", "") for w in words]] + [0]) + 2)
+    grid_height = max(10, len(words) * 2)
+    
     return {
         "id": f"{theme}_crossword_{random.randint(1000, 9999)}",
         "title": f"{theme.capitalize()} Crossword",
@@ -1216,3 +1214,64 @@ def delete_story_session(request, session_id):
         return Response({
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+FOCUS_SKILL_VOCABULARY = {
+    'sight-words': {
+        'description': 'Common words that students should recognize by sight',
+        'examples': ['the', 'and', 'was', 'said', 'for', 'are', 'his', 'they', 'have', 'from', 
+                    'one', 'had', 'been', 'many', 'some', 'time', 'very', 'when', 'your', 'what',
+                    'there', 'their', 'would', 'make', 'like', 'could', 'into', 'than', 'them'],
+        'instruction': 'Use high-frequency sight words from the Dolch or Fry word lists for grade 3'
+    },
+    'phonics-sh': {
+        'description': 'Words containing the SH sound',
+        'examples': ['ship', 'fish', 'shop', 'wish', 'push', 'rush', 'shell', 'shut', 'shin', 
+                    'shed', 'brush', 'crash', 'flash', 'fresh', 'sharp'],
+        'instruction': 'Use simple 3-6 letter words with the "sh" sound at the beginning or end'
+    },
+    'phonics-ch': {
+        'description': 'Words containing the CH sound',
+        'examples': ['chip', 'chat', 'chop', 'rich', 'much', 'lunch', 'bench', 'catch', 'check',
+                    'chest', 'chin', 'branch', 'crunch', 'teach'],
+        'instruction': 'Use simple 3-6 letter words with the "ch" sound at the beginning or end'
+    },
+    'long-vowels': {
+        'description': 'Words with long vowel sounds (a, e, i, o, u)',
+        'examples': ['cake', 'make', 'bike', 'ride', 'rope', 'home', 'cute', 'tune', 'tree', 
+                    'seed', 'rain', 'play', 'boat', 'snow', 'pie', 'light'],
+        'instruction': 'Use words with clear long vowel patterns (CVCe, vowel teams)'
+    },
+    'compound-words': {
+        'description': 'Two words joined together to make a new word',
+        'examples': ['sunlight', 'backpack', 'cupcake', 'rainbow', 'bedroom', 'baseball', 
+                    'airplane', 'playground', 'popcorn', 'butterfly', 'outside', 'inside'],
+        'instruction': 'Use simple compound words made from familiar grade 3 words'
+    },
+    'action-verbs': {
+        'description': 'Action words that describe what someone or something does',
+        'examples': ['run', 'jump', 'swim', 'climb', 'play', 'walk', 'look', 'find', 'help', 
+                    'push', 'pull', 'throw', 'catch', 'kick', 'dance', 'sing', 'laugh', 'sleep',
+                    'eat', 'drink', 'read', 'write', 'draw', 'build', 'dive', 'reach', 'grab'],
+        'instruction': 'Use simple present tense action verbs that a grade 3 student can act out'
+    }
+}
+
+def get_vocabulary_guidance(focus_skills):
+    """Generate detailed vocabulary guidance based on selected focus skills"""
+    guidance_parts = []
+    all_examples = []
+    
+    for skill in focus_skills:
+        if skill in FOCUS_SKILL_VOCABULARY:
+            skill_data = FOCUS_SKILL_VOCABULARY[skill]
+            guidance_parts.append(
+                f"\n- {skill.upper()}: {skill_data['description']}\n"
+                f"  {skill_data['instruction']}\n"
+                f"  Examples: {', '.join(skill_data['examples'][:10])}"
+            )
+            all_examples.extend(skill_data['examples'])
+    
+    return {
+        'detailed_guidance': '\n'.join(guidance_parts),
+        'example_words': list(set(all_examples))  # Remove duplicates
+    }
