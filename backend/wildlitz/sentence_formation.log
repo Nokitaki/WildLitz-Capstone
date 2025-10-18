@@ -984,3 +984,66 @@ INFO 2025-10-19 03:13:48,973 views GPT response for 'SAFE': {
   "definition": "Safe means out of harm's way or not in danger.",
   "example": "When you wear your...
 INFO 2025-10-19 03:13:48,974 views Successfully explained word 'SAFE'
+INFO 2025-10-19 03:15:04,284 views Story session created: afc07a32-22ab-4245-8b2f-5e682f77b670
+INFO 2025-10-19 03:16:11,635 views Explaining word 'LOST' for grade 3
+INFO 2025-10-19 03:16:13,671 views GPT response for 'LOST': {
+  "definition": "Lost means not knowing where you are or how to find your way.",
+  "example": "Whe...
+INFO 2025-10-19 03:16:13,672 views Successfully explained word 'LOST'
+ERROR 2025-10-19 03:22:03,285 views JSON parsing error: Expecting value: line 1 column 1 (char 0)
+INFO 2025-10-19 03:22:04,282 views Story session created: 89300cbd-8f85-4b0a-ae5d-7bc985f370d1
+INFO 2025-10-19 03:22:25,510 views Explaining word 'SPACE' for grade 3
+INFO 2025-10-19 03:22:26,563 views GPT response for 'SPACE': {
+  "definition": "Space is the huge, open area beyond our planet Earth where stars, planets, and ga...
+INFO 2025-10-19 03:22:26,564 views Successfully explained word 'SPACE'
+INFO 2025-10-19 03:24:56,750 views Activity logged: word_solved
+INFO 2025-10-19 03:25:01,780 views Activity logged: word_solved
+INFO 2025-10-19 03:25:06,858 views Activity logged: word_solved
+INFO 2025-10-19 03:25:16,688 views Activity logged: word_solved
+INFO 2025-10-19 03:25:31,325 views Activity logged: word_solved
+INFO 2025-10-19 03:25:33,015 views Session details retrieved: 89300cbd-8f85-4b0a-ae5d-7bc985f370d1
+INFO 2025-10-19 03:25:33,239 views Story session updated: 89300cbd-8f85-4b0a-ae5d-7bc985f370d1
+INFO 2025-10-19 03:25:33,473 views Session details retrieved: 89300cbd-8f85-4b0a-ae5d-7bc985f370d1
+INFO 2025-10-19 03:25:33,473 views Activity logged: game_completed
+INFO 2025-10-19 03:25:33,656 views Story session updated: 89300cbd-8f85-4b0a-ae5d-7bc985f370d1
+INFO 2025-10-19 03:25:33,869 views Activity logged: game_completed
+INFO 2025-10-19 03:30:30,724 views Story session created: 25f543b4-2ebf-4c5a-aa45-c919f18297c8
+INFO 2025-10-19 03:41:33,408 views Activity logged: word_solved
+INFO 2025-10-19 03:41:41,298 views Activity logged: word_solved
+INFO 2025-10-19 03:41:47,949 views Activity logged: word_solved
+INFO 2025-10-19 03:41:56,653 views Activity logged: word_solved
+INFO 2025-10-19 03:42:01,760 views Activity logged: word_solved
+INFO 2025-10-19 03:42:03,458 views Session details retrieved: 25f543b4-2ebf-4c5a-aa45-c919f18297c8
+INFO 2025-10-19 03:42:03,752 views Session details retrieved: 25f543b4-2ebf-4c5a-aa45-c919f18297c8
+INFO 2025-10-19 03:42:03,938 views Story session updated: 25f543b4-2ebf-4c5a-aa45-c919f18297c8
+INFO 2025-10-19 03:42:03,940 views Story session updated: 25f543b4-2ebf-4c5a-aa45-c919f18297c8
+INFO 2025-10-19 03:42:04,154 views Activity logged: game_completed
+INFO 2025-10-19 03:42:04,154 views Activity logged: game_completed
+INFO 2025-10-19 03:47:20,752 views Story session created: 4badf366-0535-4adc-8740-f85fd2ff6775
+INFO 2025-10-19 03:47:28,338 views Activity logged: word_solved
+INFO 2025-10-19 03:50:33,429 views Story session created: 22f8c366-f88e-4b59-a550-880789af5b90
+INFO 2025-10-19 03:50:42,175 views Activity logged: word_solved
+INFO 2025-10-19 03:50:54,221 views Activity logged: word_solved
+INFO 2025-10-19 03:51:10,918 views Activity logged: word_solved
+INFO 2025-10-19 03:51:17,387 views Activity logged: word_solved
+INFO 2025-10-19 03:51:23,005 views Activity logged: word_solved
+INFO 2025-10-19 03:52:25,927 views Activity logged: word_solved
+INFO 2025-10-19 03:52:30,951 views Activity logged: word_solved
+INFO 2025-10-19 03:52:36,024 views Activity logged: word_solved
+INFO 2025-10-19 03:52:42,046 views Activity logged: word_solved
+INFO 2025-10-19 03:52:49,531 views Activity logged: word_solved
+INFO 2025-10-19 03:57:29,522 views Found 33 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-19 03:57:29,523 views Sample session: {'id': '22f8c366-f88e-4b59-a550-880789af5b90', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760817022', 'story_title': 'Adventures in the Jungle', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-18T19:50:33.818044+00:00', 'session_end': None, 'total_duration_seconds': None, 'episodes_completed': 0, 'current_episode': 1, 'total_words_solved': 0, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': False, 'completion_percentage': 0.0, 'metadata': {}, 'created_at': '2025-10-18T19:50:33.818044+00:00', 'updated_at': '2025-10-18T19:50:33.818044+00:00'}
+INFO 2025-10-19 03:57:29,836 views Found 33 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-19 03:57:29,836 views Sample session: {'id': '22f8c366-f88e-4b59-a550-880789af5b90', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760817022', 'story_title': 'Adventures in the Jungle', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-18T19:50:33.818044+00:00', 'session_end': None, 'total_duration_seconds': None, 'episodes_completed': 0, 'current_episode': 1, 'total_words_solved': 0, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': False, 'completion_percentage': 0.0, 'metadata': {}, 'created_at': '2025-10-18T19:50:33.818044+00:00', 'updated_at': '2025-10-18T19:50:33.818044+00:00'}
+INFO 2025-10-19 03:57:52,744 views Story session created: 464193db-2d4a-443c-8eb2-af3752eb8d69
+INFO 2025-10-19 03:58:04,255 views Activity logged: word_solved
+INFO 2025-10-19 03:58:11,575 views Activity logged: word_solved
+INFO 2025-10-19 03:58:54,612 views Activity logged: word_solved
+INFO 2025-10-19 03:59:00,386 views Activity logged: word_solved
+INFO 2025-10-19 03:59:12,443 views Found 34 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-19 03:59:12,443 views Sample session: {'id': '464193db-2d4a-443c-8eb2-af3752eb8d69', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'fairytale_generated_1760817462', 'story_title': 'The Enchanted Forest Adventures', 'theme': 'fairytale', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-18T19:57:53.153202+00:00', 'session_end': None, 'total_duration_seconds': None, 'episodes_completed': 0, 'current_episode': 1, 'total_words_solved': 0, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': False, 'completion_percentage': 0.0, 'metadata': {}, 'created_at': '2025-10-18T19:57:53.153202+00:00', 'updated_at': '2025-10-18T19:57:53.153202+00:00'}
+INFO 2025-10-19 03:59:12,769 views Found 34 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-19 03:59:12,770 views Sample session: {'id': '464193db-2d4a-443c-8eb2-af3752eb8d69', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'fairytale_generated_1760817462', 'story_title': 'The Enchanted Forest Adventures', 'theme': 'fairytale', 'focus_skills': [], 'episode_count': 2, 'character_names': '', 'session_start': '2025-10-18T19:57:53.153202+00:00', 'session_end': None, 'total_duration_seconds': None, 'episodes_completed': 0, 'current_episode': 1, 'total_words_solved': 0, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': False, 'completion_percentage': 0.0, 'metadata': {}, 'created_at': '2025-10-18T19:57:53.153202+00:00', 'updated_at': '2025-10-18T19:57:53.153202+00:00'}
+INFO 2025-10-19 03:59:18,492 views Session details retrieved: 464193db-2d4a-443c-8eb2-af3752eb8d69
+INFO 2025-10-19 03:59:30,185 views Session details retrieved: 22f8c366-f88e-4b59-a550-880789af5b90
