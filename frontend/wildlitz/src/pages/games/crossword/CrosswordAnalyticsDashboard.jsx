@@ -14,7 +14,7 @@ const CrosswordAnalyticsDashboard = () => {
   const [expandedSession, setExpandedSession] = useState(null);
   const [sessionActivities, setSessionActivities] = useState({});
   const [loading, setLoading] = useState(true);
-
+  const [showChallengingWords, setShowChallengingWords] = useState(false);
   useEffect(() => {
     fetchAnalytics();
     fetchWordPerformance();
@@ -110,6 +110,13 @@ const CrosswordAnalyticsDashboard = () => {
     if (score >= 5) return '#ffc107';  // Medium (yellow)
     return '#4caf50'; // Easy (green)
   };
+
+  const getWordLengthBadge = (wordLength) => {
+  if (wordLength <= 3) return { text: 'Short', color: '#4caf50' };
+  if (wordLength <= 5) return { text: 'Medium', color: '#ffc107' };
+  if (wordLength <= 7) return { text: 'Long', color: '#ff9800' };
+  return { text: 'Very Long', color: '#f44336' };
+};
 
   const getDifficultyLabel = (score) => {
     if (score >= 15) return '🔥 Very Hard';
@@ -321,101 +328,198 @@ const CrosswordAnalyticsDashboard = () => {
 
       {/* Most Challenging Words Section */}
       {wordPerformance.length > 0 && (
-        <div style={{
-          background: 'white',
-          borderRadius: '20px',
-          padding: '30px',
-          marginBottom: '30px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+  <div style={{
+    background: 'white',
+    borderRadius: '20px',
+    padding: '30px',
+    marginBottom: '30px',
+    boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+  }}>
+    <button
+      onClick={() => setShowChallengingWords(!showChallengingWords)}
+      style={{
+        width: '100%',
+        background: 'transparent',
+        border: 'none',
+        padding: '0',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: showChallengingWords ? '20px' : '0'
+      }}
+    >
+      <div>
+        <h3 style={{
+          fontSize: '1.8rem',
+          fontWeight: 700,
+          color: '#333',
+          margin: 0,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          textAlign: 'left'
         }}>
-          <h3 style={{
-            fontSize: '1.8rem',
-            fontWeight: 700,
-            color: '#333',
-            marginBottom: '15px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
+          🎯 Most Challenging Words (Top 10)
+        </h3>
+        {!showChallengingWords && (
+          <p style={{ 
+            color: '#666', 
+            margin: '8px 0 0 0', 
+            fontSize: '0.95rem',
+            textAlign: 'left'
           }}>
-            🎯 Most Challenging Words
-          </h3>
-          <p style={{ color: '#666', marginBottom: '20px', fontSize: '0.95rem' }}>
+            Words that required the most time and hints to solve
+          </p>
+        )}
+      </div>
+      <span style={{
+        fontSize: '1.5rem',
+        transform: showChallengingWords ? 'rotate(180deg)' : 'rotate(0deg)',
+        transition: 'transform 0.3s ease',
+        color: '#9c27b0'
+      }}>
+        ▼
+      </span>
+    </button>
+
+    <AnimatePresence>
+      {showChallengingWords && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+          style={{ overflow: 'hidden' }}
+        >
+          <p style={{ 
+            color: '#666', 
+            marginBottom: '20px', 
+            fontSize: '0.95rem' 
+          }}>
             Words that required the most time and hints to solve
           </p>
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
             gap: '15px'
           }}>
-            {wordPerformance.slice(0, 12).map((wordStat, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: idx * 0.05 }}
-                style={{
-                  background: 'linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)',
-                  borderRadius: '12px',
-                  padding: '15px',
-                  border: '2px solid #e0e0e0',
-                  borderLeft: `4px solid ${getDifficultyColor(wordStat.difficulty_score)}`
-                }}
-              >
-                <div style={{
-                  fontSize: '1.2rem',
-                  fontWeight: 700,
-                  color: '#333',
-                  marginBottom: '8px',
-                  textTransform: 'capitalize'
-                }}>
-                  {wordStat.word}
-                </div>
-                
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '5px',
-                  fontSize: '0.85rem',
-                  color: '#666'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>⏱️ Avg Time:</span>
-                    <strong>{wordStat.avg_time}s</strong>
+            {wordPerformance.slice(0, 10).map((wordStat, idx) => {
+              const lengthBadge = getWordLengthBadge(wordStat.word_length || wordStat.word.length);
+              
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: idx * 0.05 }}
+                  style={{
+                    background: 'linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)',
+                    borderRadius: '12px',
+                    padding: '15px',
+                    border: '2px solid #e0e0e0',
+                    borderLeft: `4px solid ${getDifficultyColor(wordStat.difficulty_score)}`
+                  }}
+                >
+                  {/* Rank Badge */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '-10px',
+                    right: '10px',
+                    background: idx < 3 ? 
+                      (idx === 0 ? '#FFD700' : idx === 1 ? '#C0C0C0' : '#CD7F32') : 
+                      '#9c27b0',
+                    color: 'white',
+                    width: '30px',
+                    height: '30px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.85rem',
+                    fontWeight: 'bold',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                  }}>
+                    #{idx + 1}
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>💡 Avg Hints:</span>
-                    <strong>{wordStat.avg_hints}</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>🎯 Accuracy:</span>
-                    <strong style={{ color: wordStat.accuracy >= 80 ? '#4caf50' : '#ff9800' }}>
-                      {wordStat.accuracy}%
-                    </strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>📊 Attempts:</span>
-                    <strong>{wordStat.attempts}</strong>
-                  </div>
-                </div>
 
-                <div style={{
-                  marginTop: '10px',
-                  padding: '6px 12px',
-                  background: getDifficultyColor(wordStat.difficulty_score),
-                  color: 'white',
-                  borderRadius: '6px',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  textAlign: 'center'
-                }}>
-                  {getDifficultyLabel(wordStat.difficulty_score)}
-                </div>
-              </motion.div>
-            ))}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    marginBottom: '8px'
+                  }}>
+                    <div style={{
+                      fontSize: '1.2rem',
+                      fontWeight: 700,
+                      color: '#333',
+                      textTransform: 'capitalize'
+                    }}>
+                      {wordStat.word}
+                    </div>
+                    <div style={{
+                      padding: '2px 8px',
+                      background: lengthBadge.color,
+                      color: 'white',
+                      borderRadius: '10px',
+                      fontSize: '0.65rem',
+                      fontWeight: 600
+                    }}>
+                      {wordStat.word.length}L
+                    </div>
+                  </div>
+                  
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '5px',
+                    fontSize: '0.85rem',
+                    color: '#666'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>⏱️ Avg Time:</span>
+                      <strong>{wordStat.avg_time}s</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>💡 Avg Hints:</span>
+                      <strong>{wordStat.avg_hints}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>🎯 Accuracy:</span>
+                      <strong style={{ 
+                        color: wordStat.accuracy >= 80 ? '#4caf50' : '#ff9800' 
+                      }}>
+                        {wordStat.accuracy}%
+                      </strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>📊 Attempts:</span>
+                      <strong>{wordStat.attempts}</strong>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    marginTop: '10px',
+                    padding: '6px 12px',
+                    background: getDifficultyColor(wordStat.difficulty_score),
+                    color: 'white',
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    textAlign: 'center'
+                  }}>
+                    {getDifficultyLabel(wordStat.difficulty_score)}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
-        </div>
+        </motion.div>
       )}
+    </AnimatePresence>
+  </div>
+)}
 
       {/* Game Sessions */}
       <div style={{

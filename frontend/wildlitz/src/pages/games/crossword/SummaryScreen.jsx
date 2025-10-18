@@ -30,66 +30,91 @@ const SummaryScreen = ({
 
 // REPLACE the entire useEffect in your SummaryScreen.jsx with this:
 
+// FIXED SummaryScreen.jsx - Replace the useEffect with this
+
 useEffect(() => {
   console.log('📊 ========== SUMMARY SCREEN MOUNTED ==========');
   console.log('🆔 SessionId:', sessionId);
   console.log('📝 Solved words:', solvedWords?.length || 0);
-  console.log('📍 Current episode:', currentEpisode);
-  console.log('📍 Total episodes:', totalEpisodes);
+  console.log('📚 Current episode:', currentEpisode);
+  console.log('📚 Total episodes:', totalEpisodes);
   console.log('⏱️ Time spent:', timeSpent);
   
   const logGameCompletion = async () => {
-  // Check if we have a valid session ID
-  if (!sessionId || sessionId === 'undefined' || sessionId === 'null') {
-    console.error('❌ NO SESSION ID - Cannot log completion!');
-    return;
-  }
-
-  // Check if we have solved words
-  if (!solvedWords || solvedWords.length === 0) {
-    console.warn('⚠️ No solved words, skipping completion log');
-    return;
-  }
-
-  try {
-    console.log('📤 ========== LOGGING EPISODE COMPLETION ==========');
-    
-    // Determine if this is the final episode
-    const isFullyCompleted = currentEpisode >= totalEpisodes;
-    
-    const gameData = {
-      totalTime: timeSpent || 0,
-      totalHints: 0,
-      wordsLearned: solvedWords.length,
-      accuracy: totalWords > 0 ? Math.round((solvedWords.length / totalWords) * 100) : 100,
-      episodesCompleted: currentEpisode,
-      isFullyCompleted: isFullyCompleted
-    };
-
-    console.log('📤 Sending game data:', JSON.stringify(gameData, null, 2));
-    console.log('🎯 Target session:', sessionId);
-    console.log('📚 Vocabulary words:', solvedWords.map(w => w.word || w));
-
-    // UPDATED: Pass solvedWords to logGameCompleted
-    const result = await crosswordAnalyticsService.logGameCompleted(
-      sessionId, 
-      gameData,
-      solvedWords  // NEW: Pass the actual words
-    );
-    
-    console.log('✅ ========== EPISODE COMPLETION LOGGED ==========');
-    console.log(`✅ Episode ${currentEpisode} of ${totalEpisodes} recorded`);
-    console.log('✅ Result:', result);
-    
-    if (isFullyCompleted) {
-      console.log('🎉 ========== ALL EPISODES COMPLETED ==========');
-      console.log('🎉 Session marked as complete!');
+    // Check if we have a valid session ID
+    if (!sessionId || sessionId === 'undefined' || sessionId === 'null') {
+      console.error('❌ NO SESSION ID - Cannot log completion!');
+      return;
     }
-  } catch (error) {
-    console.error('❌ ========== ANALYTICS LOGGING FAILED ==========');
-    console.error('❌ Error:', error);
-  }
-};
+
+    // Check if we have solved words
+    if (!solvedWords || solvedWords.length === 0) {
+      console.warn('⚠️ No solved words, skipping completion log');
+      return;
+    }
+
+    try {
+      console.log('📤 ========== LOGGING EPISODE COMPLETION ==========');
+      
+      // ✅ FETCH SESSION ACTIVITIES TO CALCULATE TOTAL HINTS
+      console.log('🔍 Fetching session activities to calculate total hints...');
+      const sessionResponse = await fetch(
+        `http://127.0.0.1:8000/api/sentence_formation/story/session/${sessionId}/`
+      );
+      
+      let calculatedTotalHints = 0;
+      
+      if (sessionResponse.ok) {
+        const sessionData = await sessionResponse.json();
+        if (sessionData.success && sessionData.word_activities) {
+          // Calculate total hints from all word activities
+          calculatedTotalHints = sessionData.word_activities.reduce((total, activity) => {
+            return total + (activity.hint_count || 0);
+          }, 0);
+          console.log(`✅ Calculated total hints from ${sessionData.word_activities.length} activities: ${calculatedTotalHints}`);
+        }
+      } else {
+        console.warn('⚠️ Could not fetch session activities, using 0 for hints');
+      }
+      
+      // Determine if this is the final episode
+      const isFullyCompleted = currentEpisode >= totalEpisodes;
+      
+      const gameData = {
+        totalTime: timeSpent || 0,
+        totalHints: calculatedTotalHints,  // ✅ NOW USING CALCULATED VALUE!
+        wordsLearned: solvedWords.length,
+        accuracy: totalWords > 0 ? Math.round((solvedWords.length / totalWords) * 100) : 100,
+        episodesCompleted: currentEpisode,
+        isFullyCompleted: isFullyCompleted
+      };
+
+      console.log('📤 Sending game data:', JSON.stringify(gameData, null, 2));
+      console.log('🎯 Target session:', sessionId);
+      console.log('📚 Vocabulary words:', solvedWords.map(w => w.word || w));
+      console.log(`💡 Total hints calculated: ${calculatedTotalHints}`);
+
+      // Log game completion with calculated hints
+      const result = await crosswordAnalyticsService.logGameCompleted(
+        sessionId, 
+        gameData,
+        solvedWords
+      );
+      
+      console.log('✅ ========== EPISODE COMPLETION LOGGED ==========');
+      console.log(`✅ Episode ${currentEpisode} of ${totalEpisodes} recorded`);
+      console.log(`✅ Total hints logged: ${calculatedTotalHints}`);
+      console.log('✅ Result:', result);
+      
+      if (isFullyCompleted) {
+        console.log('🎉 ========== ALL EPISODES COMPLETED ==========');
+        console.log('🎉 Session marked as complete!');
+      }
+    } catch (error) {
+      console.error('❌ ========== ANALYTICS LOGGING FAILED ==========');
+      console.error('❌ Error:', error);
+    }
+  };
 
   // Always try to log, even if no solved words (for debugging)
   logGameCompletion();
