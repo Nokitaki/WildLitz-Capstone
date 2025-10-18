@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/crossword/SummaryScreen.module.css';
+import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
 
 const SummaryScreen = ({ 
   solvedWords = [], 
@@ -12,8 +13,44 @@ const SummaryScreen = ({
   hasNextEpisode = false,
   onPlayAgain,
   onReturnToMenu,
-  theme = "adventure"
+  theme = "adventure",
+  // ADD THESE MISSING PROPS:
+  sessionId,        // ✨ ADD THIS
+  timeSpent,        // ✨ ADD THIS
+  totalWords = 0,   // ✨ ADD THIS
+  totalHints = 0    // ✨ ADD THIS (you'll need to track this in CrosswordGame)
 }) => {
+
+   useEffect(() => {
+    const logCompletion = async () => {
+      if (sessionId && solvedWords.length > 0) {
+        try {
+          const gameData = {
+            wordsLearned: solvedWords.length,
+            totalTime: timeSpent,
+            totalHints: totalHints,
+            episodesCompleted: currentEpisode,
+            accuracy: totalWords > 0 ? (solvedWords.length / totalWords) * 100 : 0,
+            isFullyCompleted: solvedWords.length === totalWords
+          };
+
+          await crosswordAnalyticsService.logGameCompleted(
+            sessionId,
+            gameData,
+            solvedWords
+          );
+          
+          console.log('✅ Game completion logged!');
+        } catch (error) {
+          console.error('Analytics logging failed:', error);
+        }
+      }
+    };
+
+    logCompletion();
+  }, [sessionId, solvedWords, timeSpent, totalWords, totalHints, currentEpisode]);
+
+  
   const [selectedWord, setSelectedWord] = useState(null);
   const [storyRating, setStoryRating] = useState(0);
   const [wordRatings, setWordRatings] = useState({});

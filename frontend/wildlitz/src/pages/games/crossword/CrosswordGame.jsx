@@ -63,6 +63,8 @@ const CrosswordGame = () => {
   
   // Timer
   const [timerActive, setTimerActive] = useState(false);
+
+  const [totalHints, setTotalHints] = useState(0);
   
   // Start timer when in gameplay mode
   useEffect(() => {
@@ -260,61 +262,69 @@ const CrosswordGame = () => {
   /**
    * Handle word solved in crossword
    */
-  const handleWordSolved = (word, definition, example) => {
-    if (!solvedWords.some(solved => solved.word === word)) {
-      setSolvedWords(prev => [
-        ...prev, 
-        {
-          word,
-          definition,
-          example,
-          timestamp: new Date()
-        }
-      ]);
-    }
+  const handleWordSolved = (word, definition, example, hintsUsedForWord = 0) => {
+  if (!solvedWords.some(solved => solved.word === word)) {
+    setSolvedWords(prev => [
+      ...prev, 
+      {
+        word,
+        definition,
+        example,
+        timestamp: new Date()
+      }
+    ]);
     
-    if (currentPuzzle && solvedWords.length + 1 >= currentPuzzle.words.length) {
-      setTimerActive(false);
-      
-      setTimeout(() => {
-        setGameState('summary');
-      }, 1000);
+    // Track total hints used
+    if (hintsUsedForWord > 0) {
+      setTotalHints(prev => prev + hintsUsedForWord);
+      console.log(`💡 Total hints used so far: ${totalHints + hintsUsedForWord}`);
     }
-  };
+  }
+  
+  // Check if puzzle complete
+  if (currentPuzzle && solvedWords.length + 1 >= currentPuzzle.words.length) {
+    setTimerActive(false);
+    
+    setTimeout(() => {
+      setGameState('summary');
+    }, 1000);
+  }
+};
   
   /**
    * Handle proceeding to next episode
    */
   const handleNextEpisode = () => {
-    const adventure = gameStories[gameConfig.adventureId];
+  const adventure = gameStories[gameConfig.adventureId];
+  
+  if (!adventure || !adventure.episodes) {
+    console.error('No adventure or episodes found');
+    setGameState('generate-story');
+    return;
+  }
+  
+  const nextEpisodeIndex = currentEpisode;
+  
+  if (nextEpisodeIndex < adventure.episodes.length) {
+    const nextEpisode = adventure.episodes[nextEpisodeIndex];
+    setCurrentStorySegment(nextEpisode);
+    setCurrentEpisode(currentEpisode + 1);
     
-    if (!adventure || !adventure.episodes) {
-      console.error('No adventure or episodes found');
-      setGameState('generate-story');
-      return;
+    const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
+    if (puzzleData) {
+      setCurrentPuzzle(puzzleData);
     }
     
-    const nextEpisodeIndex = currentEpisode;
+    setSolvedWords([]);
+    setTimeSpent(0);
+    setTotalHints(0); // ✨ RESET HINTS
+    setTimerActive(false);
     
-    if (nextEpisodeIndex < adventure.episodes.length) {
-      const nextEpisode = adventure.episodes[nextEpisodeIndex];
-      setCurrentStorySegment(nextEpisode);
-      setCurrentEpisode(currentEpisode + 1);
-      
-      const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
-      if (puzzleData) {
-        setCurrentPuzzle(puzzleData);
-      }
-      
-      setSolvedWords([]);
-      setTimeSpent(0);
-      setTimerActive(false);
-      
-      setGameState('story');
-    } else {
-      setGameState('generate-story');
-    }
-  };
+    setGameState('story');
+  } else {
+    setGameState('generate-story');
+  }
+};
   
   /**
    * Format time display (mm:ss)
@@ -329,12 +339,13 @@ const CrosswordGame = () => {
    * Return to main menu
    */
   const handleReturnToMenu = () => {
-    setGameState('generate-story');
-    setCurrentEpisode(0);
-    setSolvedWords([]);
-    setTimeSpent(0);
-    setTimerActive(false);
-  };
+  setGameState('generate-story');
+  setCurrentEpisode(0);
+  setSolvedWords([]);
+  setTimeSpent(0);
+  setTotalHints(0); // ✨ RESET HINTS
+  setTimerActive(false);
+};
   
   /**
    * Go to sentence builder
@@ -378,7 +389,7 @@ const CrosswordGame = () => {
             </motion.div>
           )}
           
-          {gameState === 'gameplay' && currentPuzzle && (
+         {gameState === 'gameplay' && currentPuzzle && (
   <motion.div
     key="gameplay"
     initial={{ opacity: 0 }}
@@ -389,7 +400,7 @@ const CrosswordGame = () => {
     <GameplayScreen 
       puzzle={currentPuzzle}
       theme="story"
-      onWordSolved={handleWordSolved}
+      onWordSolved={(word, def, example, hints) => handleWordSolved(word, def, example, hints)}
       solvedWords={solvedWords}
       timeSpent={timeSpent}
       timeFormatted={formatTime(timeSpent)}
@@ -424,7 +435,9 @@ const CrosswordGame = () => {
       totalEpisodes={gameStories[gameConfig.adventureId]?.episodes?.length || 0}
       storyTitle={gameStories[gameConfig.adventureId]?.title || 'Adventure'}
       storySegment={currentStorySegment}
+      // ✨ ANALYTICS PROPS
       sessionId={sessionId}
+      totalHints={totalHints}
     />
   </motion.div>
 )}

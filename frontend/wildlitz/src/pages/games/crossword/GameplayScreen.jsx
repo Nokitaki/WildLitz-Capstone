@@ -190,155 +190,162 @@ const GameplayScreen = ({
 
   // Handle submit answer
   const handleSubmitAnswer = async () => {
-    if (!selectedAnswer || !currentWord || isCurrentWordSolved) return;
+  if (!selectedAnswer || !currentWord || isCurrentWordSolved) return;
 
-    const correctAnswer = currentWord.answer;
-    const isCorrect = selectedAnswer.toUpperCase() === correctAnswer.toUpperCase();
-    
-    setFeedback({ 
-      type: isCorrect ? 'success' : 'error',
-      message: isCorrect ? `Correct! "${correctAnswer}" is the right answer!` : 'Try again!'
-    });
+  const correctAnswer = currentWord.answer;
+  const isCorrect = selectedAnswer.toUpperCase() === correctAnswer.toUpperCase();
+  
+  setFeedback({ 
+    type: isCorrect ? 'success' : 'error',
+    message: isCorrect ? `Correct! "${correctAnswer}" is the right answer!` : 'Try again!'
+  });
 
-    if (isCorrect) {
-      setTimeout(async () => {
-        // Clear feedback before showing celebration
-        setFeedback(null);
-        
-        // Mark as solved
-        setSolvedClues(prev => ({ ...prev, [correctAnswer]: true }));
-
-        // Reveal in grid
-        const wordIdx = puzzle.words.findIndex(w => w.answer === correctAnswer);
-        setGridCells(prevCells => {
-          const newCells = [...prevCells];
-          newCells.forEach((cell, idx) => {
-            if (cell.wordIndex === wordIdx) {
-              newCells[idx] = {
-                ...cell,
-                value: cell.letter,
-                revealed: true
-              };
-            }
-          });
-          return newCells;
+  if (isCorrect) {
+    setTimeout(async () => {
+      // Clear feedback first
+      setFeedback(null);
+      
+      // Mark as solved
+      setSolvedClues(prev => ({ ...prev, [correctAnswer]: true }));
+      
+      // Reveal in grid
+      const wordIdx = puzzle.words.findIndex(w => w.answer === correctAnswer);
+      setGridCells(prevCells => {
+        const newCells = [...prevCells];
+        newCells.forEach((cell, idx) => {
+          if (cell.wordIndex === wordIdx) {
+            newCells[idx] = {
+              ...cell,
+              value: cell.letter,
+              revealed: true
+            };
+          }
         });
+        return newCells;
+      });
 
-        // Log to analytics
-        if (sessionId) {
-          try {
-            const timeForWord = (Date.now() - wordStartTime.current) / 1000;
-            const hintsForThisWord = hintsUsedForCurrentWordRef.current; // ✅ Get current value
-            
-            console.log(`📊 Logging word "${correctAnswer}": time=${timeForWord.toFixed(1)}s, hints=${hintsForThisWord}`);
-            
-            await crosswordAnalyticsService.logWordSolved(
-              sessionId,
-              {
-                word: correctAnswer,
-                definition: currentWord.definition || '',
-                clue: currentWord.clue || '',
-                episodeNumber: storyContext?.episodeNumber || 1,
-                puzzleId: puzzle?.id || 'unknown'
-              },
-              timeForWord,
-              hintsForThisWord // ✅ Use ref value
-            );
-          } catch (error) {
-            console.log('Analytics failed:', error.message);
-          }
-        }
-
-        // Call parent handler
-        if (onWordSolved) {
-          onWordSolved(
-            correctAnswer,
-            currentWord.clue || '',
-            `The word "${correctAnswer}" is in the story.`
+      // Log to analytics
+      if (sessionId) {
+        try {
+          const timeForWord = (Date.now() - wordStartTime.current) / 1000;
+          const hintsForThisWord = hintsUsedForCurrentWordRef.current;
+          
+          console.log(`📊 Logging word "${correctAnswer}" solved: time=${timeForWord.toFixed(1)}s, hints=${hintsForThisWord}`);
+          
+          await crosswordAnalyticsService.logWordSolved(
+            sessionId,
+            {
+              word: correctAnswer,
+              definition: currentWord.definition || '',
+              clue: currentWord.clue || '',
+              episodeNumber: storyContext?.episodeNumber || 1,
+              puzzleId: puzzle?.id || 'unknown'
+            },
+            timeForWord,
+            hintsForThisWord
           );
+        } catch (error) {
+          console.log('Analytics failed:', error.message);
         }
+      }
 
-        // Show celebration (feedback already cleared above)
-        triggerCelebration();
+      // ✨ PASS HINTS TO PARENT - THIS IS THE KEY CHANGE
+      if (onWordSolved) {
+        onWordSolved(
+          correctAnswer,
+          currentWord.clue || '',
+          `The word "${correctAnswer}" is in the story.`,
+          hintsUsedForCurrentWordRef.current // ✨ ADD THIS 4TH PARAMETER
+        );
+      }
 
-        // Move to next word
-        setTimeout(() => {
-          if (currentWordIndex < totalWords - 1) {
-            handleNext();
-          }
-        }, 2000);
-      }, 1000);
-    } else {
+      // Show celebration
+      triggerCelebration();
+
+      // Move to next word
       setTimeout(() => {
-        setFeedback(null);
-        setSelectedAnswer(null);
-      }, 1500);
-    }
-  };
+        if (currentWordIndex < totalWords - 1) {
+          handleNext();
+        }
+      }, 2000);
+    }, 1000);
+  } else {
+    // Wrong answer
+    setTimeout(() => {
+      setFeedback(null);
+      setSelectedAnswer(null);
+    }, 1500);
+  }
+};
 
   // Handle mark as solved (teacher control)
   const handleMarkSolved = async () => {
-    if (!currentWord || isCurrentWordSolved) return;
+  if (!currentWord || isCurrentWordSolved) return;
 
-    const word = currentWord.answer;
-    
-    // Mark as solved
-    setSolvedClues(prev => ({ ...prev, [word]: true }));
-    
-    // Reveal in grid
-    const wordIdx = puzzle.words.findIndex(w => w.answer === word);
-    setGridCells(prevCells => {
-      const newCells = [...prevCells];
-      newCells.forEach((cell, idx) => {
-        if (cell.wordIndex === wordIdx) {
-          newCells[idx] = {
-            ...cell,
-            value: cell.letter,
-            revealed: true
-          };
-        }
-      });
-      return newCells;
+  const word = currentWord.answer;
+  
+  // Mark as solved
+  setSolvedClues(prev => ({ ...prev, [word]: true }));
+  
+  // Reveal in grid
+  const wordIdx = puzzle.words.findIndex(w => w.answer === word);
+  setGridCells(prevCells => {
+    const newCells = [...prevCells];
+    newCells.forEach((cell, idx) => {
+      if (cell.wordIndex === wordIdx) {
+        newCells[idx] = {
+          ...cell,
+          value: cell.letter,
+          revealed: true
+        };
+      }
     });
-    
-    // Log to analytics
-    if (sessionId) {
-      try {
-        const timeForWord = (Date.now() - wordStartTime.current) / 1000;
-        const hintsForThisWord = hintsUsedForCurrentWordRef.current; // ✅ Get current value
-        
-        console.log(`📊 Marking word "${word}" as solved: time=${timeForWord.toFixed(1)}s, hints=${hintsForThisWord}`);
-        
-        await crosswordAnalyticsService.logWordSolved(
-          sessionId,
-          {
-            word,
-            definition: currentWord.definition || '',
-            clue: currentWord.clue || '',
-            episodeNumber: storyContext?.episodeNumber || 1,
-            puzzleId: puzzle?.id || 'unknown'
-          },
-          timeForWord,
-          hintsForThisWord // ✅ Use ref value
-        );
-      } catch (error) {
-        console.log('Analytics failed:', error.message);
-      }
+    return newCells;
+  });
+  
+  // Log to analytics
+  if (sessionId) {
+    try {
+      const timeForWord = (Date.now() - wordStartTime.current) / 1000;
+      const hintsForThisWord = hintsUsedForCurrentWordRef.current;
+      
+      console.log(`📊 Marking word "${word}" as solved: time=${timeForWord.toFixed(1)}s, hints=${hintsForThisWord}`);
+      
+      await crosswordAnalyticsService.logWordSolved(
+        sessionId,
+        {
+          word,
+          definition: currentWord.definition || '',
+          clue: currentWord.clue || '',
+          episodeNumber: storyContext?.episodeNumber || 1,
+          puzzleId: puzzle?.id || 'unknown'
+        },
+        timeForWord,
+        hintsForThisWord
+      );
+    } catch (error) {
+      console.log('Analytics failed:', error.message);
     }
+  }
 
-    // Call parent handler
-    if (onWordSolved) {
-      onWordSolved(word, currentWord.definition || '', currentWord.example || '');
+  // ✨ PASS HINTS TO PARENT
+  if (onWordSolved) {
+    onWordSolved(
+      word, 
+      currentWord.definition || '', 
+      currentWord.example || '',
+      hintsUsedForCurrentWordRef.current // ✨ ADD THIS 4TH PARAMETER
+    );
+  }
+  
+  triggerCelebration();
+  
+  setTimeout(() => {
+    if (currentWordIndex < totalWords - 1) {
+      handleNext();
     }
-    
-    triggerCelebration();
-    
-    setTimeout(() => {
-      if (currentWordIndex < totalWords - 1) {
-        handleNext();
-      }
-    }, 2000);
-  };
+  }, 2000);
+};
 
   // Navigation handlers
   const handleNext = () => {
