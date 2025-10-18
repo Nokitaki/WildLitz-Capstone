@@ -1,4 +1,4 @@
-/* StoryScreen.module.css - Updated and simplified */
+/* StoryScreen.module.css - Beautiful and Fixed Layout */
 
 .storyScreenContainer {
   width: 100%;
@@ -11,14 +11,15 @@
 
 /* Header */
 .header {
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
-  padding: 20px 30px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.95));
+  padding: 24px 40px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
-  border-bottom: 3px solid #9c27b0;
+  border-bottom: 4px solid #9c27b0;
+  backdrop-filter: blur(10px);
 }
 
 .episodeInfo {
@@ -26,75 +27,78 @@
 }
 
 .episodeTitle {
-  font-size: 1.8rem;
+  font-size: 2rem;
   color: #4a148c;
-  margin: 0 0 8px 0;
-  font-weight: 700;
+  margin: 0 0 10px 0;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
 .stageLabel {
   display: inline-block;
-  background: linear-gradient(to right, #9c27b0, #673ab7);
+  background: linear-gradient(135deg, #9c27b0, #673ab7);
   color: white;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.3);
+  padding: 8px 20px;
+  border-radius: 25px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 3px 12px rgba(156, 39, 176, 0.35);
+  letter-spacing: 0.5px;
 }
 
 .controls {
   display: flex;
-  gap: 12px;
+  gap: 15px;
   align-items: center;
 }
 
 .readAloudControls {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .readAloudButton,
 .stopReadingButton,
 .readingHelperButton {
-  padding: 12px 20px;
+  padding: 14px 24px;
   border: none;
-  border-radius: 25px;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: 30px;
+  font-size: 1.05rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  letter-spacing: 0.3px;
 }
 
 .readAloudButton {
-  background: linear-gradient(to right, #4caf50, #45a049);
+  background: linear-gradient(135deg, #4caf50, #45a049);
   color: white;
 }
 
 .readAloudButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.45);
 }
 
 .stopReadingButton {
-  background: linear-gradient(to right, #ff5722, #f44336);
+  background: linear-gradient(135deg, #ff5722, #f44336);
   color: white;
 }
 
 .stopReadingButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(255, 87, 34, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(255, 87, 34, 0.45);
 }
 
 .readingHelperButton {
-  background: linear-gradient(to right, #2196f3, #1976d2);
+  background: linear-gradient(135deg, #2196f3, #1976d2);
   color: white;
 }
 
 .readingHelperButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(33, 150, 243, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(33, 150, 243, 0.45);
 }
 
 /* Main Content */
@@ -103,22 +107,22 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 20px;
+  padding: 25px;
 }
 
 .contentWrapper {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 20px;
+  grid-template-columns: 1fr 320px;
+  gap: 25px;
   overflow: hidden;
 }
 
 /* Story Panel */
 .storyPanel {
   background: white;
-  border-radius: 15px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -127,262 +131,355 @@
 .storyScroll {
   flex: 1;
   overflow-y: auto;
-  padding: 30px;
+  padding: 40px;
 }
 
 .storyScroll::-webkit-scrollbar {
-  width: 10px;
+  width: 12px;
 }
 
 .storyScroll::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #f5f5f5;
   border-radius: 10px;
+  margin: 10px 0;
 }
 
 .storyScroll::-webkit-scrollbar-thumb {
   background: linear-gradient(to bottom, #9c27b0, #673ab7);
   border-radius: 10px;
+  border: 2px solid #f5f5f5;
 }
 
 .storyScroll::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(to bottom, #7b1fa2, #512da8);
 }
 
-.storyText {
-  font-size: 1.3rem;
-  line-height: 2;
-  color: #333;
-}
-
-.storyText.reading {
-  user-select: none;
-}
-
-/* Sentences */
+/* Sentences Container */
 .sentencesContainer {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
 }
 
 .sentence {
-  padding: 15px;
-  border-radius: 10px;
-  transition: all 0.3s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 20px 25px;
+  border-radius: 16px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  padding-left: 50px;
+  font-size: 1.2rem;
+  line-height: 1.9;
+  color: #2c3e50;
+  background: linear-gradient(to right, rgba(156, 39, 176, 0.02), transparent);
+  border-left: 3px solid transparent;
+}
+
+.sentence:hover {
+  background: linear-gradient(to right, rgba(156, 39, 176, 0.05), transparent);
+  border-left-color: rgba(156, 39, 176, 0.3);
+  transform: translateX(3px);
+}
+
+/* Container for sentence number and speaker button */
+.sentenceNumberContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 2px;
 }
 
 .sentenceNumber {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 26px;
-  height: 26px;
-  background: linear-gradient(to bottom right, #9c27b0, #673ab7);
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #9c27b0, #673ab7);
   border-radius: 50%;
   color: white;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 0.85rem;
-  font-weight: 600;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: 0 3px 8px rgba(156, 39, 176, 0.3);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.sentence:hover .sentenceNumber {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.4);
+}
+
+/* Speaker button for individual sentences */
+.sentenceSpeakerButton {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 3px 8px rgba(76, 175, 80, 0.3);
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.sentenceSpeakerButton svg {
+  width: 18px;
+  height: 18px;
+  stroke: white;
+  stroke-width: 2.5;
+}
+
+.sentenceSpeakerButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #66bb6a, #4caf50);
+  transform: scale(1.15);
+  box-shadow: 0 5px 15px rgba(76, 175, 80, 0.5);
+}
+
+.sentenceSpeakerButton:active:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.sentenceSpeakerButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #bdbdbd, #9e9e9e);
+}
+
+/* Active state when sentence is being read */
+.sentenceSpeakerButton.speakerActive {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  animation: speakerPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes speakerPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 3px 8px rgba(255, 152, 0, 0.4);
+  }
+  50% {
+    transform: scale(1.2);
+    box-shadow: 0 5px 20px rgba(255, 152, 0, 0.7);
+  }
+}
+
+/* Sentence text content */
+.sentence > span:last-child {
+  flex: 1;
+  padding-top: 4px;
 }
 
 .currentSentence {
-  background-color: rgba(156, 39, 176, 0.1);
+  background: linear-gradient(to right, rgba(156, 39, 176, 0.12), rgba(156, 39, 176, 0.04));
   border-left: 4px solid #9c27b0;
-  box-shadow: 0 3px 10px rgba(156, 39, 176, 0.2);
+  box-shadow: 0 4px 16px rgba(156, 39, 176, 0.2);
+  transform: translateX(5px);
 }
 
 .visitedSentence {
-  opacity: 0.85;
+  opacity: 0.75;
 }
 
 .highlightedWord {
-  background: linear-gradient(to right, #ffd54f, #ffb300);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 600;
-  color: #333;
-  box-shadow: 0 2px 4px rgba(255, 179, 0, 0.3);
-  transition: all 0.2s ease;
+  background: linear-gradient(135deg, #ffd54f, #ffb300);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  color: #1a1a1a;
+  box-shadow: 0 2px 6px rgba(255, 179, 0, 0.35);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  display: inline-block;
 }
 
 .highlightedWord:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(255, 179, 0, 0.5);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 179, 0, 0.6);
+  background: linear-gradient(135deg, #ffeb3b, #ffc107);
 }
 
 /* Vocabulary Sidebar */
 .vocabularySidebar {
   background: white;
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
 }
 
+.vocabularySidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.vocabularySidebar::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 10px;
+}
+
+.vocabularySidebar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #9c27b0, #673ab7);
+  border-radius: 10px;
+}
+
 .vocabularyTitle {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   color: #4a148c;
-  margin: 0 0 20px 0;
-  font-weight: 700;
+  margin: 0 0 25px 0;
+  font-weight: 800;
   text-align: center;
-  padding-bottom: 10px;
-  border-bottom: 3px solid #9c27b0;
+  padding-bottom: 15px;
+  border-bottom: 4px solid #9c27b0;
+  letter-spacing: -0.3px;
 }
 
 .vocabularyList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 15px;
+  margin-bottom: 25px;
 }
 
 .vocabularyWord {
   color: white;
-  padding: 12px 16px;
-  border-radius: 25px;
-  font-size: 1.05rem;
-  font-weight: 600;
-  text-transform: capitalize;
+  padding: 14px 20px;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
   text-align: center;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: default;
+  letter-spacing: 1px;
 }
 
 .vocabularyWord:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
 }
 
 .vocabularyHint {
   background: linear-gradient(135deg, #fff9c4, #fff59d);
-  padding: 15px;
-  border-radius: 10px;
-  border-left: 4px solid #fbc02d;
+  padding: 18px;
+  border-radius: 15px;
+  border-left: 5px solid #fbc02d;
   margin-top: auto;
+  box-shadow: 0 3px 10px rgba(251, 192, 45, 0.2);
 }
 
 .vocabularyHint p {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: #f57f17;
-  font-weight: 600;
+  font-weight: 700;
   text-align: center;
+  line-height: 1.5;
 }
 
 /* Continue Button */
 .continueButtonContainer {
-  margin-top: 20px;
+  margin-top: 25px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+  justify-content: center;
 }
 
 .continueButton {
-  background: linear-gradient(to right, #4caf50, #45a049);
+  background: linear-gradient(135deg, #9c27b0, #673ab7);
   color: white;
+  padding: 18px 60px;
   border: none;
-  padding: 18px 50px;
+  border-radius: 35px;
   font-size: 1.3rem;
-  font-weight: 700;
-  border-radius: 50px;
+  font-weight: 800;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-  text-transform: uppercase;
+  box-shadow: 0 8px 25px rgba(156, 39, 176, 0.4);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
-.continueButton:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgba(76, 175, 80, 0.5);
+.continueButton:hover {
+  background: linear-gradient(135deg, #7b1fa2, #512da8);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 35px rgba(156, 39, 176, 0.5);
 }
 
-.continueButton:active:not(:disabled) {
-  transform: translateY(-1px);
+.continueButton:active {
+  transform: translateY(-2px);
 }
 
-.continueButton:disabled {
-  background: linear-gradient(to right, #bdbdbd, #9e9e9e);
-  cursor: not-allowed;
-  opacity: 0.6;
-  box-shadow: none;
-}
-
-.continueDisabledMessage {
-  background: rgba(255, 255, 255, 0.95);
-  color: #f44336;
-  padding: 12px 24px;
-  border-radius: 25px;
-  font-size: 1rem;
-  font-weight: 600;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-  border: 2px solid #f44336;
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .contentWrapper {
-    grid-template-columns: 1fr 240px;
-  }
-  
-  .vocabularyWord {
-    font-size: 0.95rem;
-    padding: 10px 14px;
-  }
-}
-
-@media (max-width: 968px) {
+/* Responsive design */
+@media (max-width: 1024px) {
   .contentWrapper {
     grid-template-columns: 1fr;
   }
   
   .vocabularySidebar {
-    display: none;
-  }
-  
-  .storyText {
-    font-size: 1.2rem;
+    max-height: 350px;
   }
 }
 
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
-    gap: 15px;
-    padding: 15px 20px;
+    gap: 20px;
+    align-items: stretch;
+    padding: 20px;
   }
   
   .controls {
-    width: 100%;
     justify-content: center;
+    flex-wrap: wrap;
   }
   
-  .episodeTitle {
-    font-size: 1.4rem;
+  .sentence {
+    gap: 12px;
+    padding: 16px 20px;
+    font-size: 1.05rem;
+  }
+  
+  .sentenceNumberContainer {
+    gap: 6px;
+  }
+  
+  .sentenceNumber,
+  .sentenceSpeakerButton {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .storyScroll {
+    padding: 25px;
   }
   
   .mainContent {
     padding: 15px;
   }
-  
-  .storyText {
-    font-size: 1.1rem;
-    line-height: 1.8;
+}
+
+@media (max-width: 480px) {
+  .episodeTitle {
+    font-size: 1.5rem;
   }
   
-  .continueButton {
-    padding: 15px 40px;
-    font-size: 1.1rem;
+  .sentence {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+  
+  .sentenceNumber,
+  .sentenceSpeakerButton {
+    width: 26px;
+    height: 26px;
   }
 }
