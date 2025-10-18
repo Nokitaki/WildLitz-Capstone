@@ -1,4 +1,4 @@
-// src/components/AIReadingCoach.jsx - Enhanced with intelligent definitions
+// src/components/crossword/AIReadingCoach.jsx - Ultimate Reading Helper
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/components/AIReadingCoach.module.css';
@@ -13,738 +13,771 @@ const AIReadingCoach = ({
   // State management
   const [selectedWord, setSelectedWord] = useState('');
   const [wordData, setWordData] = useState(null);
-  const [mode, setMode] = useState('help'); // 'help', 'word', 'question'
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [questions, setQuestions] = useState([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [userAnswer, setUserAnswer] = useState('');
-  const [feedback, setFeedback] = useState(null);
+  const [readingSpeed, setReadingSpeed] = useState(0.85);
+  const [activeTab, setActiveTab] = useState('vocabulary');
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentSubtitle, setCurrentSubtitle] = useState('');
   
   // Refs
   const coachRef = useRef(null);
-  const textRef = useRef(null);
   
   // Character configuration
-  const characters = {
-    owl: {
-      name: 'Professor Hoot',
-      emoji: '🦉',
-      color: '#7b1fa2',
-      greeting: "Hi there! I'm Professor Hoot, your reading helper! Click on any word you don't understand, and I'll explain it.",
-      voices: ['Google UK English Female', 'Microsoft Zira - English (United States)']
-    },
-    fox: {
-      name: 'Felix Fox',
-      emoji: '🦊',
-      color: '#e65100',
-      greeting: "Hello! I'm Felix Fox! I'm here to help you with your reading. Just ask if you have questions!",
-      voices: ['Google UK English Male', 'Microsoft Mark - English (United States)']
-    }
+  const character = {
+    name: 'Professor Hoot',
+    emoji: '🦉',
+    gradient: 'linear-gradient(135deg, #7b1fa2, #9c27b0)'
   };
   
-  const [character, setCharacter] = useState(characters.owl);
-  
-  // Detect if speech synthesis is available
+  // Speech synthesis
   const hasSpeech = typeof window !== 'undefined' && 'speechSynthesis' in window;
   const speechSynth = hasSpeech ? window.speechSynthesis : null;
   
-  // Get available voices
-  const [voices, setVoices] = useState([]);
-  
-  useEffect(() => {
-    if (hasSpeech) {
-      const updateVoices = () => {
-        setVoices(speechSynth.getVoices());
-      };
-      
-      // Chrome loads voices asynchronously
-      speechSynth.onvoiceschanged = updateVoices;
-      updateVoices();
-      
-      return () => {
-        speechSynth.onvoiceschanged = null;
-      };
-    }
-  }, [hasSpeech, speechSynth]);
-  
-  // Find the best matching voice for the character
-  const getVoice = () => {
-    if (!hasSpeech || voices.length === 0) return null;
+  // Enhanced word dictionary with detailed information
+  const wordDictionary = {
+    // Episode 1: Lost in the Jungle
+    jungle: {
+      definition: "A dense forest in a tropical area with lots of trees, vines, and wild animals.",
+      example: "The explorers walked carefully through the thick jungle.",
+      partOfSpeech: "noun",
+      syllables: "jun-gle",
+      synonyms: ["forest", "rainforest", "wilderness"],
+      emoji: "🌴"
+    },
+    map: {
+      definition: "A drawing or picture that shows where places are located.",
+      example: "They used a map to find their way through the jungle.",
+      partOfSpeech: "noun",
+      syllables: "map",
+      synonyms: ["chart", "guide", "diagram"],
+      emoji: "🗺️"
+    },
+    heard: {
+      definition: "Noticed or listened to a sound with your ears (past tense of 'hear').",
+      example: "They heard a strange noise coming from the bushes.",
+      partOfSpeech: "verb",
+      syllables: "heard",
+      synonyms: ["listened", "detected", "noticed"],
+      emoji: "👂"
+    },
+    roar: {
+      definition: "A loud, deep sound made by a large animal like a lion or tiger.",
+      example: "The lion let out a mighty roar that echoed through the jungle.",
+      partOfSpeech: "noun",
+      syllables: "roar",
+      synonyms: ["growl", "bellow", "howl"],
+      emoji: "🦁"
+    },
+    froze: {
+      definition: "Stopped moving suddenly, usually because of fear or surprise (past tense of 'freeze').",
+      example: "The explorers froze in fear when they heard the roar.",
+      partOfSpeech: "verb",
+      syllables: "froze",
+      synonyms: ["stopped", "halted", "stood still"],
+      emoji: "🧊"
+    },
+    peeked: {
+      definition: "Looked quickly or secretly at something (past tense of 'peek').",
+      example: "She peeked around the corner to see what was there.",
+      partOfSpeech: "verb",
+      syllables: "peeked",
+      synonyms: ["glanced", "peeped", "glimpsed"],
+      emoji: "👀"
+    },
+    cautious: {
+      definition: "Being very careful to avoid danger or problems.",
+      example: "They were cautious as they walked through the dark cave.",
+      partOfSpeech: "adjective",
+      syllables: "cau-tious",
+      synonyms: ["careful", "watchful", "alert"],
+      emoji: "⚠️"
+    },
     
-    // Try to find a preferred voice
-    for (const preferredVoice of character.voices) {
-      const match = voices.find(v => v.name === preferredVoice);
-      if (match) return match;
-    }
+    // Episode 2: The Mysterious Temple
+    temple: {
+      definition: "A building used for worship or religious ceremonies, often very old and special.",
+      example: "The ancient temple was covered with beautiful carvings and symbols.",
+      partOfSpeech: "noun",
+      syllables: "tem-ple",
+      synonyms: ["shrine", "sanctuary", "place of worship"],
+      emoji: "⛩️"
+    },
+    secrets: {
+      definition: "Hidden information or things that are not known by everyone.",
+      example: "The old temple held many secrets from long ago.",
+      partOfSpeech: "noun",
+      syllables: "se-crets",
+      synonyms: ["mysteries", "hidden things", "unknowns"],
+      emoji: "🤫"
+    },
+    explore: {
+      definition: "To travel through a place to learn about it or discover new things.",
+      example: "The children wanted to explore the mysterious cave.",
+      partOfSpeech: "verb",
+      syllables: "ex-plore",
+      synonyms: ["discover", "investigate", "search"],
+      emoji: "🔍"
+    },
+    piece: {
+      definition: "A part or portion of something larger.",
+      example: "She found a piece of the broken pottery.",
+      partOfSpeech: "noun",
+      syllables: "piece",
+      synonyms: ["part", "fragment", "section"],
+      emoji: "🧩"
+    },
+    emerged: {
+      definition: "Came out or appeared from somewhere (past tense of 'emerge').",
+      example: "A butterfly emerged from its cocoon.",
+      partOfSpeech: "verb",
+      syllables: "e-merged",
+      synonyms: ["appeared", "surfaced", "came out"],
+      emoji: "✨"
+    },
     
-    // Fallback to any English voice
-    return voices.find(v => v.lang.includes('en'));
+    // Common Words
+    adventure: {
+      definition: "An exciting or unusual experience, often involving some risk or danger.",
+      example: "Their journey through the jungle was a thrilling adventure.",
+      partOfSpeech: "noun",
+      syllables: "ad-ven-ture",
+      synonyms: ["journey", "quest", "expedition"],
+      emoji: "🎒"
+    },
+    heart: {
+      definition: "The center or middle part of something; also the organ that pumps blood.",
+      example: "In the heart of the forest, they found a hidden waterfall.",
+      partOfSpeech: "noun",
+      syllables: "heart",
+      synonyms: ["center", "core", "middle"],
+      emoji: "❤️"
+    },
+    treasure: {
+      definition: "Valuable things like gold, jewels, or special items that are hidden or hard to find.",
+      example: "The pirates buried their treasure on a secret island.",
+      partOfSpeech: "noun",
+      syllables: "treas-ure",
+      synonyms: ["riches", "wealth", "valuables"],
+      emoji: "💎"
+    },
+    escape: {
+      definition: "To get away from a dangerous or bad situation.",
+      example: "They needed to escape from the dark cave before nightfall.",
+      partOfSpeech: "verb",
+      syllables: "es-cape",
+      synonyms: ["flee", "get away", "break free"],
+      emoji: "🏃"
+    },
+    grew: {
+      definition: "Became larger or increased in size (past tense of 'grow').",
+      example: "The noise grew louder as they got closer.",
+      partOfSpeech: "verb",
+      syllables: "grew",
+      synonyms: ["increased", "expanded", "became bigger"],
+      emoji: "📈"
+    },
+    ancient: {
+      definition: "Very old, from a long time ago in history.",
+      example: "The ancient ruins were thousands of years old.",
+      partOfSpeech: "adjective",
+      syllables: "an-cient",
+      synonyms: ["old", "historic", "age-old"],
+      emoji: "🏛️"
+    },
+    mysterious: {
+      definition: "Strange and difficult to understand or explain.",
+      example: "The mysterious sounds came from deep in the forest.",
+      partOfSpeech: "adjective",
+      syllables: "mys-te-ri-ous",
+      synonyms: ["puzzling", "strange", "unexplained"],
+      emoji: "❓"
+    },
+    discovered: {
+      definition: "Found something for the first time (past tense of 'discover').",
+      example: "They discovered a hidden pathway behind the waterfall.",
+      partOfSpeech: "verb",
+      syllables: "dis-cov-ered",
+      synonyms: ["found", "uncovered", "detected"],
+      emoji: "🔦"
+    },
+    brave: {
+      definition: "Having courage and not being afraid in dangerous situations.",
+      example: "The brave explorers continued their journey despite the danger.",
+      partOfSpeech: "adjective",
+      syllables: "brave",
+      synonyms: ["courageous", "fearless", "bold"],
+      emoji: "🦸"
+    },
+    hidden: {
+      definition: "Kept out of sight or covered up so it cannot be easily found.",
+      example: "The hidden treasure was buried under the old tree.",
+      partOfSpeech: "adjective",
+      syllables: "hid-den",
+      synonyms: ["concealed", "secret", "covered"],
+      emoji: "🙈"
+    },
+    danger: {
+      definition: "The possibility of harm or being hurt.",
+      example: "The explorers knew they were in danger when they heard the growl.",
+      partOfSpeech: "noun",
+      syllables: "dan-ger",
+      synonyms: ["risk", "threat", "peril"],
+      emoji: "⚡"
+    },
+    strange: {
+      definition: "Unusual or unexpected in a way that is surprising or hard to understand.",
+      example: "They heard strange noises coming from the cave.",
+      partOfSpeech: "adjective",
+      syllables: "strange",
+      synonyms: ["odd", "unusual", "weird"],
+      emoji: "👽"
+    },
+    path: {
+      definition: "A way or track made for walking or traveling.",
+      example: "They followed the narrow path through the dense forest.",
+      partOfSpeech: "noun",
+      syllables: "path",
+      synonyms: ["trail", "route", "way"],
+      emoji: "🛤️"
+    },
+    whispered: {
+      definition: "Spoke very quietly or softly (past tense of 'whisper').",
+      example: "She whispered the secret so no one else could hear.",
+      partOfSpeech: "verb",
+      syllables: "whis-pered",
+      synonyms: ["murmured", "spoke softly", "muttered"],
+      emoji: "🤫"
+    },
+    suddenly: {
+      definition: "Happening quickly and unexpectedly.",
+      example: "Suddenly, a bird flew out of the bushes and startled them.",
+      partOfSpeech: "adverb",
+      syllables: "sud-den-ly",
+      synonyms: ["unexpectedly", "abruptly", "all at once"],
+      emoji: "⚡"
+    }
   };
   
-  // Function to make the character speak
+  // Get voice for speech synthesis
+  const getVoice = () => {
+    if (!hasSpeech) return null;
+    const voices = speechSynth.getVoices();
+    return voices.find(v => v.name.includes('Google UK English Female')) || 
+           voices.find(v => v.lang.startsWith('en')) || 
+           voices[0];
+  };
+  
+  // Speak text with subtitles
   const speak = (text) => {
     if (!hasSpeech) return;
     
-    // Cancel any ongoing speech
     speechSynth.cancel();
+    setIsSpeaking(true);
+    setCurrentSubtitle(text);
     
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.voice = getVoice();
-    utterance.rate = 0.9; // Slightly slower for kids
-    utterance.pitch = 1.1; // Slightly higher pitch for character voice
+    const voice = getVoice();
+    if (voice) utterance.voice = voice;
+    utterance.rate = readingSpeed;
+    utterance.pitch = 1.0;
+    
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      setTimeout(() => setCurrentSubtitle(''), 500);
+    };
+    
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      setCurrentSubtitle('');
+    };
     
     speechSynth.speak(utterance);
   };
   
-  // Switch character
-  const switchCharacter = () => {
-    setCharacter(character === characters.owl ? characters.fox : characters.owl);
-  };
-
-  // Comprehensive dictionary with definitions for common words
-  const wordDictionary = {
-    // Story vocabulary words
-    jungle: {
-      definition: "A dense forest in a tropical region with many trees, plants, and animals living very close together.",
-      example: "The explorers trekked through the jungle, hearing monkeys and birds all around them.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/1998/1998627.png"
-    },
-    dense: {
-      definition: "Closely packed together with very little space between things.",
-      example: "The trees in the forest were so dense that little light reached the ground.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/3437/3437489.png"
-    },
-    footprints: {
-      definition: "Marks left by a foot or shoe on the ground or another surface.",
-      example: "They followed the footprints in the sand to see where the person had gone.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/2548/2548374.png"
-    },
-    curious: {
-      definition: "Eager to learn or know about something.",
-      example: "The curious child asked many questions about how things work.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/742/742751.png"
-    },
-    foliage: {
-      definition: "The leaves of a plant or tree.",
-      example: "The autumn foliage turned bright red and orange.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/3437/3437489.png"
-    },
-    heart: {
-      definition: "The central or innermost part of something.",
-      example: "They traveled to the heart of the city to see the main attractions.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/742/742751.png"
-    },
-    secret: {
-      definition: "Something kept hidden or unexplained.",
-      example: "The children discovered a secret door behind the bookshelf.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/3898/3898082.png"
-    },
-    
-    // Common verbs
-    explore: {
-      definition: "To travel through an unfamiliar area to learn about it.",
-      example: "The astronauts will explore the surface of Mars.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/2548/2548374.png"
-    },
-    discover: {
-      definition: "To find or learn something for the first time.",
-      example: "Scientists discovered a new species of frog in the rainforest.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/3437/3437489.png"
-    },
-    realized: {
-      definition: "To understand something that you didn't understand before.",
-      example: "She suddenly realized that she had left her keys at home.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/742/742751.png"
-    },
-    wander: {
-      definition: "To walk slowly around or to a place, often without a specific purpose or direction.",
-      example: "They wandered through the park on the sunny afternoon.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/2548/2548374.png"
-    },
-    encountered: {
-      definition: "To meet or find someone or something, often unexpectedly.",
-      example: "While hiking, they encountered a family of deer.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/3437/3437489.png"
-    },
-    
-    // Common nouns
-    path: {
-      definition: "A track that has been made for people to walk along.",
-      example: "They followed the path through the woods to reach the lake.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/854/854878.png"
-    },
-    treasure: {
-      definition: "A collection of valuable things such as gold, silver, or jewels.",
-      example: "The pirates buried their treasure on a deserted island.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/3437/3437489.png"
-    },
-    journey: {
-      definition: "Traveling from one place to another, especially over a long distance.",
-      example: "Their journey to the mountains took three days.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/2548/2548374.png"
-    },
-    compass: {
-      definition: "A tool that shows directions, with a needle that points north.",
-      example: "They used a compass to find their way through the forest.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/3437/3437489.png"
-    },
-    
-    // Character names
-    leo: {
-      definition: "A boy's name, and one of the main characters in this story.",
-      example: "Leo and Ella were exploring the jungle together.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/3898/3898082.png"
-    },
-    ella: {
-      definition: "A girl's name, and one of the main characters in this story.",
-      example: "Ella helped Leo find their way through the jungle.",
-      visualization: "https://cdn-icons-png.flaticon.com/512/3898/3898082.png"
-    }
-  };
-  
-  // Smart definition generator - creates definitions for words not in dictionary
+  // Generate definition for words
   const generateDefinition = (word) => {
-    // Get word in lowercase
     const lowerWord = word.toLowerCase();
     
-    // Check for common word endings to guess part of speech
+    // Check dictionary first
+    if (wordDictionary[lowerWord]) {
+      return wordDictionary[lowerWord];
+    }
     
-    // Verb forms
+    // Generate smart definition
+    let partOfSpeech = "word";
+    let syllables = word;
+    let emoji = "📝";
+    
     if (lowerWord.endsWith('ing')) {
-      const root = lowerWord.slice(0, -3);
+      partOfSpeech = "verb";
+      syllables = word.slice(0, -3) + '-ing';
+      emoji = "⚡";
       return {
-        definition: `The action of ${root}ing something or someone.`,
-        example: `They were ${lowerWord} through the forest all day.`,
-        visualization: "https://cdn-icons-png.flaticon.com/512/2548/2548374.png"
+        definition: `The action of ${word.slice(0, -3)}. This describes something that is happening.`,
+        example: `They were ${lowerWord} in the story.`,
+        partOfSpeech,
+        syllables,
+        synonyms: ["action", "doing"],
+        emoji
       };
     }
     
     if (lowerWord.endsWith('ed')) {
-      const root = lowerWord.slice(0, -2);
+      partOfSpeech = "verb";
+      syllables = word.slice(0, -2) + '-ed';
+      emoji = "✓";
       return {
-        definition: `Completed the action of ${root}ing.`,
-        example: `They ${lowerWord} the beautiful scenery.`,
-        visualization: "https://cdn-icons-png.flaticon.com/512/2548/2548374.png"
+        definition: `Past tense: This action already happened. It means to have done ${word.slice(0, -2)}.`,
+        example: `They ${lowerWord} something in the story.`,
+        partOfSpeech,
+        syllables,
+        synonyms: ["completed", "finished"],
+        emoji
       };
     }
     
-    // Nouns
-    if (lowerWord.endsWith('s') && !lowerWord.endsWith('ss')) {
-      const singular = lowerWord.slice(0, -1);
-      return {
-        definition: `More than one ${singular}.`,
-        example: `The ${lowerWord} were all around them in the jungle.`,
-        visualization: "https://cdn-icons-png.flaticon.com/512/3437/3437489.png"
-      };
-    }
-    
-    // Adjectives
-    if (lowerWord.endsWith('ful')) {
-      const root = lowerWord.slice(0, -3);
-      return {
-        definition: `Full of or having the quality of ${root}.`,
-        example: `The ${lowerWord} display caught everyone's attention.`,
-        visualization: "https://cdn-icons-png.flaticon.com/512/742/742751.png"
-      };
-    }
-    
-    if (lowerWord.endsWith('y')) {
-      return {
-        definition: `Having the qualities or characteristics of ${lowerWord.slice(0, -1)}.`,
-        example: `It was a ${lowerWord} day in the jungle.`,
-        visualization: "https://cdn-icons-png.flaticon.com/512/742/742751.png"
-      };
-    }
-    
-    // Default definition by examining context
-    const sentences = storyText.match(/[^.!?]+[.!?]+/g) || [storyText];
-    let contextSentence = "";
-    
-    // Find a sentence containing this word
-    for (const sentence of sentences) {
-      if (sentence.toLowerCase().includes(lowerWord)) {
-        contextSentence = sentence;
-        break;
-      }
-    }
-    
-    // If we found the word in context
-    if (contextSentence) {
-      return {
-        definition: `A word meaning "${lowerWord}" in this story. It appears in: "${contextSentence.trim()}"`,
-        example: `The word "${lowerWord}" is used to describe something in the story.`,
-        visualization: "https://cdn-icons-png.flaticon.com/512/3898/3898082.png"
-      };
-    }
-    
-    // Very generic fallback (should rarely be used)
+    // Default
     return {
-      definition: `A word that appears in the story with meaning related to "${lowerWord}".`,
-      example: `The word "${lowerWord}" helps us understand the story better.`,
-      visualization: "https://cdn-icons-png.flaticon.com/512/3898/3898082.png"
+      definition: `This word "${word}" has special meaning in the story.`,
+      example: `"${word}" helps us understand what's happening.`,
+      partOfSpeech: "word",
+      syllables: word,
+      synonyms: [],
+      emoji: "📖"
     };
   };
   
-  // Handle word selection with intelligent fallback
+  // Fetch definition from GPT API - CORRECTED ENDPOINT
+  const fetchGPTDefinition = async (word) => {
+    try {
+      // IMPORTANT: Using sentence_formation endpoint, not syllabification
+      const response = await fetch('/api/sentence_formation/explain-word/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          word: word,
+          grade_level: grade,
+          context: storyText
+        })
+      });
+      
+      if (!response.ok) {
+        console.error('API Response Status:', response.status);
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error('API request failed');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Transform API response to our format
+        return {
+          definition: data.definition || `A word that means "${word}".`,
+          example: data.example || `The word "${word}" is used in the story.`,
+          partOfSpeech: data.part_of_speech || "word",
+          syllables: data.syllables || word,
+          synonyms: data.synonyms || [],
+          emoji: getEmojiForPartOfSpeech(data.part_of_speech)
+        };
+      } else {
+        throw new Error('Invalid API response');
+      }
+    } catch (error) {
+      console.error('Error fetching definition:', error);
+      // Return fallback definition
+      return generateDefinition(word);
+    }
+  };
+  
+  // Get emoji based on part of speech
+  const getEmojiForPartOfSpeech = (partOfSpeech) => {
+    const emojiMap = {
+      'noun': '📝',
+      'verb': '⚡',
+      'adjective': '🎨',
+      'adverb': '🚀',
+      'pronoun': '👤',
+      'preposition': '📍',
+      'conjunction': '🔗',
+      'interjection': '❗'
+    };
+    return emojiMap[partOfSpeech?.toLowerCase()] || '📖';
+  };
+  
+  // Handle word selection from vocabulary list
   const handleWordSelect = async (word) => {
-    if (!word || word === selectedWord) return;
+    if (word === selectedWord) {
+      setSelectedWord('');
+      setWordData(null);
+      return;
+    }
     
     setSelectedWord(word);
-    setMode('word');
     setIsLoading(true);
-    setError(null);
     setWordData(null);
     
     try {
-      // First check our local dictionary
-      const dictionaryEntry = wordDictionary[word.toLowerCase()];
-      
-      if (dictionaryEntry) {
-        // Use local dictionary entry
-        setWordData(dictionaryEntry);
-        
-        // Speak the explanation
-        speak(`${word}. ${dictionaryEntry.definition}`);
+      // First check local dictionary
+      let data;
+      if (wordDictionary[word.toLowerCase()]) {
+        data = wordDictionary[word.toLowerCase()];
       } else {
-        // Try to fetch from API
-        try {
-          const response = await fetch('/api/explain-word', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              word,
-              storyContext: storyText,
-              grade
-            })
-          });
-          
-          if (!response.ok) {
-            throw new Error('API unavailable');
-          }
-          
-          const data = await response.json();
-          setWordData(data);
-          
-          // Speak the explanation
-          speak(`${word}. ${data.definition}`);
-        } catch (apiError) {
-          // Generate an intelligent definition instead of generic fallback
-          const generatedDefinition = generateDefinition(word);
-          setWordData(generatedDefinition);
-          speak(`${word}. ${generatedDefinition.definition}`);
-        }
+        // Fetch from GPT API
+        data = await fetchGPTDefinition(word);
       }
-    } catch (err) {
-      const generatedDefinition = generateDefinition(word);
-      setWordData(generatedDefinition);
-      speak(`${word}. ${generatedDefinition.definition}`);
-    } finally {
+      
+      setWordData(data);
       setIsLoading(false);
-    }
-  };
-  
-  // Generate reading questions
-  const generateQuestions = async () => {
-    setMode('question');
-    setIsLoading(true);
-    setError(null);
-    setQuestions([]);
-    setCurrentQuestionIndex(0);
-    setUserAnswer('');
-    setFeedback(null);
-    
-    try {
-      const response = await fetch('/api/generate-questions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          storyText,
-          grade,
-          count: 3
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to generate questions');
-      }
-      
-      const data = await response.json();
-      setQuestions(data.questions);
-      
-      // Speak the first question
-      if (data.questions.length > 0) {
-        speak(data.questions[0].question);
-      }
-      
-    } catch (err) {
-      setError(err.message);
-      console.error('Error generating questions:', err);
-    } finally {
+      speak(`${word}. ${data.partOfSpeech}. ${data.definition}`);
+    } catch (error) {
+      console.error('Error loading word data:', error);
+      const fallbackData = generateDefinition(word);
+      setWordData(fallbackData);
       setIsLoading(false);
+      speak(`${word}. ${fallbackData.definition}`);
     }
   };
   
-  // Check answer
-  const checkAnswer = async () => {
-    if (!userAnswer.trim()) return;
-    
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch('/api/check-answer', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          question: questions[currentQuestionIndex].question,
-          answer: userAnswer,
-          storyText,
-          grade
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to check answer');
-      }
-      
-      const data = await response.json();
-      setFeedback(data);
-      
-      // Speak the feedback
-      speak(data.feedback);
-      
-    } catch (err) {
-      setError(err.message);
-      console.error('Error checking answer:', err);
-    } finally {
-      setIsLoading(false);
+  // Reading tips
+  const readingTips = [
+    {
+      icon: "👀",
+      title: "Look for Context Clues",
+      description: "If you don't know a word, read the sentence around it to guess its meaning."
+    },
+    {
+      icon: "🔊",
+      title: "Sound it Out",
+      description: "Break long words into smaller parts (syllables) and say each part slowly."
+    },
+    {
+      icon: "📝",
+      title: "Visualize the Story",
+      description: "Create pictures in your mind as you read to help you understand and remember."
+    },
+    {
+      icon: "🔄",
+      title: "Reread if Confused",
+      description: "It's okay to read a sentence again if you didn't understand it the first time."
+    },
+    {
+      icon: "❓",
+      title: "Ask Questions",
+      description: "Think about what might happen next or why characters do certain things."
+    },
+    {
+      icon: "⭐",
+      title: "Take Your Time",
+      description: "Reading is not a race! Go at a comfortable pace for you."
     }
-  };
+  ];
   
-  // Move to next question
-  const nextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prevIndex => prevIndex + 1);
-      setUserAnswer('');
-      setFeedback(null);
-      
-      // Speak the next question
-      speak(questions[currentQuestionIndex + 1].question);
-    } else {
-      // End of questions
-      setMode('help');
-      speak("Great job answering all the questions!");
-    }
-  };
-  
-  // Read story aloud
-  const readStoryAloud = () => {
-    if (!hasSpeech) return;
-    
-    // Cancel any ongoing speech
-    speechSynth.cancel();
-    
-    // Break the story into smaller chunks to avoid long utterances
-    const sentences = storyText.match(/[^.!?]+[.!?]+/g) || [storyText];
-    
-    sentences.forEach((sentence, index) => {
-      const utterance = new SpeechSynthesisUtterance(sentence.trim());
-      utterance.voice = getVoice();
-      utterance.rate = 0.85; // Slower for story reading
-      
-      // Add a delay between sentences
-      utterance.onend = () => {
-        // Could implement text highlighting here
-      };
-      
-      setTimeout(() => {
-        speechSynth.speak(utterance);
-      }, index * 250); // Slight delay between queuing sentences
-    });
-  };
-  
-  // Stop reading
-  const stopReading = () => {
-    if (hasSpeech) {
-      speechSynth.cancel();
-    }
-  };
-  
-  // Process story text to make words interactive
-  const processStoryText = () => {
-    if (!storyText) return null;
-    
-    // Split text by spaces, preserving punctuation
-    const words = storyText.split(/\b/);
-    
-    return (
-      <div className={styles.interactiveText} ref={textRef}>
-        {words.map((word, index) => {
-          // Skip spaces and punctuation for click handlers
-          if (/^\s*$/.test(word) || /^[.,;:!?()[\]{}'"—–-]$/.test(word)) {
-            return <span key={index}>{word}</span>;
-          }
-          
-          // Clean the word for comparison
-          const cleanWord = word.toLowerCase().replace(/[.,;:!?()[\]{}'"—–-]/g, '');
-          
-          // Check if this is a vocabulary word
-          const isVocabWord = vocabularyWords.some(
-            vocabWord => vocabWord.toLowerCase() === cleanWord
-          );
-          
-          return (
-            <span
-              key={index}
-              className={`
-                ${styles.interactiveWord} 
-                ${isVocabWord ? styles.vocabWord : ''}
-                ${cleanWord === selectedWord.toLowerCase() ? styles.selectedWord : ''}
-              `}
-              onClick={() => handleWordSelect(cleanWord)}
-            >
-              {word}
-            </span>
-          );
-        })}
-      </div>
-    );
-  };
-  
-  // Speak greeting when coach appears
-  useEffect(() => {
-    if (isVisible && hasSpeech) {
-      speak(character.greeting);
-    }
-    
-    return () => {
-      if (hasSpeech) {
-        speechSynth.cancel();
-      }
-    };
-  }, [isVisible, character, hasSpeech]);
-  
-  // If not visible, don't render
   if (!isVisible) return null;
   
   return (
     <div className={styles.coachOverlay}>
-      <div className={styles.coachContainer} ref={coachRef}>
-        <div className={styles.coachHeader} style={{ backgroundColor: character.color }}>
+      <motion.div 
+        className={styles.coachContainer}
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        ref={coachRef}
+      >
+        {/* Header */}
+        <div className={styles.coachHeader} style={{ background: character.gradient }}>
           <div className={styles.characterInfo}>
             <span className={styles.characterEmoji}>{character.emoji}</span>
-            <span className={styles.characterName}>{character.name}</span>
+            <div>
+              <span className={styles.characterName}>{character.name}</span>
+              <span className={styles.characterSubtitle}>Your Reading Guide</span>
+            </div>
           </div>
-          <div className={styles.coachControls}>
-            <button
-              className={styles.controlButton}
-              onClick={switchCharacter}
-              title="Change character"
-            >
-              🔄
-            </button>
-            <button
-              className={styles.controlButton}
-              onClick={onClose}
-              title="Close reading coach"
-            >
-              ✖️
-            </button>
-          </div>
+          <button className={styles.closeButton} onClick={onClose} title="Close">
+            ✕
+          </button>
         </div>
         
-        <div className={styles.coachContent}>
-          {/* Mode selector */}
-          <div className={styles.modeTabs}>
-            <button
-              className={`${styles.modeTab} ${mode === 'help' ? styles.activeTab : ''}`}
-              onClick={() => setMode('help')}
+        {/* Subtitle Display */}
+        <AnimatePresence>
+          {currentSubtitle && (
+            <motion.div 
+              className={styles.subtitleBar}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
             >
-              Reading Help
+              <div className={styles.subtitleContent}>
+                <span className={styles.speakerIcon}>🔊</span>
+                <p className={styles.subtitleText}>{currentSubtitle}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
+        {/* Content */}
+        <div className={styles.coachContent}>
+          {/* Tab Navigation */}
+          <div className={styles.tabNav}>
+            <button
+              className={`${styles.tabButton} ${activeTab === 'vocabulary' ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab('vocabulary')}
+            >
+              <span className={styles.tabIcon}>📚</span>
+              <span>Vocabulary</span>
             </button>
             <button
-              className={`${styles.modeTab} ${mode === 'question' ? styles.activeTab : ''}`}
-              onClick={generateQuestions}
+              className={`${styles.tabButton} ${activeTab === 'tips' ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab('tips')}
             >
-              Questions
+              <span className={styles.tabIcon}>💡</span>
+              <span>Reading Tips</span>
+            </button>
+            <button
+              className={`${styles.tabButton} ${activeTab === 'practice' ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab('practice')}
+            >
+              <span className={styles.tabIcon}>🎯</span>
+              <span>Practice</span>
             </button>
           </div>
           
-          {/* Help mode */}
-          {mode === 'help' && (
-            <div className={styles.helpMode}>
-              <div className={styles.readControls}>
-                <button 
-                  className={styles.readButton}
-                  onClick={readStoryAloud}
-                  disabled={!hasSpeech}
-                >
-                  Read Aloud 🔊
-                </button>
-                <button 
-                  className={styles.stopButton}
-                  onClick={stopReading}
-                  disabled={!hasSpeech}
-                >
-                  Stop Reading ⏹️
-                </button>
-              </div>
-              
-              <div className={styles.instructions}>
-                {character.emoji} Click on any word to learn more about it!
-              </div>
-              
-              <div className={styles.storyTextContainer}>
-                {processStoryText()}
-              </div>
-            </div>
-          )}
-          
-          {/* Word explanation mode */}
-          {mode === 'word' && (
-            <div className={styles.wordMode}>
-              <h3 className={styles.selectedWordHeading}>
-                {selectedWord}
-              </h3>
-              
-              {isLoading ? (
-                <div className={styles.loadingContainer}>
-                  <div className={styles.spinner}></div>
-                  <p>Finding information...</p>
+          {/* Tab Content */}
+          <div className={styles.tabContent}>
+            {/* Vocabulary Tab */}
+            {activeTab === 'vocabulary' && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className={styles.vocabularyTab}
+              >
+                <div className={styles.instructionCard}>
+                  <span className={styles.instructionIcon}>📖</span>
+                  <p><strong>Click on any vocabulary word</strong> to hear its pronunciation, see its meaning, and learn how to use it!</p>
                 </div>
-              ) : error ? (
-                <div className={styles.errorMessage}>
-                  <p>{error}</p>
-                  <button 
-                    className={styles.retryButton}
-                    onClick={() => handleWordSelect(selectedWord)}
+                
+                {/* Reading Speed Control */}
+                <div className={styles.speedControl}>
+                  <label>
+                    <span className={styles.speedLabel}>🎙️ Speaking Speed:</span>
+                    <input 
+                      type="range" 
+                      min="0.5" 
+                      max="1.0" 
+                      step="0.05" 
+                      value={readingSpeed}
+                      onChange={(e) => setReadingSpeed(parseFloat(e.target.value))}
+                      className={styles.speedSlider}
+                    />
+                    <span className={styles.speedValue}>
+                      {readingSpeed === 0.5 ? 'Slow' : readingSpeed === 1.0 ? 'Normal' : `${readingSpeed.toFixed(2)}x`}
+                    </span>
+                  </label>
+                </div>
+                
+                {/* Vocabulary Grid */}
+                <div className={styles.vocabularyGrid}>
+                  {vocabularyWords.map((word, index) => {
+                    const wordInfo = wordDictionary[word.toLowerCase()] || {};
+                    return (
+                      <motion.button
+                        key={index}
+                        className={`${styles.vocabCard} ${selectedWord === word ? styles.selectedVocab : ''}`}
+                        onClick={() => handleWordSelect(word)}
+                        whileHover={{ scale: 1.05, y: -5 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <span className={styles.vocabEmoji}>{wordInfo.emoji || '📝'}</span>
+                        <span className={styles.vocabWord}>{word}</span>
+                        <span className={styles.vocabHint}>Click to learn!</span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+                
+                {/* Loading State */}
+                {isLoading && selectedWord && (
+                  <motion.div 
+                    className={styles.loadingPanel}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
                   >
-                    Try Again
-                  </button>
-                </div>
-              ) : wordData ? (
-                <div className={styles.wordInfoContainer}>
-                  <div className={styles.definitionSection}>
-                    <h4>Definition:</h4>
-                    <p>{wordData.definition}</p>
-                  </div>
-                  
-                  <div className={styles.exampleSection}>
-                    <h4>Example:</h4>
-                    <p>{wordData.example}</p>
-                  </div>
-                  
-                  {wordData.visualization && (
-                    <div className={styles.visualizationSection}>
-                      <div 
-                        className={styles.wordImage}
-                        style={{ backgroundImage: `url(${wordData.visualization})` }}
-                      ></div>
-                    </div>
-                  )}
-                  
-                  <button 
-                    className={styles.backButton}
-                    onClick={() => {
-                      setMode('help');
-                      setSelectedWord('');
-                    }}
-                  >
-                    Back to Reading
-                  </button>
-                </div>
-              ) : (
-                <div className={styles.emptyState}>
-                  <p>Select a word to get started</p>
-                </div>
-              )}
-            </div>
-          )}
-          
-          {/* Question mode */}
-          {mode === 'question' && (
-            <div className={styles.questionMode}>
-              {isLoading && !questions.length ? (
-                <div className={styles.loadingContainer}>
-                  <div className={styles.spinner}></div>
-                  <p>Creating questions about the story...</p>
-                </div>
-              ) : error ? (
-                <div className={styles.errorMessage}>
-                  <p>Sorry, I couldn't create questions right now.</p>
-                  <button 
-                    className={styles.retryButton}
-                    onClick={generateQuestions}
-                  >
-                    Try Again
-                  </button>
-                </div>
-              ) : questions.length > 0 ? (
-                <div className={styles.questionContainer}>
-                  <div className={styles.questionCount}>
-                    Question {currentQuestionIndex + 1} of {questions.length}
-                  </div>
-                  
-                  <h3 className={styles.questionText}>
-                    {questions[currentQuestionIndex].question}
-                  </h3>
-                  
-                  <textarea
-                    className={styles.answerInput}
-                    value={userAnswer}
-                    onChange={(e) => setUserAnswer(e.target.value)}
-                    placeholder="Type your answer here..."
-                    disabled={!!feedback || isLoading}
-                  />
-                  
-                  {!feedback ? (
-                    <button
-                      className={styles.checkAnswerButton}
-                      onClick={checkAnswer}
-                      disabled={!userAnswer.trim() || isLoading}
+                    <div className={styles.loadingSpinner}></div>
+                    <p>Loading definition for <strong>{selectedWord}</strong>...</p>
+                  </motion.div>
+                )}
+                
+                {/* Word Details Panel */}
+                <AnimatePresence>
+                  {selectedWord && wordData && !isLoading && (
+                    <motion.div 
+                      className={styles.wordPanel}
+                      initial={{ y: 20, opacity: 0, scale: 0.95 }}
+                      animate={{ y: 0, opacity: 1, scale: 1 }}
+                      exit={{ y: 20, opacity: 0, scale: 0.95 }}
+                      transition={{ type: "spring", damping: 20 }}
                     >
-                      {isLoading ? 'Checking...' : 'Check Answer'}
-                    </button>
-                  ) : (
-                    <div className={styles.feedbackContainer}>
-                      <div className={`${styles.feedbackMessage} ${feedback.isCorrect ? styles.correctFeedback : styles.improvementFeedback}`}>
-                        {feedback.feedback}
+                      <div className={styles.wordHeader}>
+                        <div className={styles.wordTitleSection}>
+                          <span className={styles.wordEmoji}>{wordData.emoji}</span>
+                          <div>
+                            <h3 className={styles.wordTitle}>{selectedWord}</h3>
+                            <div className={styles.wordMeta}>
+                              <span className={styles.partOfSpeech}>{wordData.partOfSpeech}</span>
+                              <span className={styles.syllables}>• {wordData.syllables}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <button 
+                          className={styles.pronounceButton}
+                          onClick={() => speak(selectedWord)}
+                          title="Hear pronunciation"
+                          disabled={isSpeaking}
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                          </svg>
+                        </button>
                       </div>
                       
-                      <button
-                        className={styles.nextButton}
-                        onClick={nextQuestion}
-                      >
-                        {currentQuestionIndex < questions.length - 1 
-                          ? 'Next Question' 
-                          : 'Finish'
-                        }
-                      </button>
-                    </div>
+                      <div className={styles.wordContent}>
+                        <div className={styles.definitionSection}>
+                          <strong>📚 Definition:</strong>
+                          <p>{wordData.definition}</p>
+                        </div>
+                        
+                        <div className={styles.exampleSection}>
+                          <strong>💡 Example:</strong>
+                          <p className={styles.exampleText}>"{wordData.example}"</p>
+                        </div>
+                        
+                        {wordData.synonyms && wordData.synonyms.length > 0 && (
+                          <div className={styles.synonymsSection}>
+                            <strong>🔄 Similar Words:</strong>
+                            <div className={styles.synonymsList}>
+                              {wordData.synonyms.map((syn, i) => (
+                                <span key={i} className={styles.synonymTag}>{syn}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <button 
+                          className={styles.explainButton}
+                          onClick={() => speak(`${selectedWord}. ${wordData.partOfSpeech}. ${wordData.definition}. For example: ${wordData.example}`)}
+                          disabled={isSpeaking}
+                        >
+                          🎧 Hear Full Explanation
+                        </button>
+                      </div>
+                    </motion.div>
                   )}
+                </AnimatePresence>
+              </motion.div>
+            )}
+            
+            {/* Reading Tips Tab */}
+            {activeTab === 'tips' && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className={styles.tipsTab}
+              >
+                <div className={styles.tipsHeader}>
+                  <h3>📖 Helpful Reading Strategies</h3>
+                  <p>Use these tips to become a better reader!</p>
                 </div>
-              ) : (
-                <div className={styles.emptyState}>
-                  <p>Let's create some questions about the story!</p>
-                  <button 
-                    className={styles.generateButton}
-                    onClick={generateQuestions}
+                
+                <div className={styles.tipsGrid}>
+                  {readingTips.map((tip, index) => (
+                    <motion.div
+                      key={index}
+                      className={styles.tipCard}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      whileHover={{ scale: 1.03, y: -5 }}
+                    >
+                      <span className={styles.tipIcon}>{tip.icon}</span>
+                      <h4 className={styles.tipTitle}>{tip.title}</h4>
+                      <p className={styles.tipDescription}>{tip.description}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+            
+            {/* Practice Tab */}
+            {activeTab === 'practice' && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className={styles.practiceTab}
+              >
+                <div className={styles.practiceHeader}>
+                  <span className={styles.practiceIcon}>🎯</span>
+                  <h3>Practice Your Vocabulary</h3>
+                  <p>Test yourself on the words you've learned!</p>
+                </div>
+                
+                <div className={styles.practiceCards}>
+                  <motion.div 
+                    className={styles.practiceCard}
+                    whileHover={{ scale: 1.02 }}
                   >
-                    Generate Questions
-                  </button>
+                    <span className={styles.practiceCardIcon}>🗣️</span>
+                    <h4>Pronunciation Practice</h4>
+                    <p>Click vocabulary words and repeat them aloud</p>
+                    <button 
+                      className={styles.practiceCardButton}
+                      onClick={() => setActiveTab('vocabulary')}
+                    >
+                      Start Practicing
+                    </button>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className={styles.practiceCard}
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <span className={styles.practiceCardIcon}>✍️</span>
+                    <h4>Sentence Writing</h4>
+                    <p>Create your own sentences using the vocabulary words</p>
+                    <button 
+                      className={styles.practiceCardButton}
+                      onClick={() => setActiveTab('vocabulary')}
+                    >
+                      Get Started
+                    </button>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className={styles.practiceCard}
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <span className={styles.practiceCardIcon}>🎮</span>
+                    <h4>Word Matching</h4>
+                    <p>Match words with their definitions</p>
+                    <button 
+                      className={styles.practiceCardButton}
+                      disabled
+                    >
+                      Coming Soon!
+                    </button>
+                  </motion.div>
                 </div>
-              )}
-            </div>
-          )}
+              </motion.div>
+            )}
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

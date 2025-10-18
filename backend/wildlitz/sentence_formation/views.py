@@ -1275,3 +1275,147 @@ def get_vocabulary_guidance(focus_skills):
         'detailed_guidance': '\n'.join(guidance_parts),
         'example_words': list(set(all_examples))  # Remove duplicates
     }
+
+
+
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def explain_word(request):
+    """
+    Generate kid-friendly word explanations using GPT for Reading Helper
+    """
+    try:
+        data = json.loads(request.body)
+        word = data.get('word', '').strip()
+        grade_level = data.get('grade_level', 3)
+        context = data.get('context', '')
+        
+        if not word:
+            return JsonResponse({
+                'success': False,
+                'error': 'Word parameter is required'
+            }, status=400)
+        
+        logger.info(f"Explaining word '{word}' for grade {grade_level}")
+        
+        # Create a detailed prompt for GPT
+        context_info = f'\n\nThe word appears in this context: "{context}"' if context else ''
+        
+        prompt = f"""You are a friendly elementary school reading teacher explaining vocabulary to a grade {grade_level} student.
+
+Explain the word "{word}" in a clear, simple way that a {grade_level}rd grade student would understand.{context_info}
+
+Provide your response in this EXACT JSON format:
+{{
+  "definition": "A clear, simple definition using everyday language",
+  "example": "A simple sentence using the word that a child would understand",
+  "part_of_speech": "noun/verb/adjective/adverb/etc",
+  "syllables": "word broken into syllables with hyphens (e.g. tem-ple)",
+  "synonyms": ["similar word 1", "similar word 2", "similar word 3"]
+}}
+
+Rules:
+- Definition must be 1-2 sentences, using simple words
+- Example sentence must be relatable to a child's life
+- Part of speech must be lowercase (noun, verb, adjective, etc.)
+- Syllables must use hyphens to separate (e.g. "ad-ven-ture")
+- Provide 2-4 synonyms that are also simple words
+- Make it engaging and fun!"""
+
+        try:
+            # Call OpenAI API
+            response = openai.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an expert elementary school reading teacher who explains vocabulary in simple, engaging ways for children."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                temperature=0.7,
+                max_tokens=300
+            )
+            
+            # Parse the GPT response
+            gpt_response = response.choices[0].message.content.strip()
+            logger.info(f"GPT response for '{word}': {gpt_response[:100]}...")
+            
+            # Try to extract JSON from the response
+            try:
+                # Remove markdown code blocks if present
+                if '```json' in gpt_response:
+                    gpt_response = gpt_response.split('```json')[1].split('```')[0].strip()
+                elif '```' in gpt_response:
+                    gpt_response = gpt_response.split('```')[1].split('```')[0].strip()
+                
+                word_data = json.loads(gpt_response)
+                
+                # Validate required fields
+                required_fields = ['definition', 'example', 'part_of_speech', 'syllables']
+                for field in required_fields:
+                    if field not in word_data:
+                        raise ValueError(f'Missing required field: {field}')
+                
+                # Ensure synonyms is a list
+                if 'synonyms' not in word_data or not isinstance(word_data['synonyms'], list):
+                    word_data['synonyms'] = []
+                
+                logger.info(f"Successfully explained word '{word}'")
+                
+                return JsonResponse({
+                    'success': True,
+                    'definition': word_data['definition'],
+                    'example': word_data['example'],
+                    'part_of_speech': word_data['part_of_speech'],
+                    'syllables': word_data['syllables'],
+                    'synonyms': word_data['synonyms']
+                })
+                
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse GPT JSON response: {gpt_response}")
+                logger.error(f"JSON Error: {str(e)}")
+                
+                # Fallback: Create a basic response from the text
+                return JsonResponse({
+                    'success': True,
+                    'definition': f"{word.capitalize()} is a word used in the story.",
+                    'example': f'The word "{word}" helps us understand what is happening.',
+                    'part_of_speech': 'word',
+                    'syllables': word,
+                    'synonyms': []
+                })
+                
+        except Exception as e:
+            logger.error(f"OpenAI API error for word '{word}': {str(e)}")
+            logger.error(traceback.format_exc())
+            
+            # Return a basic fallback response
+            return JsonResponse({
+                'success': True,
+                'definition': f"The word '{word}' appears in the story and has special meaning.",
+                'example': f'You can learn about "{word}" by reading the story carefully.',
+                'part_of_speech': 'word',
+                'syllables': word,
+                'synonyms': []
+            })
+            
+    except json.JSONDecodeError:
+        logger.error("Invalid JSON in request body")
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON in request body'
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Unexpected error in explain_word: {str(e)}")
+        logger.error(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)

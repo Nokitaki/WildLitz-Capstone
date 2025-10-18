@@ -16,6 +16,9 @@ urlpatterns = [
     
     # Progress tracking endpoint for crossword and sentence building activities
     path('log-activity/', views.log_crossword_activity, name='log_crossword_activity'),
+
+    # Word explanation endpoint for Reading Helper
+     path('explain-word/', views.explain_word, name='explain_word'),
     
     # ==================== STORY ANALYTICS ROUTES ====================
     # Story Game Session Management

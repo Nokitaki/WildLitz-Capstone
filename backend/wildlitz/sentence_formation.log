@@ -945,3 +945,42 @@ INFO 2025-10-19 01:38:37,086 views Sample session: {'id': '12992b7f-6edf-4773-97
 INFO 2025-10-19 01:38:37,412 views Found 21 sessions for user_email: kenjiermita2020@gmail.com
 INFO 2025-10-19 01:38:37,412 views Sample session: {'id': '12992b7f-6edf-4773-9716-d4be668007d5', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760809045', 'story_title': 'The Jungle Adventure', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 1, 'character_names': '', 'session_start': '2025-10-18T17:37:36.453552+00:00', 'session_end': '2025-10-19T01:38:29.153529+00:00', 'total_duration_seconds': 48, 'episodes_completed': 1, 'current_episode': 1, 'total_words_solved': 6, 'total_puzzles_completed': 0, 'total_hints_used': 3, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': ['found', 'trees', 'walked', 'heard', 'swinging', 'hidden'], 'reading_coach_interactions': 0, 'is_completed': True, 'completion_percentage': 100.0, 'metadata': {}, 'created_at': '2025-10-18T17:37:36.453552+00:00', 'updated_at': '2025-10-18T17:38:29.53757+00:00'}
 INFO 2025-10-19 01:38:39,848 views Session details retrieved: 12992b7f-6edf-4773-9716-d4be668007d5
+INFO 2025-10-19 01:41:02,627 views Story session created: f668ab23-ad1f-4456-9899-7e61adb539b2
+INFO 2025-10-19 01:47:02,400 views Story session created: 08599123-6849-48a8-bd6f-349bfc8d0ea3
+INFO 2025-10-19 01:49:28,938 views Story session created: 68851d15-fa6a-4697-9d0b-1519d516f4b4
+INFO 2025-10-19 02:13:43,236 views Story session created: 1c80ff95-e0de-4ef0-9699-d590873b28a2
+ERROR 2025-10-19 03:03:20,714 views JSON parsing error: Expecting value: line 1 column 1 (char 0)
+INFO 2025-10-19 03:03:22,332 views Story session created: d7912abb-70fe-4477-9e88-db00c7da5a02
+INFO 2025-10-19 03:11:10,477 views Found 26 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-19 03:11:10,478 views Sample session: {'id': 'd7912abb-70fe-4477-9e88-db00c7da5a02', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760814188', 'story_title': 'The Jungle Adventure', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 1, 'character_names': '', 'session_start': '2025-10-18T19:03:22.571667+00:00', 'session_end': None, 'total_duration_seconds': None, 'episodes_completed': 0, 'current_episode': 1, 'total_words_solved': 0, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': False, 'completion_percentage': 0.0, 'metadata': {}, 'created_at': '2025-10-18T19:03:22.571667+00:00', 'updated_at': '2025-10-18T19:03:22.571667+00:00'}
+INFO 2025-10-19 03:11:10,787 views Found 26 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-10-19 03:11:10,787 views Sample session: {'id': 'd7912abb-70fe-4477-9e88-db00c7da5a02', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760814188', 'story_title': 'The Jungle Adventure', 'theme': 'jungle', 'focus_skills': [], 'episode_count': 1, 'character_names': '', 'session_start': '2025-10-18T19:03:22.571667+00:00', 'session_end': None, 'total_duration_seconds': None, 'episodes_completed': 0, 'current_episode': 1, 'total_words_solved': 0, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': False, 'completion_percentage': 0.0, 'metadata': {}, 'created_at': '2025-10-18T19:03:22.571667+00:00', 'updated_at': '2025-10-18T19:03:22.571667+00:00'}
+INFO 2025-10-19 03:11:26,726 views Story session created: a15ad1ed-970f-4e4a-abce-968228bc23d9
+INFO 2025-10-19 03:12:54,232 views Story session created: 32ec9063-e8e3-4d0c-b282-cd79d02fc2f2
+INFO 2025-10-19 03:13:05,959 views Explaining word 'RIVER' for grade 3
+INFO 2025-10-19 03:13:07,089 views GPT response for 'RIVER': {
+  "definition": "A river is a big, flowing stream of water that usually goes from high places to l...
+INFO 2025-10-19 03:13:07,090 views Successfully explained word 'RIVER'
+INFO 2025-10-19 03:13:11,489 views Explaining word 'MONKEYS' for grade 3
+INFO 2025-10-19 03:13:13,394 views GPT response for 'MONKEYS': {
+  "definition": "Monkeys are clever and playful animals that live in the jungle and often swing fr...
+INFO 2025-10-19 03:13:13,394 views Successfully explained word 'MONKEYS'
+INFO 2025-10-19 03:13:17,878 views Explaining word 'LION' for grade 3
+INFO 2025-10-19 03:13:19,173 views GPT response for 'LION': {
+  "definition": "A lion is a big, strong animal that lives in the jungle and roars loudly.",
+  "ex...
+INFO 2025-10-19 03:13:19,174 views Successfully explained word 'LION'
+INFO 2025-10-19 03:13:20,702 views Explaining word 'SAFE' for grade 3
+INFO 2025-10-19 03:13:21,852 views GPT response for 'SAFE': {
+  "definition": "Safe means you are out of danger and not in harm's way.",
+  "example": "After cro...
+INFO 2025-10-19 03:13:21,852 views Successfully explained word 'SAFE'
+INFO 2025-10-19 03:13:37,398 views Explaining word 'MONKEYS' for grade 3
+INFO 2025-10-19 03:13:38,615 views GPT response for 'MONKEYS': {
+  "definition": "Monkeys are clever animals that live in trees and have long tails. They like to s...
+INFO 2025-10-19 03:13:38,616 views Successfully explained word 'MONKEYS'
+INFO 2025-10-19 03:13:47,702 views Explaining word 'SAFE' for grade 3
+INFO 2025-10-19 03:13:48,973 views GPT response for 'SAFE': {
+  "definition": "Safe means out of harm's way or not in danger.",
+  "example": "When you wear your...
+INFO 2025-10-19 03:13:48,974 views Successfully explained word 'SAFE'
