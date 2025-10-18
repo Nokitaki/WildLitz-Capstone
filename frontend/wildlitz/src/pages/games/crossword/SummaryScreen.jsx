@@ -282,45 +282,38 @@ useEffect(() => {
         
         {/* Action buttons */}
         <div className={styles.actionButtons}>
-  {/* Show "Next Episode" button if there are more episodes */}
-  {hasNextEpisode && currentEpisode < totalEpisodes ? (
-    <motion.button
-      className={styles.playAgainButton}
-      onClick={onPlayAgain}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-    >
-      Continue to Episode {currentEpisode + 1}
-    </motion.button>
-  ) : (
-    <motion.button
-      className={styles.playAgainButton}
-      onClick={onReturnToMenu}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-    >
-      Create New Story
-    </motion.button>
-  )}
-  
-  <motion.button
-    className={styles.sentenceBuilderButton}
-    onClick={onBuildSentences}
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.95 }}
-  >
-    Build Sentences
-  </motion.button>
-  
-  <motion.button
-    className={styles.mainMenuButton}
-    onClick={onReturnToMenu}
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.95 }}
-  >
-    Main Menu
-  </motion.button>
-</div>
+          {/* Show "Next Episode" button if there are more episodes */}
+          {hasNextEpisode && currentEpisode < totalEpisodes ? (
+            <motion.button
+              className={styles.playAgainButton}
+              onClick={onPlayAgain}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Continue to Episode {currentEpisode + 1}
+            </motion.button>
+          ) : (
+            <motion.button
+              className={styles.playAgainButton}
+              onClick={onReturnToMenu}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Create New Story
+            </motion.button>
+          )}
+          
+          {/* REMOVED: Build Sentences button - Now in Reading Helper! */}
+          
+          <motion.button
+            className={styles.mainMenuButton}
+            onClick={onReturnToMenu}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Main Menu
+          </motion.button>
+        </div>
 
 {/* Episode progress indicator (optional but helpful) */}
 {isStoryMode && totalEpisodes > 1 && (

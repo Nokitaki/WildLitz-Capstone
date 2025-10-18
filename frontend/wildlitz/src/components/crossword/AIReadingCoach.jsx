@@ -3,6 +3,227 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/components/AIReadingCoach.module.css';
 
+// Sentence Writing Practice Component
+const SentenceWritingPractice = ({ vocabularyWords, wordDictionary, onSpeak, isSpeaking }) => {
+  const [selectedWord, setSelectedWord] = useState(vocabularyWords[0] || '');
+  const [sentence, setSentence] = useState('');
+  const [feedback, setFeedback] = useState(null);
+  const [completedWords, setCompletedWords] = useState([]);
+  const [showHint, setShowHint] = useState(false);
+  const sentenceInputRef = useRef(null);
+  
+  // Check sentence
+  const checkSentence = () => {
+    if (!sentence.trim()) {
+      setFeedback({
+        type: 'error',
+        message: 'Please write a sentence first!'
+      });
+      return;
+    }
+    
+    // Check if sentence contains the word AND ends with punctuation
+    const containsWord = sentence.toLowerCase().includes(selectedWord.toLowerCase());
+    const endsWithPunctuation = /[.!?]$/.test(sentence);
+    
+    if (containsWord && endsWithPunctuation) {
+      setFeedback({
+        type: 'success',
+        message: `Perfect! Your sentence uses the word "${selectedWord}"! 🎉`
+      });
+      
+      // Mark word as completed
+      if (!completedWords.includes(selectedWord)) {
+        setCompletedWords([...completedWords, selectedWord]);
+      }
+      
+      // Auto-move to next word after 2 seconds
+      setTimeout(() => {
+        const currentIndex = vocabularyWords.indexOf(selectedWord);
+        const nextIndex = (currentIndex + 1) % vocabularyWords.length;
+        setSelectedWord(vocabularyWords[nextIndex]);
+        setSentence('');
+        setFeedback(null);
+        setShowHint(false);
+      }, 2000);
+    } else {
+      let errors = [];
+      if (!containsWord) errors.push(`use the word "${selectedWord}"`);
+      if (!endsWithPunctuation) errors.push('end with . ! or ?');
+      
+      setFeedback({
+        type: 'error',
+        message: `Your sentence needs to: ${errors.join(' and ')}.`
+      });
+    }
+  };
+  
+  // Get sentence starters
+  const getSentenceStarters = () => {
+    return [
+      `The ${selectedWord?.toLowerCase()} `,
+      `I saw a ${selectedWord?.toLowerCase()} `,
+      `Yesterday, the ${selectedWord?.toLowerCase()} `,
+      `In the story, the ${selectedWord?.toLowerCase()} `
+    ];
+  };
+  
+  const useSentenceStarter = (starter) => {
+    setSentence(starter);
+    sentenceInputRef.current?.focus();
+    setShowHint(false);
+  };
+  
+  return (
+    <div className={styles.sentenceWriting}>
+      {/* Header */}
+      <div className={styles.practiceHeader}>
+        <span className={styles.practiceIcon}>✍️</span>
+        <h3>Sentence Writing Practice</h3>
+        <p>Write creative sentences using your vocabulary words!</p>
+      </div>
+      
+      {/* Progress Bar */}
+      <div className={styles.progressBar}>
+        <div className={styles.progressFill} style={{ width: `${(completedWords.length / vocabularyWords.length) * 100}%` }}></div>
+      </div>
+      <p className={styles.progressText}>
+        {completedWords.length} of {vocabularyWords.length} words completed
+      </p>
+      
+      {/* Word Selector */}
+      <div className={styles.wordSelector}>
+        <div className={styles.wordTabs}>
+          {vocabularyWords.map((word, index) => (
+            <button
+              key={index}
+              className={`${styles.wordTab} ${selectedWord === word ? styles.activeWordTab : ''} ${completedWords.includes(word) ? styles.completedWordTab : ''}`}
+              onClick={() => {
+                setSelectedWord(word);
+                setSentence('');
+                setFeedback(null);
+                setShowHint(false);
+              }}
+            >
+              {completedWords.includes(word) && <span className={styles.checkmark}>✓ </span>}
+              {word}
+            </button>
+          ))}
+        </div>
+      </div>
+      
+      {/* Writing Prompt */}
+      <div className={styles.writingPrompt}>
+        <label className={styles.promptLabel}>
+          Write your sentence using "<strong>{selectedWord}</strong>":
+        </label>
+        <button 
+          className={styles.listenWordButton}
+          onClick={() => onSpeak(selectedWord)}
+          disabled={isSpeaking}
+        >
+          🔊 Listen
+        </button>
+      </div>
+      
+      {/* Sentence Input */}
+      <div className={styles.sentenceInputArea}>
+        <textarea
+          ref={sentenceInputRef}
+          className={styles.sentenceTextarea}
+          value={sentence}
+          onChange={(e) => setSentence(e.target.value)}
+          placeholder={`Example: The ${selectedWord?.toLowerCase()} was beautiful...`}
+          rows={4}
+        />
+        
+        {/* Helper Tools */}
+        <div className={styles.helperTools}>
+          <button 
+            className={styles.hintButton}
+            onClick={() => setShowHint(!showHint)}
+          >
+            💡 {showHint ? 'Hide' : 'Show'} Sentence Starters
+          </button>
+          <button 
+            className={styles.clearButton}
+            onClick={() => {
+              setSentence('');
+              setFeedback(null);
+            }}
+            disabled={!sentence}
+          >
+            🗑️ Clear
+          </button>
+        </div>
+        
+        {/* Sentence Starters */}
+        <AnimatePresence>
+          {showHint && (
+            <motion.div 
+              className={styles.sentenceStarters}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+            >
+              <p className={styles.startersLabel}>Click a starter to begin:</p>
+              <div className={styles.starterButtons}>
+                {getSentenceStarters().map((starter, index) => (
+                  <button
+                    key={index}
+                    className={styles.starterButton}
+                    onClick={() => useSentenceStarter(starter)}
+                  >
+                    {starter}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
+        {/* Check Button */}
+        <button 
+          className={styles.checkSentenceButton}
+          onClick={checkSentence}
+          disabled={!sentence.trim()}
+        >
+          ✓ Check My Sentence
+        </button>
+      </div>
+      
+      {/* Feedback */}
+      <AnimatePresence>
+        {feedback && (
+          <motion.div 
+            className={`${styles.feedback} ${feedback.type === 'success' ? styles.successFeedback : styles.errorFeedback}`}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+          >
+            <span className={styles.feedbackIcon}>
+              {feedback.type === 'success' ? '🎉' : '💭'}
+            </span>
+            {feedback.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Completion Message */}
+      {completedWords.length === vocabularyWords.length && (
+        <motion.div 
+          className={styles.completionBanner}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+        >
+          <h3>🎊 Amazing Work!</h3>
+          <p>You've written sentences for all {vocabularyWords.length} vocabulary words!</p>
+        </motion.div>
+      )}
+    </div>
+  );
+};
+
 const AIReadingCoach = ({ 
   storyText, 
   isVisible, 
@@ -721,58 +942,12 @@ const AIReadingCoach = ({
                 exit={{ opacity: 0, x: 20 }}
                 className={styles.practiceTab}
               >
-                <div className={styles.practiceHeader}>
-                  <span className={styles.practiceIcon}>🎯</span>
-                  <h3>Practice Your Vocabulary</h3>
-                  <p>Test yourself on the words you've learned!</p>
-                </div>
-                
-                <div className={styles.practiceCards}>
-                  <motion.div 
-                    className={styles.practiceCard}
-                    whileHover={{ scale: 1.02 }}
-                  >
-                    <span className={styles.practiceCardIcon}>🗣️</span>
-                    <h4>Pronunciation Practice</h4>
-                    <p>Click vocabulary words and repeat them aloud</p>
-                    <button 
-                      className={styles.practiceCardButton}
-                      onClick={() => setActiveTab('vocabulary')}
-                    >
-                      Start Practicing
-                    </button>
-                  </motion.div>
-                  
-                  <motion.div 
-                    className={styles.practiceCard}
-                    whileHover={{ scale: 1.02 }}
-                  >
-                    <span className={styles.practiceCardIcon}>✍️</span>
-                    <h4>Sentence Writing</h4>
-                    <p>Create your own sentences using the vocabulary words</p>
-                    <button 
-                      className={styles.practiceCardButton}
-                      onClick={() => setActiveTab('vocabulary')}
-                    >
-                      Get Started
-                    </button>
-                  </motion.div>
-                  
-                  <motion.div 
-                    className={styles.practiceCard}
-                    whileHover={{ scale: 1.02 }}
-                  >
-                    <span className={styles.practiceCardIcon}>🎮</span>
-                    <h4>Word Matching</h4>
-                    <p>Match words with their definitions</p>
-                    <button 
-                      className={styles.practiceCardButton}
-                      disabled
-                    >
-                      Coming Soon!
-                    </button>
-                  </motion.div>
-                </div>
+                <SentenceWritingPractice 
+                  vocabularyWords={vocabularyWords}
+                  wordDictionary={wordDictionary}
+                  onSpeak={speak}
+                  isSpeaking={isSpeaking}
+                />
               </motion.div>
             )}
           </div>

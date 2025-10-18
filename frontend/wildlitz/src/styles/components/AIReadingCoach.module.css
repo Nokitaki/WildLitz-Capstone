@@ -360,6 +360,44 @@
   opacity: 0.8;
 }
 
+/* Loading Panel */
+.loadingPanel {
+  background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+  border: 3px solid #9c27b0;
+  box-shadow: 0 6px 20px rgba(156, 39, 176, 0.2);
+  margin-top: 12px;
+}
+
+.loadingSpinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #e1bee7;
+  border-top: 5px solid #7b1fa2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loadingPanel p {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #6a1b9a;
+  font-weight: 600;
+}
+
+.loadingPanel strong {
+  color: #4a148c;
+  font-weight: 800;
+}
+
 /* Word Panel */
 .wordPanel {
   background: linear-gradient(135deg, #ffffff, #fafafa);
@@ -704,6 +742,379 @@
   opacity: 0.5;
   cursor: not-allowed;
   background: #bdbdbd;
+}
+
+/* Practice Tab - Sentence Writing */
+.sentenceWriting {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.progressBar {
+  width: 100%;
+  height: 12px;
+  background: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #4caf50, #45a049);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progressText {
+  text-align: center;
+  color: #333;
+  font-weight: 700;
+  margin: -10px 0 0 0;
+  font-size: 1.05rem;
+}
+
+.wordSelector {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.wordTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.wordTab {
+  padding: 12px 24px;
+  border: 3px solid #e0e0e0;
+  background: white;
+  border-radius: 30px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  font-size: 1.1rem;
+  text-transform: capitalize;
+  color: #333;
+  min-width: 120px;
+}
+
+.wordTab:hover {
+  border-color: #9c27b0;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.2);
+  color: #7b1fa2;
+}
+
+.wordTab.activeWordTab {
+  background: linear-gradient(135deg, #7b1fa2, #9c27b0);
+  color: white;
+  border-color: #7b1fa2;
+  box-shadow: 0 6px 16px rgba(123, 31, 162, 0.4);
+  transform: translateY(-3px) scale(1.05);
+}
+
+.wordTab.completedWordTab {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  border-color: #4caf50;
+}
+
+.wordTab.completedWordTab:hover {
+  color: white;
+}
+
+.checkmark {
+  margin-right: 6px;
+  font-size: 1.2rem;
+  color: white;
+}
+
+.writingPrompt {
+  background: linear-gradient(135deg, #e8eaf6, #c5cae9);
+  padding: 24px;
+  border-radius: 20px;
+  border: 4px solid #5c6bc0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 16px rgba(92, 107, 192, 0.2);
+}
+
+.promptLabel {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #1a237e;
+  margin: 0;
+}
+
+.promptLabel strong {
+  color: #283593;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.listenWordButton {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  flex-shrink: 0;
+}
+
+.listenWordButton:hover:not(:disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 6px 18px rgba(76, 175, 80, 0.5);
+}
+
+.listenWordButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sentenceInputArea {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 2px solid #e0e0e0;
+}
+
+.inputLabel {
+  display: block;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  font-size: 1.05rem;
+}
+
+.inputLabel strong {
+  color: #7b1fa2;
+  font-size: 1.1rem;
+}
+
+.sentenceTextarea {
+  width: 100%;
+  padding: 20px;
+  border: 4px solid #e0e0e0;
+  border-radius: 16px;
+  font-size: 1.3rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.3s ease;
+  line-height: 1.8;
+  min-height: 120px;
+  background: white;
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+.sentenceTextarea::placeholder {
+  color: #999;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.sentenceTextarea:focus {
+  outline: none;
+  border-color: #9c27b0;
+  box-shadow: 0 0 0 4px rgba(156, 39, 176, 0.15);
+  background: white;
+  color: #000;
+}
+
+.helperTools {
+  display: flex;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.hintButton,
+.clearButton {
+  padding: 12px 24px;
+  border: 3px solid #e0e0e0;
+  background: white;
+  border-radius: 30px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.hintButton {
+  background: linear-gradient(135deg, #fff9c4, #fff59d);
+  border-color: #fdd835;
+  color: #f57f17;
+  flex: 1;
+}
+
+.hintButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(253, 216, 53, 0.5);
+  background: linear-gradient(135deg, #ffeb3b, #fdd835);
+}
+
+.clearButton {
+  background: linear-gradient(135deg, #ffebee, #ffcdd2);
+  border-color: #ef5350;
+  color: #d32f2f;
+}
+
+.clearButton:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(239, 83, 80, 0.4);
+  background: linear-gradient(135deg, #ffcdd2, #ef9a9a);
+}
+
+.clearButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.sentenceStarters {
+  background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+  padding: 20px;
+  border-radius: 16px;
+  margin: 16px 0;
+  overflow: hidden;
+  border: 3px solid #ce93d8;
+}
+
+.startersLabel {
+  font-weight: 700;
+  color: #4a148c;
+  margin: 0 0 14px 0;
+  font-size: 1.05rem;
+}
+
+.starterButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.starterButton {
+  padding: 14px 18px;
+  background: white;
+  border: 3px solid #d1c4e9;
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.05rem;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.starterButton:hover {
+  border-color: #9c27b0;
+  background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+  transform: translateX(10px);
+  box-shadow: 0 3px 10px rgba(156, 39, 176, 0.2);
+  color: #4a148c;
+}
+
+.checkSentenceButton {
+  width: 100%;
+  padding: 20px;
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+  color: white;
+  border: none;
+  border-radius: 35px;
+  font-size: 1.3rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 24px rgba(33, 150, 243, 0.4);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 20px;
+}
+
+.checkSentenceButton:hover:not(:disabled) {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(33, 150, 243, 0.6);
+  background: linear-gradient(135deg, #42a5f5, #2196f3);
+}
+
+.checkSentenceButton:active:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.checkSentenceButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  background: linear-gradient(135deg, #bdbdbd, #9e9e9e);
+}
+
+.feedback {
+  padding: 24px 28px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  line-height: 1.6;
+  margin-top: 20px;
+}
+
+.feedbackIcon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.successFeedback {
+  background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+  color: #1b5e20;
+  border: 4px solid #4caf50;
+  animation: successPulse 0.5s ease;
+}
+
+@keyframes successPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.errorFeedback {
+  background: linear-gradient(135deg, #ffecb3, #ffe082);
+  color: #e65100;
+  border: 4px solid #ff9800;
+}
+
+.completionBanner {
+  background: linear-gradient(135deg, #e1f5fe, #b3e5fc);
+  padding: 32px;
+  border-radius: 20px;
+  text-align: center;
+  border: 4px solid #2196f3;
+  box-shadow: 0 8px 24px rgba(33, 150, 243, 0.3);
+}
+
+.completionBanner h3 {
+  font-size: 2rem;
+  color: #0277bd;
+  margin: 0 0 12px 0;
+}
+
+.completionBanner p {
+  font-size: 1.15rem;
+  color: #01579b;
+  margin: 0;
+  font-weight: 600;
 }
 
 /* Responsive */

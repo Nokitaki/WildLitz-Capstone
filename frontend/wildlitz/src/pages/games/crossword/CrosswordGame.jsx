@@ -339,9 +339,7 @@ const CrosswordGame = () => {
   /**
    * Go to sentence builder
    */
-  const handleGoToSentenceBuilder = () => {
-    setGameState('sentence-builder');
-  };
+ 
 
   return (
     <div className={styles.gameContainer}>
@@ -417,7 +415,6 @@ const CrosswordGame = () => {
       timeFormatted={formatTime(timeSpent)}
       theme="story"
       onPlayAgain={handleNextEpisode}
-      onBuildSentences={handleGoToSentenceBuilder}
       onReturnToMenu={handleReturnToMenu}
       totalWords={currentPuzzle ? currentPuzzle.words.length : 0}
       isStoryMode={true}
@@ -427,26 +424,12 @@ const CrosswordGame = () => {
       totalEpisodes={gameStories[gameConfig.adventureId]?.episodes?.length || 0}
       storyTitle={gameStories[gameConfig.adventureId]?.title || 'Adventure'}
       storySegment={currentStorySegment}
-      sessionId={sessionId}  // ✅ MAKE SURE THIS LINE EXISTS!
+      sessionId={sessionId}
     />
   </motion.div>
 )}
           
-          {gameState === 'sentence-builder' && (
-            <motion.div
-              key="sentence-builder"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={styles.screenContainer}
-            >
-              <SentenceBuilderScreen 
-                vocabularyWords={solvedWords}
-                onComplete={handleReturnToMenu}
-                onBack={() => setGameState('summary')}
-              />
-            </motion.div>
-          )}
+          
         </AnimatePresence>
         
         {/* AI Reading Coach overlay */}
