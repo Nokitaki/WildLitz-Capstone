@@ -25,7 +25,7 @@ export const LoadingSpinner = ({ size = 'medium', message = 'Loading...' }) => {
   );
 };
 
-// Story generation loading with progress
+// Story generation loading with progress - IMPROVED VERSION
 export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adventure...', showWarning = false }) => {
   const progressMessages = [
     "🌟 Choosing the perfect adventure theme...",
@@ -42,18 +42,28 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
     <div className={styles.storyLoadingContainer}>
       <motion.div 
         className={styles.storyLoadingContent}
-        initial={{ opacity: 0, scale: 0.8 }}
+        initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
       >
         {/* Animated book icon */}
         <motion.div 
           className={styles.bookIcon}
-          animate={{ rotateY: [0, 180, 360] }}
-          transition={{ duration: 2, repeat: Infinity }}
+          animate={{ 
+            rotateY: [0, 180, 360],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ 
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
         >
           📖
         </motion.div>
+
+        {/* Title */}
+        <h2 className={styles.loadingTitle}>Creating Your Adventure</h2>
 
         {/* Progress bar */}
         <div className={styles.progressContainer}>
@@ -62,31 +72,42 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
               className={styles.progressFill}
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.5 }}
-            />
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            >
+              {/* Shimmer effect */}
+              <motion.div
+                className={styles.progressShimmer}
+                animate={{ x: ['-100%', '200%'] }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+            </motion.div>
           </div>
           <p className={styles.progressText}>{Math.round(progress)}%</p>
         </div>
 
         {/* Dynamic message */}
-        <motion.p 
+        <motion.div
           key={currentMessage}
-          className={styles.progressMessage}
+          className={styles.messageContainer}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.4 }}
         >
-          {currentMessage}
-        </motion.p>
+          <p className={styles.progressMessage}>{currentMessage}</p>
+        </motion.div>
 
         {/* Warning for slow connection */}
         {showWarning && (
           <motion.div 
             className={styles.warningMessage}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            transition={{ duration: 0.3 }}
           >
             <div className={styles.warningIcon}>⏰</div>
             <p>This is taking longer than expected. We're working hard to create something amazing for you!</p>
@@ -95,18 +116,23 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
 
         {/* Loading dots animation */}
         <div className={styles.loadingDots}>
-          <motion.span 
-            animate={{ opacity: [0, 1, 0] }}
-            transition={{ duration: 1, repeat: Infinity, delay: 0 }}
-          >.</motion.span>
-          <motion.span 
-            animate={{ opacity: [0, 1, 0] }}
-            transition={{ duration: 1, repeat: Infinity, delay: 0.3 }}
-          >.</motion.span>
-          <motion.span 
-            animate={{ opacity: [0, 1, 0] }}
-            transition={{ duration: 1, repeat: Infinity, delay: 0.6 }}
-          >.</motion.span>
+          {[0, 0.2, 0.4].map((delay, i) => (
+            <motion.span 
+              key={i}
+              animate={{ 
+                opacity: [0.3, 1, 0.3],
+                y: [0, -8, 0]
+              }}
+              transition={{ 
+                duration: 1.2,
+                repeat: Infinity,
+                delay: delay,
+                ease: "easeInOut"
+              }}
+            >
+              ●
+            </motion.span>
+          ))}
         </div>
       </motion.div>
     </div>

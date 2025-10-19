@@ -33,94 +33,136 @@
   text-align: center;
 }
 
-/* Story Loading Screen */
+/* ============================================ */
+/* Story Loading Screen - IMPROVED VERSION */
+/* ============================================ */
 .storyLoadingContainer {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  width: 100%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
 }
 
 .storyLoadingContent {
   background: white;
-  border-radius: 20px;
-  padding: 40px;
+  border-radius: 24px;
+  padding: 60px 80px;
   text-align: center;
-  max-width: 800px;
-  width: 90%;  /* Takes 90% of available width */
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  position: relative;
 }
 
 .bookIcon {
-  font-size: 4rem;
+  font-size: 5rem;
   margin-bottom: 30px;
   display: inline-block;
 }
 
+.loadingTitle {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #667eea;
+  margin: 0 0 30px 0;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
 .progressContainer {
-  margin-bottom: 20px;
+  width: 100%;
+  margin-bottom: 25px;
 }
 
 .progressBar {
   width: 100%;
-  height: 10px;
-  background-color: #e0e0e0;
-  border-radius: 10px;
+  height: 14px;
+  background-color: #f0f0f0;
+  border-radius: 20px;
   overflow: hidden;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, #4CAF50, #45a049);
-  border-radius: 10px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
   transition: width 0.5s ease;
+}
+
+.progressShimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  width: 50%;
 }
 
 .progressText {
   font-weight: bold;
-  color: #333;
-  font-size: 1.1rem;
+  color: #667eea;
+  font-size: 1.5rem;
   margin: 0;
+}
+
+.messageContainer {
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
 }
 
 .progressMessage {
   color: #666;
-  font-size: 1rem;
-  margin: 20px 0;
-  line-height: 1.5;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin: 0;
 }
 
 .warningMessage {
   background-color: #fff3cd;
-  border: 1px solid #ffeaa7;
-  border-radius: 10px;
-  padding: 15px;
+  border: 2px solid #ffc107;
+  border-radius: 12px;
+  padding: 16px;
   margin-top: 20px;
   display: flex;
   align-items: center;
+  gap: 12px;
   text-align: left;
 }
 
 .warningIcon {
   font-size: 1.5rem;
-  margin-right: 10px;
   flex-shrink: 0;
 }
 
 .warningMessage p {
   color: #856404;
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .loadingDots {
   display: flex;
   justify-content: center;
-  gap: 5px;
-  margin-top: 20px;
+  gap: 8px;
+  margin-top: 30px;
 }
 
 .loadingDots span {
@@ -128,7 +170,82 @@
   color: #667eea;
 }
 
+/* Mobile Responsiveness for Story Loading */
+@media (max-width: 768px) {
+  .storyLoadingContent {
+    padding: 40px 30px;
+    margin: 20px;
+  }
+  
+  .bookIcon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+  }
+  
+  .loadingTitle {
+    font-size: 1.5rem;
+    margin-bottom: 25px;
+  }
+  
+  .progressText {
+    font-size: 1.2rem;
+  }
+  
+  .progressMessage {
+    font-size: 1rem;
+  }
+
+  .messageContainer {
+    min-height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .storyLoadingContent {
+    padding: 30px 20px;
+    margin: 15px;
+  }
+  
+  .bookIcon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+  }
+  
+  .loadingTitle {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+  }
+  
+  .progressBar {
+    height: 12px;
+  }
+
+  .progressText {
+    font-size: 1rem;
+  }
+
+  .progressMessage {
+    font-size: 0.9rem;
+  }
+  
+  .loadingDots span {
+    font-size: 1.5rem;
+  }
+
+  .warningMessage {
+    padding: 12px;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .warningIcon {
+    margin-bottom: 5px;
+  }
+}
+
+/* ============================================ */
 /* Game Loading Screen */
+/* ============================================ */
 .gameLoadingContainer {
   display: flex;
   align-items: center;
@@ -288,18 +405,8 @@
   margin: 0;
 }
 
-/* Mobile Responsiveness */
+/* Mobile Responsiveness for Other Components */
 @media (max-width: 768px) {
-  .storyLoadingContent {
-    padding: 30px 20px;
-    margin: 10px;
-  }
-  
-  .bookIcon {
-    font-size: 3rem;
-    margin-bottom: 20px;
-  }
-  
   .gameLoadingTitle {
     font-size: 1.3rem;
   }
@@ -312,33 +419,18 @@
     width: 25px;
     height: 25px;
   }
-  
-  .progressMessage {
-    font-size: 0.9rem;
-  }
 }
 
 @media (max-width: 480px) {
-  .storyLoadingContent {
+  .gameLoadingContent {
     padding: 20px 15px;
   }
   
-  .bookIcon {
-    font-size: 2.5rem;
+  .gameLoadingTitle {
+    font-size: 1.2rem;
   }
   
-  .progressMessage {
-    font-size: 0.85rem;
-  }
-  
-  .warningMessage {
-    padding: 10px;
-    text-align: center;
-    flex-direction: column;
-  }
-  
-  .warningIcon {
-    margin-right: 0;
-    margin-bottom: 5px;
+  .puzzlePiece {
+    font-size: 1.3rem;
   }
 }
