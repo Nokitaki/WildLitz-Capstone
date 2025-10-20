@@ -1,19 +1,37 @@
 #!/usr/bin/env bash
 set -e
 
-echo "🚀 Starting Django build process"
+echo "===================================="
+echo "🚀 Running build.sh from root"
+echo "Current path:"
+pwd
+echo "Contents of current directory:"
+ls -la
+echo "===================================="
 
-# Go to backend/wildlitz where manage.py lives
-cd backend/wildlitz
+# Check if backend exists
+if [ -d "backend" ]; then
+  echo "✅ Found backend directory"
+  ls backend
+else
+  echo "❌ No backend directory found"
+fi
 
-# Upgrade pip
+# Check nested path
+if [ -d "backend/wildlitz" ]; then
+  echo "✅ Found backend/wildlitz directory"
+  cd backend/wildlitz
+else
+  echo "❌ backend/wildlitz not found, trying other possibilities..."
+  find . -type f -name "manage.py"
+  exit 1
+fi
+
+echo "Now inside:"
+pwd
+ls -la
+
 python -m pip install --upgrade pip
-
-# Install dependencies
 pip install -r /opt/render/project/src/requirements.txt
-
-# Collect static files and run migrations
 python manage.py collectstatic --noinput
 python manage.py migrate
-
-echo "✅ Build process finished successfully"
