@@ -1,22 +1,13 @@
 #!/usr/bin/env bash
-set -o errexit
+set -e
 
-echo "=== DEBUG: Current directory ==="
-pwd
-echo "=== DEBUG: Listing contents ==="
-ls -R
+echo "🚀 Running build.sh from root directory"
 
-# Move into Django backend folder
+# Go into backend/wildlitz where manage.py lives
 cd backend/wildlitz
 
-echo "=== DEBUG: Inside backend/wildlitz ==="
-pwd
-ls
-
-# Upgrade pip
+# Upgrade pip and install dependencies
 python -m pip install --upgrade pip
-
-# Use absolute path to requirements.txt
 pip install -r /opt/render/project/src/requirements.txt
 
 # Collect static files and run migrations
