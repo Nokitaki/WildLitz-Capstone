@@ -1,8 +1,0 @@
-pip install openai
-pip install supabase
-pip install django-environ
-pip install djangorestframework
-pip install Pillow
-pip install django-cors-headers
-pip install django
-pip install djangorestframework-simplejwt
