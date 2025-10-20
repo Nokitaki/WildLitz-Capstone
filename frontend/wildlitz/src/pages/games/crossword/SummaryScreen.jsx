@@ -290,10 +290,14 @@ const SummaryScreen = ({
             </motion.button>
           )}
           
-          <motion.button
+         <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            onClick={onReturnToMenu}
+            onClick={() => {
+              
+              if (window.disableGameAudio) window.disableGameAudio();
+              onReturnToMenu();
+            }}
             className={styles.mainMenuButton}
           >
             🏠 Main Menu

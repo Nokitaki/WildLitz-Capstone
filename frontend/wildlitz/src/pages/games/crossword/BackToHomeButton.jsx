@@ -16,10 +16,15 @@ const BackToHomeButton = ({
     setShowModal(true);
   };
 
-  const handleConfirmExit = () => {
-    setShowModal(false);
-    navigate('/home');
-  };
+ const handleConfirmExit = () => {
+  console.log('🚪 Exiting game confirmed');
+  
+  // 🔥 ADD THIS LINE - Stop audio when exiting
+  if (window.disableGameAudio) window.disableGameAudio();
+  
+  setShowModal(false);  // ✅ CORRECT: Use setShowModal instead
+  navigate('/home');
+};
 
   const handleCancelExit = () => {
     setShowModal(false);

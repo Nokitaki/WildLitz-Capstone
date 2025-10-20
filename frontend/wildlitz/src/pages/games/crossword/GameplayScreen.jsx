@@ -100,6 +100,34 @@ const GameplayScreen = ({
     }
   }, [solvedWords]);
 
+
+
+
+const updateGridWithWord = (word) => {
+  if (!word) return;
+  
+  const wordIdx = puzzle.words.findIndex(w => w.answer === word.answer);
+  if (wordIdx === -1) return;
+  
+  setGridCells(prevCells => {
+    const newCells = [...prevCells];
+    newCells.forEach((cell, idx) => {
+      if (cell.wordIndex === wordIdx) {
+        newCells[idx] = {
+          ...cell,
+          value: cell.letter,
+          revealed: true
+        };
+      }
+    });
+    return newCells;
+  });
+};
+
+
+
+
+
   // Create simple grid layout
   const createSimpleGrid = () => {
     const words = puzzle.words;
@@ -146,6 +174,89 @@ const GameplayScreen = ({
     setGridCells(cells);
   };
 
+ const handleAnswerSelect = async (answer) => {
+  // Play click sound
+  if (window.playClickSound) window.playClickSound();
+  
+  if (!currentWord || isCurrentWordSolved) return;
+  
+  setSelectedAnswer(answer);
+  const correctAnswer = currentWord.answer;
+  const isCorrect = answer.toLowerCase() === correctAnswer.toLowerCase();
+
+  // Play appropriate sound
+  if (isCorrect && window.playCorrectSound) {
+    window.playCorrectSound();
+  } else if (!isCorrect && window.playWrongSound) {
+    window.playWrongSound();
+  }
+
+  // Show feedback
+  setFeedback({
+    type: isCorrect ? 'success' : 'error',
+    message: isCorrect ? `Correct! "${correctAnswer}" is the right answer!` : 'Try again!'
+  });
+
+  if (isCorrect) {
+    // Update solved clues
+    const newSolvedClues = { ...solvedClues };
+    newSolvedClues[correctAnswer] = true;
+    setSolvedClues(newSolvedClues);
+    
+    // Update grid - NOW THIS FUNCTION EXISTS!
+    updateGridWithWord(currentWord);
+    
+    // Calculate time spent on this word
+    const wordTimeSpent = Math.floor((Date.now() - wordStartTime.current) / 1000);
+    
+    // Log analytics
+    try {
+      if (sessionId) {
+        await crosswordAnalyticsService.logWordSolved(
+          sessionId,
+          {
+            word: correctAnswer,
+            clue: currentWord.clue,
+            timeSpent: wordTimeSpent,
+            hintsUsed: hintsUsedForCurrentWordRef.current
+          }
+        );
+      }
+    } catch (error) {
+      console.error('Failed to log word solved:', error);
+    }
+    
+    // Notify parent
+    onWordSolved(
+      correctAnswer,
+      currentWord.definition || '',
+      currentWord.example || '',
+      hintsUsedForCurrentWordRef.current
+    );
+    
+    // Show celebration - FIXED: Properly clears after timeout
+    triggerCelebration();
+    
+    // Clear and move to next - FIXED: Ensures celebration completes
+    const cleanupTimeout = setTimeout(() => {
+      setFeedback(null);
+      setSelectedAnswer(null);
+      setShowCelebration(false); // ✅ ENSURE celebration is cleared
+      setConfettiPieces([]); // ✅ ENSURE confetti is cleared
+      moveToNextWord(); // ✅ NOW THIS FUNCTION EXISTS!
+    }, 2000); // Increased from 1500 to 2000ms to ensure animation completes
+
+    // Cleanup on unmount
+    return () => clearTimeout(cleanupTimeout);
+    
+  } else {
+    // Wrong answer - clear feedback after delay
+    setTimeout(() => {
+      setFeedback(null);
+    }, 2000);
+  }
+};
+
   // Generate answer choices
   const generateChoicesForClue = (clue) => {
     if (!clue || !clue.answer) return;
@@ -184,16 +295,33 @@ const GameplayScreen = ({
 
   // Handle answer selection
   const handleSelectAnswer = (choice) => {
-    if (feedback || isCurrentWordSolved) return;
-    setSelectedAnswer(choice);
-  };
+  if (feedback || isCurrentWordSolved) return;
+  
+  // ✨ ADD: Play click sound
+  if (window.playClickSound) {
+    window.playClickSound();
+  }
+  
+  setSelectedAnswer(choice);
+};
 
   // Handle submit answer
-  const handleSubmitAnswer = async () => {
+ const handleSubmitAnswer = async () => {
   if (!selectedAnswer || !currentWord || isCurrentWordSolved) return;
 
   const correctAnswer = currentWord.answer;
   const isCorrect = selectedAnswer.toUpperCase() === correctAnswer.toUpperCase();
+  
+  // ✨ ADD: Play correct or wrong sound
+  if (isCorrect) {
+    if (window.playCorrectSound) {
+      window.playCorrectSound();
+    }
+  } else {
+    if (window.playWrongSound) {
+      window.playWrongSound();
+    }
+  }
   
   setFeedback({ 
     type: isCorrect ? 'success' : 'error',
@@ -201,81 +329,92 @@ const GameplayScreen = ({
   });
 
   if (isCorrect) {
-    setTimeout(async () => {
-      // Clear feedback first
-      setFeedback(null);
-      
-      // Mark as solved
-      setSolvedClues(prev => ({ ...prev, [correctAnswer]: true }));
-      
-      // Reveal in grid
-      const wordIdx = puzzle.words.findIndex(w => w.answer === correctAnswer);
-      setGridCells(prevCells => {
-        const newCells = [...prevCells];
-        newCells.forEach((cell, idx) => {
-          if (cell.wordIndex === wordIdx) {
-            newCells[idx] = {
-              ...cell,
-              value: cell.letter,
-              revealed: true
-            };
-          }
-        });
-        return newCells;
-      });
-
-      // Log to analytics
+    // Update solved clues
+    const newSolvedClues = { ...solvedClues };
+    newSolvedClues[correctAnswer] = true;
+    setSolvedClues(newSolvedClues);
+    
+    // Update grid
+    updateGridWithWord(currentWord);
+    
+    // Calculate time spent on this word
+    const wordTimeSpent = Math.floor((Date.now() - wordStartTime.current) / 1000);
+    
+    // Log analytics
+    try {
       if (sessionId) {
-        try {
-          const timeForWord = (Date.now() - wordStartTime.current) / 1000;
-          const hintsForThisWord = hintsUsedForCurrentWordRef.current;
-          
-          console.log(`📊 Logging word "${correctAnswer}" solved: time=${timeForWord.toFixed(1)}s, hints=${hintsForThisWord}`);
-          
-          await crosswordAnalyticsService.logWordSolved(
-            sessionId,
-            {
-              word: correctAnswer,
-              definition: currentWord.definition || '',
-              clue: currentWord.clue || '',
-              episodeNumber: storyContext?.episodeNumber || 1,
-              puzzleId: puzzle?.id || 'unknown'
-            },
-            timeForWord,
-            hintsForThisWord
-          );
-        } catch (error) {
-          console.log('Analytics failed:', error.message);
-        }
-      }
-
-      // ✨ PASS HINTS TO PARENT - THIS IS THE KEY CHANGE
-      if (onWordSolved) {
-        onWordSolved(
-          correctAnswer,
-          currentWord.clue || '',
-          `The word "${correctAnswer}" is in the story.`,
-          hintsUsedForCurrentWordRef.current // ✨ ADD THIS 4TH PARAMETER
+        await crosswordAnalyticsService.logWordSolved(
+          sessionId,
+          {
+            word: correctAnswer,
+            clue: currentWord.clue,
+            timeSpent: wordTimeSpent,
+            hintsUsed: hintsUsedForCurrentWordRef.current
+          }
         );
       }
-
-      // Show celebration
-      triggerCelebration();
-
-      // Move to next word
-      setTimeout(() => {
-        if (currentWordIndex < totalWords - 1) {
-          handleNext();
-        }
-      }, 2000);
-    }, 1000);
-  } else {
-    // Wrong answer
+    } catch (error) {
+      console.error('Failed to log word solved:', error);
+    }
+    
+    // Notify parent
+    onWordSolved(
+      correctAnswer,
+      currentWord.definition || '',
+      currentWord.example || '',
+      hintsUsedForCurrentWordRef.current
+    );
+    
+    // Show celebration
+    triggerCelebration();
+    
+    // Clear and move to next
     setTimeout(() => {
       setFeedback(null);
       setSelectedAnswer(null);
+      moveToNextWord();
     }, 1500);
+  } else {
+    // Wrong answer - clear feedback after delay
+    setTimeout(() => {
+      setFeedback(null);
+    }, 2000);
   }
+};
+
+
+
+const moveToNextWord = () => {
+  console.log('➡️ Moving to next word...');
+  
+  // Find next unsolved word
+  let nextIndex = currentWordIndex + 1;
+  
+  // If we've reached the end, wrap around or stay
+  if (nextIndex >= puzzle.words.length) {
+    // Check if all words are solved
+    const allSolved = puzzle.words.every(word => solvedClues[word.answer]);
+    
+    if (allSolved) {
+      console.log('🎉 All words solved!');
+      // You might want to trigger a completion event here
+      return;
+    }
+    
+    // Otherwise, find the first unsolved word
+    nextIndex = puzzle.words.findIndex(word => !solvedClues[word.answer]);
+    
+    if (nextIndex === -1) {
+      // Fallback to first word
+      nextIndex = 0;
+    }
+  }
+  
+  // Update to next word
+  setCurrentWordIndex(nextIndex);
+  setSelectedClue(puzzle.words[nextIndex]);
+  
+  console.log(`✅ Moved to word ${nextIndex + 1}/${puzzle.words.length}`);
 };
 
   // Handle mark as solved (teacher control)
@@ -377,45 +516,74 @@ const GameplayScreen = ({
   };
 
   const handleJumpToWord = (index) => {
-    setCurrentWordIndex(index);
-    setSelectedClue(puzzle.words[index]);
-    setFeedback(null);
-    setSelectedAnswer(null);
-    hintsUsedForCurrentWordRef.current = 0; // ✅ Reset ref
-    wordStartTime.current = Date.now();
-    console.log(`🔢 Jumped to word #${index + 1}. Hints reset to 0 for new word.`);
-  };
+  // ✨ ADD: Play click sound
+  if (window.playClickSound) {
+    window.playClickSound();
+  }
+  
+  setCurrentWordIndex(index);
+  setSelectedClue(puzzle.words[index]);
+  setSelectedAnswer(null);
+  setFeedback(null);
+};
 
   const handleUseHint = () => {
-    if (hintsRemaining > 0 && !isCurrentWordSolved) {
-      setHintsRemaining(hintsRemaining - 1);
-      hintsUsedForCurrentWordRef.current += 1; // ✅ Increment ref
-      console.log(`💡 Hint used! Total for game: ${3 - hintsRemaining + 1}, For current word: ${hintsUsedForCurrentWordRef.current}`);
-      setSelectedAnswer(currentWord.answer);
-      setShowHintTooltip(true);
-      setTimeout(() => setShowHintTooltip(false), 2000);
+  if (hintsRemaining > 0 && !isCurrentWordSolved) {
+    // ✨ ADD: Play click sound
+    if (window.playClickSound) {
+      window.playClickSound();
     }
-  };
+    
+    setHintsRemaining(hintsRemaining - 1);
+    hintsUsedForCurrentWordRef.current += 1;
+    console.log(`💡 Hint used! Total for game: ${3 - hintsRemaining + 1}, For current word: ${hintsUsedForCurrentWordRef.current}`);
+    setSelectedAnswer(currentWord.answer);
+    setShowHintTooltip(true);
+    setTimeout(() => setShowHintTooltip(false), 2000);
+  }
+};
 
   // Celebration effects
-  const triggerCelebration = () => {
-    setShowCelebration(true);
-    const pieces = [];
-    for (let i = 0; i < 30; i++) {
-      pieces.push({
-        id: i,
-        left: Math.random() * 100,
-        delay: Math.random() * 0.3,
-        duration: 2 + Math.random() * 1,
-        emoji: ['🎉', '⭐', '✨', '🌟'][Math.floor(Math.random() * 4)]
-      });
-    }
-    setConfettiPieces(pieces);
-    setTimeout(() => {
-      setShowCelebration(false);
-      setConfettiPieces([]);
-    }, 2500);
+ const triggerCelebration = () => {
+  console.log('🎉 Triggering celebration...');
+  
+  setShowCelebration(true);
+  
+  // Create confetti pieces
+  const pieces = [];
+  for (let i = 0; i < 30; i++) {
+    pieces.push({
+      id: i,
+      left: Math.random() * 100,
+      delay: Math.random() * 0.3,
+      duration: 2 + Math.random() * 1,
+      emoji: ['🎉', '⭐', '✨', '🌟'][Math.floor(Math.random() * 4)]
+    });
+  }
+  setConfettiPieces(pieces);
+  
+  // ✅ FIXED: Auto-clear celebration after animation completes
+  const celebrationTimeout = setTimeout(() => {
+    console.log('🎉 Clearing celebration...');
+    setShowCelebration(false);
+    setConfettiPieces([]);
+  }, 2500);
+  
+  // Store timeout ID for cleanup
+  return celebrationTimeout;
+};
+
+// 4. ADD cleanup on component unmount - Add to your useEffect cleanup
+useEffect(() => {
+  // Your existing initialization code...
+  
+  return () => {
+    // ✅ ADDED: Cleanup celebration when component unmounts
+    setShowCelebration(false);
+    setConfettiPieces([]);
+    console.log('🧹 GameplayScreen cleanup completed');
   };
+}, []);
 
   // Get word status
   const getWordStatus = (word) => {
