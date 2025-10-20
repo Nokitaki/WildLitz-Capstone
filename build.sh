@@ -1,24 +1,38 @@
 #!/usr/bin/env bash
-set -o errexit
+set -e  # safer version of errexit
 
-echo "=== DEBUG: Current directory ==="
+echo "===================================="
+echo "🚀 STARTING BUILD.SH"
+echo "Current directory:"
 pwd
-echo "=== DEBUG: Listing contents ==="
-ls -R
+echo "Files in root:"
+ls -l
+echo "===================================="
 
-# Move into Django backend folder
-cd backend/wildlitz
+# Go to backend/wildlitz where manage.py lives
+cd backend/wildlitz || exit 1
 
-echo "=== DEBUG: Inside backend/wildlitz ==="
+echo "Now inside backend/wildlitz"
 pwd
-ls
+echo "Listing contents:"
+ls -l
+echo "===================================="
 
 # Upgrade pip
 python -m pip install --upgrade pip
 
-# Use absolute path to requirements.txt
+# Install dependencies (using absolute path to be sure)
+echo "Installing dependencies from /opt/render/project/src/requirements.txt ..."
 pip install -r /opt/render/project/src/requirements.txt
+
+echo "===================================="
+echo "✅ Finished installing packages"
+echo "===================================="
 
 # Collect static files and run migrations
 python manage.py collectstatic --noinput
 python manage.py migrate
+
+echo "===================================="
+echo "🏁 BUILD.SH FINISHED SUCCESSFULLY"
+echo "===================================="
