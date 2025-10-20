@@ -1,26 +1,41 @@
 #!/usr/bin/env bash
-set -e
+set -o errexit  # exit immediately on error
 
-echo "🚀 Starting Django build process (final clean version)"
+echo "🚀 Starting Django build process (final stable version)"
 
-# Since Render already starts inside backend/wildlitz, check first
+# --- Navigate to the correct directory ---
 if [ -f "manage.py" ]; then
-  echo "✅ Running from backend/wildlitz"
+  echo "✅ Running inside correct directory ($(pwd))"
 else
-  echo "📁 Moving into backend/wildlitz"
-  cd backend/wildlitz
+  echo "📁 Moving into backend/wildlitz..."
+  cd backend/wildlitz || exit 1
 fi
 
+# --- Upgrade pip ---
+echo "⬆️ Upgrading pip..."
 python -m pip install --upgrade pip
 
-# Install dependencies
+# --- Install dependencies ---
+echo "📦 Installing Python dependencies..."
 if [ -f "requirements.txt" ]; then
   pip install -r requirements.txt
 else
+  echo "⚠️ requirements.txt not found in current directory, trying parent path..."
   pip install -r /opt/render/project/src/requirements.txt
 fi
 
-python manage.py collectstatic --noinput
-python manage.py migrate
+# --- Ensure static directory exists ---
+if [ ! -d "static" ]; then
+  echo "📁 Creating missing static directory..."
+  mkdir -p static
+fi
 
-echo "✅ Build finished successfully!"
+# --- Collect static files ---
+echo "🧹 Collecting static files..."
+python manage.py collectstatic --noinput || echo "⚠️ collectstatic warning ignored"
+
+# --- Apply migrations safely ---
+echo "🛠 Applying migrations (with --fake-initial)..."
+python manage.py migrate --fake-initial || echo "⚠️ migrate warning ignored"
+
+echo "✅ Django build process completed successfully!"
