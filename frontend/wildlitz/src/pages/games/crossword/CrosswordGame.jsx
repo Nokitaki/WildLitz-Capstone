@@ -62,6 +62,10 @@ const CrosswordGame = () => {
   
   // Reading coach
   const [showReadingCoach, setShowReadingCoach] = useState(false);
+  
+  useEffect(() => {
+  console.log('🔄 showReadingCoach changed to:', showReadingCoach);
+}, [showReadingCoach]);
 
   // Timer for tracking time spent
   useEffect(() => {
@@ -199,9 +203,11 @@ const CrosswordGame = () => {
     setTimerActive(false);
   };
   
-  const toggleReadingCoach = () => {
-    setShowReadingCoach(!showReadingCoach);
-  };
+ const toggleReadingCoach = () => {
+  console.log('🎯 toggleReadingCoach called! Current state:', showReadingCoach);
+  setShowReadingCoach(!showReadingCoach);
+  console.log('📊 Setting showReadingCoach to:', !showReadingCoach);
+};
   
   const getCurrentEpisodeVocabularyWords = () => {
     const adventure = gameStories[gameConfig.adventureId];
@@ -391,13 +397,17 @@ const CrosswordGame = () => {
         )}
       </AnimatePresence>
       
-      {showReadingCoach && (
-        <AIReadingCoach
-          vocabularyWords={getCurrentEpisodeVocabularyWords()}
-          solvedWords={solvedWords}
-          onClose={toggleReadingCoach}
-        />
-      )}
+  {showReadingCoach && (
+  <>
+    {console.log('🎨 Rendering AIReadingCoach modal')}
+    <AIReadingCoach
+      isVisible={true}  // ✅ ADD THIS LINE - This is what was missing!
+      vocabularyWords={getCurrentEpisodeVocabularyWords()}
+      solvedWords={solvedWords}
+      onClose={toggleReadingCoach}
+    />
+  </>
+)}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-/* StoryScreen.module.css - Beautiful and Fixed Layout */
+/* StoryScreen.module.css - Top Right Button Controls */
 
 .storyScreenContainer {
   width: 100%;
@@ -7,98 +7,146 @@
   flex-direction: column;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   overflow: hidden;
+  position: relative;
 }
 
-/* Header */
+/* Header - with episode info only */
 .header {
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.95));
-  padding: 24px 40px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-shrink: 0;
-  border-bottom: 4px solid #9c27b0;
-  backdrop-filter: blur(10px);
+  background: white;
+  padding: 25px 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 0 0 25px 25px;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 10;
 }
 
 .episodeInfo {
-  flex: 1;
+  max-width: calc(100% - 400px); /* Leave space for top-right buttons */
 }
 
 .episodeTitle {
-  font-size: 2rem;
+  font-size: 1.8rem;
   color: #4a148c;
-  margin: 0 0 10px 0;
-  font-weight: 800;
-  letter-spacing: -0.5px;
+  margin: 0 0 8px 0;
+  font-weight: 700;
 }
 
 .stageLabel {
   display: inline-block;
-  background: linear-gradient(135deg, #9c27b0, #673ab7);
+  background: linear-gradient(to right, #9c27b0, #673ab7);
   color: white;
-  padding: 8px 20px;
-  border-radius: 25px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  box-shadow: 0 3px 12px rgba(156, 39, 176, 0.35);
-  letter-spacing: 0.5px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.3);
 }
 
+/* TOP RIGHT BUTTON CONTROLS - FIXED POSITION */
 .controls {
+  position: fixed;
+  top: 25px;
+  right: 30px;
   display: flex;
-  gap: 15px;
-  align-items: center;
+  gap: 12px;
+  z-index: 9999;
+  pointer-events: auto;
 }
 
 .readAloudControls {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
+/* BUTTON BASE STYLES */
 .readAloudButton,
 .stopReadingButton,
 .readingHelperButton {
   padding: 14px 24px;
   border: none;
-  border-radius: 30px;
-  font-size: 1.05rem;
+  border-radius: 50px;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  letter-spacing: 0.3px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  user-select: none;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
 }
 
+/* READ ALOUD BUTTON */
 .readAloudButton {
-  background: linear-gradient(135deg, #4caf50, #45a049);
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
   color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .readAloudButton:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.45);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
+  background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
 }
 
+.readAloudButton:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* STOP READING BUTTON */
 .stopReadingButton {
-  background: linear-gradient(135deg, #ff5722, #f44336);
+  background: linear-gradient(135deg, #ff5722 0%, #f44336 100%);
   color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 4px 15px rgba(255, 87, 34, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 25px rgba(255, 87, 34, 0.6);
+  }
 }
 
 .stopReadingButton:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(255, 87, 34, 0.45);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(255, 87, 34, 0.6);
+  background: linear-gradient(135deg, #ff6f00 0%, #ff5722 100%);
 }
 
+.stopReadingButton:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* READING HELPER BUTTON */
 .readingHelperButton {
-  background: linear-gradient(135deg, #2196f3, #1976d2);
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
   color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .readingHelperButton:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(33, 150, 243, 0.45);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(33, 150, 243, 0.6);
+  background: linear-gradient(135deg, #42a5f5 0%, #2196f3 100%);
+}
+
+.readingHelperButton:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.readingHelperButton:focus {
+  outline: 3px solid rgba(33, 150, 243, 0.4);
+  outline-offset: 3px;
 }
 
 /* Main Content */
@@ -107,25 +155,31 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 25px;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .contentWrapper {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 25px;
+  grid-template-columns: 1fr 280px;
+  gap: 20px;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 /* Story Panel */
 .storyPanel {
   background: white;
-  border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 .storyScroll {
@@ -158,62 +212,261 @@
 .sentencesContainer {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 25px;
+  padding: 10px;
 }
 
 .sentence {
   display: flex;
   align-items: flex-start;
-  gap: 15px;
-  padding: 20px 25px;
-  border-radius: 16px;
+  gap: 20px;
+  padding: 30px 35px;
+  border-radius: 25px;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  font-size: 1.2rem;
-  line-height: 1.9;
+  font-size: 1.5rem; /* BIGGER TEXT */
+  line-height: 2.2; /* MORE SPACE BETWEEN LINES */
   color: #2c3e50;
-  background: linear-gradient(to right, rgba(156, 39, 176, 0.02), transparent);
-  border-left: 3px solid transparent;
+  font-weight: 600; /* BOLDER TEXT */
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: 4px solid transparent;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.sentence::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 25px;
+  padding: 4px;
+  background: linear-gradient(
+    135deg,
+    #ff6b6b,
+    #4ecdc4,
+    #45b7d1,
+    #f7b731,
+    #5f27cd,
+    #ff6b6b
+  );
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  animation: rainbow 3s ease infinite;
+  pointer-events: none;
+}
+
+@keyframes rainbow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.sentence:hover::before {
+  opacity: 1;
 }
 
 .sentence:hover {
-  background: linear-gradient(to right, rgba(156, 39, 176, 0.05), transparent);
-  border-left-color: rgba(156, 39, 176, 0.3);
-  transform: translateX(3px);
+  transform: translateX(8px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #fff9f0 0%, #ffe8f0 100%);
 }
 
-/* Container for sentence number and speaker button */
+.sentence.currentSentence {
+  background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+  border: 5px solid #fbc02d;
+  transform: scale(1.08);
+  box-shadow: 0 20px 50px rgba(251, 192, 45, 0.5);
+  animation: currentSentenceGlow 2s ease-in-out infinite;
+  position: relative;
+  z-index: 10;
+}
+
+@keyframes currentSentenceGlow {
+  0%, 100% {
+    box-shadow: 0 20px 50px rgba(251, 192, 45, 0.5);
+  }
+  50% {
+    box-shadow: 0 25px 60px rgba(251, 192, 45, 0.8);
+  }
+}
+
+.sentence.currentSentence::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 235, 59, 0.3) 0%,
+    transparent 70%
+  );
+  border-radius: 30px;
+  pointer-events: none;
+  animation: spotlightPulse 2s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes spotlightPulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* Add a reading pointer/indicator */
+.sentence.currentSentence::after {
+  content: '👉';
+  position: absolute;
+  left: -50px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 2rem;
+  animation: pointBounce 1s ease-in-out infinite;
+}
+
+@keyframes pointBounce {
+  0%, 100% {
+    transform: translateY(-50%) translateX(0);
+  }
+  50% {
+    transform: translateY(-50%) translateX(10px);
+  }
+}
+
+.storyText.reading .sentence:not(.currentSentence) {
+  opacity: 0.5;
+  transform: scale(0.98);
+  filter: grayscale(0.3);
+  transition: all 0.3s ease;
+}
+
+/* Visited sentences - checkmark effect */
+.sentence.visitedSentence:not(.currentSentence) {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-left: 6px solid #66bb6a;
+  position: relative;
+}
+
+.sentence.visitedSentence:not(.currentSentence)::after {
+  content: '✓';
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  width: 35px;
+  height: 35px;
+  background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  box-shadow: 0 3px 10px rgba(76, 175, 80, 0.4);
+  animation: checkmarkAppear 0.5s ease-out;
+}
+
+@keyframes checkmarkAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(-180deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* Add a progress indicator at the top */
+.storyPanel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5px;
+  background: linear-gradient(to right, #4caf50, #66bb6a);
+  border-radius: 5px;
+  transition: width 0.5s ease;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.5);
+  z-index: 100;
+}
+
+.sentence.visitedSentence {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-left: 6px solid #66bb6a;
+}
+
+/* Number Container */
 .sentenceNumberContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
-  padding-top: 2px;
+  padding-top: 4px;
 }
 
 .sentenceNumber {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, #9c27b0, #673ab7);
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 50%;
   color: white;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 0.9rem;
-  font-weight: 700;
-  box-shadow: 0 3px 8px rgba(156, 39, 176, 0.3);
+  font-size: 1.3rem;
+  font-weight: 900;
+  box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
   flex-shrink: 0;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 3px solid white;
+}
+
+.sentence:nth-child(1) .sentenceNumber {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+}
+
+.sentence:nth-child(2) .sentenceNumber {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a3a5 100%);
+}
+
+.sentence:nth-child(3) .sentenceNumber {
+  background: linear-gradient(135deg, #f7b731 0%, #f39c12 100%);
+}
+
+.sentence:nth-child(4) .sentenceNumber {
+  background: linear-gradient(135deg, #5f27cd 0%, #341f97 100%);
+}
+
+.sentence:nth-child(5) .sentenceNumber {
+  background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+}
+
+.sentence:nth-child(6) .sentenceNumber {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
 }
 
 .sentence:hover .sentenceNumber {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.4);
+  transform: scale(1.2) rotate(360deg);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
 }
 
-/* Speaker button for individual sentences */
 .sentenceSpeakerButton {
   width: 32px;
   height: 32px;
@@ -231,21 +484,53 @@
   padding: 0;
 }
 
+.sentenceSpeakerButton {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  border: 3px solid white;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 15px rgba(17, 153, 142, 0.4);
+  flex-shrink: 0;
+  padding: 0;
+  position: relative;
+}
+
+.sentenceSpeakerButton::after {
+  content: '🎵';
+  position: absolute;
+  font-size: 1.5rem;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.3s ease;
+}
+
+.sentenceSpeakerButton:hover::after {
+  opacity: 1;
+  transform: scale(1) translateY(-30px);
+}
+
 .sentenceSpeakerButton svg {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   stroke: white;
-  stroke-width: 2.5;
+  stroke-width: 3;
 }
 
 .sentenceSpeakerButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, #66bb6a, #4caf50);
-  transform: scale(1.15);
-  box-shadow: 0 5px 15px rgba(76, 175, 80, 0.5);
+  background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+  transform: scale(1.25) rotate(15deg);
+  box-shadow: 0 8px 25px rgba(56, 239, 125, 0.6);
 }
 
 .sentenceSpeakerButton:active:not(:disabled) {
-  transform: scale(1.05);
+  transform: scale(1.1) rotate(-15deg);
 }
 
 .sentenceSpeakerButton:disabled {
@@ -254,108 +539,223 @@
   background: linear-gradient(135deg, #bdbdbd, #9e9e9e);
 }
 
-/* Active state when sentence is being read */
 .sentenceSpeakerButton.speakerActive {
-  background: linear-gradient(135deg, #ff9800, #f57c00);
-  animation: speakerPulse 1.2s ease-in-out infinite;
+  background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+  animation: speakerPulse 1s ease-in-out infinite;
 }
 
+/* Vocabulary highlight */
 @keyframes speakerPulse {
   0%, 100% {
     transform: scale(1);
-    box-shadow: 0 3px 8px rgba(255, 152, 0, 0.4);
+    box-shadow: 0 6px 15px rgba(255, 152, 0, 0.4);
   }
   50% {
-    transform: scale(1.2);
-    box-shadow: 0 5px 20px rgba(255, 152, 0, 0.7);
+    transform: scale(1.15);
+    box-shadow: 0 8px 25px rgba(255, 152, 0, 0.7);
   }
 }
 
-/* Sentence text content */
-.sentence > span:last-child {
-  flex: 1;
-  padding-top: 4px;
-}
-
-.currentSentence {
-  background: linear-gradient(to right, rgba(156, 39, 176, 0.12), rgba(156, 39, 176, 0.04));
-  border-left: 4px solid #9c27b0;
-  box-shadow: 0 4px 16px rgba(156, 39, 176, 0.2);
-  transform: translateX(5px);
-}
-
-.visitedSentence {
-  opacity: 0.75;
-}
-
-.highlightedWord {
-  background: linear-gradient(135deg, #ffd54f, #ffb300);
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-weight: 700;
-  color: #1a1a1a;
-  box-shadow: 0 2px 6px rgba(255, 179, 0, 0.35);
+/* Vocabulary Highlight - SUPER COLORFUL */
+.vocabHighlight {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-weight: 900;
+  color: #d63031;
+  cursor: help;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
+  border-bottom: 3px dashed #e17055;
   display: inline-block;
+  position: relative;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
 }
 
-.highlightedWord:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(255, 179, 0, 0.6);
-  background: linear-gradient(135deg, #ffeb3b, #ffc107);
+.vocabHighlight::before {
+  content: '⭐';
+  position: absolute;
+  top: -15px;
+  right: -5px;
+  font-size: 1.2rem;
+  opacity: 0;
+  transform: scale(0) rotate(0deg);
+  transition: all 0.3s ease;
+}
+
+.vocabHighlight:hover {
+  background: linear-gradient(120deg, #fdcb6e 0%, #fab1a0 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(253, 203, 110, 0.4);
+}
+
+.vocabHighlight:hover {
+  background: linear-gradient(135deg, #fdcb6e 0%, #fab1a0 100%);
+  transform: translateY(-3px) scale(1.1);
+  box-shadow: 0 8px 15px rgba(253, 203, 110, 0.6);
+  color: #e84393;
+}
+
+.vocabHighlight:hover::before {
+  opacity: 1;
+  transform: scale(1) rotate(360deg);
+}
+
+/* Story Scroll Area */
+.storyScroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 50px;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(78, 205, 196, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(247, 183, 49, 0.05) 0%, transparent 50%),
+    linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+  position: relative;
+  scroll-behavior: smooth; /* ENABLE SMOOTH SCROLLING */
+  scroll-padding-top: 100px; /* Add padding at top when scrolling */
+}
+
+/* Custom Scrollbar - COLORFUL */
+.storyScroll::-webkit-scrollbar {
+  width: 16px;
+}
+
+.storyScroll::-webkit-scrollbar-track {
+  background: linear-gradient(
+    to bottom,
+    #ffeaa7,
+    #fdcb6e,
+    #fab1a0,
+    #fd79a8,
+    #a29bfe,
+    #6c5ce7
+  );
+  border-radius: 10px;
+  margin: 10px 0;
+  border: 3px solid white;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.storyScroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  border: 4px solid white;
+  box-shadow: 0 3px 10px rgba(102, 126, 234, 0.5);
+  transition: all 0.3s ease;
+}
+
+.storyScroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  box-shadow: 0 5px 15px rgba(118, 75, 162, 0.7);
+}
+
+.storyScroll:focus-within {
+  outline: 3px solid rgba(102, 126, 234, 0.3);
+  outline-offset: -3px;
+}
+.sentence {
+  animation: sentenceEnter 0.5s ease-out;
+}
+
+@keyframes sentenceEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Mobile scroll optimization */
+@media (max-width: 768px) {
+  .storyScroll {
+    scroll-padding-top: 80px;
+    padding: 30px 20px;
+  }
+  
+  .sentence.currentSentence::after {
+    font-size: 1.5rem;
+    left: -40px;
+  }
+}
+
+
+/* Responsive - Keep it big for kids! */
+@media (max-width: 768px) {
+  .sentence {
+    font-size: 1.3rem;
+    padding: 25px 30px;
+    gap: 15px;
+  }
+  
+  .sentenceNumber {
+    width: 42px;
+    height: 42px;
+    font-size: 1.1rem;
+  }
+  
+  .sentenceSpeakerButton {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sentence {
+    font-size: 1.2rem;
+    padding: 20px 25px;
+    line-height: 2;
+  }
+  
+  .sentenceNumber {
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+  }
+  
+  .sentenceSpeakerButton {
+    width: 34px;
+    height: 34px;
+  }
 }
 
 /* Vocabulary Sidebar */
 .vocabularySidebar {
-  background: white;
-  border-radius: 20px;
-  padding: 25px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+  gap: 15px;
   overflow-y: auto;
-}
-
-.vocabularySidebar::-webkit-scrollbar {
-  width: 8px;
-}
-
-.vocabularySidebar::-webkit-scrollbar-track {
-  background: #f5f5f5;
-  border-radius: 10px;
-}
-
-.vocabularySidebar::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #9c27b0, #673ab7);
-  border-radius: 10px;
+  max-height: calc(100vh - 300px);
 }
 
 .vocabularyTitle {
-  font-size: 1.5rem;
-  color: #4a148c;
-  margin: 0 0 25px 0;
+  font-size: 1.3rem;
+  color: #2d3748;
+  margin: 0;
   font-weight: 800;
   text-align: center;
-  padding-bottom: 15px;
-  border-bottom: 4px solid #9c27b0;
-  letter-spacing: -0.3px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid #9c27b0;
 }
 
 .vocabularyList {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  margin-bottom: 25px;
+  gap: 12px;
 }
 
 .vocabularyWord {
+  padding: 15px 18px;
+  border-radius: 12px;
   color: white;
-  padding: 14px 20px;
-  border-radius: 30px;
   font-size: 1.1rem;
   font-weight: 700;
-  text-transform: uppercase;
   text-align: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -418,7 +818,7 @@
   transform: translateY(-2px);
 }
 
-/* Responsive design */
+/* Responsive Design */
 @media (max-width: 1024px) {
   .contentWrapper {
     grid-template-columns: 1fr;
@@ -427,19 +827,29 @@
   .vocabularySidebar {
     max-height: 350px;
   }
+  
+  .episodeInfo {
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 768px) {
-  .header {
+  .controls {
+    top: 15px;
+    right: 15px;
     flex-direction: column;
-    gap: 20px;
-    align-items: stretch;
-    padding: 20px;
+    gap: 8px;
   }
   
-  .controls {
-    justify-content: center;
-    flex-wrap: wrap;
+  .readAloudButton,
+  .stopReadingButton,
+  .readingHelperButton {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+  }
+  
+  .header {
+    padding: 20px;
   }
   
   .sentence {
@@ -468,6 +878,13 @@
 }
 
 @media (max-width: 480px) {
+  .controls {
+    position: relative;
+    top: auto;
+    right: auto;
+    margin-top: 15px;
+  }
+  
   .episodeTitle {
     font-size: 1.5rem;
   }

@@ -16,7 +16,7 @@ import logging
 import traceback
 from supabase import create_client
 from datetime import datetime, timedelta
-
+import traceback
 # Import progress tracking
 from api.models import UserProgress, UserActivity
 
@@ -953,23 +953,16 @@ def log_story_activity(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_story_analytics(request):
-    """Get story game analytics for a user or all users"""
+    """Get analytics for story game sessions"""
     try:
-        user_email = request.GET.get('user_email')
+        user_email = request.GET.get('user_email', 'guest@wildlitz.com')
         user_id = request.GET.get('user_id')
-        limit = int(request.GET.get('limit', 50))
         days = int(request.GET.get('days', 30))
+        limit = int(request.GET.get('limit', 100))
         
-        logger.info(f"🔍 Analytics request - email: {user_email}, days: {days}")
+        logger.info(f"Fetching analytics - user_email: {user_email}, days: {days}")
         
-        # STEP 1: Try to get ALL sessions first (no filters)
-        test_query = supabase.table('story_game_sessions').select('*').limit(5)
-        test_response = test_query.execute()
-        logger.info(f"📊 Total sessions in DB (sample): {len(test_response.data if test_response.data else [])}")
-        if test_response.data:
-            logger.info(f"📝 Sample session: {test_response.data[0]}")
-        
-        # STEP 2: Build query with user_email filter only
+        # Build query
         query = supabase.table('story_game_sessions').select('*')
         
         if user_email:
@@ -979,7 +972,6 @@ def get_story_analytics(request):
             logger.info(f"🔎 Filtering by user_id: {user_id}")
             query = query.eq('user_id', user_id)
         
-        # STEP 3: Add ordering (removed date filter for debugging)
         query = query.order('created_at', desc=True).limit(limit)
         
         response = query.execute()
@@ -987,15 +979,7 @@ def get_story_analytics(request):
         
         logger.info(f"Found {len(sessions)} sessions for user_email: {user_email}")
         
-        # If we found sessions, log one for debugging
-        if sessions:
-            logger.info(f"Sample session: {sessions[0]}")
-        
-        # Calculate aggregate statistics with proper None handling
-        total_sessions = len(sessions)
-        completed_sessions = len([s for s in sessions if s.get('is_completed', False)])
-        
-        # Helper function to safely get numeric values
+        # Helper functions - MUST BE DEFINED FIRST
         def safe_int(value, default=0):
             """Safely convert value to int, handling None and other edge cases"""
             if value is None:
@@ -1014,10 +998,14 @@ def get_story_analytics(request):
             except (ValueError, TypeError):
                 return default
         
-        # Calculate totals with None handling
-        total_episodes_completed = sum(safe_int(s.get('episodes_completed')) for s in sessions)
-        total_words_solved = sum(safe_int(s.get('total_words_solved')) for s in sessions)
-        total_time_spent = sum(safe_int(s.get('total_duration_seconds')) for s in sessions)
+        # Calculate aggregate statistics with proper None handling
+        total_sessions = len(sessions)
+        completed_sessions = len([s for s in sessions if s.get('is_completed', False)])
+        
+        # ✅ FIX: Use safe_int for ALL numeric operations
+        total_episodes_completed = sum(safe_int(s.get('episodes_completed'), 0) for s in sessions)
+        total_words_solved = sum(safe_int(s.get('total_words_solved'), 0) for s in sessions)
+        total_time_spent = sum(safe_int(s.get('total_duration_seconds'), 0) for s in sessions)
         
         # Theme distribution
         theme_counts = {}
@@ -1028,9 +1016,10 @@ def get_story_analytics(request):
         # Skills distribution
         skill_counts = {}
         for session in sessions:
-            skills = session.get('focus_skills', [])
+            skills = session.get('focus_skills', []) or []  # ✅ Handle None
             for skill in skills:
-                skill_counts[skill] = skill_counts.get(skill, 0) + 1
+                if skill:  # ✅ Make sure skill is not None
+                    skill_counts[skill] = skill_counts.get(skill, 0) + 1
         
         # Average metrics with safe division
         avg_completion_rate = round((completed_sessions / total_sessions * 100), 2) if total_sessions > 0 else 0
@@ -1038,7 +1027,7 @@ def get_story_analytics(request):
         avg_words_per_session = round((total_words_solved / total_sessions), 2) if total_sessions > 0 else 0
         avg_session_duration = round((total_time_spent / total_sessions), 2) if total_sessions > 0 else 0
         
-        logger.info(f"📊 Analytics calculated: {total_sessions} sessions")
+        logger.info(f"📊 Analytics calculated: {total_sessions} sessions, {total_episodes_completed} episodes, {total_words_solved} words")
         
         return Response({
             'success': True,
@@ -1064,6 +1053,7 @@ def get_story_analytics(request):
         
     except Exception as e:
         logger.error(f"Error fetching story analytics: {str(e)}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")  # ✅ ADD THIS for better debugging
         return Response({
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

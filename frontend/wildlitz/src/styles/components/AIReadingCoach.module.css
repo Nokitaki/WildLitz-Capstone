@@ -1,19 +1,22 @@
 /* Enhanced AIReadingCoach.module.css - Ultimate Reading Helper */
 
 .coachOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(10px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-  padding: 20px;
-  animation: fadeIn 0.3s ease;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(10px) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 99999 !important; /* ✅ MUCH HIGHER */
+  padding: 20px !important;
+  animation: fadeIn 0.3s ease !important;
+  pointer-events: auto !important; /* ✅ ENSURE CLICKABLE */
+  visibility: visible !important; /* ✅ FORCE VISIBLE */
+  opacity: 1 !important; /* ✅ FORCE OPAQUE */
 }
 
 @keyframes fadeIn {
@@ -22,15 +25,20 @@
 }
 
 .coachContainer {
-  background: white;
-  border-radius: 28px;
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
-  max-width: 950px;
-  width: 100%;
-  max-height: 92vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  background: white !important;
+  border-radius: 28px !important;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35) !important;
+  max-width: 950px !important;
+  width: 100% !important;
+  max-height: 92vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  position: relative !important;
+  z-index: 100000 !important; /* ✅ EVEN HIGHER */
+  pointer-events: auto !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* Header */

@@ -1342,3 +1342,69 @@ INFO 2025-10-21 00:31:59,489 views Found 50 sessions for user_email: kenjiermita
 INFO 2025-10-21 00:31:59,489 views Sample session: {'id': '6fb72a22-7c85-4bc6-a7ad-687090861f4e', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760977580', 'story_title': 'The Lost Tiger Cub', 'theme': None, 'focus_skills': [], 'episode_count': 0, 'character_names': '', 'session_start': '2025-10-20T16:26:42.218654+00:00', 'session_end': None, 'total_duration_seconds': None, 'episodes_completed': 0, 'current_episode': 1, 'total_words_solved': 0, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': False, 'completion_percentage': 0.0, 'metadata': {}, 'created_at': '2025-10-20T16:26:42.218654+00:00', 'updated_at': '2025-10-20T16:26:42.218654+00:00'}
 INFO 2025-10-21 00:31:59,878 views Found 50 sessions for user_email: kenjiermita2020@gmail.com
 INFO 2025-10-21 00:31:59,879 views Sample session: {'id': '6fb72a22-7c85-4bc6-a7ad-687090861f4e', 'user_id': None, 'user_email': 'kenjiermita2020@gmail.com', 'story_id': 'jungle_generated_1760977580', 'story_title': 'The Lost Tiger Cub', 'theme': None, 'focus_skills': [], 'episode_count': 0, 'character_names': '', 'session_start': '2025-10-20T16:26:42.218654+00:00', 'session_end': None, 'total_duration_seconds': None, 'episodes_completed': 0, 'current_episode': 1, 'total_words_solved': 0, 'total_puzzles_completed': 0, 'total_hints_used': 0, 'average_time_per_word': None, 'story_reading_time_seconds': 0, 'vocabulary_words_learned': None, 'reading_coach_interactions': 0, 'is_completed': False, 'completion_percentage': 0.0, 'metadata': {}, 'created_at': '2025-10-20T16:26:42.218654+00:00', 'updated_at': '2025-10-20T16:26:42.218654+00:00'}
+INFO 2025-10-21 20:21:39,752 views Fetching analytics - user_email: guest@wildlitz.com, days: 30
+INFO 2025-10-21 20:21:41,743 views Found 0 sessions for user_email: guest@wildlitz.com
+INFO 2025-10-21 20:21:41,752 views Fetching analytics - user_email: guest@wildlitz.com, days: 30
+INFO 2025-10-21 20:21:42,009 views Found 0 sessions for user_email: guest@wildlitz.com
+INFO 2025-10-21 20:23:11,218 views Fetching analytics - user_email: ken@gmail.com, days: 30
+INFO 2025-10-21 20:23:11,652 views Found 5 sessions for user_email: ken@gmail.com
+INFO 2025-10-21 20:23:11,663 views Fetching analytics - user_email: ken@gmail.com, days: 30
+INFO 2025-10-21 20:23:11,815 views Found 5 sessions for user_email: ken@gmail.com
+INFO 2025-10-21 20:23:24,452 views Fetching analytics - user_email: guest@wildlitz.com, days: 30
+INFO 2025-10-21 20:23:24,572 views Fetching analytics - user_email: ken@gmail.com, days: 30
+INFO 2025-10-21 20:23:24,850 views Found 5 sessions for user_email: ken@gmail.com
+INFO 2025-10-21 20:23:24,856 views Fetching analytics - user_email: ken@gmail.com, days: 30
+INFO 2025-10-21 20:23:24,999 views Found 0 sessions for user_email: guest@wildlitz.com
+INFO 2025-10-21 20:23:25,005 views Fetching analytics - user_email: guest@wildlitz.com, days: 30
+INFO 2025-10-21 20:23:25,064 views Found 5 sessions for user_email: ken@gmail.com
+INFO 2025-10-21 20:23:25,213 views Found 0 sessions for user_email: guest@wildlitz.com
+INFO 2025-10-21 20:23:30,901 views Fetching analytics - user_email: ken@gmail.com, days: 30
+INFO 2025-10-21 20:23:31,212 views Found 5 sessions for user_email: ken@gmail.com
+INFO 2025-10-21 20:23:31,219 views Fetching analytics - user_email: ken@gmail.com, days: 30
+INFO 2025-10-21 20:23:31,352 views Found 5 sessions for user_email: ken@gmail.com
+INFO 2025-10-21 20:23:39,402 views Session details retrieved: ecaa10ed-b4be-459f-a6a9-ea20d0e61d9e
+INFO 2025-10-21 20:24:04,119 views Fetching analytics - user_email: ken@gmail.com, days: 30
+INFO 2025-10-21 20:24:04,433 views Found 5 sessions for user_email: ken@gmail.com
+INFO 2025-10-21 20:24:04,439 views Fetching analytics - user_email: ken@gmail.com, days: 30
+INFO 2025-10-21 20:24:04,651 views Found 5 sessions for user_email: ken@gmail.com
+INFO 2025-10-21 20:57:39,248 views Explaining word 'DENSE' for grade 3
+INFO 2025-10-21 20:57:41,640 views GPT response for 'DENSE': {
+  "definition": "DENSE means something that is packed closely together and hard to see through.",
+...
+INFO 2025-10-21 20:57:41,641 views Successfully explained word 'DENSE'
+INFO 2025-10-21 20:57:51,801 views Explaining word 'SNIFFED' for grade 3
+INFO 2025-10-21 20:57:53,645 views GPT response for 'SNIFFED': {
+  "definition": "Sniffed means to breathe in through the nose to smell something.",
+  "example": "...
+INFO 2025-10-21 20:57:53,645 views Successfully explained word 'SNIFFED'
+INFO 2025-10-21 21:00:42,583 views Fetching analytics - user_email: ken@gmail.com, days: 30
+INFO 2025-10-21 21:00:44,320 views Found 13 sessions for user_email: ken@gmail.com
+INFO 2025-10-21 21:00:44,328 views Fetching analytics - user_email: ken@gmail.com, days: 30
+INFO 2025-10-21 21:00:44,486 views Found 13 sessions for user_email: ken@gmail.com
+INFO 2025-10-21 21:00:52,709 views Session details retrieved: b737b3ac-c030-48de-8c76-db01ba2c9e0b
+INFO 2025-10-21 21:03:59,294 views Explaining word 'SUNLIT' for grade 3
+INFO 2025-10-21 21:04:00,467 views GPT response for 'SUNLIT': {
+  "definition": "Sunlit means brightened or filled with sunlight.",
+  "example": "The sunlit meado...
+INFO 2025-10-21 21:04:00,467 views Successfully explained word 'SUNLIT'
+INFO 2025-10-21 21:04:07,945 views Explaining word 'CUPCAKE' for grade 3
+INFO 2025-10-21 21:04:09,199 views GPT response for 'CUPCAKE': {
+  "definition": "A cupcake is a small, sweet cake that you can hold in your hand and eat.",
+  "exa...
+INFO 2025-10-21 21:04:09,199 views Successfully explained word 'CUPCAKE'
+INFO 2025-10-21 21:04:45,988 views Explaining word 'RAINBOW' for grade 3
+INFO 2025-10-21 21:04:47,901 views GPT response for 'RAINBOW': ```json
+{
+  "definition": "A rainbow is a colorful arc that appears in the sky after it rains.",
+  "...
+INFO 2025-10-21 21:04:47,901 views Successfully explained word 'RAINBOW'
+INFO 2025-10-21 21:20:01,677 views Explaining word 'MOTHER' for grade 3
+INFO 2025-10-21 21:20:05,028 views GPT response for 'MOTHER': {
+  "definition": "A mother is someone who takes care of you, loves you, and helps you grow.",
+  "ex...
+INFO 2025-10-21 21:20:05,028 views Successfully explained word 'MOTHER'
+INFO 2025-10-21 21:21:07,056 views Fetching analytics - user_email: ken@gmail.com, days: 30
+INFO 2025-10-21 21:21:08,546 views Found 15 sessions for user_email: ken@gmail.com
+INFO 2025-10-21 21:21:08,553 views Fetching analytics - user_email: ken@gmail.com, days: 30
+INFO 2025-10-21 21:21:08,716 views Found 15 sessions for user_email: ken@gmail.com
+INFO 2025-10-21 21:21:12,390 views Session details retrieved: ee758fb0-8167-4259-8461-3150720ce1e4

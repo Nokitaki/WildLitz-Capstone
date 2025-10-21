@@ -399,94 +399,127 @@ const StoryScreen = ({
   };
   
   return (
-    <div className={styles.storyScreenContainer}>
-      {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.episodeInfo}>
-          <h1 className={styles.episodeTitle}>
-            Episode {currentEpisode}: {storySegment.title}
-          </h1>
-          <div className={styles.stageLabel}>
-            Reading the Story
-          </div>
-        </div>
-        
-        <div className={styles.controls}>
-          {hasSpeech && (
-            <div className={styles.readAloudControls}>
-              {!isReading ? (
-                <button 
-                  className={styles.readAloudButton}
-                  onClick={readStoryAloud}
-                >
-                  🔊 Read Aloud
-                </button>
-              ) : (
-                <button 
-                  className={styles.stopReadingButton}
-                  onClick={stopReading}
-                >
-                  ⏹️ Stop Reading
-                </button>
-              )}
-            </div>
+  <div className={styles.storyScreenContainer}>
+    {/* TOP RIGHT CONTROLS - FIXED POSITION */}
+    <div className={styles.controls}>
+      {hasSpeech && (
+        <div className={styles.readAloudControls}>
+          {!isReading ? (
+            <button 
+              className={styles.readAloudButton}
+              onClick={readStoryAloud}
+              title="Listen to the story"
+            >
+              🔊 Read Aloud
+            </button>
+          ) : (
+            <button 
+              className={styles.stopReadingButton}
+              onClick={stopReading}
+              title="Stop reading"
+            >
+              ⏹️ Stop Reading
+            </button>
           )}
-          
-          <button 
-            className={styles.readingHelperButton}
-            onClick={onToggleReadingCoach}
-          >
-            📚 Reading Helper
-          </button>
         </div>
-      </div>
+      )}
       
-      {/* Main Content */}
-      <div className={styles.mainContent}>
-        <div className={styles.contentWrapper}>
-          {/* Story Panel */}
-          <div className={styles.storyPanel}>
-            <div className={styles.storyScroll}>
-              {renderStoryText()}
-            </div>
-          </div>
-          
-          {/* Vocabulary Sidebar */}
-          <div className={styles.vocabularySidebar}>
-            <h3 className={styles.vocabularyTitle}>Vocabulary Words</h3>
-            <div className={styles.vocabularyList}>
-              {filteredVocabWords.map((word, index) => (
-                <div 
-                  key={index} 
-                  className={styles.vocabularyWord}
-                  style={{
-                    background: `linear-gradient(135deg, ${getVocabColor(index)}, ${getVocabColorDark(index)})`
-                  }}
-                >
-                  {word}
-                </div>
-              ))}
-            </div>
-            <div className={styles.vocabularyHint}>
-              <p>💡 These words will appear in the crossword puzzle!</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Continue Button */}
-        <div className={styles.continueButtonContainer}>
-          <motion.button
-            className={styles.continueButton}
-            onClick={handleContinueToPuzzle}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            CONTINUE TO PUZZLE
-          </motion.button>
+      {onToggleReadingCoach && (
+        <button
+          className={styles.readingHelperButton}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔥 Reading Helper clicked!');
+            onToggleReadingCoach();
+          }}
+          title="Get help with reading"
+        >
+          📖 Reading Helper
+        </button>
+      )}
+    </div>
+
+    {/* Header - Episode Info Only */}
+    <div className={styles.header}>
+      <div className={styles.episodeInfo}>
+        <h1 className={styles.episodeTitle}>
+          Episode {currentEpisode}: {storySegment.title}
+        </h1>
+        <div className={styles.stageLabel}>
+          Reading the Story
         </div>
       </div>
     </div>
-  );
+    
+    {/* Main content area */}
+    <div className={styles.mainContent}>
+      <div className={styles.contentWrapper}>
+        {/* Story panel */}
+        <div className={styles.storyPanel}>
+          <div className={styles.storyScroll}>
+            <div
+              ref={storyTextRef}
+              className={`${styles.storyText} ${isReading ? styles.reading : ''}`}
+            >
+              {renderStoryText()}
+            </div>
+          </div>
+        </div>
+        
+        {/* Vocabulary words sidebar */}
+        <div className={styles.vocabularySidebar}>
+          <h3 className={styles.vocabularyTitle}>Words to Watch For</h3>
+          <div className={styles.vocabularyList}>
+            {filteredVocabWords && filteredVocabWords.length > 0 ? (
+              filteredVocabWords.map((word, index) => (
+                <motion.div
+                  key={index}
+                  className={styles.vocabularyWord}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  style={{
+                    backgroundColor: `hsl(${(index * 40) % 360}, 70%, 60%)`
+                  }}
+                >
+                  {word}
+                </motion.div>
+              ))
+            ) : (
+              <p style={{ textAlign: 'center', color: '#666', padding: '20px' }}>
+                No vocabulary words in this story
+              </p>
+            )}
+          </div>
+          {filteredVocabWords && filteredVocabWords.length > 0 && (
+            <div className={styles.vocabularyHint}>
+              <p>💡 These words will appear in the crossword puzzle!</p>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Continue button */}
+      <div className={styles.continueButtonContainer}>
+        <button
+          className={styles.continueButton}
+          onClick={handleContinueToPuzzle}
+          disabled={!hasReadStory && !isReading}
+        >
+          Continue to Puzzle
+        </button>
+        
+        {!hasReadStory && !isReading && (
+          <div className={styles.continueDisabledMessage}>
+            Please read the story first
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+);
+  
 };
 
 // Helper functions for vocabulary word colors
