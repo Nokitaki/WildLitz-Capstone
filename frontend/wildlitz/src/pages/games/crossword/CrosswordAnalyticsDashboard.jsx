@@ -19,27 +19,49 @@ const CrosswordAnalyticsDashboard = () => {
 
 
 
+  useEffect(() => {
   const fetchAnalytics = async () => {
-  try {
-    setLoading(true);
-    const userEmail = user?.email || 'guest@wildlitz.com';
-    
-    // ✅ USE THE SERVICE INSTEAD
-    const data = await crosswordAnalyticsService.getAnalytics({
-      user_email: userEmail,
-      days: 30
-    });
-    
-    if (data.success) {
-      setAnalytics(data.analytics.summary);
-      setGameSessions(data.analytics.recent_sessions || []);
+    try {
+      setLoading(true);
+      const userEmail = user?.email || 'guest@wildlitz.com';
+      
+      const data = await crosswordAnalyticsService.getAnalytics({
+        user_email: userEmail,
+        days: 30
+      });
+      
+      if (data.success) {
+        setAnalytics(data.analytics.summary);
+        setGameSessions(data.analytics.recent_sessions || []);
+      }
+    } catch (err) {
+      console.error('Analytics fetch error:', err);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error('Analytics fetch error:', err);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
+  const fetchWordPerformance = async () => {
+    try {
+      const userEmail = user?.email || 'guest@wildlitz.com';
+      
+      const response = await fetch(
+        `${API_ENDPOINTS.SENTENCE_FORMATION}/story/word-performance/?user_email=${userEmail}`
+      );
+      const data = await response.json();
+      
+      if (data.success) {
+        setWordPerformance(data.words || []);
+      }
+    } catch (err) {
+      console.error('Word performance fetch error:', err);
+    }
+  };
+
+  // ✅ MUST CALL BOTH FUNCTIONS!
+  fetchAnalytics();
+  fetchWordPerformance();
+}, []);
 
   const fetchWordPerformance = async () => {
   try {
