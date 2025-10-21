@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
+import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
 
 const CrosswordAnalyticsDashboard = () => {
   const navigate = useNavigate();
@@ -15,10 +16,21 @@ const CrosswordAnalyticsDashboard = () => {
   const [sessionActivities, setSessionActivities] = useState({});
   const [loading, setLoading] = useState(true);
   const [showChallengingWords, setShowChallengingWords] = useState(false);
-  useEffect(() => {
-    fetchAnalytics();
-    fetchWordPerformance();
-  }, [user]);
+
+ useEffect(() => {
+  const fetchAnalytics = async () => {
+    try {
+      const data = await crosswordAnalyticsService.getAnalytics({ 
+        user_email: email,
+        days: 30 
+      });
+      // Use data here
+    } catch (error) {
+      console.error('Analytics error:', error);
+    }
+  };
+  fetchAnalytics();
+}, [email]);
 
   const fetchAnalytics = async () => {
     try {
