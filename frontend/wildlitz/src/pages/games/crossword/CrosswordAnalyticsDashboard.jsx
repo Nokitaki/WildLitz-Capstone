@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
-
+import { API_ENDPOINTS } from '../../../config/api';
 const CrosswordAnalyticsDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -17,58 +17,47 @@ const CrosswordAnalyticsDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showChallengingWords, setShowChallengingWords] = useState(false);
 
- useEffect(() => {
-  const fetchAnalytics = async () => {
-    try {
-      const data = await crosswordAnalyticsService.getAnalytics({ 
-        user_email: email,
-        days: 30 
-      });
-      // Use data here
-    } catch (error) {
-      console.error('Analytics error:', error);
-    }
-  };
-  fetchAnalytics();
-}, [email]);
+
 
   const fetchAnalytics = async () => {
-    try {
-      setLoading(true);
-      const userEmail = user?.email || 'guest@wildlitz.com';
-      
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/sentence_formation/story/analytics/?user_email=${userEmail}&days=30`
-      );
-      const data = await response.json();
-      
-      if (data.success) {
-        setAnalytics(data.analytics.summary);
-        setGameSessions(data.analytics.recent_sessions || []);
-      }
-    } catch (err) {
-      console.error('Analytics fetch error:', err);
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    const userEmail = user?.email || 'guest@wildlitz.com';
+    
+    // ✅ USE THE SERVICE INSTEAD
+    const data = await crosswordAnalyticsService.getAnalytics({
+      user_email: userEmail,
+      days: 30
+    });
+    
+    if (data.success) {
+      setAnalytics(data.analytics.summary);
+      setGameSessions(data.analytics.recent_sessions || []);
     }
-  };
+  } catch (err) {
+    console.error('Analytics fetch error:', err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchWordPerformance = async () => {
-    try {
-      const userEmail = user?.email || 'guest@wildlitz.com';
-      
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/sentence_formation/story/word-performance/?user_email=${userEmail}`
-      );
-      const data = await response.json();
-      
-      if (data.success) {
-        setWordPerformance(data.words || []);
-      }
-    } catch (err) {
-      console.error('Word performance fetch error:', err);
+  try {
+    const userEmail = user?.email || 'guest@wildlitz.com';
+    
+    // ✅ USE API_ENDPOINTS INSTEAD
+    const response = await fetch(
+      `${API_ENDPOINTS.SENTENCE_FORMATION}/story/word-performance/?user_email=${userEmail}`
+    );
+    const data = await response.json();
+    
+    if (data.success) {
+      setWordPerformance(data.words || []);
     }
-  };
+  } catch (err) {
+    console.error('Word performance fetch error:', err);
+  }
+};
 
   const fetchSessionActivities = async (sessionId) => {
     try {
