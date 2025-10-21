@@ -1,11 +1,11 @@
 // src/pages/games/crossword/StoryScreen.jsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import styles from '../../../styles/games/crossword/StoryScreen.module.css';
+import { motion } from 'framer-motion';
 import { Volume2 } from 'lucide-react';
+import styles from '../../../styles/games/crossword/StoryScreen.module.css';
 
 /**
- * Enhanced Story Screen with individual sentence speakers
+ * Enhanced Story Screen with Auto-Scroll and Individual Sentence Speakers
  */
 const StoryScreen = ({ 
   storySegment, 
@@ -95,6 +95,67 @@ const StoryScreen = ({
     }
   }, [storySegment, vocabularyWords]);
   
+  // ============================================
+  // IMPROVED AUTO-SCROLL - Only when reading aloud
+  // ============================================
+  useEffect(() => {
+    // 🔥 ONLY auto-scroll when actively reading aloud
+    if (isReading && currentSentenceIndex !== null && sentences.length > 0) {
+      // Small delay to ensure DOM is updated
+      const scrollTimer = setTimeout(() => {
+        const sentenceRef = sentenceRefs.current[currentSentenceIndex];
+        
+        if (sentenceRef && sentenceRef.current) {
+          const sentenceElement = sentenceRef.current;
+          
+          // Method 1: Direct scrollIntoView (most reliable)
+          try {
+            sentenceElement.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+              inline: 'nearest'
+            });
+            console.log(`✅ Auto-scrolled to sentence ${currentSentenceIndex + 1}`);
+          } catch (error) {
+            console.error('ScrollIntoView failed:', error);
+          }
+          
+          // Method 2: Backup scroll using parent container
+          setTimeout(() => {
+            const storyScrollContainer = storyTextRef.current?.parentElement;
+            
+            if (storyScrollContainer && sentenceElement) {
+              try {
+                const containerRect = storyScrollContainer.getBoundingClientRect();
+                const sentenceRect = sentenceElement.getBoundingClientRect();
+                
+                // Calculate if sentence is out of view
+                const isAboveView = sentenceRect.top < containerRect.top;
+                const isBelowView = sentenceRect.bottom > containerRect.bottom;
+                
+                if (isAboveView || isBelowView) {
+                  // Calculate scroll position to center the sentence
+                  const scrollOffset = sentenceElement.offsetTop - (storyScrollContainer.clientHeight / 2) + (sentenceElement.clientHeight / 2);
+                  
+                  storyScrollContainer.scrollTo({
+                    top: Math.max(0, scrollOffset),
+                    behavior: 'smooth'
+                  });
+                  console.log(`🔄 Backup scroll to sentence ${currentSentenceIndex + 1}`);
+                }
+              } catch (error) {
+                console.error('Backup scroll failed:', error);
+              }
+            }
+          }, 200);
+        }
+      }, 150); // Delay to ensure animation/state updates complete
+      
+      return () => clearTimeout(scrollTimer);
+    }
+    // If NOT reading, do nothing - allow manual scrolling
+  }, [isReading, currentSentenceIndex, sentences.length]);
+  
   // Highlight vocabulary words in text
   const highlightVocabularyWords = useCallback((text) => {
     if (!filteredVocabWords || filteredVocabWords.length === 0) {
@@ -147,7 +208,7 @@ const StoryScreen = ({
       <span>
         {parts.map((part, index) => 
           part.isHighlight ? (
-            <span key={index} className={styles.highlightedWord}>
+            <span key={index} className={styles.vocabHighlight}>
               {part.text}
             </span>
           ) : (
@@ -158,59 +219,40 @@ const StoryScreen = ({
     );
   }, [filteredVocabWords]);
   
-  // Get the best British UK voice for reading
+  // Get preferred voice - UK BRITISH
   const getReadingVoice = useCallback(() => {
-    if (!hasSpeech) return null;
+    if (!hasSpeech || !speechSynth) return null;
     
     const voices = speechSynth.getVoices();
     
-    // Priority list for British female voices
-    const preferredVoices = [
-      'Google UK English Female',
-      'Microsoft Hazel - English (Great Britain)',
-      'Karen',
-      'Samantha',
-      'Google US English Female',
-      'Microsoft Zira - English (United States)'
-    ];
-    
-    // Try to find preferred voice
-    for (const voiceName of preferredVoices) {
-      const voice = voices.find(v => v.name.includes(voiceName));
-      if (voice) return voice;
-    }
-    
-    // Fallback: any female English voice
-    const femaleEnglish = voices.find(v => 
-      v.lang.startsWith('en') && (
-        v.name.toLowerCase().includes('female') ||
-        v.name.toLowerCase().includes('woman') ||
-        v.name.includes('Zira') ||
-        v.name.includes('Hazel') ||
-        v.name.includes('Karen') ||
-        v.name.includes('Samantha')
-      )
+    // Try to find UK British voices first
+    const ukVoice = voices.find(voice => 
+      voice.lang === 'en-GB' || 
+      voice.name.includes('UK') || 
+      voice.name.includes('British') ||
+      voice.name.includes('Daniel') || // Common UK voice name
+      voice.name.includes('Kate')      // Common UK voice name
     );
     
-    if (femaleEnglish) return femaleEnglish;
+    if (ukVoice) {
+      console.log('🇬🇧 Using UK British voice:', ukVoice.name);
+      return ukVoice;
+    }
     
-    // Last resort: any English voice
-    return voices.find(v => v.lang.startsWith('en')) || voices[0];
+    // Fallback to any English voice
+    const fallbackVoice = voices.find(voice => voice.lang.startsWith('en'));
+    console.log('Using fallback voice:', fallbackVoice?.name);
+    return fallbackVoice;
   }, [hasSpeech, speechSynth]);
-
-  // Read a single sentence when speaker button is clicked
+  
+  // Read single sentence
   const readSingleSentence = useCallback((index) => {
-    if (!hasSpeech || !sentences || index < 0 || index >= sentences.length) return;
+    if (!hasSpeech || !speechSynth || readingSingleSentence || isReading) return;
     
-    // Cancel any ongoing speech
-    speechSynth.cancel();
-    
-    // Set state
     setReadingSingleSentence(true);
     setCurrentSentenceIndex(index);
-    setIsReading(false); // Not reading full story
     
-    // Add to visited sentences
+    // Mark as visited
     setVisitedSentences(prev => {
       if (!prev.includes(index)) {
         return [...prev, index];
@@ -218,22 +260,16 @@ const StoryScreen = ({
       return prev;
     });
     
-    // Scroll to the sentence
-    scrollToSentence(index);
-    
-    // Create utterance for the specific sentence
     const utterance = new SpeechSynthesisUtterance(sentences[index]);
     
-    // Set the British UK voice
+    utterance.rate = 0.9;
+    utterance.pitch = 1.1;
+    utterance.volume = 1.0;
+    
     const voice = getReadingVoice();
     if (voice) {
       utterance.voice = voice;
-      console.log('Using voice for sentence:', voice.name);
     }
-    
-    utterance.rate = 0.85; // Slightly slower, more natural
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
     
     utterance.onend = () => {
       setReadingSingleSentence(false);
@@ -241,79 +277,93 @@ const StoryScreen = ({
     };
     
     utterance.onerror = () => {
-      console.error('Speech synthesis error for single sentence');
       setReadingSingleSentence(false);
       setCurrentSentenceIndex(null);
     };
     
     speechSynth.speak(utterance);
-  }, [hasSpeech, speechSynth, sentences, getReadingVoice]);
-
-  // Read story aloud with sentence tracking (full story)
+  }, [hasSpeech, speechSynth, sentences, readingSingleSentence, isReading, getReadingVoice]);
+  
+  // Read story aloud with improved auto-scroll
   const readStoryAloud = useCallback(() => {
-    if (!hasSpeech || !sentences || sentences.length === 0) return;
+    if (!hasSpeech || !speechSynth || sentences.length === 0) return;
     
+    // Cancel any ongoing speech
     speechSynth.cancel();
-    setIsReading(true);
-    setReadingSingleSentence(false);
-    setCurrentSentenceIndex(0);
-    setVisitedSentences([0]);
     
+    // Scroll to top FIRST before starting
+    const storyScrollContainer = storyTextRef.current?.parentElement;
+    if (storyScrollContainer) {
+      storyScrollContainer.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+      console.log('📜 Scrolled to top');
+    }
+    
+    setIsReading(true);
+    setHasReadStory(true);
     let currentIndex = 0;
     
     const readNextSentence = () => {
       if (currentIndex >= sentences.length) {
         setIsReading(false);
         setCurrentSentenceIndex(null);
-        setHasReadStory(true);
+        console.log('✅ Finished reading all sentences');
         return;
       }
       
-      const utterance = new SpeechSynthesisUtterance(sentences[currentIndex]);
+      console.log(`📖 Reading sentence ${currentIndex + 1}/${sentences.length}`);
       
-      // Set the British UK voice
-      const voice = getReadingVoice();
-      if (voice) {
-        utterance.voice = voice;
-        console.log('Using voice:', voice.name);
-      }
+      // Set current sentence FIRST (triggers scroll)
+      setCurrentSentenceIndex(currentIndex);
       
-      utterance.rate = 0.85;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
+      // Mark as visited
+      setVisitedSentences(prev => {
+        if (!prev.includes(currentIndex)) {
+          return [...prev, currentIndex];
+        }
+        return prev;
+      });
       
-      utterance.onstart = () => {
-        setCurrentSentenceIndex(currentIndex);
-        setVisitedSentences(prev => {
-          if (!prev.includes(currentIndex)) {
-            return [...prev, currentIndex];
-          }
-          return prev;
-        });
-        scrollToSentence(currentIndex);
-      };
-      
-      utterance.onend = () => {
-        currentIndex++;
-        if (currentIndex < sentences.length) {
-          setTimeout(readNextSentence, 300);
-        } else {
+      // Small delay before speaking to ensure scroll completes
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(sentences[currentIndex]);
+        
+        utterance.rate = 0.85; // Slightly slower for better comprehension
+        utterance.pitch = 1.1;
+        utterance.volume = 1.0;
+        
+        const voice = getReadingVoice();
+        if (voice) {
+          utterance.voice = voice;
+          console.log(`🎙️ Using voice: ${voice.name}`);
+        }
+        
+        utterance.onend = () => {
+          console.log(`✓ Finished sentence ${currentIndex + 1}`);
+          currentIndex++;
+          // Pause between sentences for better comprehension
+          setTimeout(() => {
+            readNextSentence();
+          }, 800); // Longer pause between sentences
+        };
+        
+        utterance.onerror = (error) => {
+          console.error('Speech error:', error);
           setIsReading(false);
           setCurrentSentenceIndex(null);
-          setHasReadStory(true);
-        }
-      };
-      
-      utterance.onerror = () => {
-        console.error('Speech synthesis error');
-        setIsReading(false);
-        setCurrentSentenceIndex(null);
-      };
-      
-      speechSynth.speak(utterance);
+        };
+        
+        // Speak the sentence
+        speechSynth.speak(utterance);
+      }, 300); // Wait for scroll to complete
     };
     
-    readNextSentence();
+    // Start reading after initial scroll completes
+    setTimeout(() => {
+      readNextSentence();
+    }, 500);
   }, [hasSpeech, speechSynth, sentences, getReadingVoice]);
   
   // Stop reading
@@ -325,16 +375,6 @@ const StoryScreen = ({
       setCurrentSentenceIndex(null);
     }
   }, [hasSpeech, speechSynth]);
-  
-  // Scroll to current sentence
-  const scrollToSentence = (index) => {
-    if (sentenceRefs.current[index] && sentenceRefs.current[index].current) {
-      sentenceRefs.current[index].current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
-    }
-  };
   
   // Handle continue to puzzle
   const handleContinueToPuzzle = () => {
@@ -361,19 +401,27 @@ const StoryScreen = ({
       <div className={styles.sentencesContainer}>
         {sentences.map((sentence, index) => {
           const isCurrentSentence = currentSentenceIndex === index;
+          const isVisited = visitedSentences.includes(index);
           const highlightedSentence = highlightVocabularyWords(sentence);
+          
+          // Make sure the ref is created if it doesn't exist
+          if (!sentenceRefs.current[index]) {
+            sentenceRefs.current[index] = React.createRef();
+          }
           
           return (
             <motion.div
               key={index}
               ref={sentenceRefs.current[index]}
               id={`sentence-${index}`}
-              className={`${styles.sentence} ${isCurrentSentence ? styles.currentSentence : ''} ${visitedSentences.includes(index) ? styles.visitedSentence : ''}`}
-              initial={{ opacity: 0.9 }}
+              className={`${styles.sentence} ${
+                isCurrentSentence ? styles.currentSentence : ''
+              } ${isVisited ? styles.visitedSentence : ''}`}
+              initial={{ opacity: 0, x: -20 }}
               animate={{ 
-                opacity: isCurrentSentence ? 1 : 0.9,
-                backgroundColor: isCurrentSentence ? 'rgba(156, 39, 176, 0.1)' : 'rgba(255, 255, 255, 0)',
-                scale: isCurrentSentence ? 1.02 : 1
+                opacity: 1,
+                x: 0,
+                scale: isCurrentSentence ? 1.08 : 1
               }}
               transition={{ duration: 0.3 }}
             >
@@ -381,7 +429,9 @@ const StoryScreen = ({
                 <span className={styles.sentenceNumber}>{index + 1}</span>
                 {hasSpeech && (
                   <button
-                    className={`${styles.sentenceSpeakerButton} ${isCurrentSentence && readingSingleSentence ? styles.speakerActive : ''}`}
+                    className={`${styles.sentenceSpeakerButton} ${
+                      isCurrentSentence && readingSingleSentence ? styles.speakerActive : ''
+                    }`}
                     onClick={() => readSingleSentence(index)}
                     title="Play this sentence"
                     disabled={isReading}
@@ -399,138 +449,119 @@ const StoryScreen = ({
   };
   
   return (
-  <div className={styles.storyScreenContainer}>
-    {/* TOP RIGHT CONTROLS - FIXED POSITION */}
-    <div className={styles.controls}>
-      {hasSpeech && (
-        <div className={styles.readAloudControls}>
-          {!isReading ? (
-            <button 
-              className={styles.readAloudButton}
-              onClick={readStoryAloud}
-              title="Listen to the story"
-            >
-              🔊 Read Aloud
-            </button>
-          ) : (
-            <button 
-              className={styles.stopReadingButton}
-              onClick={stopReading}
-              title="Stop reading"
-            >
-              ⏹️ Stop Reading
-            </button>
-          )}
-        </div>
-      )}
-      
-      {onToggleReadingCoach && (
-        <button
-          className={styles.readingHelperButton}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('🔥 Reading Helper clicked!');
-            onToggleReadingCoach();
-          }}
-          title="Get help with reading"
-        >
-          📖 Reading Helper
-        </button>
-      )}
-    </div>
-
-    {/* Header - Episode Info Only */}
-    <div className={styles.header}>
-      <div className={styles.episodeInfo}>
-        <h1 className={styles.episodeTitle}>
-          Episode {currentEpisode}: {storySegment.title}
-        </h1>
-        <div className={styles.stageLabel}>
-          Reading the Story
-        </div>
-      </div>
-    </div>
-    
-    {/* Main content area */}
-    <div className={styles.mainContent}>
-      <div className={styles.contentWrapper}>
-        {/* Story panel */}
-        <div className={styles.storyPanel}>
-          <div className={styles.storyScroll}>
-            <div
-              ref={storyTextRef}
-              className={`${styles.storyText} ${isReading ? styles.reading : ''}`}
-            >
-              {renderStoryText()}
-            </div>
-          </div>
-        </div>
-        
-        {/* Vocabulary words sidebar */}
-        <div className={styles.vocabularySidebar}>
-          <h3 className={styles.vocabularyTitle}>Words to Watch For</h3>
-          <div className={styles.vocabularyList}>
-            {filteredVocabWords && filteredVocabWords.length > 0 ? (
-              filteredVocabWords.map((word, index) => (
-                <motion.div
-                  key={index}
-                  className={styles.vocabularyWord}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  style={{
-                    backgroundColor: `hsl(${(index * 40) % 360}, 70%, 60%)`
-                  }}
-                >
-                  {word}
-                </motion.div>
-              ))
+    <div className={styles.storyScreenContainer}>
+      {/* TOP RIGHT CONTROLS - FIXED POSITION */}
+      <div className={styles.controls}>
+        {hasSpeech && (
+          <div className={styles.readAloudControls}>
+            {!isReading ? (
+              <button 
+                className={styles.readAloudButton}
+                onClick={readStoryAloud}
+                title="Listen to the story"
+              >
+                🔊 Read Aloud
+              </button>
             ) : (
-              <p style={{ textAlign: 'center', color: '#666', padding: '20px' }}>
-                No vocabulary words in this story
-              </p>
+              <button 
+                className={styles.stopReadingButton}
+                onClick={stopReading}
+                title="Stop reading"
+              >
+                ⏹️ Stop Reading
+              </button>
             )}
           </div>
-          {filteredVocabWords && filteredVocabWords.length > 0 && (
-            <div className={styles.vocabularyHint}>
-              <p>💡 These words will appear in the crossword puzzle!</p>
-            </div>
-          )}
+        )}
+        
+        {onToggleReadingCoach && (
+          <button
+            className={styles.readingHelperButton}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('🔥 Reading Helper clicked!');
+              onToggleReadingCoach();
+            }}
+            title="Get help with reading"
+          >
+            📖 Reading Helper
+          </button>
+        )}
+      </div>
+
+      {/* Header - Episode Info Only */}
+      <div className={styles.header}>
+        <div className={styles.episodeInfo}>
+          <h1 className={styles.episodeTitle}>
+            Episode {currentEpisode}: {storySegment.title}
+          </h1>
+          <div className={styles.stageLabel}>
+            Reading the Story
+          </div>
         </div>
       </div>
       
-      {/* Continue button */}
-      <div className={styles.continueButtonContainer}>
-        <button
-          className={styles.continueButton}
-          onClick={handleContinueToPuzzle}
-          disabled={!hasReadStory && !isReading}
-        >
-          Continue to Puzzle
-        </button>
-        
-        {!hasReadStory && !isReading && (
-          <div className={styles.continueDisabledMessage}>
-            Please read the story first
+      {/* Main content area */}
+      <div className={styles.mainContent}>
+        <div className={styles.contentWrapper}>
+          {/* Story panel */}
+          <div className={styles.storyPanel}>
+            <div className={styles.storyScroll}>
+              <div
+                ref={storyTextRef}
+                className={`${styles.storyText} ${isReading ? styles.reading : ''}`}
+              >
+                {renderStoryText()}
+              </div>
+            </div>
           </div>
-        )}
+          
+          {/* Vocabulary words sidebar */}
+          <div className={styles.vocabularySidebar}>
+            <h3 className={styles.vocabularyTitle}>Words to Watch For</h3>
+            <div className={styles.vocabularyList}>
+              {filteredVocabWords && filteredVocabWords.length > 0 ? (
+                filteredVocabWords.map((word, index) => (
+                  <motion.div
+                    key={index}
+                    className={styles.vocabularyWord}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    style={{
+                      backgroundColor: `hsl(${(index * 40) % 360}, 70%, 60%)`
+                    }}
+                  >
+                    {word}
+                  </motion.div>
+                ))
+              ) : (
+                <p style={{ textAlign: 'center', color: '#666', padding: '20px' }}>
+                  No vocabulary words in this story
+                </p>
+              )}
+            </div>
+            {filteredVocabWords && filteredVocabWords.length > 0 && (
+              <div className={styles.vocabularyHint}>
+                <p>💡 These words will appear in the crossword puzzle!</p>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Continue button - Always enabled */}
+        <div className={styles.continueButtonContainer}>
+          <button
+            className={styles.continueButton}
+            onClick={handleContinueToPuzzle}
+          >
+            Continue to Puzzle
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-);
-  
-};
-
-// Helper functions for vocabulary word colors
-const getVocabColor = (index) => {
-  const colors = ['#ff6b6b', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'];
-  return colors[index % colors.length];
-};
-
-const getVocabColorDark = (index) => {
-  const colors = ['#ef4444', '#f97316', '#059669', '#2563eb', '#7c3aed'];
-  return colors[index % colors.length];
+  );
 };
 
 export default StoryScreen;

@@ -685,6 +685,7 @@ const CrosswordAnalyticsDashboard = () => {
 
               {/* NEW: Word-by-Word Performance (Expandable) */}
               <div style={{
+                
                 background: '#f9f9f9',
                 borderRadius: '10px',
                 padding: '15px',
@@ -720,79 +721,137 @@ const CrosswordAnalyticsDashboard = () => {
                 </button>
 
                 <AnimatePresence>
-                  {expandedSession === session.id && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      style={{ overflow: 'hidden' }}
-                    >
-                      {sessionActivities[session.id] ? (
-                        <div style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-                          gap: '12px'
-                        }}>
-                          {sessionActivities[session.id].map((activity, idx) => (
-                            <div
-                              key={idx}
-                              style={{
-                                background: 'white',
-                                padding: '12px',
-                                borderRadius: '8px',
-                                border: '2px solid #e0e0e0',
-                                borderLeft: `4px solid ${activity.is_correct ? '#4caf50' : '#f44336'}`
-                              }}
-                            >
-                              <div style={{
-                                fontSize: '1.1rem',
-                                fontWeight: 600,
-                                color: '#333',
-                                marginBottom: '8px',
-                                textTransform: 'capitalize'
-                              }}>
-                                {activity.word}
-                              </div>
-                              
-                              <div style={{
-                                fontSize: '0.8rem',
-                                color: '#666',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '4px'
-                              }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                  <span>⏱️</span>
-                                  <span>{activity.time_spent}s</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                  <span>💡</span>
-                                  <span>{activity.hints_used} hints</span>
-                                </div>
-                                {activity.episode_number && (
-                                  <div style={{
-                                    marginTop: '5px',
-                                    textAlign: 'center',
-                                    fontSize: '0.75rem',
-                                    color: '#999'
-                                  }}>
-                                    Ep. {activity.episode_number}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div style={{
-                          textAlign: 'center',
-                          padding: '20px',
-                          color: '#999'
-                        }}>
-                          Loading word details...
-                        </div>
-                      )}
+  {expandedSession === session.id && (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.3 }}
+      style={{ overflow: 'hidden' }}
+    >
+      {/* ✅ NEW CODE STARTS HERE */}
+      {sessionActivities[session.id] && sessionActivities[session.id].length > 0 ? (
+        <div style={{
+          marginTop: '15px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+          gap: '12px'
+        }}>
+          {sessionActivities[session.id].map((wordStat, idx) => (
+            <div
+              key={idx}
+              style={{
+                background: wordStat.hints_used > 0 ? '#fff3cd' : '#d4edda',
+                borderLeft: `4px solid ${wordStat.hints_used > 0 ? '#ffc107' : '#28a745'}`,
+                padding: '12px',
+                borderRadius: '8px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}
+            >
+              {/* Word Title */}
+              <div style={{
+                fontSize: '1.1rem',
+                fontWeight: 700,
+                color: '#333',
+                marginBottom: '8px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                {wordStat.word}
+              </div>
+
+              {/* Stats Grid */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '8px',
+                fontSize: '0.85rem'
+              }}>
+                {/* Time Spent */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '8px',
+                  background: 'rgba(255,255,255,0.7)',
+                  borderRadius: '6px'
+                }}>
+                  <span style={{ fontSize: '1.3rem' }}>⏱️</span>
+                  <span style={{ 
+                    fontSize: '1.2rem', 
+                    fontWeight: 700,
+                    color: '#667eea' 
+                  }}>
+                    {wordStat.time_spent}s
+                  </span>
+                  <span style={{ 
+                    color: '#666',
+                    fontSize: '0.75rem',
+                    marginTop: '2px'
+                  }}>
+                    Time
+                  </span>
+                </div>
+
+                {/* Hints Used */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '8px',
+                  background: wordStat.hints_used > 0 
+                    ? 'rgba(255, 193, 7, 0.2)' 
+                    : 'rgba(40, 167, 69, 0.2)',
+                  borderRadius: '6px',
+                  border: wordStat.hints_used > 0 
+                    ? '2px solid #ffc107' 
+                    : '2px solid #28a745'
+                }}>
+                  <span style={{ fontSize: '1.3rem' }}>
+                    {wordStat.hints_used > 0 ? '💡' : '✅'}
+                  </span>
+                  <span style={{ 
+                    fontSize: '1.4rem', 
+                    fontWeight: 900,
+                    color: wordStat.hints_used > 0 ? '#ff9800' : '#28a745'
+                  }}>
+                    {wordStat.hints_used}
+                  </span>
+                  <span style={{ 
+                    color: '#666',
+                    fontSize: '0.75rem',
+                    marginTop: '2px'
+                  }}>
+                    {wordStat.hints_used === 1 ? 'Hint' : 'Hints'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Episode Badge */}
+              <div style={{
+                marginTop: '8px',
+                fontSize: '0.7rem',
+                color: '#666',
+                textAlign: 'center',
+                padding: '4px',
+                background: 'rgba(0,0,0,0.05)',
+                borderRadius: '4px'
+              }}>
+                📖 Ep. {wordStat.episode_number}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{
+          textAlign: 'center',
+          padding: '20px',
+          color: '#999',
+          fontStyle: 'italic'
+        }}>
+          {sessionActivities[session.id] ? 'No word data available' : 'Loading word details...'}
+        </div>
+      )}
                     </motion.div>
                   )}
                 </AnimatePresence>

@@ -1,4 +1,4 @@
-/* StoryScreen.module.css - Top Right Button Controls */
+/* StoryScreen.module.css - Complete Styles */
 
 .storyScreenContainer {
   width: 100%;
@@ -8,39 +8,6 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   overflow: hidden;
   position: relative;
-}
-
-/* Header - with episode info only */
-.header {
-  background: white;
-  padding: 25px 30px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border-radius: 0 0 25px 25px;
-  margin-bottom: 20px;
-  position: relative;
-  z-index: 10;
-}
-
-.episodeInfo {
-  max-width: calc(100% - 400px); /* Leave space for top-right buttons */
-}
-
-.episodeTitle {
-  font-size: 1.8rem;
-  color: #4a148c;
-  margin: 0 0 8px 0;
-  font-weight: 700;
-}
-
-.stageLabel {
-  display: inline-block;
-  background: linear-gradient(to right, #9c27b0, #673ab7);
-  color: white;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.3);
 }
 
 /* TOP RIGHT BUTTON CONTROLS - FIXED POSITION */
@@ -149,6 +116,39 @@
   outline-offset: 3px;
 }
 
+/* Header - with episode info only */
+.header {
+  background: white;
+  padding: 25px 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 0 0 25px 25px;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 10;
+}
+
+.episodeInfo {
+  max-width: calc(100% - 400px);
+}
+
+.episodeTitle {
+  font-size: 1.8rem;
+  color: #4a148c;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+}
+
+.stageLabel {
+  display: inline-block;
+  background: linear-gradient(to right, #9c27b0, #673ab7);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.3);
+}
+
 /* Main Content */
 .mainContent {
   flex: 1;
@@ -172,40 +172,160 @@
 
 /* Story Panel */
 .storyPanel {
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 30px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   position: relative;
   z-index: 1;
+  border: 5px solid transparent;
+  background-clip: padding-box;
 }
 
+/* Rainbow border effect for story panel */
+.storyPanel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  margin: -5px;
+  border-radius: 30px;
+  background: linear-gradient(
+    135deg,
+    #ff6b6b,
+    #4ecdc4,
+    #45b7d1,
+    #f7b731,
+    #5f27cd,
+    #ff6b6b
+  );
+  background-size: 300% 300%;
+  animation: rainbowBorder 5s ease infinite;
+}
+
+@keyframes rainbowBorder {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Story Scroll Container - Manual scrolling always enabled */
 .storyScroll {
   flex: 1;
   overflow-y: auto;
-  padding: 40px;
+  overflow-x: hidden;
+  padding: 50px;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(78, 205, 196, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(247, 183, 49, 0.05) 0%, transparent 50%),
+    linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+  position: relative;
+  
+  /* Enable smooth scrolling for both manual AND automatic */
+  scroll-behavior: smooth;
+  
+  /* IMPORTANT: Always allow user to scroll manually */
+  user-select: text;
+  pointer-events: auto;
+  touch-action: pan-y;
+  
+  /* Add padding for better centering during auto-scroll */
+  scroll-padding-top: 100px;
+  scroll-padding-bottom: 100px;
 }
 
+/* Decorative elements - Stars and fun shapes */
+.storyScroll::before {
+  content: '✨ 🌟 ⭐ 💫 ✨ 🌟 ⭐ 💫';
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 1.5rem;
+  opacity: 0.3;
+  animation: twinkle 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+/* Custom Scrollbar - Rainbow themed */
 .storyScroll::-webkit-scrollbar {
-  width: 12px;
+  width: 16px;
 }
 
 .storyScroll::-webkit-scrollbar-track {
-  background: #f5f5f5;
+  background: linear-gradient(
+    to bottom,
+    #ffeaa7,
+    #fdcb6e,
+    #fab1a0,
+    #fd79a8,
+    #a29bfe,
+    #6c5ce7
+  );
   border-radius: 10px;
   margin: 10px 0;
+  border: 3px solid white;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .storyScroll::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #9c27b0, #673ab7);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 10px;
-  border: 2px solid #f5f5f5;
+  border: 4px solid white;
+  box-shadow: 0 3px 10px rgba(102, 126, 234, 0.5);
+  transition: all 0.3s ease;
 }
 
 .storyScroll::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #7b1fa2, #512da8);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: scale(1.1);
+  box-shadow: 0 5px 15px rgba(118, 75, 162, 0.7);
+}
+
+.storyScroll::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(135deg, #5f27cd 0%, #341f97 100%);
+}
+
+/* Story text container */
+.storyText {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Reading state - add gentle highlight */
+.storyText.reading {
+  animation: gentleGlow 2s ease-in-out infinite;
+}
+
+@keyframes gentleGlow {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.05);
+  }
 }
 
 /* Sentences Container */
@@ -214,8 +334,10 @@
   flex-direction: column;
   gap: 25px;
   padding: 10px;
+  padding-bottom: 200px;
 }
 
+/* Individual Sentence - COLORFUL & BIG */
 .sentence {
   display: flex;
   align-items: flex-start;
@@ -224,17 +346,20 @@
   border-radius: 25px;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  font-size: 1.5rem; /* BIGGER TEXT */
-  line-height: 2.2; /* MORE SPACE BETWEEN LINES */
+  font-size: 1.5rem;
+  line-height: 2.2;
   color: #2c3e50;
-  font-weight: 600; /* BOLDER TEXT */
+  font-weight: 600;
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
   border: 4px solid transparent;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   overflow: hidden;
+  scroll-margin-top: 150px;
+  scroll-margin-bottom: 150px;
 }
 
+/* Rainbow Border Animation on Hover */
 .sentence::before {
   content: '';
   position: absolute;
@@ -280,6 +405,7 @@
   background: linear-gradient(135deg, #fff9f0 0%, #ffe8f0 100%);
 }
 
+/* Active/Current Sentence - SUPER HIGHLIGHTED */
 .sentence.currentSentence {
   background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
   border: 5px solid #fbc02d;
@@ -299,6 +425,7 @@
   }
 }
 
+/* Spotlight effect on current sentence */
 .sentence.currentSentence::before {
   content: '';
   position: absolute;
@@ -328,7 +455,7 @@
   }
 }
 
-/* Add a reading pointer/indicator */
+/* Reading pointer indicator */
 .sentence.currentSentence::after {
   content: '👉';
   position: absolute;
@@ -337,6 +464,7 @@
   transform: translateY(-50%);
   font-size: 2rem;
   animation: pointBounce 1s ease-in-out infinite;
+  z-index: 20;
 }
 
 @keyframes pointBounce {
@@ -348,6 +476,7 @@
   }
 }
 
+/* Dim other sentences while reading */
 .storyText.reading .sentence:not(.currentSentence) {
   opacity: 0.5;
   transform: scale(0.98);
@@ -355,11 +484,10 @@
   transition: all 0.3s ease;
 }
 
-/* Visited sentences - checkmark effect */
+/* Visited Sentence */
 .sentence.visitedSentence:not(.currentSentence) {
   background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
   border-left: 6px solid #66bb6a;
-  position: relative;
 }
 
 .sentence.visitedSentence:not(.currentSentence)::after {
@@ -392,25 +520,6 @@
   }
 }
 
-/* Add a progress indicator at the top */
-.storyPanel::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 5px;
-  background: linear-gradient(to right, #4caf50, #66bb6a);
-  border-radius: 5px;
-  transition: width 0.5s ease;
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.5);
-  z-index: 100;
-}
-
-.sentence.visitedSentence {
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-  border-left: 6px solid #66bb6a;
-}
-
 /* Number Container */
 .sentenceNumberContainer {
   display: flex;
@@ -421,6 +530,7 @@
   padding-top: 4px;
 }
 
+/* Sentence Number - COLORFUL CIRCLES */
 .sentenceNumber {
   width: 48px;
   height: 48px;
@@ -467,23 +577,7 @@
   box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
 }
 
-.sentenceSpeakerButton {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, #4caf50, #45a049);
-  border: none;
-  border-radius: 50%;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 3px 8px rgba(76, 175, 80, 0.3);
-  flex-shrink: 0;
-  padding: 0;
-}
-
+/* Speaker Button - FUN COLORS */
 .sentenceSpeakerButton {
   width: 42px;
   height: 42px;
@@ -544,7 +638,6 @@
   animation: speakerPulse 1s ease-in-out infinite;
 }
 
-/* Vocabulary highlight */
 @keyframes speakerPulse {
   0%, 100% {
     transform: scale(1);
@@ -583,12 +676,6 @@
 }
 
 .vocabHighlight:hover {
-  background: linear-gradient(120deg, #fdcb6e 0%, #fab1a0 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(253, 203, 110, 0.4);
-}
-
-.vocabHighlight:hover {
   background: linear-gradient(135deg, #fdcb6e 0%, #fab1a0 100%);
   transform: translateY(-3px) scale(1.1);
   box-shadow: 0 8px 15px rgba(253, 203, 110, 0.6);
@@ -598,127 +685,6 @@
 .vocabHighlight:hover::before {
   opacity: 1;
   transform: scale(1) rotate(360deg);
-}
-
-/* Story Scroll Area */
-.storyScroll {
-  flex: 1;
-  overflow-y: auto;
-  padding: 50px;
-  background: 
-    radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(78, 205, 196, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(247, 183, 49, 0.05) 0%, transparent 50%),
-    linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
-  position: relative;
-  scroll-behavior: smooth; /* ENABLE SMOOTH SCROLLING */
-  scroll-padding-top: 100px; /* Add padding at top when scrolling */
-}
-
-/* Custom Scrollbar - COLORFUL */
-.storyScroll::-webkit-scrollbar {
-  width: 16px;
-}
-
-.storyScroll::-webkit-scrollbar-track {
-  background: linear-gradient(
-    to bottom,
-    #ffeaa7,
-    #fdcb6e,
-    #fab1a0,
-    #fd79a8,
-    #a29bfe,
-    #6c5ce7
-  );
-  border-radius: 10px;
-  margin: 10px 0;
-  border: 3px solid white;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.storyScroll::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 10px;
-  border: 4px solid white;
-  box-shadow: 0 3px 10px rgba(102, 126, 234, 0.5);
-  transition: all 0.3s ease;
-}
-
-.storyScroll::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-  box-shadow: 0 5px 15px rgba(118, 75, 162, 0.7);
-}
-
-.storyScroll:focus-within {
-  outline: 3px solid rgba(102, 126, 234, 0.3);
-  outline-offset: -3px;
-}
-.sentence {
-  animation: sentenceEnter 0.5s ease-out;
-}
-
-@keyframes sentenceEnter {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Mobile scroll optimization */
-@media (max-width: 768px) {
-  .storyScroll {
-    scroll-padding-top: 80px;
-    padding: 30px 20px;
-  }
-  
-  .sentence.currentSentence::after {
-    font-size: 1.5rem;
-    left: -40px;
-  }
-}
-
-
-/* Responsive - Keep it big for kids! */
-@media (max-width: 768px) {
-  .sentence {
-    font-size: 1.3rem;
-    padding: 25px 30px;
-    gap: 15px;
-  }
-  
-  .sentenceNumber {
-    width: 42px;
-    height: 42px;
-    font-size: 1.1rem;
-  }
-  
-  .sentenceSpeakerButton {
-    width: 38px;
-    height: 38px;
-  }
-}
-
-@media (max-width: 480px) {
-  .sentence {
-    font-size: 1.2rem;
-    padding: 20px 25px;
-    line-height: 2;
-  }
-  
-  .sentenceNumber {
-    width: 38px;
-    height: 38px;
-    font-size: 1rem;
-  }
-  
-  .sentenceSpeakerButton {
-    width: 34px;
-    height: 34px;
-  }
 }
 
 /* Vocabulary Sidebar */
@@ -856,6 +822,7 @@
     gap: 12px;
     padding: 16px 20px;
     font-size: 1.05rem;
+    scroll-margin-top: 100px;
   }
   
   .sentenceNumberContainer {
@@ -868,8 +835,14 @@
     height: 28px;
   }
   
+  .sentence.currentSentence::after {
+    font-size: 1.5rem;
+    left: -40px;
+  }
+  
   .storyScroll {
     padding: 25px;
+    scroll-padding-top: 80px;
   }
   
   .mainContent {
