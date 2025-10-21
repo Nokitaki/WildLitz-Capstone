@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/components/AIReadingCoach.module.css';
-
+import { API_ENDPOINTS } from '../config/api';
 // Sentence Writing Practice Component
 const SentenceWritingPractice = ({ vocabularyWords, wordDictionary, onSpeak, isSpeaking }) => {
   const [selectedWord, setSelectedWord] = useState(vocabularyWords[0] || '');
@@ -572,7 +572,8 @@ const AIReadingCoach = ({
   const fetchGPTDefinition = async (word) => {
     try {
       // IMPORTANT: Using sentence_formation endpoint, not syllabification
-      const response = await fetch('/api/sentence_formation/explain-word/', {
+      
+        const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/explain-word/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
