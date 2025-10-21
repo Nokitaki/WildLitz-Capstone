@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/components/AIReadingCoach.module.css';
-import { API_ENDPOINTS } from '../config/api';
+import { API_ENDPOINTS } from '../../config/api';
 // Sentence Writing Practice Component
 const SentenceWritingPractice = ({ vocabularyWords, wordDictionary, onSpeak, isSpeaking }) => {
   const [selectedWord, setSelectedWord] = useState(vocabularyWords[0] || '');
