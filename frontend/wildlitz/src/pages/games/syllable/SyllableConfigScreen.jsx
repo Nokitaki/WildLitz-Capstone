@@ -4,6 +4,7 @@ import axios from "axios";
 import styles from "../../../styles/games/syllable/SyllableConfigScreen.module.css";
 import EditWordModal from "./EditWordModal";
 
+
 const SyllableConfigScreen = ({ onStartGame }) => {
   // State management
   const [difficulty, setDifficulty] = useState("easy");
@@ -17,8 +18,10 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     schoolSupplies: true,
     nature: true,
     everydayWords: true,
-    everydayObjects: false,  // ✅ ADD THIS LINE
+    everydayObjects: false, // ✅ ADD THIS LINE
   });
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
   // AI Syllable Suggestion state
   const [isSuggestingBreakdown, setIsSuggestingBreakdown] = useState(false);
@@ -40,7 +43,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     syllableBreakdown: "",
     syllableCount: 0,
     category: "",
-    difficulty: "",  // ✅ ADD THIS LINE - empty by default
+    difficulty: "", // ✅ ADD THIS LINE - empty by default
   });
 
   // Spelling check state
@@ -148,7 +151,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
       );
 
       const response = await axios.get(
-        `http://127.0.0.1:8000/api/syllabification/search-words/?${params.toString()}`
+        `${API_URL}/api/syllabification/search-words/?...`
       );
 
       setSearchResults(response.data.results || []);
@@ -194,7 +197,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         setSelectedRating(0);
       }
     } catch (error) {
-      console.error('Error checking existing rating:', error);
+      console.error("Error checking existing rating:", error);
       setSelectedRating(0);
     }
 
@@ -203,7 +206,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
 
   const submitRating = async () => {
     if (selectedRating === 0) {
-      alert('Please select a rating before submitting');
+      alert("Please select a rating before submitting");
       return;
     }
 
@@ -215,31 +218,35 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         { rating: selectedRating },
         {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}` // Add auth token
-          }
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`, // Add auth token
+          },
         }
       );
 
       if (response.data.success) {
         // Update the word in search results with new rating
-        setSearchResults(currentResults =>
-          currentResults.map(w =>
+        setSearchResults((currentResults) =>
+          currentResults.map((w) =>
             w.id === ratingWord.id
-              ? { ...w, rating: response.data.new_average, rating_count: response.data.rating_count }
+              ? {
+                  ...w,
+                  rating: response.data.new_average,
+                  rating_count: response.data.rating_count,
+                }
               : w
           )
         );
 
         // Show different message for update vs new rating
-        const action = response.data.is_update ? 'updated' : 'submitted';
+        const action = response.data.is_update ? "updated" : "submitted";
         const previousText = response.data.previous_rating
           ? ` (was ${response.data.previous_rating} ⭐)`
-          : '';
+          : "";
 
         alert(
           `✅ Rating ${action}! ${previousText}\n` +
-          `Your rating: ${response.data.your_rating} ⭐\n` +
-          `New average: ${response.data.new_average} ⭐ (${response.data.rating_count} ratings)`
+            `Your rating: ${response.data.your_rating} ⭐\n` +
+            `New average: ${response.data.new_average} ⭐ (${response.data.rating_count} ratings)`
         );
 
         setShowRatingModal(false);
@@ -247,13 +254,13 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         setSelectedRating(0);
       }
     } catch (error) {
-      console.error('Error submitting rating:', error);
+      console.error("Error submitting rating:", error);
 
       // Check if it's an authentication error
       if (error.response?.status === 401 || error.response?.status === 403) {
-        alert('⚠️ You must be logged in to rate words.');
+        alert("⚠️ You must be logged in to rate words.");
       } else {
-        alert('Failed to submit rating. Please try again.');
+        alert("Failed to submit rating. Please try again.");
       }
     } finally {
       setIsSubmittingRating(false);
@@ -650,11 +657,11 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     }
 
     if (!validationResult && !validationDismissed) {
-  alert(
-    "Please wait for syllable validation to complete, or dismiss it to proceed manually"
-  );
-  return;
-}
+      alert(
+        "Please wait for syllable validation to complete, or dismiss it to proceed manually"
+      );
+      return;
+    }
 
     setIsSaving(true);
 
@@ -673,36 +680,52 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         // Check file size (limit to 5MB)
         const maxSize = 5 * 1024 * 1024; // 5MB in bytes
         if (imageFile.size > maxSize) {
-          alert("Image file is too large! Please use an image smaller than 5MB.");
+          alert(
+            "Image file is too large! Please use an image smaller than 5MB."
+          );
           setIsSaving(false);
           return;
         }
 
-        console.log("Adding image to form:", imageFile.name, imageFile.type, imageFile.size);
+        console.log(
+          "Adding image to form:",
+          imageFile.name,
+          imageFile.type,
+          imageFile.size
+        );
         formData.append("image", imageFile);
       }
 
       // ✅ IMPROVED: Add full word audio with proper filename
       if (fullWordAudio) {
         // Get the proper file extension
-        let extension = 'webm'; // default for recordings
+        let extension = "webm"; // default for recordings
 
         // If it's an uploaded file (has a File object), get its extension
         if (fullWordAudio.blob instanceof File) {
           const fileName = fullWordAudio.blob.name;
-          extension = fileName.split('.').pop();
+          extension = fileName.split(".").pop();
         }
 
         // Check file size (limit to 10MB)
         const maxSize = 10 * 1024 * 1024; // 10MB
         if (fullWordAudio.blob.size > maxSize) {
-          alert("Audio file is too large! Please use an audio file smaller than 10MB.");
+          alert(
+            "Audio file is too large! Please use an audio file smaller than 10MB."
+          );
           setIsSaving(false);
           return;
         }
 
-        const audioFilename = `${newCustomWord.word.toLowerCase().replace(/\s+/g, '_')}_full.${extension}`;
-        console.log("Adding full word audio:", audioFilename, fullWordAudio.blob.type, fullWordAudio.blob.size);
+        const audioFilename = `${newCustomWord.word
+          .toLowerCase()
+          .replace(/\s+/g, "_")}_full.${extension}`;
+        console.log(
+          "Adding full word audio:",
+          audioFilename,
+          fullWordAudio.blob.type,
+          fullWordAudio.blob.size
+        );
         formData.append("full_word_audio", fullWordAudio.blob, audioFilename);
       }
 
@@ -710,17 +733,27 @@ const SyllableConfigScreen = ({ onStartGame }) => {
       const syllables = newCustomWord.syllableBreakdown.split("-");
       syllables.forEach((syllable, index) => {
         if (syllableAudios[index]) {
-          let extension = 'webm'; // default for recordings
+          let extension = "webm"; // default for recordings
 
           // If it's an uploaded file, get its extension
           if (syllableAudios[index].blob instanceof File) {
             const fileName = syllableAudios[index].blob.name;
-            extension = fileName.split('.').pop();
+            extension = fileName.split(".").pop();
           }
 
-          const syllableFilename = `${newCustomWord.word.toLowerCase().replace(/\s+/g, '_')}_syl_${index}.${extension}`;
-          console.log(`Adding syllable ${index} audio:`, syllableFilename, syllableAudios[index].blob.type);
-          formData.append(`syllable_audio_${index}`, syllableAudios[index].blob, syllableFilename);
+          const syllableFilename = `${newCustomWord.word
+            .toLowerCase()
+            .replace(/\s+/g, "_")}_syl_${index}.${extension}`;
+          console.log(
+            `Adding syllable ${index} audio:`,
+            syllableFilename,
+            syllableAudios[index].blob.type
+          );
+          formData.append(
+            `syllable_audio_${index}`,
+            syllableAudios[index].blob,
+            syllableFilename
+          );
         }
       });
 
@@ -749,7 +782,11 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         }
 
         if (warnings.length > 0) {
-          alert(`Word saved, but some files failed to upload:\n${warnings.join('\n')}\n\nCheck the browser console for details.`);
+          alert(
+            `Word saved, but some files failed to upload:\n${warnings.join(
+              "\n"
+            )}\n\nCheck the browser console for details.`
+          );
         } else {
           setSaveSuccess(true);
           // Reset form after 2 seconds
@@ -785,7 +822,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
       syllableBreakdown: "",
       syllableCount: 0,
       category: "",
-      difficulty: "",  // ✅ ADD THIS LINE
+      difficulty: "", // ✅ ADD THIS LINE
     });
     setValidationResult(null);
     setImageFile(null);
@@ -982,17 +1019,18 @@ const SyllableConfigScreen = ({ onStartGame }) => {
               {Object.entries(difficultyInfo).map(([level, info]) => (
                 <motion.button
                   key={level}
-                  className={`${styles.difficultyBtn} ${difficulty === level ? styles.active : ""
-                    }`}
+                  className={`${styles.difficultyBtn} ${
+                    difficulty === level ? styles.active : ""
+                  }`}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => setDifficulty(level)}
                   style={
                     difficulty === level
                       ? {
-                        backgroundColor: info.color,
-                        borderColor: info.color,
-                      }
+                          backgroundColor: info.color,
+                          borderColor: info.color,
+                        }
                       : {}
                   }
                 >
@@ -1040,8 +1078,9 @@ const SyllableConfigScreen = ({ onStartGame }) => {
               {categories.map((category) => (
                 <motion.div
                   key={category.id}
-                  className={`${styles.categoryCard} ${selectedCategories[category.id] ? styles.selected : ""
-                    }`}
+                  className={`${styles.categoryCard} ${
+                    selectedCategories[category.id] ? styles.selected : ""
+                  }`}
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => toggleCategory(category.id)}
@@ -1093,8 +1132,9 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                 style={{
                   background: `linear-gradient(to right, 
                     ${difficultyInfo[difficulty].color} 0%, 
-                    ${difficultyInfo[difficulty].color} ${((questionCount - 5) / 15) * 100
-                    }%, 
+                    ${difficultyInfo[difficulty].color} ${
+                    ((questionCount - 5) / 15) * 100
+                  }%, 
                     #ddd ${((questionCount - 5) / 15) * 100}%, 
                     #ddd 100%)`,
                 }}
@@ -1293,8 +1333,9 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                   </label>
                   {/* 👇 Add a conditional 'loading' class here */}
                   <div
-                    className={`${styles.syllableBreakdownGroup} ${isSuggestingBreakdown ? styles.loading : ""
-                      }`}
+                    className={`${styles.syllableBreakdownGroup} ${
+                      isSuggestingBreakdown ? styles.loading : ""
+                    }`}
                   >
                     <input
                       id="syllable-breakdown"
@@ -1322,10 +1363,11 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                 <div className={styles.aiValidationSection}>
                   {validationResult && !validationDismissed && (
                     <div
-                      className={`${styles.validationResult} ${validationResult.is_correct
-                        ? styles.correct
-                        : styles.incorrect
-                        }`}
+                      className={`${styles.validationResult} ${
+                        validationResult.is_correct
+                          ? styles.correct
+                          : styles.incorrect
+                      }`}
                     >
                       <div>
                         <span className={styles.resultIcon}>
@@ -1421,7 +1463,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                 {/* ✅ NEW: DIFFICULTY SELECTION */}
                 <div className={styles.formGroup}>
                   <label htmlFor="difficulty">
-                    Difficulty Level <span style={{ color: 'red' }}>*</span>
+                    Difficulty Level <span style={{ color: "red" }}>*</span>
                   </label>
                   <select
                     id="difficulty"
@@ -1440,8 +1482,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                     <option value="hard">🧠 Hard (3+ syllables)</option>
                   </select>
                 </div>
-
-
 
                 {/* ✅ NEW: Show a different message when AI can't categorize */}
                 {newCustomWord.word.length > 2 &&
@@ -1469,8 +1509,9 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                 <div className={styles.imageUploadSection}>
                   <label>Word Image (Optional)</label>
                   <div
-                    className={`${styles.imageUploadBox} ${imagePreview ? styles.hasImage : ""
-                      }`}
+                    className={`${styles.imageUploadBox} ${
+                      imagePreview ? styles.hasImage : ""
+                    }`}
                     onClick={() =>
                       document.getElementById("image-upload-input").click()
                     }
@@ -1516,8 +1557,9 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                     <>
                       <div className={styles.audioActionButtons}>
                         <button
-                          className={`${styles.recordButton} ${isRecordingFullWord ? styles.recording : ""
-                            }`}
+                          className={`${styles.recordButton} ${
+                            isRecordingFullWord ? styles.recording : ""
+                          }`}
                           onClick={() =>
                             isRecordingFullWord
                               ? stopRecording()
@@ -1576,10 +1618,11 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                             <>
                               <div className={styles.audioActionButtons}>
                                 <button
-                                  className={`${styles.recordButton} ${recordingSyllableIndex === index
-                                    ? styles.recording
-                                    : ""
-                                    }`}
+                                  className={`${styles.recordButton} ${
+                                    recordingSyllableIndex === index
+                                      ? styles.recording
+                                      : ""
+                                  }`}
                                   onClick={() =>
                                     recordingSyllableIndex === index
                                       ? stopRecording()
@@ -1957,7 +2000,14 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                   <div className={styles.yourRatingDisplay}>
                     <span>✏️ Your current rating: </span>
                     <strong>{selectedRating} ⭐</strong>
-                    <span style={{ fontSize: '0.85rem', color: '#666', display: 'block', marginTop: '0.3rem' }}>
+                    <span
+                      style={{
+                        fontSize: "0.85rem",
+                        color: "#666",
+                        display: "block",
+                        marginTop: "0.3rem",
+                      }}
+                    >
                       (Click a different star to update)
                     </span>
                   </div>
@@ -1977,13 +2027,14 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                   {[1, 2, 3, 4, 5].map((star) => (
                     <motion.button
                       key={star}
-                      className={`${styles.starButton} ${star <= selectedRating ? styles.selected : ''
-                        }`}
+                      className={`${styles.starButton} ${
+                        star <= selectedRating ? styles.selected : ""
+                      }`}
                       onClick={() => setSelectedRating(star)}
                       whileHover={{ scale: 1.2 }}
                       whileTap={{ scale: 0.9 }}
                     >
-                      {star <= selectedRating ? '⭐' : '☆'}
+                      {star <= selectedRating ? "⭐" : "☆"}
                     </motion.button>
                   ))}
                 </div>
@@ -2011,9 +2062,10 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                   disabled={selectedRating === 0 || isSubmittingRating}
                 >
                   {isSubmittingRating
-                    ? 'Submitting...'
-                    : (selectedRating > 0 && ratingWord.rating > 0 ? 'Update Rating' : 'Submit Rating')
-                  }
+                    ? "Submitting..."
+                    : selectedRating > 0 && ratingWord.rating > 0
+                    ? "Update Rating"
+                    : "Submit Rating"}
                 </button>
               </div>
             </motion.div>
