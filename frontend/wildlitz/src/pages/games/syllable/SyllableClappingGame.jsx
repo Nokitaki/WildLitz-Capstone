@@ -1358,7 +1358,7 @@ const SyllableClappingGame = () => {
                 <span>🤖</span> AI Learning Assistant
               </div>
               <div className={styles.aiFeedbackContent}>
-                <div style={{ whiteSpace: 'pre-line', lineHeight: '0.7' }}>
+                <div style={{ whiteSpace: 'pre-line', lineHeight: '0.9' }}>
                   {learningFeedback || `In "${currentWord.word}", we hear ${currentWord.count} distinct syllables: ${currentWord.syllables}. Keep practicing!`}
                 </div>
               </div>
