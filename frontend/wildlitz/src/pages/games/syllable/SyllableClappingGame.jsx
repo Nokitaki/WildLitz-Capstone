@@ -117,11 +117,11 @@ const SyllableClappingGame = () => {
 
     let syllableAudioUrls = currentWord.syllable_audio_urls || [];
 
-    if (typeof syllableAudioUrls === 'string') {
+    if (typeof syllableAudioUrls === "string") {
       try {
         syllableAudioUrls = JSON.parse(syllableAudioUrls);
       } catch (error) {
-        console.error('Error parsing syllable_audio_urls:', error);
+        console.error("Error parsing syllable_audio_urls:", error);
         syllableAudioUrls = [];
       }
     }
@@ -129,7 +129,9 @@ const SyllableClappingGame = () => {
     const audioUrl = syllableAudioUrls[syllableIndex];
 
     if (!audioUrl) {
-      console.warn(`No audio available for syllable "${syllable}" at index ${syllableIndex}`);
+      console.warn(
+        `No audio available for syllable "${syllable}" at index ${syllableIndex}`
+      );
       setSpeakingSyllable(null);
       alert("⚠️ No audio available for this syllable");
       return;
@@ -139,7 +141,7 @@ const SyllableClappingGame = () => {
     audioRef.current = audio;
 
     audio.src = audioUrl;
-    audio.preload = 'auto';
+    audio.preload = "auto";
     audio.load();
 
     let hasPlayed = false;
@@ -156,10 +158,14 @@ const SyllableClappingGame = () => {
       });
     };
 
-    audio.addEventListener('canplay', playAudio, { once: true });
-    audio.addEventListener('loadeddata', () => {
-      setTimeout(playAudio, 100);
-    }, { once: true });
+    audio.addEventListener("canplay", playAudio, { once: true });
+    audio.addEventListener(
+      "loadeddata",
+      () => {
+        setTimeout(playAudio, 100);
+      },
+      { once: true }
+    );
 
     audio.onended = () => {
       setSpeakingSyllable(null);
@@ -195,8 +201,9 @@ const SyllableClappingGame = () => {
           return (
             <button
               key={index}
-              className={`${styles.syllableButton} ${speakingSyllable === syllable ? styles.speaking : ""
-                }`}
+              className={`${styles.syllableButton} ${
+                speakingSyllable === syllable ? styles.speaking : ""
+              }`}
               onClick={() => handleSyllablePronunciation(syllable, index)}
               disabled={speakingSyllable !== null}
             >
@@ -282,14 +289,22 @@ const SyllableClappingGame = () => {
         image_url: wordData.image_url || null,
         full_word_audio_url: wordData.full_word_audio_url || null,
         syllable_audio_urls: wordData.syllable_audio_urls || [],
-        fun_fact: wordData.fun_fact || `Fun fact about ${wordData.word}: This is a ${wordData.category.toLowerCase()} with ${wordData.count} syllables!`,
-        intro_message: wordData.intro_message || `Listen to "${wordData.word}" and count the syllables!`
+        fun_fact:
+          wordData.fun_fact ||
+          `Fun fact about ${
+            wordData.word
+          }: This is a ${wordData.category.toLowerCase()} with ${
+            wordData.count
+          } syllables!`,
+        intro_message:
+          wordData.intro_message ||
+          `Listen to "${wordData.word}" and count the syllables!`,
       });
 
       // Then set the bubble message from the AI-generated intro
       setBubbleMessage(
         wordData.intro_message ||
-        `Listen to "${wordData.word}" and count the syllables!`
+          `Listen to "${wordData.word}" and count the syllables!`
       );
     } catch (err) {
       setError("Failed to load word. Please try again.");
@@ -316,7 +331,7 @@ const SyllableClappingGame = () => {
           syllables: currentWord.syllables,
           clapCount: clapCount,
           correctCount: currentWord.count,
-          difficulty: gameConfig?.difficulty || 'medium',
+          difficulty: gameConfig?.difficulty || "medium",
         }
       );
 
@@ -357,11 +372,15 @@ const SyllableClappingGame = () => {
       // Set fallback learning feedback
       if (isCorrect) {
         setLearningFeedback(
-          `Great job! "${currentWord.word}" has ${currentWord.count} syllable${currentWord.count !== 1 ? 's' : ''}. Keep up the excellent work!`
+          `Great job! "${currentWord.word}" has ${currentWord.count} syllable${
+            currentWord.count !== 1 ? "s" : ""
+          }. Keep up the excellent work!`
         );
       } else {
         setLearningFeedback(
-          `The word "${currentWord.word}" has ${currentWord.count} syllable${currentWord.count !== 1 ? 's' : ''}. Don't worry - keep practicing!`
+          `The word "${currentWord.word}" has ${currentWord.count} syllable${
+            currentWord.count !== 1 ? "s" : ""
+          }. Don't worry - keep practicing!`
         );
       }
 
@@ -426,7 +445,11 @@ const SyllableClappingGame = () => {
           console.log("Current word:", currentWord);
           console.log("Audio URL:", currentWord?.full_word_audio_url);
 
-          if (currentWord && currentWord.word && currentWord.full_word_audio_url) {
+          if (
+            currentWord &&
+            currentWord.word &&
+            currentWord.full_word_audio_url
+          ) {
             // Stop any existing audio first
             if (audioRef.current) {
               audioRef.current.pause();
@@ -456,7 +479,6 @@ const SyllableClappingGame = () => {
     }
   }, [gamePhase, currentWord]);
 
-
   useEffect(() => {
     return () => {
       // Cleanup on component unmount
@@ -464,7 +486,7 @@ const SyllableClappingGame = () => {
         audioRef.current.pause();
         audioRef.current = null;
       }
-      if ('speechSynthesis' in window) {
+      if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
       }
     };
@@ -505,11 +527,14 @@ const SyllableClappingGame = () => {
       // Use the words array directly instead of relying on gameWords state
 
       // ✅ ADD DEBUGGING
-      console.log('=== WORD DATA FROM API ===');
-      console.log('First word object:', words[0]);
-      console.log('Has phonetic_guide?', words[0].phonetic_guide);
-      console.log('phonetic_guide value:', JSON.stringify(words[0].phonetic_guide, null, 2));
-      console.log('==========================');
+      console.log("=== WORD DATA FROM API ===");
+      console.log("First word object:", words[0]);
+      console.log("Has phonetic_guide?", words[0].phonetic_guide);
+      console.log(
+        "phonetic_guide value:",
+        JSON.stringify(words[0].phonetic_guide, null, 2)
+      );
+      console.log("==========================");
 
       // Set the current word explicitly using the first word from the returned array
       const firstWord = words[0];
@@ -521,9 +546,10 @@ const SyllableClappingGame = () => {
         image_url: firstWord.image_url || null,
         full_word_audio_url: firstWord.full_word_audio_url || null,
         syllable_audio_urls: firstWord.syllable_audio_urls || [],
-        phonetic_guide: firstWord.phonetic_guide || null,  // ✅ ADDED
+        phonetic_guide: firstWord.phonetic_guide || null, // ✅ ADDED
         fun_fact: firstWord.fun_fact || `Fun fact about ${firstWord.word}!`,
-        intro_message: firstWord.intro_message || `Let's listen and count the syllables!`
+        intro_message:
+          firstWord.intro_message || `Let's listen and count the syllables!`,
       });
 
       // Set bubble message
@@ -543,7 +569,7 @@ const SyllableClappingGame = () => {
   };
 
   const playWordWithTTS = (word) => {
-    if ('speechSynthesis' in window) {
+    if ("speechSynthesis" in window) {
       // IMPORTANT: Cancel any ongoing speech first
       window.speechSynthesis.cancel();
 
@@ -563,7 +589,7 @@ const SyllableClappingGame = () => {
         window.speechSynthesis.speak(utterance);
       }, 100);
     } else {
-      console.warn('Text-to-speech not supported in this browser');
+      console.warn("Text-to-speech not supported in this browser");
       setTimeout(() => setIsPlaying(false), 2000);
     }
   };
@@ -606,7 +632,7 @@ const SyllableClappingGame = () => {
     audio.src = fullWordAudioUrl;
 
     // Preload the audio
-    audio.preload = 'auto';
+    audio.preload = "auto";
     audio.load();
 
     // Set up event listeners BEFORE loading
@@ -625,11 +651,15 @@ const SyllableClappingGame = () => {
     };
 
     // Multiple fallback events to ensure playback
-    audio.addEventListener('canplay', playAudio, { once: true });
-    audio.addEventListener('loadeddata', () => {
-      // Small delay to ensure audio is really ready
-      setTimeout(playAudio, 100);
-    }, { once: true });
+    audio.addEventListener("canplay", playAudio, { once: true });
+    audio.addEventListener(
+      "loadeddata",
+      () => {
+        // Small delay to ensure audio is really ready
+        setTimeout(playAudio, 100);
+      },
+      { once: true }
+    );
 
     audio.onended = () => {
       setIsPlaying(false);
@@ -646,7 +676,9 @@ const SyllableClappingGame = () => {
     // Safety timeout - if nothing plays after 3 seconds, give up
     setTimeout(() => {
       if (!hasPlayed && audioRef.current === audio) {
-        console.warn("Audio did not play after 3 seconds, forcing play attempt");
+        console.warn(
+          "Audio did not play after 3 seconds, forcing play attempt"
+        );
         playAudio();
       }
     }, 3000);
@@ -678,7 +710,7 @@ const SyllableClappingGame = () => {
 
       // If not, generate it on-demand
       if (!phoneticGuide) {
-        console.log('No phonetic guide found, generating...');
+        console.log("No phonetic guide found, generating...");
         const response = await axios.post(
           `${API_ENDPOINTS.SYLLABIFICATION}/generate-phonetic-guide/`,
           {
@@ -720,7 +752,6 @@ const SyllableClappingGame = () => {
       }));
 
       setGamePhase("demo");
-
     } catch (error) {
       console.error("Error preparing demo:", error);
       alert("Failed to load demo. Please try again.");
@@ -779,13 +810,15 @@ const SyllableClappingGame = () => {
       full_word_audio_url: nextWordData.full_word_audio_url || null,
       syllable_audio_urls: nextWordData.syllable_audio_urls || [],
       fun_fact: nextWordData.fun_fact || `Fun fact about ${nextWordData.word}!`,
-      intro_message: nextWordData.intro_message || `Listen to "${nextWordData.word}" and count the syllables!`
+      intro_message:
+        nextWordData.intro_message ||
+        `Listen to "${nextWordData.word}" and count the syllables!`,
     });
 
     // Update bubble message for the new word
     setBubbleMessage(
       nextWordData.intro_message ||
-      `Listen to "${nextWordData.word}" and count the syllables!`
+        `Listen to "${nextWordData.word}" and count the syllables!`
     );
 
     // Log the current word state after update
@@ -867,7 +900,8 @@ const SyllableClappingGame = () => {
           syllable_audio_urls: wordData.syllable_audio_urls || [],
           phonetic_guide: wordData.phonetic_guide || null,
           fun_fact: wordData.fun_fact || `Fun fact about ${wordData.word}!`,
-          intro_message: wordData.intro_message || `Let's listen and count the syllables!`
+          intro_message:
+            wordData.intro_message || `Let's listen and count the syllables!`,
         });
 
         // Set bubble message
@@ -893,7 +927,6 @@ const SyllableClappingGame = () => {
       // ✅ FIX: Removed the nested setTimeout that was calling handlePlaySound()
       // The useEffect hook will handle playing audio automatically when
       // gamePhase changes to "playing" and currentWord is updated
-
     }, 1500);
   };
 
@@ -923,7 +956,8 @@ const SyllableClappingGame = () => {
         full_word_audio_url: wordData.full_word_audio_url || null,
         syllable_audio_urls: wordData.syllable_audio_urls || [],
         fun_fact: wordData.fun_fact || `Fun fact about ${wordData.word}!`,
-        intro_message: wordData.intro_message || `Let's listen and count the syllables!`
+        intro_message:
+          wordData.intro_message || `Let's listen and count the syllables!`,
       });
 
       // Set the bubble message from the AI-generated intro
@@ -994,7 +1028,8 @@ const SyllableClappingGame = () => {
         }
 
         console.log(
-          `Unique words after filtering: ${uniqueWords.length} (removed ${wordsData.length - uniqueWords.length
+          `Unique words after filtering: ${uniqueWords.length} (removed ${
+            wordsData.length - uniqueWords.length
           } duplicates)`
         );
 
@@ -1089,8 +1124,9 @@ const SyllableClappingGame = () => {
 
           {/* Word Display in Center - With flip effect */}
           <div
-            className={`${styles.wordSection} ${isFlipped ? styles.flipped : ""
-              }`}
+            className={`${styles.wordSection} ${
+              isFlipped ? styles.flipped : ""
+            }`}
             onClick={handleCardFlip}
             onTransitionEnd={handleFlipTransitionEnd}
           >
@@ -1115,8 +1151,9 @@ const SyllableClappingGame = () => {
               <div className={styles.wordDisplay}>
                 <h2>{currentWord.word}</h2>
                 <button
-                  className={`${styles.playButton} ${isPlaying ? styles.playing : ""
-                    }`}
+                  className={`${styles.playButton} ${
+                    isPlaying ? styles.playing : ""
+                  }`}
                   onClick={(e) => {
                     e.stopPropagation(); // Prevent card flip when clicking button
                     handlePlaySound();
@@ -1128,7 +1165,9 @@ const SyllableClappingGame = () => {
                 </button>
               </div>
 
-              <div className={styles.flipInstruction}>Click to see big image</div>
+              <div className={styles.flipInstruction}>
+                Click to see big image
+              </div>
             </div>
 
             {/* Back side - Real image */}
@@ -1177,8 +1216,9 @@ const SyllableClappingGame = () => {
             </div>
 
             <button
-              className={`${styles.checkButton} ${checkButtonDisabled ? styles.disabled : ""
-                }`}
+              className={`${styles.checkButton} ${
+                checkButtonDisabled ? styles.disabled : ""
+              }`}
               onClick={handleCheckAnswer}
               disabled={clapCount === 0 || checkButtonDisabled}
             >
@@ -1237,10 +1277,11 @@ const SyllableClappingGame = () => {
               {/* Feedback bubble below character */}
               {showBubble && (
                 <div
-                  className={`${styles.feedbackBubble} ${clapCount === currentWord.count
-                    ? styles.correct
-                    : styles.incorrect
-                    }`}
+                  className={`${styles.feedbackBubble} ${
+                    clapCount === currentWord.count
+                      ? styles.correct
+                      : styles.incorrect
+                  }`}
                 >
                   {bubbleMessage}
                 </div>
@@ -1262,8 +1303,9 @@ const SyllableClappingGame = () => {
 
           {/* Word and Image - With flip effect */}
           <div
-            className={`${styles.wordSection} ${isFlipped ? styles.flipped : ""
-              }`}
+            className={`${styles.wordSection} ${
+              isFlipped ? styles.flipped : ""
+            }`}
             onClick={handleCardFlip}
             onTransitionEnd={handleFlipTransitionEnd}
           >
@@ -1298,7 +1340,9 @@ const SyllableClappingGame = () => {
                 </div>
               </div>
 
-              <div className={styles.flipInstruction}>Click to see big image</div>
+              <div className={styles.flipInstruction}>
+                Click to see big image
+              </div>
             </div>
 
             {/* Back side - Real image */}
@@ -1337,15 +1381,20 @@ const SyllableClappingGame = () => {
                 return (
                   <button
                     key={index}
-                    className={`${styles.syllableButton} ${speakingSyllable === syllable ? styles.speaking : ""
-                      }`}
-                    onClick={() => handleSyllablePronunciation(syllable, index)}  // ✅ Fixed: Pass index
+                    className={`${styles.syllableButton} ${
+                      speakingSyllable === syllable ? styles.speaking : ""
+                    }`}
+                    onClick={() => handleSyllablePronunciation(syllable, index)} // ✅ Fixed: Pass index
                     disabled={speakingSyllable !== null}
-                    title={hasAudio ? `Click to hear "${syllable}"` : "No audio available"}  // ✅ Kept tooltip
+                    title={
+                      hasAudio
+                        ? `Click to hear "${syllable}"`
+                        : "No audio available"
+                    } // ✅ Kept tooltip
                   >
                     {syllable}
                     {!hasAudio && (
-                      <span className={styles.noAudioIndicator}> ⚠️</span>  // ✅ Visual warning if no audio
+                      <span className={styles.noAudioIndicator}> ⚠️</span> // ✅ Visual warning if no audio
                     )}
                   </button>
                 );
@@ -1358,16 +1407,38 @@ const SyllableClappingGame = () => {
                 <span>🤖</span> AI Learning Assistant
               </div>
               <div className={styles.aiFeedbackContent}>
-                <div style={{ whiteSpace: 'pre-line', lineHeight: '0.9' }}>
-                  {learningFeedback || `In "${currentWord.word}", we hear ${currentWord.count} distinct syllables: ${currentWord.syllables}. Keep practicing!`}
+                <div
+                  style={{
+                    /* This controls the line height *within* each paragraph */
+                    lineHeight: "1.2",
+                    /* ✅ ADD THIS LINE */
+                    fontSize:
+                      "0.9rem" /* Adjust this value (e.g., '14px', '0.85em') */,
+                  }}
+                >
+                  {learningFeedback
+                    ? learningFeedback.split("\n\n").map((paragraph, index) => (
+                        <p
+                          key={index}
+                          style={{
+                            /* This controls the space *between* each paragraph */
+                            margin: "0",
+                            marginBottom: "1em" /* Adjust this as needed */,
+                          }}
+                        >
+                          {paragraph}
+                        </p>
+                      ))
+                    : `In "${currentWord.word}", we hear ${currentWord.count} distinct syllables: ${currentWord.syllables}. Keep practicing!`}
                 </div>
               </div>
             </div>
 
             <div className={styles.actionButtons}>
               <button
-                className={`${styles.demoButton} ${demoButtonDisabled ? styles.disabled : ""
-                  }`}
+                className={`${styles.demoButton} ${
+                  demoButtonDisabled ? styles.disabled : ""
+                }`}
                 onClick={handleShowDemo}
                 disabled={demoButtonDisabled}
               >
@@ -1375,16 +1446,17 @@ const SyllableClappingGame = () => {
               </button>
 
               <button
-                className={`${styles.nextButton} ${nextButtonDisabled ? styles.disabled : ""
-                  }`}
+                className={`${styles.nextButton} ${
+                  nextButtonDisabled ? styles.disabled : ""
+                }`}
                 onClick={handleNextWord}
                 disabled={nextButtonDisabled}
               >
                 {nextButtonDisabled
                   ? "Loading..."
                   : currentIndex === totalWords
-                    ? "See Results"
-                    : "Next Word"}
+                  ? "See Results"
+                  : "Next Word"}
               </button>
             </div>
           </div>
