@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import styles from "../../../styles/games/syllable/SyllableConfigScreen.module.css";
+import { API_ENDPOINTS } from "../../../config/api"; // ✅ ADD THIS LINE
 
 const EditWordModal = ({ word, onSave, onClose }) => {
   // State for editable fields
@@ -69,7 +70,7 @@ const EditWordModal = ({ word, onSave, onClose }) => {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/syllabification/validate-syllable-structure/",
+        `${API_ENDPOINTS.SYLLABIFICATION}/validate-syllable-structure/`,
         {
           word: editedWord.word,
           syllable_breakdown: editedWord.syllableBreakdown,

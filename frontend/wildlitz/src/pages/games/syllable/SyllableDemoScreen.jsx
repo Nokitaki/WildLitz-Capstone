@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import styles from "../../../styles/games/syllable/SyllableDemoScreen.module.css";
 import wildLitzCharacter from "../../../assets/img/wildlitz-idle.png";
+import { API_ENDPOINTS } from "../../../config/api";
 
 const SyllableDemoScreen = ({ word, onBack, onPlaySound }) => {
   const [selectedSyllable, setSelectedSyllable] = useState("all");
@@ -35,7 +36,7 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound }) => {
     const generateDemoMessage = async () => {
       try {
         const response = await axios.post(
-          "http://127.0.0.1:8000/api/syllabification/generate-ai-content/",
+          `${API_ENDPOINTS.SYLLABIFICATION}/generate-ai-content/`,
           {
             type: "character_message",
             word: word.word,
@@ -71,7 +72,7 @@ const SyllableDemoScreen = ({ word, onBack, onPlaySound }) => {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/syllabification/generate-ai-content/",
+        `${API_ENDPOINTS.SYLLABIFICATION}/generate-ai-content/`,
         {
           type: "character_message",
           word: word.word,

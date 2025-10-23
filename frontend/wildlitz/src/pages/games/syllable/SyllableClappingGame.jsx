@@ -10,6 +10,7 @@ import SyllableLoadingScreen from "./SyllableLoadingScreen";
 import Character from "../../../assets/img/wildlitz-idle.png";
 import WordTransitionScreen from "./WordTransitionScreen";
 import soundManager from "../../../utils/soundManager";
+import { API_ENDPOINTS } from "../../../config/api";
 
 const SyllableClappingGame = () => {
   const navigate = useNavigate();
@@ -257,7 +258,7 @@ const SyllableClappingGame = () => {
 
       // Call API to get a word with AI-generated content
       const response = await axios.get(
-        `http://127.0.0.1:8000/api/syllabification/get-word-supabase/?difficulty=${difficulty}&${categoryParams}`
+        `${API_ENDPOINTS.SYLLABIFICATION}/get-word-supabase/?difficulty=${difficulty}&${categoryParams}`
       );
 
       const wordData = response.data;
@@ -309,7 +310,7 @@ const SyllableClappingGame = () => {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/syllabification/check-syllable-answer/",
+        `${API_ENDPOINTS.SYLLABIFICATION}/check-syllable-answer/`,
         {
           word: currentWord.word,
           syllables: currentWord.syllables,
@@ -389,7 +390,7 @@ const SyllableClappingGame = () => {
   const fetchPronunciationGuide = async () => {
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/syllabification/get-syllable-pronunciation/",
+        `${API_ENDPOINTS.SYLLABIFICATION}/get-syllable-pronunciation/`,
         {
           word: currentWord.word,
           syllables: currentWord.syllables,
@@ -679,7 +680,7 @@ const SyllableClappingGame = () => {
       if (!phoneticGuide) {
         console.log('No phonetic guide found, generating...');
         const response = await axios.post(
-          "http://127.0.0.1:8000/api/syllabification/generate-phonetic-guide/",
+          `${API_ENDPOINTS.SYLLABIFICATION}/generate-phonetic-guide/`,
           {
             word: currentWord.word,
             syllable_breakdown: currentWord.syllables,
@@ -695,7 +696,7 @@ const SyllableClappingGame = () => {
       let characterMessage = `Let's learn how to pronounce "${currentWord.word}" syllable by syllable!`;
       try {
         const messageResponse = await axios.post(
-          "http://127.0.0.1:8000/api/syllabification/generate-ai-content/",
+          `${API_ENDPOINTS.SYLLABIFICATION}/generate-ai-content/`,
           {
             type: "character_message",
             word: currentWord.word,
@@ -960,7 +961,7 @@ const SyllableClappingGame = () => {
         .map((cat) => `categories[]=${encodeURIComponent(cat)}`)
         .join("&");
 
-      const url = `http://127.0.0.1:8000/api/syllabification/get-word-batch/?difficulty=${difficulty}&${categoryParams}&count=${wordCount}`;
+      const url = `${API_ENDPOINTS.SYLLABIFICATION}/get-word-batch/?difficulty=${difficulty}&${categoryParams}&count=${wordCount}`;
       console.log("API URL:", url);
 
       // Call API to get a batch of words with AI-generated content
