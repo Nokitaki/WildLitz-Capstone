@@ -1,5 +1,5 @@
 /* ResultsScreen.module.css */
-/* Redesigned for horizontal layout with no overflow/scroll */
+/* FIXED VERSION - Prevents image overlapping with proper sizing and layout */
 
 .resultsContainer {
   width: 100%;
@@ -51,12 +51,13 @@
 .resultsTitle {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #333;
+  color: #1a4d44;
   margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
 }
 
 .titleEmoji {
@@ -65,19 +66,21 @@
 
 /* Feedback message box */
 .feedbackMessageBox {
-  background-color: #f5f9f8;
+  background-color: rgba(255, 255, 255, 0.95);
   border-radius: 15px;
   padding: 12px 16px;
   margin-bottom: 12px;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(129, 201, 192, 0.3);
 }
 
 .feedbackContent {
   font-size: 0.95rem;
-  color: #333;
+  color: #1a1a1a;
   text-align: center;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.4;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 /* Score Section */
@@ -92,6 +95,33 @@
   position: relative;
   overflow: hidden;
   color: white;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.scoreIcon {
+  font-size: 2rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.scoreContent {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.scoreLabel {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.scoreValue {
+  font-size: 2rem;
+  font-weight: 800;
+  font-family: 'Fredoka One', cursive;
 }
 
 .scoreInfo {
@@ -99,16 +129,24 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 6px;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .scoreText {
   font-size: 1rem;
   font-weight: 700;
+  color: #2c5f57;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .scoreText span {
   font-size: 1.3rem;
   margin-left: 5px;
+  color: #1a4d44;
+  font-weight: 800;
 }
 
 .feedbackMessage {
@@ -117,6 +155,7 @@
   gap: 6px;
   font-size: 1rem;
   font-weight: 700;
+  color: #1a4d44;
 }
 
 .feedbackIcon {
@@ -125,7 +164,9 @@
 
 .scoreDetails {
   font-size: 0.9rem;
-  opacity: 0.9;
+  opacity: 0.95;
+  color: #2c5f57;
+  font-weight: 600;
 }
 
 /* Results Content */
@@ -146,10 +187,11 @@
 }
 
 .resultSection {
-  background-color: #f5f9f8;
+  background-color: rgba(255, 255, 255, 0.95);
   border-radius: 10px;
   padding: 12px;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+  border: 2px solid rgba(129, 201, 192, 0.2);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -161,40 +203,66 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 10px;
+  padding: 4px 8px;
+  background-color: rgba(41, 107, 99, 0.1);
+  border-radius: 6px;
 }
 
 .sectionIcon {
   font-size: 1.1rem;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
 .sectionHeader h3 {
   margin: 0;
-  color: #296b63;
+  color: #1a4d44;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
-/* Animals Grid */
+/* ===== FIXED: Animals Grid with proper sizing ===== */
 .animalsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 10px;
   overflow-y: auto;
   flex: 1;
-  padding-right: 4px;
+  padding: 4px;
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #81c9c0 #f0f0f0;
 }
 
+.animalsGrid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.animalsGrid::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 10px;
+}
+
+.animalsGrid::-webkit-scrollbar-thumb {
+  background: #81c9c0;
+  border-radius: 10px;
+}
+
+/* ===== FIXED: Animal Result Card with proper constraints ===== */
 .animalResult {
   background-color: #e8f4f1;
-  height: 90px; /* Changed from 50% to a fixed height */
-  border-radius: 8px;
-  padding: 8px 6px;
+  border-radius: 10px;
+  padding: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  min-height: 110px;
+  max-height: 120px;
+  gap: 4px;
 }
 
 .animalResult:hover {
@@ -210,6 +278,69 @@
   background-color: #e3f2fd;
 }
 
+/* ===== FIXED: Animal Image Container with size constraints ===== */
+.animalResultImage {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.animalResultImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.animalResultImage span {
+  font-size: 2rem;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+}
+
+/* ===== FIXED: Animal Name with proper sizing ===== */
+.animalResultName {
+  font-size: 0.75rem;
+  color: #1a3d37;
+  font-weight: 700;
+  text-align: center;
+  width: 100%;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 0 2px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+/* ===== FIXED: Play Sound Button with proper sizing ===== */
+.playSoundBtn {
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px;
+  transition: all 0.2s ease;
+  color: #81c9c0;
+  flex-shrink: 0;
+}
+
+.playSoundBtn:hover {
+  transform: scale(1.2);
+  color: #5fb5aa;
+}
+
+.playSoundBtn:active {
+  transform: scale(0.9);
+}
+
+/* Old styles for backward compatibility (if using emoji-based animals) */
 .animalIcon {
   font-size: 2rem;
   margin-bottom: 6px;
@@ -238,15 +369,26 @@
   opacity: 1;
 }
 
+/* Empty state */
+.emptyState {
+  padding: 20px;
+  text-align: center;
+  color: #2c5f57;
+  font-style: italic;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
 /* Empty message */
 .emptyMessage {
-  background-color: #f5f5f5;
+  background-color: rgba(255, 255, 255, 0.9);
   border-radius: 8px;
   padding: 10px;
   text-align: center;
-  color: #757575;
+  color: #2c5f57;
   font-style: italic;
   font-size: 0.85rem;
+  font-weight: 600;
 }
 
 /* Action buttons */
@@ -255,6 +397,7 @@
   justify-content: center;
   gap: 16px;
   margin-top: auto;
+  padding-top: 8px;
 }
 
 .tryAgainButton {
@@ -317,19 +460,26 @@
   
   .feedbackContent {
     font-size: 0.85rem;
+    font-weight: 700;
   }
   
   .animalsGrid {
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    gap: 6px;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 8px;
   }
   
-  .animalIcon {
-    font-size: 1.8rem;
+  .animalResult {
+    min-height: 100px;
+    max-height: 110px;
   }
   
-  .animalName {
+  .animalResultImage {
+    height: 45px;
+  }
+  
+  .animalResultName {
     font-size: 0.7rem;
+    font-weight: 700;
   }
 }
 
@@ -351,6 +501,35 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
+  }
+  
+  .scoreText {
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+  
+  .animalsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+    gap: 6px;
+  }
+  
+  .animalResult {
+    min-height: 95px;
+    max-height: 105px;
+    padding: 6px;
+  }
+  
+  .animalResultImage {
+    height: 40px;
+  }
+  
+  .animalResultName {
+    font-size: 0.65rem;
+    font-weight: 700;
+  }
+  
+  .playSoundBtn {
+    font-size: 0.9rem;
   }
   
   .actionButtons {
@@ -378,19 +557,42 @@
   }
   
   .animalsGrid {
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 12px;
+  }
+  
+  .animalResult {
+    min-height: 130px;
+    max-height: 140px;
+    padding: 10px;
+  }
+  
+  .animalResultImage {
+    height: 60px;
+  }
+  
+  .animalResultName {
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+  
+  .playSoundBtn {
+    font-size: 1.1rem;
   }
   
   .scoreText {
     font-size: 1.2rem;
+    font-weight: 700;
   }
   
   .scoreText span {
     font-size: 1.5rem;
+    font-weight: 800;
   }
   
   .feedbackContent {
     font-size: 1.1rem;
+    font-weight: 700;
   }
 }
 
