@@ -165,47 +165,6 @@
   font-weight: 700;
 }
 
-.quickStartButton {
-  background: linear-gradient(135deg, var(--primary-green), var(--primary-green-dark));
-  color: var(--text-white);
-  border: none;
-  border-radius: var(--border-radius-xl);
-  padding: 5px 16px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: var(--shadow-md);
-  transition: all var(--transition-normal);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0 auto 20px;
-  position: relative;
-  overflow: hidden;
-  text-align: center;
-  flex-direction: column;
-}
-
-.quickStartButton:disabled {
-  background: linear-gradient(135deg, #bdbdbd, #9e9e9e);
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.quickStartButton::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.6s;
-}
-
-.quickStartButton:hover:not(:disabled)::before {
-  left: 100%;
-}
 
 .buttonIcon {
   font-size: 1.2rem;
@@ -1166,57 +1125,6 @@
   flex-wrap: wrap;
 }
 
-.quickStartButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 25px;
-  padding: 12px 30px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
-}
-
-.quickStartButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(102, 126, 234, 0.4);
-}
-
-.quickStartButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.analyticsButton {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  color: white;
-  border: none;
-  border-radius: 25px;
-  padding: 12px 30px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
-}
-
-.analyticsButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(76, 175, 80, 0.4);
-}
-
-@media (max-width: 768px) {
-  .quickActionsBar {
-    flex-direction: column;
-  }
-
-  .quickStartButton,
-  .analyticsButton {
-    width: 100%;
-  }
-}
 /* ANALYTICS ADDED: Add these styles to your existing ConfigScreen.module.css */
 
 /* ANALYTICS ADDED: Button layout fixes */
@@ -1245,7 +1153,7 @@
   display: flex;
   gap: 25px;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   margin-bottom: 25px;
   flex-wrap: wrap;
 }
@@ -1254,10 +1162,11 @@
 .quickStartButton,
 .analyticsButton {
   /* Sizing - MUST BE IDENTICAL */
-  text-align: left;
+  text-align: center;
   width: 240px;
   height: 160px;
   padding: 20px;
+  margin: 0;
   
   /* Layout */
   display: flex;

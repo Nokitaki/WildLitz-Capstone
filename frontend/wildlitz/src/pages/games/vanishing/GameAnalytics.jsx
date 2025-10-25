@@ -140,6 +140,12 @@ const GameAnalytics = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
+        <button 
+          onClick={() => window.location.href = '/games/vanishing-game'} 
+          className={styles.backButton}
+        >
+          ← Back to Game
+        </button>
         <h2>Your Phonics Progress</h2>
         <button onClick={loadAnalytics} className={styles.refreshButton}>
           Refresh
