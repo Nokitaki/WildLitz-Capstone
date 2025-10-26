@@ -1,23 +1,26 @@
 # backend/wildlitz/syllabification/views.py
-from django.http import JsonResponse 
+from django.http import JsonResponse, HttpRequest
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
-import json
-import random
-from supabase import create_client
-from django.conf import settings
+from rest_framework.request import Request # Needed for simulating request
 import logging
 import time
+import json # Needed for simulating request body
+import random # If you use random elements
 
-# Import the AI service
+# Import the AI service from the current app
 from .services_ai import AIContentGenerator
 
-# Import progress tracking
-from api.models import UserProgress, UserActivity
+# Import models and views from the api app (needed for logging)
+from api.models import UserProgress, UserActivity # Import models if you need to reference them directly
+from api.views import log_user_activity as api_log_user_activity # Import the logging function
+
+# Import Supabase client if needed for other functions in this file
+from django.conf import settings
+from supabase import create_client, Client
 
 logger = logging.getLogger(__name__)
 
@@ -133,81 +136,90 @@ def get_syllabification_word_from_supabase(request):
 
 @csrf_exempt
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([AllowAny]) # Allows anyone to check, but logs only if authenticated
 def check_syllable_answer(request):
-    """Check syllable clapping answer and provide AI feedback with progress tracking"""
+    """Check syllable clap count against correct count with AI feedback"""
     start_time = time.time()
-    
     try:
         data = request.data
-        word = data.get('word')
+        word_str = data.get('word')
         syllables = data.get('syllables')
-        user_clap_count = data.get('clapCount')
-        correct_count = data.get('correctCount')
+        clap_count = int(data.get('clapCount', 0))
+        correct_count = int(data.get('correctCount', 0))
         difficulty = data.get('difficulty', 'medium')
-        
-        # Determine if answer is correct
-        is_correct = user_clap_count == correct_count
-        
-        # Calculate time spent (if provided)
-        time_spent = data.get('timeSpent', time.time() - start_time)
-        
-        # Generate appropriate feedback message (for the speech bubble)
-        context = 'correct' if is_correct else 'incorrect'
-        feedback_message = ai_generator.generate_character_message(word, context)
-        
-        # 🆕 NEW: Generate personalized learning feedback for AI Learning Assistant section
-        learning_feedback = ai_generator.generate_learning_feedback(
-            word=word,
-            is_correct=is_correct,
-            syllable_count=correct_count,
-            difficulty=difficulty
-        )
-        
-        # Log activity for authenticated users
-        if request.user.is_authenticated:
-            log_syllabification_activity(
-                user=request.user,
-                activity_type='syllable_clapping',
-                question_data={
-                    'word': word,
-                    'syllables': syllables,
-                    'correct_count': correct_count
-                },
-                user_answer={'clap_count': user_clap_count},
-                correct_answer={'clap_count': correct_count},
-                is_correct=is_correct,
-                time_spent=time_spent,
-                difficulty=difficulty
-            )
-        
-        response_data = {
-            'is_correct': is_correct,
-            'feedback_message': feedback_message,
-            'learning_feedback': learning_feedback  # 🆕 NEW: Add learning feedback to response
-        }
-        
-        # Add progress info for authenticated users
+
+        if not word_str or not syllables:
+            return Response({'error': 'Word and syllables are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        is_correct = (clap_count == correct_count)
+
+        # Generate AI feedback message
+        ai_gen = AIContentGenerator()
+        feedback_context = 'correct' if is_correct else 'incorrect'
+        feedback_message = ai_gen.generate_character_message(word_str, feedback_context, difficulty)
+
+        # Generate AI learning feedback
+        learning_feedback = ai_gen.generate_learning_feedback(word_str, is_correct, correct_count, difficulty)
+
+        end_time = time.time()
+        time_spent = end_time - start_time # Note: Frontend calculation is usually more accurate
+
+        # Log activity ONLY if user is authenticated
         if request.user.is_authenticated:
             try:
-                progress = UserProgress.objects.get(
-                    user=request.user,
-                    module='syllabification',
-                    difficulty=difficulty
-                )
-                response_data['progress'] = {
-                    'total_attempts': progress.total_attempts,
-                    'accuracy_percentage': progress.accuracy_percentage,
-                    'correct_answers': progress.correct_answers
+                # Prepare data for the central logging function
+                log_data = {
+                    'module': 'syllabification',
+                    'activity_type': 'syllable_clapping',
+                    'question_data': {'word': word_str, 'syllables': syllables, 'correct_count': correct_count},
+                    'user_answer': {'clap_count': clap_count},
+                    'correct_answer': {'clap_count': correct_count},
+                    'is_correct': is_correct,
+                    'time_spent': time_spent, # Ideally, get this from frontend request data
+                    'difficulty': difficulty,
+                    # Add other fields from api/models.py UserActivity if needed
                 }
-            except UserProgress.DoesNotExist:
-                pass
-        
-        return Response(response_data)
-    
+
+                # Simulate the request object needed by api_log_user_activity
+                http_request = HttpRequest()
+                http_request.method = 'POST'
+                http_request.user = request.user # Pass the actual logged-in user
+                http_request._body = json.dumps(log_data).encode('utf-8') # Simulate request body
+                http_request.content_type = 'application/json'
+
+                # Create a DRF Request object from the HttpRequest
+                drf_request = Request(http_request)
+
+                # Call the imported logging function from api.views
+                api_log_user_activity(drf_request)
+
+                logger.info(f"User {request.user.id} activity logged for '{word_str}'. Correct: {is_correct}")
+
+            except Exception as log_e:
+                logger.error(f"Failed to log activity for user {request.user.id}: {str(log_e)}")
+                # Continue without failing the main request, but log the error
+
+        return Response({
+            'is_correct': is_correct,
+            'feedback_message': feedback_message,
+            'learning_feedback': learning_feedback,
+            'correct_count': correct_count,
+            'syllables': syllables.split('-')
+        })
+
     except Exception as e:
-        logger.error(f"Error checking syllable answer: {str(e)}")
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        logger.error(f"Error in check_syllable_answer: {str(e)}")
+        # Fallback response in case of any error
+        clap_count = int(request.data.get('clapCount', 0))
+        correct_count = int(request.data.get('correctCount', 0))
+        is_correct = (clap_count == correct_count)
+        return Response({
+            'is_correct': is_correct,
+            'feedback_message': "Good try!" if not is_correct else "Well done!",
+            'learning_feedback': "Keep practicing to improve your syllable counting skills!",
+            'correct_count': correct_count,
+            'syllables': request.data.get('syllables', '').split('-')
+        }, status=status.HTTP_200_OK) # Return OK even on internal error for graceful fallback
 
 @csrf_exempt
 @api_view(['POST'])
@@ -1068,3 +1080,4 @@ def generate_phonetic_guide_endpoint(request):
     except Exception as e:
         logger.error(f"Error generating phonetic guide: {str(e)}")
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    

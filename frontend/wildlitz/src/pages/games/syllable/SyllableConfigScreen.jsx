@@ -4,6 +4,7 @@ import axios from "axios";
 import styles from "../../../styles/games/syllable/SyllableConfigScreen.module.css";
 import EditWordModal from "./EditWordModal";
 import { API_ENDPOINTS } from "../../../config/api";
+import ProgressModal from "./ProgressModal";
 
 const SyllableConfigScreen = ({ onStartGame }) => {
   // State management
@@ -27,6 +28,9 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   const [showCategoryNotice, setShowCategoryNotice] = useState("");
 
   const [showSearchModal, setShowSearchModal] = useState(false);
+
+  // ✅ ADD THIS NEW STATE
+  const [showProgressModal, setShowProgressModal] = useState(false);
 
   const [validationDismissed, setValidationDismissed] = useState(false);
 
@@ -1059,6 +1063,18 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                   <span>📚</span>
                   Manage Database
                 </motion.button>
+
+                {/* ✅ ADD THIS NEW BUTTON */}
+                <motion.button
+                  className={`${styles.randomBtn} ${styles.manageDbBtn}`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowProgressModal(true)}
+                >
+                  <span>📊</span>
+                  My Progress
+                </motion.button>
+
                 <motion.button
                   className={styles.randomBtn}
                   whileHover={{ scale: 1.05 }}
@@ -1791,6 +1807,13 @@ const SyllableConfigScreen = ({ onStartGame }) => {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* ✅ ADD THIS NEW BLOCK FOR THE PROGRESS MODAL */}
+      <AnimatePresence>
+        {showProgressModal && (
+          <ProgressModal onClose={() => setShowProgressModal(false)} />
         )}
       </AnimatePresence>
 

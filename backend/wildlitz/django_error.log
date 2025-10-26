@@ -274,3 +274,273 @@ ERROR 2025-10-16 01:56:44,414 views Traceback (most recent call last):
                 ^^^^^^^^
 NameError: name 'datetime' is not defined. Did you forget to import 'datetime'?
 
+ERROR 2025-10-26 22:47:50,330 views Error in get_my_progress_summary for user 7: unsupported operand type(s) for +: 'int' and 'datetime.timedelta'
+ERROR 2025-10-26 22:47:50,336 log Internal Server Error: /api/syllabification/get-my-progress-summary/
+ERROR 2025-10-26 22:47:50,341 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 22:47:50,341 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 22:47:50,378 views Error in get_my_progress_summary for user 7: unsupported operand type(s) for +: 'int' and 'datetime.timedelta'
+ERROR 2025-10-26 22:47:50,379 log Internal Server Error: /api/syllabification/get-my-progress-summary/
+ERROR 2025-10-26 22:47:50,381 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 22:47:50,381 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 22:48:45,839 views Error in get_my_progress_summary for user 7: unsupported operand type(s) for +: 'int' and 'datetime.timedelta'
+ERROR 2025-10-26 22:48:45,841 log Internal Server Error: /api/syllabification/get-my-progress-summary/
+ERROR 2025-10-26 22:48:45,842 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 22:48:45,842 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 22:48:45,877 views Error in get_my_progress_summary for user 7: unsupported operand type(s) for +: 'int' and 'datetime.timedelta'
+ERROR 2025-10-26 22:48:45,879 log Internal Server Error: /api/syllabification/get-my-progress-summary/
+ERROR 2025-10-26 22:48:45,880 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 22:48:45,880 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 22:51:44,430 views Error in get_my_progress_summary for user 7: unsupported operand type(s) for +: 'int' and 'datetime.timedelta'
+ERROR 2025-10-26 22:51:44,436 log Internal Server Error: /api/syllabification/get-my-progress-summary/
+ERROR 2025-10-26 22:51:44,437 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 22:51:44,437 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 22:51:44,473 views Error in get_my_progress_summary for user 7: unsupported operand type(s) for +: 'int' and 'datetime.timedelta'
+ERROR 2025-10-26 22:51:44,476 log Internal Server Error: /api/syllabification/get-my-progress-summary/
+ERROR 2025-10-26 22:51:44,488 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 22:51:44,488 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 22:54:41,983 views Error in get_my_progress_summary for user 7: unsupported operand type(s) for +: 'int' and 'datetime.timedelta'
+ERROR 2025-10-26 22:54:41,984 log Internal Server Error: /api/syllabification/get-my-progress-summary/
+ERROR 2025-10-26 22:54:41,985 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 22:54:41,985 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 22:54:42,017 views Error in get_my_progress_summary for user 7: unsupported operand type(s) for +: 'int' and 'datetime.timedelta'
+ERROR 2025-10-26 22:54:42,020 log Internal Server Error: /api/syllabification/get-my-progress-summary/
+ERROR 2025-10-26 22:54:42,023 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 22:54:42,023 basehttp "GET /api/syllabification/get-my-progress-summary/ HTTP/1.1" 500 77
+ERROR 2025-10-26 23:44:13,976 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-26 23:44:24,002 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-26 23:44:33,647 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-26 23:44:43,279 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-26 23:44:53,365 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 00:56:41,026 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 00:56:52,938 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 00:57:02,573 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 00:57:18,426 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 00:57:30,067 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 00:57:39,863 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 00:57:49,868 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 00:58:03,748 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 00:58:14,348 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 00:58:38,832 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:02:19,977 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:02:30,039 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:02:39,920 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:02:50,587 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:03:01,120 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:04:55,698 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:05:05,494 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:05:16,213 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:05:26,213 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:05:37,391 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:08:17,140 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:08:27,566 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:08:39,190 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:08:49,223 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:08:59,631 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:16:38,414 log Internal Server Error: /api/get-my-progress-summary/
+Traceback (most recent call last):
+  File "C:\Github\WildLitz-Capstone\backend\wildlitz\api\views.py", line 272, in get_my_progress_summary
+    total_time_spent_sec = sum(p.total_time_spent for p in progress_records)
+TypeError: unsupported operand type(s) for +: 'int' and 'datetime.timedelta'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
+    return func(*args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\backend\wildlitz\api\views.py", line 288, in get_my_progress_summary
+    logger.error(f"Error in get_my_progress_summary for user {user.id}: {str(e)}")
+    ^^^^^^
+NameError: name 'logger' is not defined
+ERROR 2025-10-27 01:16:38,422 basehttp "GET /api/get-my-progress-summary/ HTTP/1.1" 500 111887
+ERROR 2025-10-27 01:16:38,422 basehttp "GET /api/get-my-progress-summary/ HTTP/1.1" 500 111887
+ERROR 2025-10-27 01:16:38,488 log Internal Server Error: /api/get-my-progress-summary/
+Traceback (most recent call last):
+  File "C:\Github\WildLitz-Capstone\backend\wildlitz\api\views.py", line 272, in get_my_progress_summary
+    total_time_spent_sec = sum(p.total_time_spent for p in progress_records)
+TypeError: unsupported operand type(s) for +: 'int' and 'datetime.timedelta'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
+    return func(*args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\backend\wildlitz\api\views.py", line 288, in get_my_progress_summary
+    logger.error(f"Error in get_my_progress_summary for user {user.id}: {str(e)}")
+    ^^^^^^
+NameError: name 'logger' is not defined
+ERROR 2025-10-27 01:16:38,493 basehttp "GET /api/get-my-progress-summary/ HTTP/1.1" 500 111887
+ERROR 2025-10-27 01:16:38,493 basehttp "GET /api/get-my-progress-summary/ HTTP/1.1" 500 111887
+ERROR 2025-10-27 01:19:42,769 log Internal Server Error: /api/get-my-progress-summary/
+Traceback (most recent call last):
+  File "C:\Github\WildLitz-Capstone\backend\wildlitz\api\views.py", line 273, in get_my_progress_summary
+TypeError: unsupported operand type(s) for +: 'int' and 'datetime.timedelta'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
+    return func(*args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\backend\wildlitz\api\views.py", line 289, in get_my_progress_summary
+NameError: name 'logger' is not defined
+ERROR 2025-10-27 01:19:42,773 basehttp "GET /api/get-my-progress-summary/ HTTP/1.1" 500 108985
+ERROR 2025-10-27 01:19:42,773 basehttp "GET /api/get-my-progress-summary/ HTTP/1.1" 500 108985
+ERROR 2025-10-27 01:19:42,834 log Internal Server Error: /api/get-my-progress-summary/
+Traceback (most recent call last):
+  File "C:\Github\WildLitz-Capstone\backend\wildlitz\api\views.py", line 273, in get_my_progress_summary
+TypeError: unsupported operand type(s) for +: 'int' and 'datetime.timedelta'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
+    return func(*args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\backend\wildlitz\api\views.py", line 289, in get_my_progress_summary
+NameError: name 'logger' is not defined
+ERROR 2025-10-27 01:19:42,836 basehttp "GET /api/get-my-progress-summary/ HTTP/1.1" 500 108985
+ERROR 2025-10-27 01:19:42,836 basehttp "GET /api/get-my-progress-summary/ HTTP/1.1" 500 108985
+ERROR 2025-10-27 01:19:50,919 log Internal Server Error: /api/get-my-progress-summary/
+Traceback (most recent call last):
+  File "C:\Github\WildLitz-Capstone\backend\wildlitz\api\views.py", line 273, in get_my_progress_summary
+TypeError: unsupported operand type(s) for +: 'int' and 'datetime.timedelta'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
+    return func(*args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\backend\wildlitz\api\views.py", line 289, in get_my_progress_summary
+NameError: name 'logger' is not defined
+ERROR 2025-10-27 01:19:50,921 basehttp "GET /api/get-my-progress-summary/ HTTP/1.1" 500 108985
+ERROR 2025-10-27 01:19:50,921 basehttp "GET /api/get-my-progress-summary/ HTTP/1.1" 500 108985
+ERROR 2025-10-27 01:19:51,035 log Internal Server Error: /api/get-my-progress-summary/
+Traceback (most recent call last):
+  File "C:\Github\WildLitz-Capstone\backend\wildlitz\api\views.py", line 273, in get_my_progress_summary
+TypeError: unsupported operand type(s) for +: 'int' and 'datetime.timedelta'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\venv\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
+    return func(*args, **kwargs)
+  File "C:\Github\WildLitz-Capstone\backend\wildlitz\api\views.py", line 289, in get_my_progress_summary
+NameError: name 'logger' is not defined
+ERROR 2025-10-27 01:19:51,041 basehttp "GET /api/get-my-progress-summary/ HTTP/1.1" 500 108985
+ERROR 2025-10-27 01:19:51,041 basehttp "GET /api/get-my-progress-summary/ HTTP/1.1" 500 108985
+ERROR 2025-10-27 01:22:55,703 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:23:48,301 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:23:59,111 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:24:08,905 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:24:19,730 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:33:49,402 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:34:04,444 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:34:14,066 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:34:23,880 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-27 01:34:34,072 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.

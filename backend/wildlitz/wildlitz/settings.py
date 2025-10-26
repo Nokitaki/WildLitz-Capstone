@@ -1,3 +1,4 @@
+#backend/wildlitz/wildlitz/settings.py
 """
 Django settings for wildlitz project.
 Updated for production readiness.

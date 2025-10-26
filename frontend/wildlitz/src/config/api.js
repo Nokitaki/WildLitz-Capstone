@@ -6,6 +6,7 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:80
 
 // Export specific API endpoints
 export const API_ENDPOINTS = {
+  API_BASE_URL: `${API_BASE_URL}/api`,
   AUTH: `${API_BASE_URL}/api/auth`,
   SYLLABIFICATION: `${API_BASE_URL}/api/syllabification`,
   PHONICS: `${API_BASE_URL}/api/phonics`,

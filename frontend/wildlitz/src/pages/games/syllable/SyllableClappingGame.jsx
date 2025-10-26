@@ -323,16 +323,24 @@ const SyllableClappingGame = () => {
     // Disable the check button to prevent multiple clicks
     setCheckButtonDisabled(true);
 
+    // ✅ ADD THIS CONFIG OBJECT
+    const config = {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+    };
     try {
       const response = await axios.post(
         `${API_ENDPOINTS.SYLLABIFICATION}/check-syllable-answer/`,
         {
+          // This is the data payload
           word: currentWord.word,
           syllables: currentWord.syllables,
           clapCount: clapCount,
           correctCount: currentWord.count,
           difficulty: gameConfig?.difficulty || "medium",
-        }
+        },
+        config // ✅ PASS THE CONFIG OBJECT AS THE THIRD ARGUMENT
       );
 
       setAiResponse(response.data);
@@ -349,6 +357,14 @@ const SyllableClappingGame = () => {
       if (response.data.is_correct) {
         setCorrectAnswers((prev) => prev + 1);
       }
+
+      // 🔥 NEW: Log this question activity
+      await logQuestionActivity(
+        currentWord,
+        clapCount,
+        response.data.is_correct,
+        10 // We'll add proper timing later
+      );
 
       // 🔊 NEW: Play sound based on whether answer is correct
       if (response.data.is_correct) {
@@ -394,6 +410,14 @@ const SyllableClappingGame = () => {
       if (isCorrect) {
         setCorrectAnswers((prev) => prev + 1);
       }
+
+      // 🔥 NEW: Log this question activity (fallback case)
+      await logQuestionActivity(
+        currentWord,
+        clapCount,
+        isCorrect,
+        10 // We'll add proper timing later
+      );
 
       setGamePhase("feedback");
       setShowBubble(true);
@@ -783,6 +807,61 @@ const SyllableClappingGame = () => {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
+  const logQuestionActivity = async (
+    wordData,
+    userAnswer,
+    isCorrect,
+    timeSpent
+  ) => {
+    try {
+      const token = localStorage.getItem("access_token");
+
+      if (!token) {
+        console.warn("No auth token found, skipping activity log");
+        return;
+      }
+
+      const activityData = {
+        module: "syllabification",
+        activity_type: "syllable_clapping",
+        difficulty: gameConfig?.difficulty?.toLowerCase() || "medium",
+        question_data: {
+          word: wordData.word,
+          syllables: wordData.syllables,
+          syllable_count: wordData.count,
+          category: wordData.category,
+        },
+        user_answer: {
+          clap_count: userAnswer,
+        },
+        correct_answer: {
+          syllable_count: wordData.count,
+          syllables: wordData.syllables,
+        },
+        is_correct: isCorrect,
+        time_spent: timeSpent || 0,
+        challenge_level: gameConfig?.difficulty || "medium",
+        learning_focus: "syllable_counting",
+      };
+
+      await axios.post(
+        `${API_ENDPOINTS.API_BASE_URL}/progress/log/`,
+        activityData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("✅ Question activity logged successfully");
+    } catch (error) {
+      console.error("❌ Failed to log activity:", error);
+      console.error("Error details:", error.response?.data);
+    }
+  };
+
   // Function to properly set up the next word
   const setupNextWord = (nextWordIndex) => {
     // Get the next word data
@@ -832,7 +911,7 @@ const SyllableClappingGame = () => {
     return true;
   };
 
-  const handleNextWord = () => {
+  const handleNextWord = async () => {
     // Disable the next button to prevent multiple clicks
     setNextButtonDisabled(true);
 

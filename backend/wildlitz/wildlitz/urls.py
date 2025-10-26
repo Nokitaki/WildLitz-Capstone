@@ -14,7 +14,10 @@ from api.views import (
     get_user_profile, 
     log_user_activity, 
     get_user_progress, 
-    get_user_analytics
+    get_user_analytics,
+    get_my_progress_summary,      # 🔥 ADD
+    get_my_accuracy_over_time,    # 🔥 ADD
+    get_my_most_missed_words,     # 🔥 ADD
 )
 
 urlpatterns = [
@@ -32,6 +35,11 @@ urlpatterns = [
     path('api/progress/log/', log_user_activity, name='log_activity'),
     path('api/progress/', get_user_progress, name='user_progress'),
     path('api/analytics/', get_user_analytics, name='user_analytics'),
+    
+    # 🔥 ADD THESE THREE LINES
+    path('api/get-my-progress-summary/', get_my_progress_summary, name='get_my_progress_summary'),
+    path('api/get-my-accuracy-over-time/', get_my_accuracy_over_time, name='get_my_accuracy_over_time'),
+    path('api/get-my-most-missed-words/', get_my_most_missed_words, name='get_my_most_missed_words'),
     
     # Your existing app URLs
     path('api/syllabification/', include('syllabification.urls')),

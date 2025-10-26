@@ -9,6 +9,12 @@ from django.utils import timezone
 from .models import UserProgress, UserActivity, UserSession
 import json
 
+# ✅ ADD THESE IMPORTS
+import logging
+from django.db.models import Count, Avg, Q
+from django.db.models.functions import TruncDay
+from datetime import timedelta
+
 # Authentication Views
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -235,3 +241,158 @@ def get_user_analytics(request):
         return Response({
             'error': str(e)
         }, status=status.HTTP_400_BAD_REQUEST)
+      
+        
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_my_progress_summary(request):
+    """
+    Get a summary of the logged-in user's progress.
+    """
+    user = request.user
+    try:
+        # Get all progress records for this user
+        progress_records = UserProgress.objects.filter(
+            user=user, 
+            module='syllabification'
+        )
+
+        if not progress_records.exists():
+            return Response({
+                'total_attempts': 0,
+                'total_correct': 0,
+                'overall_accuracy': 0,
+                'total_time_spent_sec': 0,
+                'average_time_per_question': 0
+            })
+
+        # Aggregate stats
+        total_attempts = sum(p.total_attempts for p in progress_records)
+        total_correct = sum(p.correct_answers for p in progress_records)
+        overall_accuracy = (total_correct / total_attempts * 100) if total_attempts > 0 else 0
+        
+        # 🔥 FIX: Convert timedelta to seconds before summing
+        total_time_spent_sec = sum(p.total_time_spent.total_seconds() for p in progress_records)
+        average_time_per_question = (total_time_spent_sec / total_attempts) if total_attempts > 0 else 0
+
+        # Find favorite (most played) difficulty
+        favorite_difficulty = progress_records.order_by('-total_attempts').first()
+        
+        return Response({
+            'total_attempts': total_attempts,
+            'total_correct': total_correct,
+            'overall_accuracy': round(overall_accuracy, 1),
+            'total_time_spent_sec': int(total_time_spent_sec),  # 🔥 Convert to int
+            'average_time_per_question': round(average_time_per_question, 2),
+            'favorite_difficulty': favorite_difficulty.difficulty if favorite_difficulty else 'N/A'
+        })
+
+    except Exception as e:
+        # 🔥 Use print instead of logger if logger not defined
+        print(f"Error in get_my_progress_summary for user {user.id}: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_my_accuracy_over_time(request):
+    """
+    Get the user's accuracy for the last 20 game sessions.
+    Groups activities into sessions based on time proximity.
+    """
+    user = request.user
+    try:
+        from datetime import timedelta
+        from django.db.models import Count, Q
+        
+        # Get all syllable clapping activities, ordered by time
+        activities = UserActivity.objects.filter(
+            user=user,
+            module='syllabification',
+            activity_type='syllable_clapping'
+        ).order_by('-timestamp')
+        
+        if not activities.exists():
+            return Response([])
+        
+        # Group activities into game sessions
+        # Activities within 5 minutes of each other are considered same session
+        sessions = []
+        current_session = []
+        last_timestamp = None
+        
+        for activity in activities:
+            if last_timestamp is None or (last_timestamp - activity.timestamp) <= timedelta(minutes=5):
+                current_session.append(activity)
+            else:
+                # Save previous session and start new one
+                if current_session:
+                    sessions.append(current_session)
+                current_session = [activity]
+            last_timestamp = activity.timestamp
+        
+        # Don't forget the last session
+        if current_session:
+            sessions.append(current_session)
+        
+        # Calculate accuracy for each session and format data
+        chart_data = []
+        for idx, session in enumerate(sessions[:20]):  # Last 20 sessions
+            total = len(session)
+            correct = sum(1 for a in session if a.is_correct)
+            accuracy = (correct / total * 100) if total > 0 else 0
+            
+            # Use session number or timestamp
+            chart_data.append({
+                'date': f'Game {len(sessions) - idx}',  # "Game 1", "Game 2", etc.
+                'accuracy': round(accuracy, 1),
+                'attempts': total,
+                'timestamp': session[0].timestamp.strftime('%Y-%m-%d %H:%M')
+            })
+        
+        # Reverse so oldest game is on the left
+        chart_data.reverse()
+        
+        return Response(chart_data)
+
+    except Exception as e:
+        print(f"Error in get_my_accuracy_over_time for user {user.id}: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_my_most_missed_words(request):
+    """
+    Get the top 5 most frequently missed words for the logged-in user.
+    """
+    user = request.user
+    try:
+        # Find words this user got wrong, group by word, and count occurrences
+        missed_words = UserActivity.objects.filter(
+            user=user,
+            module='syllabification',
+            activity_type='syllable_clapping',
+            is_correct=False
+        ).values(
+            # We assume the word is stored in 'question_data' as a JSON field
+            'question_data__word' 
+        ).annotate(
+            missed_count=Count('id')
+        ).order_by(
+            '-missed_count'
+        )[:5] # Get top 5
+
+        # Format the data
+        formatted_list = [
+            {
+                'word': item['question_data__word'],
+                'missed_count': item['missed_count']
+            }
+            for item in missed_words if item['question_data__word'] is not None
+        ]
+
+        return Response(formatted_list)
+
+    except Exception as e:
+        logger.error(f"Error in get_my_most_missed_words for user {user.id}: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
