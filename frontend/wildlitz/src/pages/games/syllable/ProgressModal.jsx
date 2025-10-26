@@ -12,6 +12,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler,  // Added for gradient fill
 } from "chart.js";
 import styles from "../../../styles/games/syllable/SyllableConfigScreen.module.css";
 import { API_ENDPOINTS } from "../../../config/api";
@@ -24,7 +25,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler  // Added for gradient fill
 );
 
 const ProgressModal = ({ onClose }) => {
@@ -66,76 +68,149 @@ const ProgressModal = ({ onClose }) => {
     fetchData();
   }, []);
 
-  // Format data for the line chart
+  // Chart configuration
   const lineChartData = {
-    labels: Array.isArray(accuracyData) ? accuracyData.map((d) => d.date) : [],
+    labels: accuracyData ? accuracyData.map((d) => d.date) : [],
     datasets: [
       {
-        label: "My Accuracy (%)",
-        data: Array.isArray(accuracyData) ? accuracyData.map((d) => d.accuracy) : [],
-        fill: false,
-        borderColor: "rgb(106, 90, 205)",
-        backgroundColor: "rgba(106, 90, 205, 0.5)",
-        tension: 0.1,
-      },
-    ],
+        label: "Accuracy",
+        data: accuracyData ? accuracyData.map((d) => d.accuracy) : [],
+        borderColor: "rgba(76, 175, 80, 1)", // Green
+        backgroundColor: (context) => {
+          const ctx = context.chart.ctx;
+          const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+          gradient.addColorStop(0, "rgba(76, 175, 80, 0.3)");
+          gradient.addColorStop(1, "rgba(76, 175, 80, 0.05)");
+          return gradient;
+        },
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4, // Smooth curves
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        pointBackgroundColor: "rgba(76, 175, 80, 1)",
+        pointBorderColor: "#fff",
+        pointBorderWidth: 2,
+        pointHoverBackgroundColor: "#fff",
+        pointHoverBorderColor: "rgba(76, 175, 80, 1)",
+        pointHoverBorderWidth: 3,
+      }
+    ]
   };
 
   const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      display: false,
-    },
-    title: {
-      display: true,
-      text: 'Accuracy Over Last 20 Games',
-      color: '#333',
-      font: { size: 16, weight: 'bold' }
-    },
-    tooltip: {
-      callbacks: {
-        title: function(context) {
-          const data = context[0].raw;
-          return context[0].label; // "Game 1", "Game 2", etc.
-        },
-        label: function(context) {
-          const dataIndex = context.dataIndex;
-          const data = accuracyData[dataIndex];
-          return [
-            `Accuracy: ${context.parsed.y}%`,
-            `Questions: ${data.attempts}`,
-            `Time: ${data.timestamp}`
-          ];
-        }
-      }
-    }
-  },
-  scales: {
-    y: {
-      beginAtZero: true,
-      max: 100,
-      ticks: {
-        callback: function(value) {
-          return value + '%';
-        }
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
       },
       title: {
         display: true,
-        text: 'Accuracy (%)',
-        color: '#666'
+        text: "Accuracy Over Last 20 Games",
+        color: "#2c3e50",
+        font: { 
+          size: 18, 
+          weight: "bold",
+          family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+        },
+        padding: {
+          top: 10,
+          bottom: 20
+        }
+      },
+      tooltip: {
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        titleColor: "#fff",
+        bodyColor: "#fff",
+        padding: 12,
+        cornerRadius: 8,
+        displayColors: false,
+        callbacks: {
+          title: function(context) {
+            return context[0].label;
+          },
+          label: function(context) {
+            const dataIndex = context.dataIndex;
+            const data = accuracyData[dataIndex];
+            return [
+              `Accuracy: ${context.parsed.y}%`,
+              `Questions: ${data.attempts}`,
+              `Played: ${data.timestamp}`
+            ];
+          }
+        }
       }
     },
-    x: {
-      title: {
-        display: true,
-        text: 'Game Sessions',
-        color: '#666'
+    scales: {
+      y: {
+        min: 0,
+        max: 110,
+        grid: {
+          color: "rgba(0, 0, 0, 0.06)",
+          drawBorder: false,
+        },
+        ticks: {
+          autoSkip: false,
+          callback: function(value) {
+            // Only show 0, 20, 40, 60, 80, 100
+            if ([0, 20, 40, 60, 80, 100].includes(value)) {
+              return value + "%";
+            }
+            return "";
+          },
+          stepSize: 10,
+          color: "#666",
+          font: {
+            size: 12
+          },
+          padding: 10
+        },
+        title: {
+          display: true,
+          text: "Accuracy (%)",
+          color: "#2c3e50",
+          font: {
+            size: 14,
+            weight: "600"
+          },
+          padding: {
+            bottom: 10
+          }
+        }
+      },
+      x: {
+        grid: {
+          display: false,
+          drawBorder: false,
+        },
+        ticks: {
+          color: "#666",
+          font: {
+            size: 11
+          },
+          maxRotation: 45,
+          minRotation: 45
+        },
+        title: {
+          display: true,
+          text: "Game Sessions",
+          color: "#2c3e50",
+          font: {
+            size: 14,
+            weight: "600"
+          },
+          padding: {
+            top: 10
+          }
+        }
       }
+    },
+    interaction: {
+      mode: "index",
+      intersect: false,
     }
-  }
-};
+  };
 
   const renderContent = () => {
     if (loading) {
@@ -167,52 +242,47 @@ const ProgressModal = ({ onClose }) => {
     return (
       <>
         {/* 1. Summary Stats */}
-        <div className={styles.statsGrid} style={{gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: '1.5rem'}}>
+        <div className={styles.statsGrid} style={{gridTemplateColumns: "repeat(3, 1fr)", marginBottom: "1.5rem"}}>
           <div className={styles.statItem}>
             <div className={styles.statIcon}>🎯</div>
-            {/* ✅ FIXED COLOR */}
-            <div className={styles.statLabel} style={{ color: '#666' }}>Overall Accuracy</div>
-            <div className={styles.statValue} style={{ color: '#333' }}>{summary.overall_accuracy}%</div>
+            <div className={styles.statLabel} style={{ color: "#666" }}>Overall Accuracy</div>
+            <div className={styles.statValue} style={{ color: "#333" }}>{summary.overall_accuracy}%</div>
           </div>
           <div className={styles.statItem}>
             <div className={styles.statIcon}>📚</div>
-            {/* ✅ FIXED COLOR */}
-            <div className={styles.statLabel} style={{ color: '#666' }}>Total Attempts</div>
-            <div className={styles.statValue} style={{ color: '#333' }}>{summary.total_attempts}</div>
+            <div className={styles.statLabel} style={{ color: "#666" }}>Total Attempts</div>
+            <div className={styles.statValue} style={{ color: "#333" }}>{summary.total_attempts}</div>
           </div>
           <div className={styles.statItem}>
             <div className={styles.statIcon}>⭐</div>
-            {/* ✅ FIXED COLOR */}
-            <div className={styles.statLabel} style={{ color: '#666' }}>Favorite Difficulty</div>
-            <div className={styles.statValue} style={{ color: '#333', textTransform: 'capitalize' }}>{summary.favorite_difficulty}</div>
+            <div className={styles.statLabel} style={{ color: "#666" }}>Favorite Difficulty</div>
+            <div className={styles.statValue} style={{ color: "#333", textTransform: "capitalize" }}>{summary.favorite_difficulty}</div>
           </div>
         </div>
 
         {/* 2. Charts and Missed Words */}
-        <div style={{ display: 'flex', gap: '1rem', maxHeight: '400px' }}>
+        <div style={{ display: "flex", gap: "1rem", maxHeight: "400px" }}>
           {/* Line Chart */}
-          <div className={styles.section} style={{ flex: 2, padding: '1rem' }}>
+          <div className={styles.section} style={{ flex: 2, padding: "1rem" }}>
             <Line options={chartOptions} data={lineChartData} />
           </div>
 
           {/* "Most Missed Words" SECTION */}
-          <div className={styles.section} style={{ flex: 1, padding: '1rem' }}>
-            <h3 style={{marginTop: 0, color: '#333'}}>My Top 5 Missed Words</h3>
-            {/* ✅ ADDED SAFETY CHECK HERE */}
+          <div className={styles.section} style={{ flex: 1, padding: "1rem" }}>
+            <h3 style={{marginTop: 0, color: "#333"}}>My Top 5 Missed Words</h3>
             {Array.isArray(missedWords) && missedWords.length > 0 ? (
                  <div className={styles.customList} style={{padding: 0}}>
-                    {/* This .map() is now safe */}
                     {missedWords.map((item, index) => (
                         <div className={styles.wordItem} key={index}>
                             <span className={styles.wordText}>{item.word}</span>
-                            <span className={styles.wordCategory} style={{backgroundColor: '#ffebee', color: '#c62828'}}>
-                                Missed {item.missed_count} {item.missed_count > 1 ? 'times' : 'time'}
+                            <span className={styles.wordCategory} style={{backgroundColor: "#ffebee", color: "#c62828"}}>
+                                Missed {item.missed_count} {item.missed_count > 1 ? "times" : "time"}
                             </span>
                         </div>
                     ))}
                  </div>
             ) : (
-                <p style={{fontSize: '0.9rem', color: '#666', textAlign: 'center', marginTop: '2rem'}}>
+                <p style={{fontSize: "0.9rem", color: "#666", textAlign: "center", marginTop: "2rem"}}>
                     Great job! You haven't missed any words repeatedly.
                 </p>
             )}
@@ -227,10 +297,10 @@ const ProgressModal = ({ onClose }) => {
       <motion.div
         className={styles.modal}
         style={{
-          width: '1100px',
-          height: '750px',
-          maxWidth: '90vw', 
-          maxHeight: '90vh' 
+          width: "1100px",
+          height: "750px",
+          maxWidth: "90vw", 
+          maxHeight: "90vh" 
         }}
         initial={{ opacity: 0, scale: 0.8, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -252,9 +322,9 @@ const ProgressModal = ({ onClose }) => {
         <div 
           className={styles.wordForm} 
           style={{ 
-            paddingBottom: '1.5rem', 
-            overflowY: 'auto', 
-            height: 'calc(100% - 70px)'
+            paddingBottom: "1.5rem", 
+            overflowY: "auto", 
+            height: "calc(100% - 70px)"
           }}
         >
           {renderContent()}
