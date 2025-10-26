@@ -27,6 +27,7 @@ const GameplayScreen = ({
   const [currentIntroAnimal, setCurrentIntroAnimal] = useState(null);
   const [showCenterStage, setShowCenterStage] = useState(false);
   const [isIntroducing, setIsIntroducing] = useState(false);
+  const [canSkipAnimal, setCanSkipAnimal] = useState(false);
   
   // ============ REFS FOR STATE TRACKING ============
   const timerRef = useRef(null);
@@ -35,6 +36,8 @@ const GameplayScreen = ({
   const readCountRef = useRef(0);
   const introPlayedRef = useRef(false);
   const introSpeechInProgressRef = useRef(false);
+  const skipAnimalRef = useRef(false); // ✅ ADD THIS LINE
+  const currentSpeechResolveRef = useRef(null); // ✅ ADD THIS LINE
   
   // ============ HELPER FUNCTIONS ============
   
@@ -83,12 +86,32 @@ const GameplayScreen = ({
   const readAnimalTwice = (animalName) => {
     return new Promise((resolve) => {
       readCountRef.current = 0;
+      skipAnimalRef.current = false; // ✅ ADD: Reset skip flag
+      currentSpeechResolveRef.current = resolve; // ✅ ADD: Store resolve for skip
       
       const readOnce = () => {
+        // ✅ ADD: Check if skip was triggered
+        if (skipAnimalRef.current) {
+          console.log(`⏭️ Skipped "${animalName}"`);
+          stopAllSpeech();
+          resolve();
+          return;
+        }
+        // ✅ END ADD
+        
         readCountRef.current++;
         console.log(`🔊 Reading "${animalName}" (${readCountRef.current}/2)`);
         
         playSpeech(animalName, 0.9, () => {
+          // ✅ ADD: Check if skip was triggered during speech
+          if (skipAnimalRef.current) {
+            console.log(`⏭️ Skipped "${animalName}"`);
+            stopAllSpeech();
+            resolve();
+            return;
+          }
+          // ✅ END ADD
+          
           if (readCountRef.current === 1) {
             setTimeout(() => {
               readOnce();
@@ -112,15 +135,31 @@ const GameplayScreen = ({
       
       setCurrentIntroAnimal(animal);
       setShowCenterStage(true);
+      setCanSkipAnimal(true); // ✅ ADD: Enable skip button
       
       setTimeout(async () => {
         await readAnimalTwice(animal.name);
+        setCanSkipAnimal(false); // ✅ ADD: Disable skip button
         setCurrentIntroAnimal(null);
         setTimeout(() => {
           resolve();
         }, 300);
       }, 300);
     });
+  };
+
+  const handleSkipCurrentAnimal = () => {
+    console.log('⏭️ Skip button clicked');
+    skipAnimalRef.current = true;
+    stopAllSpeech();
+    
+    // Resolve the current animal's speech promise immediately
+    if (currentSpeechResolveRef.current) {
+      currentSpeechResolveRef.current();
+      currentSpeechResolveRef.current = null;
+    }
+    
+    setCanSkipAnimal(false);
   };
   
   const introduceAllAnimals = () => {
@@ -601,6 +640,20 @@ const GameplayScreen = ({
                 </div>
                 <div className={styles.centerGlow} />
               </motion.div>
+              {/* ✅ SKIP BUTTON - OUTSIDE THE CARD, BOTTOM RIGHT */}
+              {canSkipAnimal && (
+                <motion.button
+                  className={styles.skipAnimalButton}
+                  onClick={handleSkipCurrentAnimal}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <span className={styles.skipArrow}>⏭️</span>
+                </motion.button>
+              )}
+              {/* ✅ END SKIP BUTTON */}
             </motion.div>
           )}
         </AnimatePresence>

@@ -879,3 +879,60 @@
     padding: 15px 30px;
   }
 }
+
+/* Skip Button for Individual Animal - Bottom Right Outside Card */
+.skipAnimalButton {
+  position: fixed; /* ✅ Changed from absolute to fixed */
+  bottom: 30px;
+  right: 30px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+  border: 3px solid white;
+  border-radius: 50%;
+  width: 70px; /* ✅ Made slightly bigger for better visibility */
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
+  transition: all 0.3s ease;
+  z-index: 1001; /* ✅ Higher z-index to appear above everything */
+}
+
+.skipAnimalButton:hover {
+  background: linear-gradient(135deg, #ff5252 0%, #ff6b6b 100%);
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
+  transform: translateY(-3px);
+}
+
+.skipAnimalButton:active {
+  transform: translateY(-1px) scale(0.95);
+}
+
+.skipArrow {
+  font-size: 2rem; /* ✅ Made slightly bigger */
+  animation: bounceRight 1s ease-in-out infinite;
+}
+
+@keyframes bounceRight {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .skipAnimalButton {
+    width: 60px;
+    height: 60px;
+    bottom: 20px;
+    right: 20px;
+  }
+  
+  .skipArrow {
+    font-size: 1.6rem;
+  }
+}
