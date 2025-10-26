@@ -1,17 +1,26 @@
-// src/pages/games/soundsafari/SoundSafariConfigScreen.jsx <updated on 2025-04-27>
+// src/pages/games/soundsafari/SoundSafariConfigScreen.jsx <updated on 2025-10-26>
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import styles from '../../../styles/games/safari/SoundSafariConfig.module.css';
 
 /**
  * Configuration screen component for Sound Safari game
  * Redesigned with horizontal layout and no overflow/scroll
+ * Updated with back button navigation
  */
 const SoundSafariConfigScreen = ({ onStartGame }) => {
+  const navigate = useNavigate();
+  
   // Game configuration state
   const [soundPosition, setSoundPosition] = useState('beginning');
   const [environment, setEnvironment] = useState('jungle');
   const [difficulty, setDifficulty] = useState('easy');
+  
+  // Handle back button click
+  const handleBackClick = () => {
+    navigate('/home');
+  };
   
   // Handle quick start with default settings
   const handleQuickStart = () => {
@@ -44,6 +53,17 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
   return (
     <div className={styles.configContainer}>
       <div className={styles.configCardWrapper}>
+        {/* Back Button - Inside the card border */}
+        <motion.button
+          className={styles.backButton}
+          onClick={handleBackClick}
+          whileHover={{ scale: 1.05, x: -3 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <span className={styles.backArrow}>←</span>
+          <span className={styles.backText}>Back</span>
+        </motion.button>
+        
         <div className={styles.configHeader}>
           <h1 className={styles.configTitle}>
             Sound Safari <span>Adventure</span>
