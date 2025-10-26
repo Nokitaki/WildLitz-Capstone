@@ -82,28 +82,60 @@ const ProgressModal = ({ onClose }) => {
   };
 
   const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "top",
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      display: false,
+    },
+    title: {
+      display: true,
+      text: 'Accuracy Over Last 20 Games',
+      color: '#333',
+      font: { size: 16, weight: 'bold' }
+    },
+    tooltip: {
+      callbacks: {
+        title: function(context) {
+          const data = context[0].raw;
+          return context[0].label; // "Game 1", "Game 2", etc.
+        },
+        label: function(context) {
+          const dataIndex = context.dataIndex;
+          const data = accuracyData[dataIndex];
+          return [
+            `Accuracy: ${context.parsed.y}%`,
+            `Questions: ${data.attempts}`,
+            `Time: ${data.timestamp}`
+          ];
+        }
+      }
+    }
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      max: 100,
+      ticks: {
+        callback: function(value) {
+          return value + '%';
+        }
       },
       title: {
         display: true,
-        text: "My Accuracy Over Time (Last 30 Days)",
-      },
+        text: 'Accuracy (%)',
+        color: '#666'
+      }
     },
-    scales: {
-      y: {
-        beginAtZero: true,
-        max: 100,
-        ticks: {
-          callback: function (value) {
-            return value + "%";
-          },
-        },
-      },
-    },
-  };
+    x: {
+      title: {
+        display: true,
+        text: 'Game Sessions',
+        color: '#666'
+      }
+    }
+  }
+};
 
   const renderContent = () => {
     if (loading) {
