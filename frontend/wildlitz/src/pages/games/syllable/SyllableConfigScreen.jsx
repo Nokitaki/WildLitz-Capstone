@@ -1867,11 +1867,11 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                       <label key={cat.id} className={styles.checkboxLabel}>
                         <input
                           type="checkbox"
-                          checked={searchFilters.categories.includes(cat.name)}
+                          checked={searchFilters.categories.includes(cat.id)}
                           onChange={(e) =>
                             handleFilterChange(
                               "category",
-                              cat.name,
+                              cat.id,
                               e.target.checked
                             )
                           }
