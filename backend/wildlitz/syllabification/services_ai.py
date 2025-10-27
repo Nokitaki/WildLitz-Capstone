@@ -53,8 +53,9 @@ class AIContentGenerator:
             # Context can be: 'intro', 'correct', 'incorrect', 'demo'
             context_prompts = {
                 'intro': [
-                    f"Create a short, encouraging message introducing the word '{word}' for a syllable clapping game. Max 100 characters.",
-                    f"Write a brief, enthusiastic prompt for a child to identify syllables in '{word}'. Max 100 characters.",
+                    f"Create a short, encouraging message introducing the word '{word}' for a syllable clapping game. IMPORTANT: Do NOT mention numbers or how many syllables. Max 100 characters.",
+                    f"Write a brief, enthusiastic prompt for a child to identify syllables in '{word}'. CRITICAL: Do NOT reveal or hint at the number of syllables. Max 100 characters.",
+                    f"Create an encouraging message for a syllable counting game with '{word}'. NEVER mention the syllable count or give numerical hints. Max 100 characters.",
                 ],
                 'correct': [
                     f"Create a short, celebratory message for correctly identifying that '{word}' has syllables. Max 100 characters.",
@@ -77,10 +78,16 @@ class AIContentGenerator:
             prompts = context_prompts.get(context, context_prompts['intro'])
             prompt = random.choice(prompts)
             
+            # Create system message based on context
+            if context == 'intro':
+                system_message = "You are a friendly, encouraging educational character speaking to elementary school children. CRITICAL: For intro messages, NEVER mention the number of syllables or give any numerical hints. Keep students guessing!"
+            else:
+                system_message = "You are a friendly, encouraging educational character speaking to elementary school children."
+            
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are a friendly, encouraging educational character speaking to elementary school children."},
+                    {"role": "system", "content": system_message},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=60,
