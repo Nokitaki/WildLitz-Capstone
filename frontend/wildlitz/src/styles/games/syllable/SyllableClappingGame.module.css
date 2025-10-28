@@ -305,7 +305,7 @@
   font-size: 1.4rem;
   font-weight: 600;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .clapButton {
@@ -320,7 +320,6 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-  margin-bottom: 2rem;
 }
 
 .clapButton:hover {
@@ -391,6 +390,248 @@
   align-items: center;
   color: white;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Microphone Controls Container */
+.micControls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+/* Microphone Toggle Button */
+.micToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 160px;
+}
+
+.micToggle:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Mic Active State (when listening) */
+.micToggle.micActive {
+  background-color: #10b981;
+  border-color: #10b981;
+  color: white;
+}
+
+.micToggle.micActive:hover {
+  background-color: #059669;
+  border-color: #059669;
+}
+
+/* Mic Icon */
+.micIcon {
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Mic Label */
+.micLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* Active label inside button */
+.activeLabel {
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-left: 0.3rem;
+  color: white;
+}
+
+/* Adjust pulse icon when inside button */
+.micToggle .pulseIcon {
+  font-size: 0.9rem;
+  margin-left: 0.5rem;
+  display: inline-block;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Make sure button content is aligned */
+.micToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 180px; /* Increased to fit "Listening... 🔴 Active" */
+}
+
+/* Listening Indicator */
+.listeningIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: white;
+  font-weight: 500;
+  padding: 0.4rem 0.8rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+/* Pulsing Red Dot Animation */
+.pulseIcon {
+  font-size: 0.8rem;
+  display: inline-block;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+/* Error Message Styles */
+.micError {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #fef2f2;
+  background-color: rgba(239, 68, 68, 0.2);
+  padding: 0.5rem 0.8rem;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 220px;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.errorIcon {
+  font-size: 1rem;
+}
+
+.errorText {
+  font-size: 0.8rem;
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+/* Reset Button (existing, but add if missing) */
+.resetButton {
+  background-color: rgba(255, 255, 255, 0.3);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 1rem;
+}
+
+.resetButton:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.resetIcon {
+  font-size: 1.2rem;
+}
+
+
+/* ==========================================
+   RESPONSIVE STYLES FOR MICROPHONE
+   Add to existing @media queries
+   ========================================== */
+
+/* Tablet and smaller screens */
+@media (max-width: 992px) {
+  .micControls {
+    margin-bottom: 1rem;
+  }
+  
+  .micToggle {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    min-width: 140px;
+  }
+  
+  .micIcon {
+    font-size: 1.1rem;
+  }
+  
+  .listeningIndicator {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+  
+  .micError {
+    font-size: 0.75rem;
+    max-width: 180px;
+  }
+}
+
+/* Mobile screens */
+@media (max-width: 768px) {
+  .micControls {
+    margin-bottom: 0.8rem;
+  }
+  
+  .micToggle {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    min-width: 120px;
+  }
+  
+  .micIcon {
+    font-size: 1rem;
+  }
+  
+  .micLabel {
+    font-size: 0.85rem;
+  }
+  
+  .listeningIndicator {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .micError {
+    font-size: 0.7rem;
+    max-width: 160px;
+    padding: 0.4rem 0.6rem;
+  }
 }
 
 .syllableSection h3 {

@@ -11,6 +11,7 @@ import Character from "../../../assets/img/wildlitz-idle.png";
 import WordTransitionScreen from "./WordTransitionScreen";
 import soundManager from "../../../utils/soundManager";
 import { API_ENDPOINTS } from "../../../config/api";
+import useClapDetection from "./useClapDetection"; // ← ADD THIS LINE
 
 const SyllableClappingGame = () => {
   const navigate = useNavigate();
@@ -58,6 +59,21 @@ const SyllableClappingGame = () => {
   // Card flip state
   const [isFlipped, setIsFlipped] = useState(false);
   const [isFlipping, setIsFlipping] = useState(false);
+
+  // Microphone clap detection state                        // ← ADD THESE
+  const [micEnabled, setMicEnabled] = useState(false); // ← ADD THESE
+
+  const { isListening, micPermission, errorMessage } = useClapDetection(
+    micEnabled && gamePhase === "playing", // Only enable during playing phase
+    () => setClapCount((prev) => prev + 1) // ✅ Inline function works!
+  );
+
+  // Disable mic when leaving playing phase
+  useEffect(() => {
+    if ((gamePhase === "complete" || gamePhase === "config") && micEnabled) {
+      setMicEnabled(false);
+    }
+  }, [gamePhase, micEnabled]);
 
   // 🔊 Load sound effects when component mounts
   useEffect(() => {
@@ -1274,8 +1290,56 @@ const SyllableClappingGame = () => {
 
           {/* Clap Area on Right */}
           <div className={styles.clapSection}>
-            <p className={styles.instructions}>Clap for each syllable!</p>
+            <p className={styles.instructions}>
+              {micEnabled && isListening
+                ? "👏 Clap out loud "
+                : "Clap for each syllable!"}
+            </p>
 
+            {/* Microphone Toggle Button */}
+            <div className={styles.micControls}>
+              <button
+                className={`${styles.micToggle} ${
+                  micEnabled ? styles.micActive : ""
+                }`}
+                onClick={() => setMicEnabled(!micEnabled)}
+                title={micEnabled ? "Disable microphone" : "Enable microphone"}
+              >
+                <span className={styles.micIcon}>🎤</span>
+                <span className={styles.micLabel}>
+                  {isListening
+                    ? "Listening..."
+                    : micEnabled
+                    ? "Starting..."
+                    : "Use Mic"}
+                </span>
+                {/* Active indicator inside button */}
+                {isListening && (
+                  <>
+                    <span className={styles.pulseIcon}>🔴</span>
+                    <span className={styles.activeLabel}>Active</span>
+                  </>
+                )}
+              </button>
+
+              {/* Show error messages */}
+              {micEnabled && errorMessage && (
+                <div className={styles.micError}>
+                  <span className={styles.errorIcon}>⚠️</span>
+                  <span className={styles.errorText}>{errorMessage}</span>
+                </div>
+              )}
+
+              {/* Permission denied message */}
+              {micEnabled && micPermission === "denied" && (
+                <div className={styles.micError}>
+                  <span className={styles.errorIcon}>⚠️</span>
+                  <span className={styles.errorText}>Mic access denied</span>
+                </div>
+              )}
+            </div>
+
+            {/* Manual Clap Button */}
             <button className={styles.clapButton} onClick={handleClap}>
               <span className={styles.clapIcon}>👏</span>
             </button>
