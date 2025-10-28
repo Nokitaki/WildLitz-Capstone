@@ -403,6 +403,8 @@ const GameplayScreen = ({
   setShowHandRaise(false);
   setPhaseTimer(0);
   setAttempts(prev => prev + 1);
+  setVanishState('visible');
+  setPreVanishPhase('answered');
   
   // Visual feedback
   setFeedbackType(recognized ? 'correct' : 'incorrect');
@@ -424,6 +426,37 @@ const GameplayScreen = ({
   // Report result with delay for feedback
   setTimeout(() => {
     onResult(recognized, word);
+  }, 1000);
+};
+// Handle "Give up" button specifically
+const handleGiveUp = () => {
+  if (hasAnswered) return;
+  
+  setHasAnswered(true);
+  clearAllTimers();
+  setResponsePhase('none');
+  setShowHandRaise(false);
+  setPhaseTimer(0);
+  setAttempts(prev => prev + 1);
+  
+  // Show the word
+  setVanishState('visible');
+  setPreVanishPhase('answered');
+  
+  // Use special "giveup" feedback type
+  setFeedbackType('giveup');
+  setShowVisualFeedback(true);
+  
+  setTimeout(() => {
+    setShowVisualFeedback(false);
+  }, 1500);
+    
+  // Update participation and energy (counts as incorrect)
+  updateParticipationStats(false);
+  
+  // Report result with delay for feedback
+  setTimeout(() => {
+    onResult(false, word);
   }, 1000);
 };
 
@@ -517,9 +550,32 @@ const handleShowWord = () => {
   };
   
   const handleSkip = () => {
-    if (hasAnswered) return;
-    handleUserResponse(false);
-  };
+  if (hasAnswered) return;
+  
+  // Skip without marking as wrong
+  setHasAnswered(true);
+  clearAllTimers();
+  setResponsePhase('none');
+  setShowHandRaise(false);
+  setPhaseTimer(0);
+  
+  // Show the word briefly
+  setVanishState('visible');
+  setPreVanishPhase('answered');
+  
+  // Show "Skipped" feedback (neutral, not wrong)
+  setFeedbackType('skipped');
+  setShowVisualFeedback(true);
+  
+  setTimeout(() => {
+    setShowVisualFeedback(false);
+  }, 1000);
+  
+  // Move to next word WITHOUT counting as incorrect
+  setTimeout(() => {
+    onResult(null, word); // null means skipped, not wrong
+  }, 800);
+};
   
   const toggleDiscussionMode = () => {
     setDiscussionMode(!discussionMode);
@@ -1213,22 +1269,32 @@ const useBrowserTTS = (text) => {
                   }}
                   transition={{ duration: 0.6 }}
                 >
-                    {feedbackType === 'revealed' ? (
-                    <div className={styles.revealedFeedback}>
-                      <span className={styles.eyeMark}>👁️</span>
-                      <span className={styles.feedbackText}>Word revealed!</span>
-                    </div>
-                  ) : feedbackType === 'correct' ? (
-                    <div className={styles.successFeedback}>
-                      <span className={styles.checkMark}>✅</span>
-                      <span className={styles.feedbackText}>Correct!</span>
-                    </div>
-                  ) : (
-                    <div className={styles.errorFeedback}>
-                      <span className={styles.xMark}>❌</span>
-                      <span className={styles.feedbackText}>Try again!</span>
-                    </div>
-                  )}
+               {feedbackType === 'revealed' ? (
+  <div className={styles.revealedFeedback}>
+    <span className={styles.eyeMark}>👁️</span>
+    <span className={styles.feedbackText}>Word revealed!</span>
+  </div>
+) : feedbackType === 'correct' ? (
+  <div className={styles.successFeedback}>
+    <span className={styles.checkMark}>✅</span>
+    <span className={styles.feedbackText}>Correct!</span>
+  </div>
+) : feedbackType === 'giveup' ? (
+  <div className={styles.giveUpFeedback}>
+    <span className={styles.encourageMark}>💪</span>
+    <span className={styles.feedbackText}>Better luck next time!</span>
+  </div>
+) : feedbackType === 'skipped' ? (
+  <div className={styles.skippedFeedback}>
+    <span className={styles.skipMark}>⏭️</span>
+    <span className={styles.feedbackText}>Skipped!</span>
+  </div>
+) : (
+  <div className={styles.errorFeedback}>
+    <span className={styles.xMark}>❌</span>
+    <span className={styles.feedbackText}>Try again!</span>
+  </div>
+)}
                 </motion.div>
                 
                 {/* Flash effect */}
@@ -1495,14 +1561,14 @@ javascript<div className={styles.wordContainer}>
 
 
             <motion.button 
-            className={`${styles.responseButton} ${styles.giveUpButton}`}
-            onClick={() => handleUserResponse(false)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            disabled={hasAnswered || preVanishPhase !== 'vanishing' || vanishState !== 'vanished'}
-          >
-            Give up
-          </motion.button>
+  className={`${styles.responseButton} ${styles.giveUpButton}`}
+  onClick={handleGiveUp}  // ⭐ CHANGED
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+  disabled={hasAnswered || preVanishPhase !== 'vanishing' || vanishState !== 'vanished'}
+>
+  Give up
+</motion.button>
             
           <motion.button 
             className={styles.responseButton}

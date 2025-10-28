@@ -842,7 +842,8 @@ html, body {
   height: 100vh;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;  /* ⭐ CHANGED */
+  padding-top: 100px;  /* ⭐ ADDED */
   z-index: 1000;
   pointer-events: none;
 }
@@ -965,6 +966,49 @@ html, body {
   flex-direction: column;
   align-items: center;
   gap: 10px;
+}
+/* Give up feedback */
+.giveUpFeedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Skipped feedback */
+.skippedFeedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.skipMark {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.feedbackIcon.skipped {
+  background: linear-gradient(135deg, #9c27b0, #ba68c8);
+  color: white;
+}
+
+.flashEffect.skipped {
+  background: linear-gradient(135deg, #9c27b0, #ba68c8);
+}
+
+.encourageMark {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.feedbackIcon.giveup {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  color: white;
+}
+
+.flashEffect.giveup {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
 }
 
 .eyeMark {

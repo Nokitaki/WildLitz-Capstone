@@ -137,93 +137,118 @@ const VanishingGame = () => {
    * Handle word result from gameplay
    */
   const handleWordResult = (recognized, word, responseTime) => {
-    const result = { recognized, word, responseTime };
-    setLastResult(result);
-    
-    // Update team scores if team play
-    if (gameConfig.teamPlay) {
-      if (recognized) {
-        setTeamScores(prev => ({
-          ...prev,
-          [currentTeam]: prev[currentTeam] + 1
-        }));
-      }
-      // Switch teams
-      setCurrentTeam(prev => prev === 'teamA' ? 'teamB' : 'teamA');
-    }
-    
-    // Update enhanced stats
+  const result = { recognized, word, responseTime };
+  setLastResult(result);
+  
+  // ⭐ Handle SKIP (recognized === null)
+  if (recognized === null) {
+    // Update enhanced stats for SKIP
     const newStats = { ...gameStats };
-    newStats.wordsAttempted++;
     newStats.timeSpent = Date.now() - sessionStartTime;
     
-    // Pattern-specific tracking
-    const currentPattern = gameConfig.learningFocus;
-    if (!newStats.patternStats[currentPattern]) {
-      newStats.patternStats[currentPattern] = { attempted: 0, correct: 0, averageTime: 0 };
-    }
-    newStats.patternStats[currentPattern].attempted++;
-    
-    if (recognized) {
-      newStats.wordsRecognized++;
-      newStats.patternStats[currentPattern].correct++;
-      newStats.streakCount++;
-      newStats.maxStreak = Math.max(newStats.maxStreak, newStats.streakCount);
-      setScore(prevScore => prevScore + 1);
-    } else {
-      newStats.streakCount = 0;
-    }
-    
-    // Update average response time
-    newStats.averageResponseTime = 
-      (newStats.averageResponseTime * (newStats.wordsAttempted - 1) + responseTime) / 
-      newStats.wordsAttempted;
-    
-    // Update pattern average time
-    const patternStats = newStats.patternStats[currentPattern];
-    patternStats.averageTime = 
-      (patternStats.averageTime * (patternStats.attempted - 1) + responseTime) / 
-      patternStats.attempted;
-    
-    // Calculate success rate
-    newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
-    
-    // Track difficulty progression
+    // Track skipped words in difficulty progression
     newStats.difficultyProgression.push({
       round: currentRound,
       word: word,
-      recognized,
+      recognized: null,  // null indicates skipped
       responseTime,
-      pattern: currentPattern
+      pattern: gameConfig.learningFocus,
+      action: 'skipped'  // ⭐ Mark as skipped for analytics
     });
     
     setGameStats(newStats);
     
-    // Show enhanced feedback based on result
-    setGameState('feedback');
-    
-    // Enhanced feedback messages
-    let feedbackMessage;
-    if (recognized) {
-      if (gameConfig.teamPlay) {
-        const teamName = currentTeam === 'teamA' ? 
-          (gameConfig.teamAName || 'Team A') : 
-          (gameConfig.teamBName || 'Team B');
-        feedbackMessage = `Fantastic! +1 point for ${teamName}! 🎉`;
-      } else {
-        feedbackMessage = "Excellent! You got it right! 🎉";
-      }
-    } else {
-      if (gameConfig.teamPlay) {
-        feedbackMessage = "That's okay! Let the other team give it a try!";
-      } else {
-        feedbackMessage = "That's okay! Every attempt helps you learn. Let's keep going!";
-      }
-    }
-    
-    setBubbleMessage(feedbackMessage);
+    // Show skip message
+    setBubbleMessage("Word skipped! Let's try the next one! ⏭️");
     setShowBubble(true);
-  };
+    setGameState('feedback');
+    return; // Exit - don't count as attempted or wrong
+  }
+  
+  // Update team scores if team play
+  if (gameConfig.teamPlay) {
+    if (recognized) {
+      setTeamScores(prev => ({
+        ...prev,
+        [currentTeam]: prev[currentTeam] + 1
+      }));
+    }
+    // Switch teams
+    setCurrentTeam(prev => prev === 'teamA' ? 'teamB' : 'teamA');
+  }
+  
+  // Update enhanced stats
+  const newStats = { ...gameStats };
+  newStats.wordsAttempted++;  // ⭐ Only count attempts, not skips
+  newStats.timeSpent = Date.now() - sessionStartTime;
+  
+  // Pattern-specific tracking
+  const currentPattern = gameConfig.learningFocus;
+  if (!newStats.patternStats[currentPattern]) {
+    newStats.patternStats[currentPattern] = { attempted: 0, correct: 0, averageTime: 0 };
+  }
+  newStats.patternStats[currentPattern].attempted++;
+  
+  if (recognized) {
+    newStats.wordsRecognized++;
+    newStats.patternStats[currentPattern].correct++;
+    newStats.streakCount++;
+    newStats.maxStreak = Math.max(newStats.maxStreak, newStats.streakCount);
+    setScore(prevScore => prevScore + 1);
+  } else {
+    newStats.streakCount = 0;
+  }
+  
+  // Update average response time
+  newStats.averageResponseTime = 
+    (newStats.averageResponseTime * (newStats.wordsAttempted - 1) + responseTime) / 
+    newStats.wordsAttempted;
+  
+  // Update pattern average time
+  const patternStats = newStats.patternStats[currentPattern];
+  patternStats.averageTime = 
+    (patternStats.averageTime * (patternStats.attempted - 1) + responseTime) / 
+    patternStats.attempted;
+  
+  // Calculate success rate
+  newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
+  
+  // Track difficulty progression
+  newStats.difficultyProgression.push({
+    round: currentRound,
+    word: word,
+    recognized,
+    responseTime,
+    pattern: currentPattern
+  });
+  
+  setGameStats(newStats);
+  
+  // Show enhanced feedback based on result
+  setGameState('feedback');
+  
+  // Enhanced feedback messages
+  let feedbackMessage;
+  if (recognized) {
+    if (gameConfig.teamPlay) {
+      const teamName = currentTeam === 'teamA' ? 
+        (gameConfig.teamAName || 'Team A') : 
+        (gameConfig.teamBName || 'Team B');
+      feedbackMessage = `Fantastic! +1 point for ${teamName}! 🎉`;
+    } else {
+      feedbackMessage = "Excellent! You got it right! 🎉";
+    }
+  } else {
+    if (gameConfig.teamPlay) {
+      feedbackMessage = "That's okay! Let the other team give it a try!";
+    } else {
+      feedbackMessage = "That's okay! Every attempt helps you learn. Let's keep going!";
+    }
+  }
+  
+  setBubbleMessage(feedbackMessage);
+  setShowBubble(true);
+};
 
   /**
    * Handle moving to next word - FIXED
@@ -268,17 +293,51 @@ const endGameSession = async () => {
   
   setGameStats(finalStats);
   
-  // Save to Supabase analytics (single analytics call)
   try {
     console.log('📊 Saving game analytics to Supabase...');
     
+    // Clean the data
+    const cleanStats = {
+      ...finalStats,
+      // ⭐ FIX: Replace null with 0
+      averageResponseTime: finalStats.averageResponseTime || 0,
+      // ⭐ FIX: Clean patternStats to remove null values
+      patternStats: Object.entries(finalStats.patternStats || {}).reduce((acc, [key, value]) => {
+        acc[key] = {
+          attempted: value.attempted || 0,
+          correct: value.correct || 0,
+          averageTime: value.averageTime || 0  // Replace null with 0
+        };
+        return acc;
+      }, {}),
+      // ⭐ FIX: Filter out skipped items
+      difficultyProgression: (finalStats.difficultyProgression || [])
+        .filter(item => item && item.recognized !== null && item.action !== 'skipped')
+        .map(({ action, ...rest }) => rest)
+    };
+    
     const sessionData = phonicsAnalyticsService.formatSessionData(
-      finalStats, 
+      cleanStats,
       gameConfig, 
-      wordData
+      // ⭐ FIX: Only send words that were actually attempted
+      wordData.slice(0, finalStats.wordsAttempted || wordData.length)
     );
     
-    const result = await phonicsAnalyticsService.saveGameSession(sessionData);
+    // ⭐ FIX: Clean the session data to match actual attempts
+    const cleanedSessionData = {
+      ...sessionData,
+      // Only send data for words that were actually attempted
+      words: sessionData.words.slice(0, finalStats.wordsAttempted),
+      wordList: sessionData.wordList.slice(0, finalStats.wordsAttempted),
+      recognized: sessionData.recognized.slice(0, finalStats.wordsAttempted),
+      responseTimes: sessionData.responseTimes.slice(0, finalStats.wordsAttempted),
+      // Ensure no null values
+      averageResponseTime: sessionData.averageResponseTime || 0
+    };
+    
+    console.log('🔍 Cleaned session data:', JSON.stringify(cleanedSessionData, null, 2));
+    
+    const result = await phonicsAnalyticsService.saveGameSession(cleanedSessionData);
     
     if (result && result.success) {
       console.log('✅ Analytics saved successfully!', result.session_id || result.message);
@@ -287,12 +346,10 @@ const endGameSession = async () => {
     }
   } catch (error) {
     console.error('❌ Failed to save analytics:', error.message || error);
-    // Don't break game flow - analytics failure is non-critical
   }
   
   setGameState('complete');
   
-  // Final celebration message (KEEP THIS - it's your UI design!)
   let finalMessage;
   if (finalStats.successRate >= 90) {
     finalMessage = "Outstanding performance! You're a reading superstar! ⭐";
