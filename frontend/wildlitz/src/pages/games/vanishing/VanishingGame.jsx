@@ -256,6 +256,7 @@ const VanishingGame = () => {
    */
   // Inside your component, find the endGameSession function:
 const endGameSession = async () => {
+  // Calculate final statistics
   const finalStats = {
     ...gameStats,
     timeSpent: Date.now() - sessionStartTime,
@@ -267,8 +268,10 @@ const endGameSession = async () => {
   
   setGameStats(finalStats);
   
-  // Save to Supabase analytics
+  // Save to Supabase analytics (single analytics call)
   try {
+    console.log('📊 Saving game analytics to Supabase...');
+    
     const sessionData = phonicsAnalyticsService.formatSessionData(
       finalStats, 
       gameConfig, 
@@ -277,53 +280,33 @@ const endGameSession = async () => {
     
     const result = await phonicsAnalyticsService.saveGameSession(sessionData);
     
-    if (result.success) {
-      console.log('Analytics saved successfully!', result.session_id);
+    if (result && result.success) {
+      console.log('✅ Analytics saved successfully!', result.session_id || result.message);
+    } else {
+      console.warn('⚠️ Analytics save returned:', result);
     }
   } catch (error) {
-    console.error('Failed to save analytics:', error);
+    console.error('❌ Failed to save analytics:', error.message || error);
+    // Don't break game flow - analytics failure is non-critical
   }
   
   setGameState('complete');
-    
-    setGameStats(finalStats);
-    
-    // ANALYTICS ADDED: Save session to analytics
-    const sessionData = {
-      timestamp: new Date().toISOString(),
-      wordsAttempted: finalStats.wordsAttempted,
-      wordsRecognized: finalStats.wordsRecognized,
-      successRate: finalStats.successRate,
-      averageResponseTime: finalStats.averageResponseTime,
-      maxStreak: finalStats.maxStreak,
-      timeSpent: finalStats.timeSpent,
-      patternStats: finalStats.patternStats,
-      difficulty: gameConfig.difficulty,
-      challengeLevel: gameConfig.challengeLevel,
-      learningFocus: gameConfig.learningFocus,
-      teamPlay: gameConfig.teamPlay,
-      ...(gameConfig.teamPlay && { teamScores })
-    };
-    analyticsService.saveSession(sessionData);
-    // END ANALYTICS ADDED
-    
-    setGameState('complete');
-    
-    // Final celebration message
-    let finalMessage;
-    if (finalStats.successRate >= 90) {
-      finalMessage = "Outstanding performance! You're a reading superstar! ⭐";
-    } else if (finalStats.successRate >= 70) {
-      finalMessage = "Great work! You've made excellent progress today! 🎉";
-    } else if (finalStats.successRate >= 50) {
-      finalMessage = "Good effort! Practice makes perfect. Keep it up! 👍";
-    } else {
-      finalMessage = "Thank you for practicing! Every attempt helps you grow! 🌱";
-    }
-    
-    setBubbleMessage(finalMessage);
-    setShowBubble(true);
-  };
+  
+  // Final celebration message (KEEP THIS - it's your UI design!)
+  let finalMessage;
+  if (finalStats.successRate >= 90) {
+    finalMessage = "Outstanding performance! You're a reading superstar! ⭐";
+  } else if (finalStats.successRate >= 70) {
+    finalMessage = "Great work! You've made excellent progress today! 🎉";
+  } else if (finalStats.successRate >= 50) {
+    finalMessage = "Good effort! Practice makes perfect. Keep it up! 👍";
+  } else {
+    finalMessage = "Thank you for practicing! Every attempt helps you grow! 🌱";
+  }
+  
+  setBubbleMessage(finalMessage);
+  setShowBubble(true);
+};
 
   /**
    * Handle playing the game again

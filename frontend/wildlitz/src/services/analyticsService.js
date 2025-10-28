@@ -1,6 +1,7 @@
 // src/services/analyticsService.js - REPLACE ENTIRE FILE
+import { API_BASE_URL } from '../config/api';
 
-const API_BASE_URL = 'http://localhost:8000/api/analytics';
+const API_ANALYTICS_URL = `${API_BASE_URL}/api/analytics`;
 
 // Helper function to get auth token
 const getAuthToken = () => {
@@ -60,7 +61,7 @@ const refreshAuthToken = async () => {
   if (!refreshToken) return false;
   
   try {
-    const response = await fetch('http://localhost:8000/api/auth/refresh/', {
+    const response = await fetch(`${API_BASE_URL}/api/auth/refresh/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refresh: refreshToken }),
@@ -158,7 +159,7 @@ if (isNaN(dbSessionData.success_rate)) {
 
 console.log('Saving session to database:', dbSessionData);
 // Save to database
-const response = await authenticatedFetch(`${API_BASE_URL}/game-sessions/`, {
+const response = await authenticatedFetch(`${API_ANALYTICS_URL}/game-sessions/`, {
   method: 'POST',
   body: JSON.stringify(dbSessionData),  // Changed from sessionData to dbSessionData
 });
@@ -206,7 +207,7 @@ async getSessions() {
       return localStorageService.getSessions();
     }
     
-    const response = await authenticatedFetch(`${API_BASE_URL}/game-sessions/`);
+    const response = await authenticatedFetch(`${API_ANALYTICS_URL}/game-sessions/`);
     
     // FIX: Ensure we always return an array
     if (response) {
@@ -246,7 +247,7 @@ async getSessions() {
       const endISO = endDate.toISOString();
       
       const response = await authenticatedFetch(
-        `${API_BASE_URL}/game-sessions/date_range/?start_date=${startISO}&end_date=${endISO}`
+        `${API_ANALYTICS_URL}/game-sessions/date_range/?start_date=${startISO}&end_date=${endISO}`
       );
       
       if (response && Array.isArray(response)) {
@@ -278,7 +279,7 @@ async getSessions() {
       }
       
       const response = await authenticatedFetch(
-        `${API_BASE_URL}/game-sessions/aggregate_stats/`
+        `${API_ANALYTICS_URL}/game-sessions/aggregate_stats/`
       );
       
       if (response) {
@@ -357,7 +358,7 @@ async getSessions() {
       }
       
       const response = await authenticatedFetch(
-        `${API_BASE_URL}/game-sessions/clear_all/`,
+        `${API_ANALYTICS_URL}/game-sessions/clear_all/`,
         { method: 'DELETE' }
       );
       

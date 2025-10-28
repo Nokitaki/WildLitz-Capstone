@@ -1,7 +1,8 @@
 // src/services/phonicsAnalyticsService.js
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 
-const API_URL = 'http://127.0.0.1:8000/api';
+const API_URL = API_ENDPOINTS.PHONICS;
 
 export const phonicsAnalyticsService = {
   /**
@@ -22,7 +23,7 @@ export const phonicsAnalyticsService = {
       console.log('Saving game session to Supabase...', sessionData);
       
       const response = await axios.post(
-        `${API_URL}/phonics/save-game-session/`,
+        `${API_URL}/save-game-session/`,
         sessionData,
         { headers }
       );
@@ -92,7 +93,7 @@ export const phonicsAnalyticsService = {
       }
       
       const response = await axios.get(
-        `${API_URL}/phonics/get-user-analytics/?limit=${limit}`,
+        `${API_URL}/get-user-analytics/?limit=${limit}`,
         {
           headers: { 'Authorization': `Bearer ${token}` }
         }
@@ -117,7 +118,7 @@ export const phonicsAnalyticsService = {
       }
       
       const response = await axios.get(
-        `${API_URL}/phonics/get-pattern-performance/`,
+        `${API_URL}/get-pattern-performance/`,
         {
           headers: { 'Authorization': `Bearer ${token}` }
         }

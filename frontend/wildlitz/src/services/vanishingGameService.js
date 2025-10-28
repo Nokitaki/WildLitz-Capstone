@@ -1,5 +1,7 @@
 // AI-Enabled vanishingGameService.js - Full AI Integration
-const API_URL = 'http://127.0.0.1:8000/api';
+import { API_ENDPOINTS } from '../config/api';
+
+const API_URL = API_ENDPOINTS.PHONICS;
 
 /**
  * Generate words for the vanishing game using AI with robust fallback
@@ -37,7 +39,7 @@ const generateWordsImmediate = async (config, wordCount) => {
     
     const startTime = Date.now();
     
-    const response = await fetch(`${API_URL}/phonics/generate-vanishing-words/`, {
+    const response = await fetch(`${API_URL}/generate-vanishing-words/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

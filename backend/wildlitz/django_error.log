@@ -544,3 +544,15 @@ ERROR 2025-10-27 01:34:04,444 views Failed to log activity for user 7: The `requ
 ERROR 2025-10-27 01:34:14,066 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
 ERROR 2025-10-27 01:34:23,880 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
 ERROR 2025-10-27 01:34:34,072 views Failed to log activity for user 7: The `request` argument must be an instance of `django.http.HttpRequest`, not `rest_framework.request.Request`.
+ERROR 2025-10-28 00:53:39,991 views Error saving game session: {'message': 'new row violates row-level security policy (USING expression) for table "phonics_pattern_performance"', 'code': '42501', 'hint': None, 'details': None}
+ERROR 2025-10-28 00:53:39,992 log Internal Server Error: /api/phonics/save-game-session/
+ERROR 2025-10-28 00:53:39,992 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
+ERROR 2025-10-28 00:53:39,992 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
+ERROR 2025-10-28 01:03:13,760 views Error saving game session: {'message': 'new row violates row-level security policy (USING expression) for table "phonics_pattern_performance"', 'code': '42501', 'hint': None, 'details': None}
+ERROR 2025-10-28 01:03:13,769 log Internal Server Error: /api/phonics/save-game-session/
+ERROR 2025-10-28 01:03:13,772 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
+ERROR 2025-10-28 01:03:13,772 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
+ERROR 2025-10-28 08:42:33,629 views Error saving game session: {'message': 'new row violates row-level security policy (USING expression) for table "phonics_pattern_performance"', 'code': '42501', 'hint': None, 'details': None}
+ERROR 2025-10-28 08:42:33,635 log Internal Server Error: /api/phonics/save-game-session/
+ERROR 2025-10-28 08:42:33,636 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
+ERROR 2025-10-28 08:42:33,636 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
