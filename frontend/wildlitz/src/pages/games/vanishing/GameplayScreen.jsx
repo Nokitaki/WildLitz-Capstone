@@ -456,9 +456,11 @@ const handleGiveUp = () => {
   
   // Report result with delay for feedback
   setTimeout(() => {
-    onResult(false, word);
+    // ⭐ CHANGED: Send 'giveup' instead of false
+    onResult('giveup', word);
   }, 1000);
 };
+
 
 // NEW FUNCTION - Handle showing the word (preview only)
 const handleShowWord = () => {
@@ -549,8 +551,10 @@ const handleShowWord = () => {
     setSpeedMultiplier(prev => Math.max(0.5, Math.min(2, prev + delta)));
   };
   
-  const handleSkip = () => {
+ const handleSkip = () => {
   if (hasAnswered) return;
+  
+  console.log('⏭️ Skip button pressed - generating new word without counting as progress');
   
   // Skip without marking as wrong
   setHasAnswered(true);
@@ -569,11 +573,11 @@ const handleShowWord = () => {
   
   setTimeout(() => {
     setShowVisualFeedback(false);
-  }, 1000);
+  }, 800);
   
-  // Move to next word WITHOUT counting as incorrect
+  // ⭐ CHANGED: Use 'skip' instead of null
   setTimeout(() => {
-    onResult(null, word); // null means skipped, not wrong
+    onResult('skip', word);
   }, 800);
 };
   

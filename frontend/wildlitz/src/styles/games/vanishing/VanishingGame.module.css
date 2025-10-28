@@ -38,7 +38,7 @@
     left: 20px;
     width: 120px;
     height: 120px;
-    z-index: 100; /* High z-index to appear on top */
+    z-index: 1000; /* High z-index to appear on top */
     pointer-events: none; /* Make sure it doesn't interfere with clicks */
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2)); /* Add drop shadow for better visibility */
   }

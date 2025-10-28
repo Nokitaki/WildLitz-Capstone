@@ -41,6 +41,7 @@ const VanishingGame = () => {
   const [score, setScore] = useState(0);
   const [wordData, setWordData] = useState([]);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [usedWords, setUsedWords] = useState([]);
   const [lastResult, setLastResult] = useState(null);
   
   // Add loading state for word generation
@@ -79,93 +80,239 @@ const VanishingGame = () => {
    * Handle game start
    */
   const handleStartGame = async (config) => {
-    setGameConfig(config);
-    setLoadingWords(true);
-    setWordGenerationError(null);
+  setGameConfig(config);
+  setLoadingWords(true);
+  setWordGenerationError(null);
+  
+  try {
+    const words = await generateVanishingGameWords(config);
     
-    try {
-      // Generate words using AI service
-      const words = await generateVanishingGameWords(config);
-      
-      if (!words || words.length === 0) {
-        throw new Error('No words generated');
-      }
-      
-      setWordData(words);
-      setTotalRounds(config.numberOfQuestions);
-      setCurrentRound(1);
-      setCurrentWordIndex(0);
-      setScore(0);
-      setSessionStartTime(Date.now());
-      setGameStartTime(Date.now());
-      
-      // Reset team scores if team play
-      if (config.teamPlay) {
-        setTeamScores({ teamA: 0, teamB: 0 });
-        setCurrentTeam('teamA');
-      }
-      
-      // Reset statistics
-      setGameStats({
-        wordsAttempted: 0,
-        wordsRecognized: 0,
-        successRate: 0,
-        streakCount: 0,
-        maxStreak: 0,
-        averageResponseTime: 0,
-        patternStats: {},
-        difficultyProgression: [],
-        timeSpent: 0
-      });
-      
-      setClassEnergy(100);
-      setGameState('gameplay');
-      
-      // Welcome message
-      setBubbleMessage("Let's start! Watch carefully as the words appear and vanish! ✨");
-      setShowBubble(true);
-      
-    } catch (error) {
-      console.error('Error generating words:', error);
-      setWordGenerationError('Failed to generate words. Please try again.');
-    } finally {
-      setLoadingWords(false);
+    if (!words || words.length === 0) {
+      throw new Error('No words generated');
     }
-  };
+    
+    setWordData(words);
+    setTotalRounds(config.numberOfQuestions);
+    setCurrentRound(1);
+    setCurrentWordIndex(0);
+    setScore(0);
+    setSessionStartTime(Date.now());
+    setGameStartTime(Date.now());
+    
+    // ⭐ ADD THIS: Track initial words as used
+    setUsedWords(words.map(w => w.word.toLowerCase()));
+    
+    if (config.teamPlay) {
+      setTeamScores({ teamA: 0, teamB: 0 });
+      setCurrentTeam('teamA');
+    }
+    
+    setGameStats({
+      wordsAttempted: 0,
+      wordsRecognized: 0,
+      successRate: 0,
+      streakCount: 0,
+      maxStreak: 0,
+      averageResponseTime: 0,
+      patternStats: {},
+      difficultyProgression: [],
+      timeSpent: 0
+    });
+    
+    setClassEnergy(100);
+    setGameState('gameplay');
+    
+    setBubbleMessage("Let's start! Watch carefully as the words appear and vanish! ✨");
+    setShowBubble(true);
+    
+  } catch (error) {
+    console.error('Error generating words:', error);
+    setWordGenerationError('Failed to generate words. Please try again.');
+  } finally {
+    setLoadingWords(false);
+  }
+};
 
   /**
    * Handle word result from gameplay
    */
-  const handleWordResult = (recognized, word, responseTime) => {
+  /**
+ * Handle word result from gameplay - WITH SKIP FIX
+ * Replace your entire handleWordResult function with this
+ */
+const handleWordResult = (recognized, word, responseTime) => {
+  console.log('🔍 handleWordResult called with recognized =', recognized);
+  
   const result = { recognized, word, responseTime };
   setLastResult(result);
   
-  // ⭐ Handle SKIP (recognized === null)
-  if (recognized === null) {
-    // Update enhanced stats for SKIP
+  if (recognized === 'giveup') {
+    console.log('👋 GIVE UP HANDLER TRIGGERED!!!');
+    alert('Give up detected!');
+    // Count as incorrect attempt
     const newStats = { ...gameStats };
+    newStats.wordsAttempted++;
     newStats.timeSpent = Date.now() - sessionStartTime;
+    newStats.streakCount = 0; // Reset streak
     
-    // Track skipped words in difficulty progression
+    // Pattern-specific tracking
+    const currentPattern = gameConfig.learningFocus;
+    if (!newStats.patternStats[currentPattern]) {
+      newStats.patternStats[currentPattern] = { 
+        attempted: 0, 
+        correct: 0, 
+        averageTime: 0 
+      };
+    }
+    newStats.patternStats[currentPattern].attempted++;
+    
+    // Calculate response time
+    const actualResponseTime = responseTime || (Date.now() - gameStartTime) / 1000;
+    
+    // Update average response time
+    newStats.averageResponseTime = 
+      (newStats.averageResponseTime * (newStats.wordsAttempted - 1) + actualResponseTime) / 
+      newStats.wordsAttempted;
+    
+    // Update pattern average time
+    const patternStats = newStats.patternStats[currentPattern];
+    patternStats.averageTime = 
+      (patternStats.averageTime * (patternStats.attempted - 1) + actualResponseTime) / 
+      patternStats.attempted;
+    
+    // Calculate success rate
+    newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
+    
+    // Track difficulty progression
     newStats.difficultyProgression.push({
       round: currentRound,
       word: word,
-      recognized: null,  // null indicates skipped
+      recognized: false,
+      responseTime: actualResponseTime,
+      pattern: currentPattern,
+      action: 'giveup'
+    });
+    
+   setBubbleMessage("Better luck next time! Every try makes you stronger! 💪");
+    setShowBubble(true);
+    console.log('💬 Bubble message set!');
+    
+    setGameState('feedback');
+    
+    return;
+  }
+  
+  // ⭐ Handle SKIP (separate from giveup!)
+  if (recognized === 'skip') {
+    console.log('⏭️ Skip detected - generating new word without affecting progress');
+    
+    // Check if we've already answered enough words
+    if (gameStats.wordsAttempted >= totalRounds) {
+      console.log('✅ Already answered enough words, ending game...');
+      endGameSession();
+      return;
+    }
+    
+    // ⭐ IMMEDIATE: Switch to loading state RIGHT AWAY
+    setGameState('loading');
+    
+    // Generate new word in background
+    (async () => {
+      try {
+        let newWord = null;
+        const maxAttempts = 2;
+        
+        console.log('📋 Already used words:', usedWords);
+        
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          console.log(`🔄 Attempt ${attempt}/${maxAttempts} to generate unique word...`);
+          
+          const newWords = await generateVanishingGameWords(gameConfig, 1);
+          
+          if (newWords && newWords.length > 0) {
+            const generatedWord = newWords[0];
+            const wordLower = generatedWord.word.toLowerCase();
+            
+            console.log(`Generated word: "${wordLower}"`);
+            
+            if (!usedWords.includes(wordLower)) {
+              newWord = generatedWord;
+              console.log('✅ Found unique word:', wordLower);
+              break;
+            } else {
+              console.log('⚠️ Word already used');
+              
+              if (attempt < maxAttempts) {
+                console.log('⏳ Waiting 500ms before retry...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+              }
+            }
+          }
+        }
+        
+        // If we couldn't find unique word, just use the last one
+        if (!newWord && newWords && newWords.length > 0) {
+          console.log('⚠️ Using duplicate word since pool is small');
+          newWord = newWords[0];
+        }
+        
+        if (newWord) {
+          const updatedWordData = [...wordData];
+          updatedWordData[currentWordIndex] = newWord;
+          setWordData(updatedWordData);
+          
+          setUsedWords(prev => [...prev, newWord.word.toLowerCase()]);
+          
+          console.log('✅ New word set:', newWord.word);
+          
+          setGameState('gameplay');
+          setGameStartTime(Date.now());
+        } else {
+          console.log('❌ No word generated, moving to next...');
+          
+          if (gameStats.wordsAttempted >= totalRounds) {
+            endGameSession();
+          } else {
+            handleNextWord();
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error generating new word:', error);
+        
+        if (gameStats.wordsAttempted >= totalRounds) {
+          endGameSession();
+        } else {
+          handleNextWord();
+        }
+      }
+    })();
+    
+    return;
+  }
+  
+  // ⭐ Handle NULL (legacy skip)
+  if (recognized === null) {
+    const newStats = { ...gameStats };
+    newStats.timeSpent = Date.now() - sessionStartTime;
+    
+    newStats.difficultyProgression.push({
+      round: currentRound,
+      word: word,
+      recognized: null,
       responseTime,
       pattern: gameConfig.learningFocus,
-      action: 'skipped'  // ⭐ Mark as skipped for analytics
+      action: 'skipped'
     });
     
     setGameStats(newStats);
-    
-    // Show skip message
     setBubbleMessage("Word skipped! Let's try the next one! ⏭️");
     setShowBubble(true);
     setGameState('feedback');
-    return; // Exit - don't count as attempted or wrong
+    return;
   }
   
-  // Update team scores if team play
+  // ===== NORMAL WORD PROCESSING (for true/false) =====
+  
   if (gameConfig.teamPlay) {
     if (recognized) {
       setTeamScores(prev => ({
@@ -173,19 +320,20 @@ const VanishingGame = () => {
         [currentTeam]: prev[currentTeam] + 1
       }));
     }
-    // Switch teams
     setCurrentTeam(prev => prev === 'teamA' ? 'teamB' : 'teamA');
   }
   
-  // Update enhanced stats
   const newStats = { ...gameStats };
-  newStats.wordsAttempted++;  // ⭐ Only count attempts, not skips
+  newStats.wordsAttempted++;
   newStats.timeSpent = Date.now() - sessionStartTime;
   
-  // Pattern-specific tracking
   const currentPattern = gameConfig.learningFocus;
   if (!newStats.patternStats[currentPattern]) {
-    newStats.patternStats[currentPattern] = { attempted: 0, correct: 0, averageTime: 0 };
+    newStats.patternStats[currentPattern] = { 
+      attempted: 0, 
+      correct: 0, 
+      averageTime: 0 
+    };
   }
   newStats.patternStats[currentPattern].attempted++;
   
@@ -199,35 +347,30 @@ const VanishingGame = () => {
     newStats.streakCount = 0;
   }
   
-  // Update average response time
+  const actualResponseTime = responseTime || (Date.now() - gameStartTime) / 1000;
+  
   newStats.averageResponseTime = 
-    (newStats.averageResponseTime * (newStats.wordsAttempted - 1) + responseTime) / 
+    (newStats.averageResponseTime * (newStats.wordsAttempted - 1) + actualResponseTime) / 
     newStats.wordsAttempted;
   
-  // Update pattern average time
   const patternStats = newStats.patternStats[currentPattern];
   patternStats.averageTime = 
-    (patternStats.averageTime * (patternStats.attempted - 1) + responseTime) / 
+    (patternStats.averageTime * (patternStats.attempted - 1) + actualResponseTime) / 
     patternStats.attempted;
   
-  // Calculate success rate
   newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
   
-  // Track difficulty progression
   newStats.difficultyProgression.push({
     round: currentRound,
     word: word,
     recognized,
-    responseTime,
+    responseTime: actualResponseTime,
     pattern: currentPattern
   });
   
   setGameStats(newStats);
-  
-  // Show enhanced feedback based on result
   setGameState('feedback');
   
-  // Enhanced feedback messages
   let feedbackMessage;
   if (recognized) {
     if (gameConfig.teamPlay) {
@@ -254,19 +397,34 @@ const VanishingGame = () => {
    * Handle moving to next word - FIXED
    */
   const handleNextWord = () => {
-    console.log(`Current round: ${currentRound}, Total rounds: ${totalRounds}`);
-    console.log(`Current word index: ${currentWordIndex}, Word data length: ${wordData.length}`);
-    
-    if (currentRound >= totalRounds) {
-      console.log('Game should end now');
-      endGameSession();
-    } else {
-      setCurrentWordIndex(prevIndex => prevIndex + 1);
-      setCurrentRound(prevRound => prevRound + 1);
-      setGameState('gameplay');
-      setGameStartTime(Date.now());
+  console.log(`Current round: ${currentRound}, Total rounds: ${totalRounds}`);
+  console.log(`Current word index: ${currentWordIndex}, Word data length: ${wordData.length}`);
+  console.log(`Words attempted: ${gameStats.wordsAttempted}`);
+  
+  // ⭐ NEW: Check if we should end the game
+  // End if we've completed enough rounds OR run out of words
+  const shouldEndGame = currentRound >= totalRounds || 
+                        currentWordIndex >= wordData.length - 1 ||
+                        gameStats.wordsAttempted >= totalRounds;
+  
+  if (shouldEndGame) {
+    console.log('Game should end now');
+    endGameSession();
+  } else {
+    // Track the word before moving to next
+    if (wordData[currentWordIndex]) {
+      const currentWord = wordData[currentWordIndex].word.toLowerCase();
+      if (!usedWords.includes(currentWord)) {
+        setUsedWords(prev => [...prev, currentWord]);
+      }
     }
-  };
+    
+    setCurrentWordIndex(prevIndex => prevIndex + 1);
+    setCurrentRound(prevRound => prevRound + 1);
+    setGameState('gameplay');
+    setGameStartTime(Date.now());
+  }
+};
 
   /**
    * Handle retrying current word
@@ -371,6 +529,7 @@ const endGameSession = async () => {
   const handlePlayAgain = () => {
     setGameState('config');
     setShowBubble(false);
+    setUsedWords([]);
   };
 
   // ANALYTICS ADDED: View analytics handler
@@ -525,36 +684,83 @@ const endGameSession = async () => {
               />
             </motion.div>
           )}
+
+          {gameState === 'loading' && (
+  <motion.div
+    key="loading"
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    exit={{ opacity: 0, scale: 1.1 }}
+    className={styles.screenContainer}
+    style={{
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100%',
+      background: 'rgba(255, 255, 255, 0.95)'
+    }}
+  >
+    <motion.div
+      animate={{
+        rotate: 360,
+        scale: [1, 1.2, 1]
+      }}
+      transition={{
+        rotate: { duration: 1, repeat: Infinity, ease: "linear" },
+        scale: { duration: 0.5, repeat: Infinity }
+      }}
+      style={{
+        fontSize: '4rem',
+        marginBottom: '20px'
+      }}
+    >
+      ⏳
+    </motion.div>
+    <motion.p
+      animate={{ opacity: [0.5, 1, 0.5] }}
+      transition={{ duration: 1.5, repeat: Infinity }}
+      style={{
+        fontSize: '1.5rem',
+        color: '#333',
+        fontWeight: 'bold'
+      }}
+    >
+      Finding a new word...
+    </motion.p>
+  </motion.div>
+)}
           
           {gameState === 'gameplay' && (
-            <motion.div
-              key="gameplay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={styles.screenContainer}
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-            >
-              <GameplayScreen 
-                wordData={getCurrentWord()}
-                config={gameConfig}
-                onResult={handleWordResult}
-                round={currentRound}
-                totalRounds={totalRounds}
-                gameStats={gameStats}
-                onStatsUpdate={setGameStats}
-                classEnergy={classEnergy}
-                onEnergyUpdate={setClassEnergy}
-                teamPlay={gameConfig.teamPlay}
-                currentTeam={currentTeam}
-                teamScores={teamScores}
-                teamNames={{
-                  teamA: gameConfig.teamAName || 'Team A',
-                  teamB: gameConfig.teamBName || 'Team B'
-                }}
-              />
-            </motion.div>
-          )}
+  <motion.div
+    key="gameplay"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className={styles.screenContainer}
+    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+  >
+    <GameplayScreen 
+  key={`${currentWordIndex}-${wordData[currentWordIndex]?.word}-${Date.now()}`}
+  wordData={getCurrentWord()}
+  config={gameConfig}
+  onResult={handleWordResult}
+  round={currentRound}
+  totalRounds={totalRounds}
+  gameStats={gameStats}
+  onStatsUpdate={setGameStats}
+  classEnergy={classEnergy}
+  onEnergyUpdate={setClassEnergy}
+  teamPlay={gameConfig.teamPlay}
+  currentTeam={currentTeam}
+  teamScores={teamScores}
+  teamNames={{
+    teamA: gameConfig.teamAName || 'Team A',
+    teamB: gameConfig.teamBName || 'Team B'
+  }}
+/>
+  </motion.div>
+)}
           
           {gameState === 'feedback' && (
             <motion.div

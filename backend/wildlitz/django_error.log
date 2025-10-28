@@ -556,3 +556,16 @@ ERROR 2025-10-28 08:42:33,629 views Error saving game session: {'message': 'new 
 ERROR 2025-10-28 08:42:33,635 log Internal Server Error: /api/phonics/save-game-session/
 ERROR 2025-10-28 08:42:33,636 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
 ERROR 2025-10-28 08:42:33,636 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
+ERROR 2025-10-29 02:00:27,231 views AI generation failed: AI response not in expected JSON format
+ERROR 2025-10-29 02:03:16,946 views Error saving game session: {'message': 'new row violates row-level security policy (USING expression) for table "phonics_pattern_performance"', 'code': '42501', 'hint': None, 'details': None}
+ERROR 2025-10-29 02:03:16,947 log Internal Server Error: /api/phonics/save-game-session/
+ERROR 2025-10-29 02:03:16,948 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
+ERROR 2025-10-29 02:03:16,948 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
+ERROR 2025-10-29 02:12:03,059 views Error saving game session: {'message': 'new row violates row-level security policy (USING expression) for table "phonics_pattern_performance"', 'code': '42501', 'hint': None, 'details': None}
+ERROR 2025-10-29 02:12:03,061 log Internal Server Error: /api/phonics/save-game-session/
+ERROR 2025-10-29 02:12:03,063 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
+ERROR 2025-10-29 02:12:03,063 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
+ERROR 2025-10-29 02:31:27,978 views Error saving game session: {'message': 'new row violates row-level security policy (USING expression) for table "phonics_pattern_performance"', 'code': '42501', 'hint': None, 'details': None}
+ERROR 2025-10-29 02:31:27,983 log Internal Server Error: /api/phonics/save-game-session/
+ERROR 2025-10-29 02:31:27,985 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
+ERROR 2025-10-29 02:31:27,985 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
