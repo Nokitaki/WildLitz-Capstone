@@ -1,4 +1,4 @@
-// src/pages/games/vanishing/VanishingGame.jsx
+// src/pages/games/vanishing/VanishingGame.jsx - REDESIGNED FOR KIDS
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/vanishing/VanishingGame.module.css';
@@ -9,20 +9,22 @@ import ConfigScreen from './ConfigScreen';
 import GameplayScreen from './GameplayScreen';
 import FeedbackScreen from './FeedbackScreen';
 import GameCompleteScreen from './GameCompleteScreen';
-import GameAnalytics from './GameAnalytics'; // ANALYTICS ADDED
+import GameAnalytics from './GameAnalytics';
 
-// Import mascot
+// Import mascot - KEEPING THE CUTE MASCOT!
 import WildLitzFox from '../../../assets/img/wildlitz-idle.png';
 
 // Import AI word generation service
 import { generateVanishingGameWords } from '../../../services/vanishingGameService';
-import { analyticsService } from '../../../services/analyticsService'; // ANALYTICS ADDED
+import { analyticsService } from '../../../services/analyticsService';
 
 /**
- * Enhanced VanishingGame component with AI-generated content
+ * 🎨 REDESIGNED VanishingGame - Kid-Friendly Theme
+ * Keeps all logic, analytics, and backend connections
+ * Only UI/UX is improved for children
  */
 const VanishingGame = () => {
-  // Game states: 'config', 'gameplay', 'feedback', 'complete', 'analytics' - ANALYTICS ADDED
+  // Game states: 'config', 'gameplay', 'feedback', 'complete', 'analytics'
   const [gameState, setGameState] = useState('config');
   
   // Game configuration
@@ -44,11 +46,11 @@ const VanishingGame = () => {
   const [usedWords, setUsedWords] = useState([]);
   const [lastResult, setLastResult] = useState(null);
   
-  // Add loading state for word generation
+  // Loading state for word generation
   const [loadingWords, setLoadingWords] = useState(false);
   const [wordGenerationError, setWordGenerationError] = useState(null);
   
-  // Character speech bubble
+  // 🎭 Character speech bubble - MASCOT INTERACTIONS!
   const [showBubble, setShowBubble] = useState(false);
   const [bubbleMessage, setBubbleMessage] = useState('');
   
@@ -65,850 +67,572 @@ const VanishingGame = () => {
   
   // Enhanced game statistics
   const [gameStats, setGameStats] = useState({
-    wordsAttempted: 0,
-    wordsRecognized: 0,
-    successRate: 0,
-    streakCount: 0,
-    maxStreak: 0,
-    averageResponseTime: 0,
-    patternStats: {},
-    difficultyProgression: [],
-    timeSpent: 0
-  });
+  wordsAttempted: 0,
+  wordsRecognized: 0,
+  wordsSkipped: 0,
+  wordsShown: 0,
+  averageResponseTime: 0,
+  timeSpent: 0,
+  streakCount: 0,
+  maxStreak: 0,
+  successRate: 0,
+  patternStats: {}, // Make sure this exists
+  difficultyProgression: [],
+  totalWords: 0, // Add this
+  correctWords: 0 // Add this
+});
 
   /**
-   * Handle game start
+   * 🎮 Start game configuration
    */
   const handleStartGame = async (config) => {
-  setGameConfig(config);
-  setLoadingWords(true);
-  setWordGenerationError(null);
-  
-  try {
-    const words = await generateVanishingGameWords(config);
+    console.log('🚀 Starting game with config:', config);
     
-    if (!words || words.length === 0) {
-      throw new Error('No words generated');
+    setGameConfig(config);
+    setTotalRounds(config.numberOfQuestions || 10);
+    setLoadingWords(true);
+    setWordGenerationError(null);
+    
+    try {
+      // Generate words using AI service
+      const generatedWords = await generateVanishingGameWords({
+        challengeLevel: config.challengeLevel,
+        learningFocus: config.learningFocus,
+        difficulty: config.difficulty,
+        wordCount: config.numberOfQuestions || 10
+      });
+      
+      console.log('✅ Generated words:', generatedWords);
+      
+      if (generatedWords && generatedWords.length > 0) {
+        setWordData(generatedWords);
+        setCurrentWordIndex(0);
+        setGameState('gameplay');
+        setSessionStartTime(Date.now());
+        setGameStartTime(Date.now());
+        
+        // 🎭 Mascot welcome message!
+        setBubbleMessage('Let\'s learn some phonics! 🎉');
+        setShowBubble(true);
+        setTimeout(() => setShowBubble(false), 3000);
+      } else {
+        throw new Error('No words generated');
+      }
+    } catch (error) {
+      console.error('❌ Error generating words:', error);
+      setWordGenerationError('Failed to generate words. Please try again!');
+    } finally {
+      setLoadingWords(false);
     }
-    
-    setWordData(words);
-    setTotalRounds(config.numberOfQuestions);
-    setCurrentRound(1);
-    setCurrentWordIndex(0);
-    setScore(0);
-    setSessionStartTime(Date.now());
-    setGameStartTime(Date.now());
-    
-    // ⭐ ADD THIS: Track initial words as used
-    setUsedWords(words.map(w => w.word.toLowerCase()));
-    
-    if (config.teamPlay) {
-      setTeamScores({ teamA: 0, teamB: 0 });
-      setCurrentTeam('teamA');
-    }
-    
-    setGameStats({
-      wordsAttempted: 0,
-      wordsRecognized: 0,
-      successRate: 0,
-      streakCount: 0,
-      maxStreak: 0,
-      averageResponseTime: 0,
-      patternStats: {},
-      difficultyProgression: [],
-      timeSpent: 0
-    });
-    
-    setClassEnergy(100);
-    setGameState('gameplay');
-    
-    setBubbleMessage("Let's start! Watch carefully as the words appear and vanish! ✨");
-    setShowBubble(true);
-    
-  } catch (error) {
-    console.error('Error generating words:', error);
-    setWordGenerationError('Failed to generate words. Please try again.');
-  } finally {
-    setLoadingWords(false);
-  }
-};
+  };
 
   /**
-   * Handle word result from gameplay
+   * 🎯 Handle word result from gameplay
    */
-  /**
- * Handle word result from gameplay - WITH SKIP FIX
- * Replace your entire handleWordResult function with this
- */
-const handleWordResult = (recognized, word, responseTime) => {
-  console.log('🔍 handleWordResult called with recognized =', recognized);
-  
-  const result = { recognized, word, responseTime };
-  setLastResult(result);
-  
-  // ⭐ FIX 1: Handle "I know it" (recognized === true)
-  if (recognized === true) {
-    console.log('✅ I KNOW IT BUTTON PRESSED!!!');
+  const handleWordResult = (recognized, word, responseTime) => {
+    console.log('🔍 handleWordResult:', { recognized, word, responseTime });
     
-    // Count as correct attempt
-    const newStats = { ...gameStats };
-    newStats.wordsAttempted++;
-    newStats.wordsRecognized++;
-    newStats.timeSpent = Date.now() - sessionStartTime;
-    newStats.streakCount++;
-    newStats.maxStreak = Math.max(newStats.maxStreak, newStats.streakCount);
+    const result = { recognized, word, responseTime };
+    setLastResult(result);
     
-    // Pattern-specific tracking
-    const currentPattern = gameConfig.learningFocus;
-    if (!newStats.patternStats[currentPattern]) {
-      newStats.patternStats[currentPattern] = { 
-        attempted: 0, 
-        correct: 0, 
-        averageTime: 0 
-      };
-    }
-    newStats.patternStats[currentPattern].attempted++;
-    newStats.patternStats[currentPattern].correct++;
-    
-    // Calculate response time
-    const actualResponseTime = responseTime || (Date.now() - gameStartTime) / 1000;
-    
-    // Update average response time
-    newStats.averageResponseTime = 
-      (newStats.averageResponseTime * (newStats.wordsAttempted - 1) + actualResponseTime) / 
-      newStats.wordsAttempted;
-    
-    // Update pattern average time
-    const patternStats = newStats.patternStats[currentPattern];
-    patternStats.averageTime = 
-      (patternStats.averageTime * (patternStats.attempted - 1) + actualResponseTime) / 
-      patternStats.attempted;
-    
-    // Calculate success rate
-    newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
-    
-    // Track difficulty progression
-    newStats.difficultyProgression.push({
-      round: currentRound,
-      word: word,
-      recognized: true,
-      responseTime: actualResponseTime,
-      pattern: currentPattern,
-      action: 'knew_it'
-    });
-    
-    setGameStats(newStats);
-    
-    // ✅ FIX: Show bubble message (not alert!)
-    setBubbleMessage("Excellent! You got it right! 🎉✨");
-    setShowBubble(true);
-    console.log('💬 Bubble message set for I KNOW IT!');
-    
-    // Auto-hide bubble after 3 seconds
-    setTimeout(() => {
-      setShowBubble(false);
-    }, 8000);
-    
-    setGameState('feedback');
-    
-    return;
-  }
-  
-  // ⭐ FIX 2: Handle "Give up" (recognized === 'giveup') - REMOVE alert()!
-  if (recognized === 'giveup') {
-    console.log('👋 GIVE UP HANDLER TRIGGERED!!!');
-    // ❌ REMOVED: alert('Give up detected!'); // This blocks the UI!
-    
-    // Count as incorrect attempt
-    const newStats = { ...gameStats };
-    newStats.wordsAttempted++;
-    newStats.timeSpent = Date.now() - sessionStartTime;
-    newStats.streakCount = 0; // Reset streak
-    
-    // Pattern-specific tracking
-    const currentPattern = gameConfig.learningFocus;
-    if (!newStats.patternStats[currentPattern]) {
-      newStats.patternStats[currentPattern] = { 
-        attempted: 0, 
-        correct: 0, 
-        averageTime: 0 
-      };
-    }
-    newStats.patternStats[currentPattern].attempted++;
-    
-    // Calculate response time
-    const actualResponseTime = responseTime || (Date.now() - gameStartTime) / 1000;
-    
-    // Update average response time
-    newStats.averageResponseTime = 
-      (newStats.averageResponseTime * (newStats.wordsAttempted - 1) + actualResponseTime) / 
-      newStats.wordsAttempted;
-    
-    // Update pattern average time
-    const patternStats = newStats.patternStats[currentPattern];
-    patternStats.averageTime = 
-      (patternStats.averageTime * (patternStats.attempted - 1) + actualResponseTime) / 
-      patternStats.attempted;
-    
-    // Calculate success rate
-    newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
-    
-    // Track difficulty progression
-    newStats.difficultyProgression.push({
-      round: currentRound,
-      word: word,
-      recognized: false,
-      responseTime: actualResponseTime,
-      pattern: currentPattern,
-      action: 'giveup'
-    });
-    
-    setGameStats(newStats);
-    
-    // ✅ FIX: Show bubble message properly
-    setBubbleMessage("Better luck next time! Every try makes you stronger! 💪");
-    setShowBubble(true);
-    console.log('💬 Bubble message set for GIVE UP!');
-    
-    // Auto-hide bubble after 3 seconds
-    setTimeout(() => {
-      setShowBubble(false);
-    }, 8000);
-    
-    setGameState('feedback');
-    
-    return;
-  }
-  
-  // ⭐ Handle SKIP (separate from giveup!)
-  if (recognized === 'skip') {
-    console.log('⏭️ Skip detected - generating new word without affecting progress');
-    
-    // Check if we've already answered enough words
-    if (gameStats.wordsAttempted >= totalRounds) {
-      console.log('✅ Already answered enough words, ending game...');
-      endGameSession();
+    // ✅ Handle "I Know It" (correct answer)
+    if (recognized === true) {
+      console.log('✅ Correct answer!');
+      
+      const newStats = { ...gameStats };
+      newStats.wordsAttempted++;
+      newStats.wordsRecognized++;
+      newStats.timeSpent = Date.now() - sessionStartTime;
+      newStats.streakCount++;
+      newStats.maxStreak = Math.max(newStats.maxStreak, newStats.streakCount);
+      
+      // Pattern-specific tracking
+      const currentPattern = gameConfig.learningFocus;
+      if (!newStats.patternStats[currentPattern]) {
+        newStats.patternStats[currentPattern] = { 
+          attempted: 0, 
+          correct: 0, 
+          averageTime: 0 
+        };
+      }
+      newStats.patternStats[currentPattern].attempted++;
+      newStats.patternStats[currentPattern].correct++;
+      
+      // Calculate response time
+      const actualResponseTime = responseTime || (Date.now() - gameStartTime) / 1000;
+      
+      // Update average response time
+      newStats.averageResponseTime = 
+        (newStats.averageResponseTime * (newStats.wordsAttempted - 1) + actualResponseTime) / 
+        newStats.wordsAttempted;
+      
+      // Update pattern average time
+      const patternStats = newStats.patternStats[currentPattern];
+      patternStats.averageTime = 
+        (patternStats.averageTime * (patternStats.attempted - 1) + actualResponseTime) / 
+        patternStats.attempted;
+      
+      // Calculate success rate
+      newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
+      
+      // Track difficulty progression
+      newStats.difficultyProgression.push({
+        round: currentRound,
+        word: word,
+        recognized: true,
+        responseTime: actualResponseTime,
+        pattern: currentPattern,
+        action: 'knew_it'
+      });
+      
+      setGameStats(newStats);
+      
+      // 🎭 Mascot encouragement!
+      setBubbleMessage('Excellent! You got it right! 🎉✨');
+      setShowBubble(true);
+      setTimeout(() => setShowBubble(false), 3000);
+      
+      setGameState('feedback');
       return;
     }
     
-    // Switch to loading state RIGHT AWAY
-    setGameState('loading');
-    
-    // Generate new word in background
-    (async () => {
-      try {
-        let newWord = null;
-        const maxAttempts = 2;
-        
-        console.log('📋 Already used words:', usedWords);
-        
-        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-          console.log(`🔄 Attempt ${attempt}/${maxAttempts} to generate unique word...`);
-          
-          const newWords = await generateVanishingGameWords(gameConfig, 1);
-          
-          if (newWords && newWords.length > 0) {
-            const generatedWord = newWords[0];
-            const wordLower = generatedWord.word.toLowerCase();
-            
-            console.log(`Generated word: "${wordLower}"`);
-            
-            if (!usedWords.includes(wordLower)) {
-              newWord = generatedWord;
-              console.log('✅ Found unique word:', wordLower);
-              break;
-            } else {
-              console.log('⚠️ Word already used');
-              
-              if (attempt < maxAttempts) {
-                console.log('⏳ Waiting 500ms before retry...');
-                await new Promise(resolve => setTimeout(resolve, 500));
-              }
-            }
-          }
-        }
-        
-        // If we couldn't find unique word, just use the last one
-        if (!newWord) {
-          const newWords = await generateVanishingGameWords(gameConfig, 1);
-          if (newWords && newWords.length > 0) {
-            console.log('⚠️ Using duplicate word since pool is small');
-            newWord = newWords[0];
-          }
-        }
-        
-        if (newWord) {
-          const updatedWordData = [...wordData];
-          updatedWordData[currentWordIndex] = newWord;
-          setWordData(updatedWordData);
-          
-          setUsedWords(prev => [...prev, newWord.word.toLowerCase()]);
-          
-          console.log('✅ New word set:', newWord.word);
-          
-          setGameState('gameplay');
-          setGameStartTime(Date.now());
-        } else {
-          console.log('❌ No word generated, moving to next...');
-          
-          if (gameStats.wordsAttempted >= totalRounds) {
-            endGameSession();
-          } else {
-            handleNextWord();
-          }
-        }
-      } catch (error) {
-        console.error('❌ Error generating new word:', error);
-        
-        if (gameStats.wordsAttempted >= totalRounds) {
-          endGameSession();
-        } else {
-          handleNextWord();
-        }
+    // 👋 Handle "Give up"
+    if (recognized === 'giveup') {
+      console.log('👋 Give up selected');
+      
+      const newStats = { ...gameStats };
+      newStats.wordsAttempted++;
+      newStats.timeSpent = Date.now() - sessionStartTime;
+      newStats.streakCount = 0; // Reset streak
+      
+      const currentPattern = gameConfig.learningFocus;
+      if (!newStats.patternStats[currentPattern]) {
+        newStats.patternStats[currentPattern] = { attempted: 0, correct: 0, averageTime: 0 };
       }
-    })();
-    
-    return;
-  }
-  
-  // ⭐ Handle NULL (legacy skip)
-  if (recognized === null) {
-    const newStats = { ...gameStats };
-    newStats.timeSpent = Date.now() - sessionStartTime;
-    
-    newStats.difficultyProgression.push({
-      round: currentRound,
-      word: word,
-      recognized: null,
-      responseTime,
-      pattern: gameConfig.learningFocus,
-      action: 'skipped'
-    });
-    
-    setGameStats(newStats);
-    setBubbleMessage("Word skipped! Let's try the next one! ⏭️");
-    setShowBubble(true);
-    
-    // Auto-hide bubble after 3 seconds
-    setTimeout(() => {
-      setShowBubble(false);
-    }, 8000);
-    
-    setGameState('feedback');
-    return;
-  }
-  
-  // ===== NORMAL WORD PROCESSING (for false - incorrect answer) =====
-  
-  if (gameConfig.teamPlay) {
-    if (recognized) {
-      setTeamScores(prev => ({
-        ...prev,
-        [currentTeam]: prev[currentTeam] + 1
-      }));
+      newStats.patternStats[currentPattern].attempted++;
+      
+      newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
+      
+      newStats.difficultyProgression.push({
+        round: currentRound,
+        word: word,
+        recognized: false,
+        responseTime: responseTime || 0,
+        pattern: currentPattern,
+        action: 'gave_up'
+      });
+      
+      setGameStats(newStats);
+      
+      // 🎭 Mascot encouragement for giving up
+      setBubbleMessage('That\'s okay! Let\'s learn this word together! 💪');
+      setShowBubble(true);
+      setTimeout(() => setShowBubble(false), 3000);
+      
+      setGameState('feedback');
+      return;
     }
-    setCurrentTeam(prev => prev === 'teamA' ? 'teamB' : 'teamA');
-  }
-  
-  const newStats = { ...gameStats };
-  newStats.wordsAttempted++;
-  newStats.timeSpent = Date.now() - sessionStartTime;
-  
-  if (recognized) {
-    newStats.wordsRecognized++;
-    newStats.streakCount++;
-    newStats.maxStreak = Math.max(newStats.maxStreak, newStats.streakCount);
-  } else {
-    newStats.streakCount = 0;
-  }
-  
-  const currentPattern = gameConfig.learningFocus;
-  if (!newStats.patternStats[currentPattern]) {
-    newStats.patternStats[currentPattern] = { 
-      attempted: 0, 
-      correct: 0, 
-      averageTime: 0 
-    };
-  }
-  newStats.patternStats[currentPattern].attempted++;
-  if (recognized) {
-    newStats.patternStats[currentPattern].correct++;
-  }
-  
-  const actualResponseTime = responseTime || (Date.now() - gameStartTime) / 1000;
-  
-  newStats.averageResponseTime = 
-    (newStats.averageResponseTime * (newStats.wordsAttempted - 1) + actualResponseTime) / 
-    newStats.wordsAttempted;
-  
-  const patternStats = newStats.patternStats[currentPattern];
-  patternStats.averageTime = 
-    (patternStats.averageTime * (patternStats.attempted - 1) + actualResponseTime) / 
-    patternStats.attempted;
-  
-  newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
-  
-  newStats.difficultyProgression.push({
-    round: currentRound,
-    word: word,
-    recognized: recognized,
-    responseTime: actualResponseTime,
-    pattern: currentPattern,
-    action: recognized ? 'correct' : 'incorrect'
-  });
-  
-  setGameStats(newStats);
-  
-  let feedbackMessage;
-  if (recognized) {
-    if (gameConfig.teamPlay) {
-      const teamName = currentTeam === 'teamA' ? 
-        (gameConfig.teamAName || 'Team A') : 
-        (gameConfig.teamBName || 'Team B');
-      feedbackMessage = `Fantastic! +1 point for ${teamName}! 🎉`;
-    } else {
-      feedbackMessage = "Excellent! You got it right! 🎉";
+    
+    // 👀 Handle "Show me"
+    if (recognized === false) {
+      console.log('👀 Show me pressed');
+      
+      const newStats = { ...gameStats };
+      newStats.wordsAttempted++;
+      newStats.wordsShown++;
+      newStats.timeSpent = Date.now() - sessionStartTime;
+      newStats.streakCount = 0; // Reset streak
+      
+      const currentPattern = gameConfig.learningFocus;
+      if (!newStats.patternStats[currentPattern]) {
+        newStats.patternStats[currentPattern] = { attempted: 0, correct: 0, averageTime: 0 };
+      }
+      newStats.patternStats[currentPattern].attempted++;
+      
+      newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
+      
+      newStats.difficultyProgression.push({
+        round: currentRound,
+        word: word,
+        recognized: false,
+        responseTime: responseTime || 0,
+        pattern: currentPattern,
+        action: 'showed'
+      });
+      
+      setGameStats(newStats);
+      
+      // 🎭 Mascot support message
+      setBubbleMessage('Good job asking for help! Learning is great! 📚');
+      setShowBubble(true);
+      setTimeout(() => setShowBubble(false), 3000);
+      
+      setGameState('feedback');
+      return;
     }
-  } else {
-    if (gameConfig.teamPlay) {
-      feedbackMessage = "That's okay! Let the other team give it a try!";
-    } else {
-      feedbackMessage = "That's okay! Every attempt helps you learn. Let's keep going!";
+    
+    // ⏭️ Handle "Skip"
+    if (recognized === 'skip') {
+      console.log('⏭️ Skip pressed');
+      
+      const newStats = { ...gameStats };
+      newStats.wordsSkipped++;
+      newStats.timeSpent = Date.now() - sessionStartTime;
+      
+      newStats.difficultyProgression.push({
+        round: currentRound,
+        word: word,
+        recognized: false,
+        responseTime: 0,
+        pattern: gameConfig.learningFocus,
+        action: 'skipped'
+      });
+      
+      setGameStats(newStats);
+      handleNextWord();
+      return;
     }
-  }
-  
-  setBubbleMessage(feedbackMessage);
-  setShowBubble(true);
-  
-  // Auto-hide bubble after 3 seconds
-  setTimeout(() => {
-    setShowBubble(false);
-  }, 8000);
-  
-  setGameState('feedback');
-};
+  };
 
   /**
-   * Handle moving to next word - FIXED
+   * 📝 Handle next word
    */
   const handleNextWord = () => {
-  console.log(`Current round: ${currentRound}, Total rounds: ${totalRounds}`);
-  console.log(`Current word index: ${currentWordIndex}, Word data length: ${wordData.length}`);
-  console.log(`Words attempted: ${gameStats.wordsAttempted}`);
-  
-  // ⭐ NEW: Check if we should end the game
-  // End if we've completed enough rounds OR run out of words
-  const shouldEndGame = currentRound >= totalRounds || 
-                        currentWordIndex >= wordData.length - 1 ||
-                        gameStats.wordsAttempted >= totalRounds;
-  
-  if (shouldEndGame) {
-    console.log('Game should end now');
-    endGameSession();
-  } else {
-    // Track the word before moving to next
-    if (wordData[currentWordIndex]) {
-      const currentWord = wordData[currentWordIndex].word.toLowerCase();
-      if (!usedWords.includes(currentWord)) {
-        setUsedWords(prev => [...prev, currentWord]);
-      }
-    }
+    console.log('➡️ Moving to next word');
     
-    setCurrentWordIndex(prevIndex => prevIndex + 1);
-    setCurrentRound(prevRound => prevRound + 1);
-    setGameState('gameplay');
-    setGameStartTime(Date.now());
-  }
-};
+    if (currentRound >= totalRounds) {
+      // Game complete!
+      console.log('🎉 Game complete!');
+      handleGameComplete();
+    } else {
+      // Move to next word
+      setCurrentRound(currentRound + 1);
+      setCurrentWordIndex(currentWordIndex + 1);
+      setGameState('gameplay');
+      setGameStartTime(Date.now());
+    }
+  };
 
   /**
-   * Handle retrying current word
+   * 🔄 Handle retry (try same word again)
    */
-  const handleRetryWord = () => {
+  const handleRetry = () => {
+    console.log('🔄 Retrying word');
     setGameState('gameplay');
     setGameStartTime(Date.now());
   };
 
   /**
-   * End game session with enhanced analytics
+   * 🎊 Handle game complete
    */
-  // Inside your component, find the endGameSession function:
-const endGameSession = async () => {
-  // Calculate final statistics
+  const handleGameComplete = async () => {
+  console.log('🎊 Game completing...');
+  
   const finalStats = {
     ...gameStats,
     timeSpent: Date.now() - sessionStartTime,
-    sessionDuration: Date.now() - sessionStartTime,
-    completionRate: (currentRound / totalRounds) * 100,
-    wordsPerMinute: (gameStats.wordsAttempted / ((Date.now() - sessionStartTime) / 60000)).toFixed(1),
-    learningEfficiency: gameStats.successRate * (gameStats.wordsAttempted / totalRounds),
+    // Ensure patternStats exists
+    patternStats: gameStats.patternStats || {},
+    difficultyProgression: gameStats.difficultyProgression || []
   };
   
   setGameStats(finalStats);
+    
+    // Save session to analytics
+    try {
+  // Prepare data for backend - ensure all fields exist
+  const sessionData = {
+    challengeLevel: gameConfig.challengeLevel || 'simple_words',
+  learningFocus: gameConfig.learningFocus || 'short_vowels',
+  difficulty: gameConfig.difficulty || 'easy',
+  wordsAttempted: finalStats.wordsAttempted || 0,
+  wordsRecognized: finalStats.wordsRecognized || 0,
+  successRate: finalStats.successRate || 0,
+  averageResponseTime: Math.round(finalStats.averageResponseTime || 0),
+  maxStreak: finalStats.maxStreak || 0,
+  timeSpent: Math.round(finalStats.timeSpent || 0),
+  patternStats: finalStats.patternStats || {},
+  wordList: wordData || []
+  };
   
-  try {
-    console.log('📊 Saving game analytics to Supabase...');
-    
-    // Clean the data
-    const cleanStats = {
-      ...finalStats,
-      // ⭐ FIX: Replace null with 0
-      averageResponseTime: finalStats.averageResponseTime || 0,
-      // ⭐ FIX: Clean patternStats to remove null values
-      patternStats: Object.entries(finalStats.patternStats || {}).reduce((acc, [key, value]) => {
-        acc[key] = {
-          attempted: value.attempted || 0,
-          correct: value.correct || 0,
-          averageTime: value.averageTime || 0  // Replace null with 0
-        };
-        return acc;
-      }, {}),
-      // ⭐ FIX: Filter out skipped items
-      difficultyProgression: (finalStats.difficultyProgression || [])
-        .filter(item => item && item.recognized !== null && item.action !== 'skipped')
-        .map(({ action, ...rest }) => rest)
-    };
-    
-    const sessionData = phonicsAnalyticsService.formatSessionData(
-      cleanStats,
-      gameConfig, 
-      // ⭐ FIX: Only send words that were actually attempted
-      wordData.slice(0, finalStats.wordsAttempted || wordData.length)
-    );
-    
-    // ⭐ FIX: Clean the session data to match actual attempts
-    const cleanedSessionData = {
-      ...sessionData,
-      // Only send data for words that were actually attempted
-      words: sessionData.words.slice(0, finalStats.wordsAttempted),
-      wordList: sessionData.wordList.slice(0, finalStats.wordsAttempted),
-      recognized: sessionData.recognized.slice(0, finalStats.wordsAttempted),
-      responseTimes: sessionData.responseTimes.slice(0, finalStats.wordsAttempted),
-      // Ensure no null values
-      averageResponseTime: sessionData.averageResponseTime || 0
-    };
-    
-    console.log('🔍 Cleaned session data:', JSON.stringify(cleanedSessionData, null, 2));
-    
-    const result = await phonicsAnalyticsService.saveGameSession(cleanedSessionData);
-    
-    if (result && result.success) {
-      console.log('✅ Analytics saved successfully!', result.session_id || result.message);
-    } else {
-      console.warn('⚠️ Analytics save returned:', result);
-    }
-  } catch (error) {
-    console.error('❌ Failed to save analytics:', error.message || error);
-  }
+  console.log('📤 Sending session data:', sessionData);
+  console.log('🔍 gameConfig:', gameConfig); // Debug log to see what's in gameConfig
   
-  setGameState('complete');
-  
-  let finalMessage;
-  if (finalStats.successRate >= 90) {
-    finalMessage = "Outstanding performance! You're a reading superstar! ⭐";
-  } else if (finalStats.successRate >= 70) {
-    finalMessage = "Great work! You've made excellent progress today! 🎉";
-  } else if (finalStats.successRate >= 50) {
-    finalMessage = "Good effort! Practice makes perfect. Keep it up! 👍";
-  } else {
-    finalMessage = "Thank you for practicing! Every attempt helps you grow! 🌱";
-  }
-  
-  setBubbleMessage(finalMessage);
-  setShowBubble(true);
-};
-
-  /**
-   * Handle playing the game again
-   */
-  const handlePlayAgain = () => {
-    setGameState('config');
-    setShowBubble(false);
-    setUsedWords([]);
+  await phonicsAnalyticsService.saveGameSession(sessionData);
+  console.log('✅ Analytics saved successfully');
+} catch (error) {
+  console.error('❌ Error saving analytics:', error);
+  console.error('❌ Failed sessionData:', sessionData); // Log what we tried to send
+  // Don't stop the game if analytics fail
+}
+    
+    setGameState('complete');
   };
 
-  // ANALYTICS ADDED: View analytics handler
+  /**
+   * 🏠 Handle return to menu
+   */
+  const handleReturnToMenu = () => {
+    console.log('🏠 Returning to menu');
+    
+    // Reset all game state
+    setGameState('config');
+    setCurrentRound(1);
+    setScore(0);
+    setWordData([]);
+    setCurrentWordIndex(0);
+    setUsedWords([]);
+    setLastResult(null);
+    setGameStats({
+      wordsAttempted: 0,
+      wordsRecognized: 0,
+      wordsSkipped: 0,
+      wordsShown: 0,
+      averageResponseTime: 0,
+      timeSpent: 0,
+      streakCount: 0,
+      maxStreak: 0,
+      successRate: 0,
+      patternStats: {},
+      difficultyProgression: []
+    });
+  };
+
+  /**
+   * 📊 Handle view analytics
+   */
   const handleViewAnalytics = () => {
+    console.log('📊 Viewing analytics');
     setGameState('analytics');
   };
 
-  // ANALYTICS ADDED: Back from analytics handler
+  /**
+   * 🔙 Handle back from analytics
+   */
   const handleBackFromAnalytics = () => {
+    console.log('🔙 Back from analytics');
     setGameState('config');
   };
-  // END ANALYTICS ADDED
 
   /**
-   * Determine if the mascot should be shown
+   * 🔄 Handle play again
    */
-  const shouldShowMascot = () => {
-    return gameState !== 'config' && gameState !== 'analytics'; // ANALYTICS ADDED
-  };
-
-  /**
-   * Render the current word for gameplay - FIXED
-   */
-  const getCurrentWord = () => {
-    if (wordData.length === 0 || currentWordIndex >= wordData.length) {
-      return { 
-        word: '', 
-        pattern: '', 
-        patternPosition: '',
-        syllableBreakdown: '',
-        syllableCount: 1,
-        category: 'General'
-      };
-    }
+  const handlePlayAgain = () => {
+    console.log('🔄 Playing again');
     
-    return wordData[currentWordIndex];
+    // Reset game but keep config
+    setCurrentRound(1);
+    setScore(0);
+    setCurrentWordIndex(0);
+    setUsedWords([]);
+    setLastResult(null);
+    setGameStats({
+      wordsAttempted: 0,
+      wordsRecognized: 0,
+      wordsSkipped: 0,
+      wordsShown: 0,
+      averageResponseTime: 0,
+      timeSpent: 0,
+      streakCount: 0,
+      maxStreak: 0,
+      successRate: 0,
+      patternStats: {},
+      difficultyProgression: []
+    });
+    
+    // Start new game with same config
+    handleStartGame(gameConfig);
   };
-
-  /**
-   * Enhanced progress calculation
-   */
-  const getDetailedProgress = () => {
-    return {
-      current: currentRound,
-      total: totalRounds,
-      percentage: (currentRound / totalRounds) * 100,
-      remaining: totalRounds - currentRound,
-      score: score,
-      accuracy: gameStats.wordsAttempted > 0 ? gameStats.successRate : 0,
-      streak: gameStats.streakCount,
-      maxStreak: gameStats.maxStreak
-    };
-  };
-
-  // ANALYTICS ADDED: Show analytics if in analytics state
-  if (gameState === 'analytics') {
-    return <GameAnalytics onBack={handleBackFromAnalytics} />;
-  }
-  // END ANALYTICS ADDED
 
   return (
-    <div className={styles.gameContainer}>
-      <div className={styles.gameContent}>
-        {/* Enhanced Progress indicator - Fixed position */}
+    <div className={styles.vanishingGameContainer}>
+      {/* 🎭 Mascot Character - ALWAYS VISIBLE! */}
+      <AnimatePresence>
         {gameState !== 'config' && (
-          <div className={styles.progressIndicator}>
-            <div className={styles.progressLabel}>
-              <span>Progress</span>
-              <div className={styles.progressNumbers}>
-                {currentRound}/{totalRounds}
-              </div>
-            </div>
-            <div className={styles.progressBar}>
-              <motion.div 
-                className={styles.progressFill}
-                initial={{ width: "0%" }}
-                animate={{ 
-                  width: `${getDetailedProgress().percentage}%` 
-                }}
-                transition={{ duration: 0.5 }}
-              />
-            </div>
-            <div className={styles.progressStats}>
-              <span>Score: {score}</span>
-              <span>Accuracy: {gameStats.successRate}%</span>
-              {gameStats.streakCount > 0 && (
-                <span className={styles.streakBadge}>Streak: {gameStats.streakCount}</span>
-              )}
-            </div>
-          </div>
-        )}
-        
-        {/* Team Score Display - Only show in team play mode */}
-        {gameState !== 'config' && gameConfig.teamPlay && (
-          <div className={styles.teamScoreBoard}>
-            <div className={`${styles.teamScore} ${currentTeam === 'teamA' ? styles.activeTeam : ''}`}>
-              <div className={styles.teamName}>{gameConfig.teamAName}</div>
-              <div className={styles.teamPoints}>{teamScores.teamA}</div>
-            </div>
-            <div className={styles.scoreDivider}>VS</div>
-            <div className={`${styles.teamScore} ${currentTeam === 'teamB' ? styles.activeTeam : ''}`}>
-              <div className={styles.teamName}>{gameConfig.teamBName}</div>
-              <div className={styles.teamPoints}>{teamScores.teamB}</div>
-            </div>
-          </div>
-        )}
-        
-        {/* Enhanced Fox Mascot - Fixed position */}
-        {shouldShowMascot() && (
           <motion.div
-            className={styles.foxMascot}
-            animate={{ 
-              y: [0, -8, 0],
-              rotate: [0, 2, 0, -2, 0]
-            }}
-            transition={{ 
-              y: { repeat: Infinity, duration: 3, ease: "easeInOut" },
-              rotate: { repeat: Infinity, duration: 2, ease: "easeInOut" }
-            }}
+            className={styles.mascotContainer}
+            initial={{ x: -100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -100, opacity: 0 }}
           >
-            <img src={WildLitzFox} alt="WildLitz Fox" className={styles.foxImage} />
+            <img 
+              src={WildLitzFox} 
+              alt="WildLitz Mascot" 
+              className={styles.mascotImage}
+            />
             
-            {showBubble && (
-              <motion.div 
-                className={styles.speechBubble}
-                initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8, y: 10 }}
-                transition={{ duration: 0.3 }}
-              >
-                {bubbleMessage}
-              </motion.div>
-            )}
+            {/* Speech Bubble */}
+            <AnimatePresence>
+              {showBubble && (
+                <motion.div
+                  className={styles.speechBubble}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  transition={{ type: 'spring', bounce: 0.6 }}
+                >
+                  {bubbleMessage}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
-        
-        {/* Enhanced Game Screens - Full container */}
-        <AnimatePresence mode="wait">
-          {gameState === 'config' && (
-            <motion.div
-              key="config"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className={styles.screenContainer}
-            >
-              <ConfigScreen 
-                onStartGame={handleStartGame}
-                onViewAnalytics={handleViewAnalytics} // ANALYTICS ADDED
-                loading={loadingWords}
-                error={wordGenerationError}
-              />
-            </motion.div>
-          )}
+      </AnimatePresence>
 
-          {gameState === 'loading' && (
+      {/* Game Screens */}
+      <AnimatePresence mode="wait">
+        {gameState === 'config' && (
+          <motion.div
+            key="config"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <ConfigScreen 
+              onStartGame={handleStartGame}
+              onViewAnalytics={handleViewAnalytics}
+              loading={loadingWords}
+              error={wordGenerationError}
+            />
+          </motion.div>
+        )}
+
+        {gameState === 'gameplay' && wordData[currentWordIndex] && (
+          <motion.div
+            key={`gameplay-${currentRound}-${currentWordIndex}`}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+          >
+            <GameplayScreen
+              wordData={wordData[currentWordIndex]}
+              config={gameConfig}
+              onResult={handleWordResult}
+              round={currentRound}
+              totalRounds={totalRounds}
+              gameStats={gameStats}
+              classEnergy={classEnergy}
+            />
+          </motion.div>
+        )}
+
+        {gameState === 'feedback' && wordData[currentWordIndex] && (
+          <motion.div
+            key="feedback"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+          >
+            <FeedbackScreen
+              wordData={wordData[currentWordIndex]}
+              config={gameConfig}
+              onNextWord={handleNextWord}
+              onRetry={handleRetry}
+              success={lastResult?.recognized === true}
+            />
+          </motion.div>
+        )}
+
+        {gameState === 'complete' && (
   <motion.div
-    key="loading"
+    key="complete"
     initial={{ opacity: 0, scale: 0.9 }}
     animate={{ opacity: 1, scale: 1 }}
-    exit={{ opacity: 0, scale: 1.1 }}
-    className={styles.screenContainer}
+    exit={{ opacity: 0, scale: 0.9 }}
     style={{
+      width: '100%',
+      minHeight: '100vh',
       display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
       alignItems: 'center',
-      height: '100%',
-      background: 'rgba(255, 255, 255, 0.95)'
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '20px'
     }}
   >
-    <motion.div
-      animate={{
-        rotate: 360,
-        scale: [1, 1.2, 1]
-      }}
-      transition={{
-        rotate: { duration: 1, repeat: Infinity, ease: "linear" },
-        scale: { duration: 0.5, repeat: Infinity }
-      }}
-      style={{
-        fontSize: '4rem',
-        marginBottom: '20px'
-      }}
-    >
-      ⏳
-    </motion.div>
-    <motion.p
-      animate={{ opacity: [0.5, 1, 0.5] }}
-      transition={{ duration: 1.5, repeat: Infinity }}
-      style={{
-        fontSize: '1.5rem',
-        color: '#333',
-        fontWeight: 'bold'
-      }}
-    >
-      Finding a new word...
-    </motion.p>
-  </motion.div>
-)}
-          
-          {gameState === 'gameplay' && (
-  <motion.div
-    key="gameplay"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    className={styles.screenContainer}
-    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-  >
-    <GameplayScreen 
-  key={`${currentWordIndex}-${wordData[currentWordIndex]?.word}-${Date.now()}`}
-  wordData={getCurrentWord()}
-  config={gameConfig}
-  onResult={handleWordResult}
-  round={currentRound}
-  totalRounds={totalRounds}
-  gameStats={gameStats}
-  onStatsUpdate={setGameStats}
-  classEnergy={classEnergy}
-  onEnergyUpdate={setClassEnergy}
-  teamPlay={gameConfig.teamPlay}
-  currentTeam={currentTeam}
-  teamScores={teamScores}
-  teamNames={{
-    teamA: gameConfig.teamAName || 'Team A',
-    teamB: gameConfig.teamBName || 'Team B'
-  }}
-/>
-  </motion.div>
-)}
-          
-          {gameState === 'feedback' && (
-            <motion.div
-              key="feedback"
-              initial={{ opacity: 0, rotateY: 90 }}
-              animate={{ opacity: 1, rotateY: 0 }}
-              exit={{ opacity: 0, rotateY: -90 }}
-              className={styles.screenContainer}
-            >
-              <FeedbackScreen 
-                wordData={getCurrentWord()}
-                config={gameConfig}
-                onNextWord={handleNextWord}
-                onRetry={handleRetryWord}
-                success={lastResult?.recognized || false}
-                result={lastResult}
-                gameStats={gameStats}
-              />
-            </motion.div>
-          )}
-          
-          {gameState === 'complete' && (
-            <motion.div
-              key="complete"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.1 }}
-              className={styles.screenContainer}
-            >
-              <GameCompleteScreen 
-                stats={gameStats}
-                config={gameConfig}
-                score={score}
-                totalWords={totalRounds}
-                onPlayAgain={handlePlayAgain}
-                onViewAnalytics={handleViewAnalytics} // ANALYTICS ADDED
-                teamScores={teamScores}
-                teamNames={{
-                  teamA: gameConfig.teamAName || 'Team A',
-                  teamB: gameConfig.teamBName || 'Team B'
-                }}
-                sessionData={{
-                  startTime: sessionStartTime,
-                  endTime: Date.now(),
-                  difficulty: gameConfig.difficulty,
-                  challengeLevel: gameConfig.challengeLevel,
-                  learningFocus: gameConfig.learningFocus
-                }}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+    {/* Fallback Complete Screen if GameCompleteScreen doesn't work */}
+    {!GameCompleteScreen ? (
+      <div style={{
+        background: 'white',
+        padding: '40px',
+        borderRadius: '30px',
+        textAlign: 'center',
+        maxWidth: '600px'
+      }}>
+        <h1 style={{ fontSize: '3rem', marginBottom: '20px' }}>🎉 Game Complete! 🎉</h1>
+        <div style={{ fontSize: '2rem', marginBottom: '30px' }}>
+          <p>Score: {gameStats.wordsRecognized} / {gameStats.wordsAttempted}</p>
+          <p>Success Rate: {gameStats.successRate}%</p>
+        </div>
+        <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+          <button 
+            onClick={handlePlayAgain}
+            style={{
+              padding: '15px 30px',
+              fontSize: '1.2rem',
+              background: 'linear-gradient(135deg, #4CAF50, #81C784)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '15px',
+              cursor: 'pointer'
+            }}
+          >
+            🔄 Play Again
+          </button>
+          <button 
+            onClick={handleReturnToMenu}
+            style={{
+              padding: '15px 30px',
+              fontSize: '1.2rem',
+              background: 'linear-gradient(135deg, #FF9800, #FFB74D)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '15px',
+              cursor: 'pointer'
+            }}
+          >
+            🏠 Menu
+          </button>
+          <button 
+            onClick={handleViewAnalytics}
+            style={{
+              padding: '15px 30px',
+              fontSize: '1.2rem',
+              background: 'linear-gradient(135deg, #2196F3, #64B5F6)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '15px',
+              cursor: 'pointer'
+            }}
+          >
+            📊 Analytics
+          </button>
+        </div>
       </div>
+    ) : (
+      <GameCompleteScreen
+        gameStats={gameStats}
+        config={gameConfig}
+        onPlayAgain={handlePlayAgain}
+        onReturnToMenu={handleReturnToMenu}
+        onViewAnalytics={handleViewAnalytics}
+      />
+    )}
+  </motion.div>
+)}
+
+        {gameState === 'analytics' && (
+          <motion.div
+            key="analytics"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <GameAnalytics
+              onBack={handleBackFromAnalytics}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

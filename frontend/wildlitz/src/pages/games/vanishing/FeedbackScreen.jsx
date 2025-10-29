@@ -1,26 +1,27 @@
-// src/pages/games/vanishing/FeedbackScreen.jsx
-import React from 'react';
-import { motion } from 'framer-motion';
+// src/pages/games/vanishing/FeedbackScreen_NEW.jsx - Kid-Friendly Design
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/vanishing/FeedbackScreen.module.css';
 
+
 /**
- * FeedbackScreen component for the Vanishing Game
- * Shows feedback after a word attempt and explains the phonics pattern
+ * 🎨 REDESIGNED FeedbackScreen for Kids
+ * Colorful, engaging, and educational feedback after each word
  */
 const FeedbackScreen = ({ wordData, config, onNextWord, onRetry, success }) => {
-  // Destructure word data
   const { word, pattern, patternPosition, phonicsRule } = wordData;
-  
-  // Helper to render word with highlighted pattern
+  const [showExamples, setShowExamples] = useState(false);
+
+  // Render word with highlighted pattern
   const renderWordWithHighlight = () => {
     if (!pattern || pattern.length === 0) {
-      return <span>{word}</span>;
+      return <span className={styles.wordText}>{word}</span>;
     }
     
     const patternIndex = word.toLowerCase().indexOf(pattern.toLowerCase());
     
     if (patternIndex === -1) {
-      return <span>{word}</span>;
+      return <span className={styles.wordText}>{word}</span>;
     }
     
     const beforePattern = word.substring(0, patternIndex);
@@ -28,197 +29,203 @@ const FeedbackScreen = ({ wordData, config, onNextWord, onRetry, success }) => {
     const afterPattern = word.substring(patternIndex + pattern.length);
     
     return (
-      <>
+      <span className={styles.wordText}>
         <span>{beforePattern}</span>
         <span className={styles.highlightedPattern}>{patternText}</span>
         <span>{afterPattern}</span>
-      </>
+      </span>
     );
   };
-  
-  // Get example words with the same pattern
+
+  // Get example words
   const getExampleWords = () => {
-    // In a real app, this would come from a database or API
-    // For now, provide some examples based on the pattern
     const examples = {
       'e': ['bed', 'pet', 'red', 'get', 'wet'],
-      'a': ['cat', 'hat', 'bat', 'sat', 'rat'],
+      'a': ['cat', 'hat', 'bat', 'sat', 'mat'],
       'i': ['hit', 'sit', 'fit', 'big', 'pig'],
       'o': ['hot', 'pot', 'dot', 'top', 'hop'],
       'u': ['sun', 'run', 'fun', 'but', 'cup'],
       'sh': ['ship', 'shop', 'shut', 'fish', 'wish'],
       'ch': ['chip', 'chat', 'chin', 'rich', 'much'],
-      'th': ['this', 'that', 'them', 'math', 'bath']
+      'th': ['this', 'that', 'them', 'math', 'bath'],
+      'ay': ['play', 'day', 'say', 'way', 'stay'],
+      'ee': ['tree', 'bee', 'see', 'free', 'three']
     };
     
-    return examples[pattern] || [];
+    return examples[pattern] || ['example1', 'example2', 'example3'];
   };
-  
-  // Get a simple explanation of the phonics rule
+
+  // Get phonics explanation
   const getPhonicsExplanation = () => {
-    // This would ideally come from a database with proper educational content
     const explanations = {
-      'e': "The letter 'e' makes a short sound like in \"egg\"\nIt's different from the long \"me\"",
-      'a': "The letter 'a' makes a short sound like in \"apple\"\nIt's different from the long \"ape\"",
-      'i': "The letter 'i' makes a short sound like in \"igloo\"\nIt's different from the long \"ice\"",
-      'o': "The letter 'o' makes a short sound like in \"ox\"\nIt's different from the long \"go\"",
-      'u': "The letter 'u' makes a short sound like in \"up\"\nIt's different from the long \"cute\"",
-      'sh': "The letters 'sh' together make a single sound\nLike the sound you make when asking someone to be quiet",
-      'ch': "The letters 'ch' together make a single sound\nLike the sound at the beginning of \"cheese\"",
-      'th': "The letters 'th' together make a single sound\nIt can sound soft like in \"this\" or hard like in \"think\""
+      'e': 'The letter "e" makes the /eh/ sound, like in "egg"',
+      'a': 'The letter "a" makes the /ah/ sound, like in "apple"',
+      'i': 'The letter "i" makes the /ih/ sound, like in "igloo"',
+      'o': 'The letter "o" makes the /oh/ sound, like in "octopus"',
+      'u': 'The letter "u" makes the /uh/ sound, like in "umbrella"',
+      'sh': '"sh" makes the /sh/ sound, like in "shoe"',
+      'ch': '"ch" makes the /ch/ sound, like in "cheese"',
+      'th': '"th" makes the /th/ sound, like in "thumb"'
     };
     
-    return explanations[pattern] || "Focus on how this sound is pronounced in the word.";
+    return explanations[pattern] || phonicsRule || `The pattern "${pattern}" is a special sound!`;
   };
-  
-  // Track progress for this phonics pattern
-  const getPatternProgress = () => {
-    // In a real app, this would track actual progress
-    // For this prototype, show a random progress
-    return {
-      current: success ? 3 : 2,
-      total: 3
-    };
-  };
-  
-  const progressInfo = getPatternProgress();
-  
+
   return (
     <div className={styles.feedbackContainer}>
-      <div className={styles.feedbackCard}>
-        {/* Success Animation */}
-        {success && (
-          <div className={styles.successAnimationContainer}>
-            {[...Array(15)].map((_, i) => (
-              <motion.div
-                key={i}
-                className={styles.confetti}
-                style={{
-                  backgroundColor: `hsl(${Math.random() * 360}, 80%, 60%)`,
-                  top: `-20px`,
-                  left: `${Math.random() * 100}%`,
-                }}
-                animate={{
-                  y: [0, Math.random() * 300 + 200],
-                  x: [0, Math.random() * 200 - 100],
-                  rotate: [0, Math.random() * 360 * (Math.random() > 0.5 ? 1 : -1)],
-                  opacity: [1, 0.5, 0],
-                }}
-                transition={{
-                  duration: Math.random() * 2 + 1,
-                  ease: "easeOut",
-                }}
-              />
-            ))}
+      {/* Background Elements */}
+      <div className={styles.backgroundElements}>
+        <div className={styles.floatingBubble} style={{ top: '10%', left: '5%' }}>🎈</div>
+        <div className={styles.floatingBubble} style={{ top: '15%', right: '8%' }}>🎈</div>
+        <div className={styles.floatingConfetti} style={{ top: '70%', left: '10%' }}>🎉</div>
+        <div className={styles.floatingConfetti} style={{ top: '65%', right: '12%' }}>🎊</div>
+      </div>
+
+      {/* Result Banner */}
+      <motion.div
+        className={`${styles.resultBanner} ${success ? styles.successBanner : styles.tryAgainBanner}`}
+        initial={{ scale: 0, rotate: -180 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: 'spring', bounce: 0.6 }}
+      >
+        <div className={styles.bannerEmoji}>
+          {success ? '🌟' : '💪'}
+        </div>
+        <div className={styles.bannerText}>
+          {success ? 'Awesome Job!' : 'Keep Trying!'}
+        </div>
+        <div className={styles.bannerSubtext}>
+          {success ? 'You got it right!' : 'You\'re doing great!'}
+        </div>
+      </motion.div>
+
+      {/* Word Display Card */}
+      <motion.div
+        className={styles.wordCard}
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2, type: 'spring', bounce: 0.5 }}
+      >
+        <div className={styles.wordCardHeader}>
+          <span className={styles.headerEmoji}>📖</span>
+          <h2 className={styles.headerTitle}>The Word Was:</h2>
+        </div>
+        
+        <div className={styles.wordDisplay}>
+          {renderWordWithHighlight()}
+        </div>
+
+        {pattern && (
+          <div className={styles.patternInfo}>
+            <span className={styles.patternLabel}>Pattern:</span>
+            <span className={styles.patternValue}>{pattern}</span>
           </div>
         )}
-        
-        {/* Feedback content */}
-        <div className={styles.feedbackContent}>
-          {/* Fox chat bubble with feedback */}
-          <motion.div 
-            className={styles.feedbackBubble}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            {success ? "Great job!" : "Let's practice this word!"}
-          </motion.div>
-          
-          {/* Word card */}
-          <motion.div 
-            className={styles.wordCardContainer}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <div className={styles.wordCard}>
-              <div className={styles.wordText}>
-                {renderWordWithHighlight()}
-              </div>
-            </div>
-          </motion.div>
-          
-          {/* More examples and phonics rule */}
-          <div className={styles.infoGrid}>
-            <motion.div 
-              className={styles.examplesSection}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+      </motion.div>
+
+      {/* Learning Section */}
+      <motion.div
+        className={styles.learningSection}
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4, type: 'spring', bounce: 0.5 }}
+      >
+        <div className={styles.learningSectionHeader}>
+          <span className={styles.learningEmoji}>🎯</span>
+          <h3 className={styles.learningTitle}>What You Learned</h3>
+        </div>
+
+        <div className={styles.phonicsExplanation}>
+          <p className={styles.explanationText}>{getPhonicsExplanation()}</p>
+        </div>
+
+        {/* Examples Toggle */}
+        <motion.button
+          className={styles.examplesToggle}
+          onClick={() => setShowExamples(!showExamples)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <span className={styles.toggleEmoji}>
+            {showExamples ? '👆' : '👇'}
+          </span>
+          <span className={styles.toggleText}>
+            {showExamples ? 'Hide' : 'Show'} More Examples
+          </span>
+        </motion.button>
+
+        {/* Examples List */}
+        <AnimatePresence>
+          {showExamples && (
+            <motion.div
+              className={styles.examplesList}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
             >
-              <button className={styles.examplesButton}>
-                More Examples
-                <div className={styles.buttonIndicator}>
-                  Show
-                </div>
-              </button>
-            </motion.div>
-            
-            <motion.div 
-              className={styles.phonicsRuleSection}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              <div className={styles.phonicsRuleHeader}>
-                <div className={styles.phonicsRuleTitle}>
-                  Short '{pattern}' Sound
-                </div>
-              </div>
-              <div className={styles.phonicsRuleContent}>
-                {getPhonicsExplanation().split('\n').map((line, i) => (
-                  <p key={i}>{line}</p>
+              <div className={styles.examplesGrid}>
+                {getExampleWords().map((example, index) => (
+                  <motion.div
+                    key={index}
+                    className={styles.exampleWord}
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: index * 0.1, type: 'spring', bounce: 0.5 }}
+                  >
+                    {example}
+                  </motion.div>
                 ))}
               </div>
             </motion.div>
-            
-            <motion.div 
-              className={styles.progressSection}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-            >
-              <div className={styles.progressTitle}>
-                Pattern Progress
-              </div>
-              <div className={styles.progressValue}>
-                {progressInfo.current}/{progressInfo.total}
-              </div>
-              <div className={styles.progressLabel}>
-                Words Correct
-              </div>
-            </motion.div>
-          </div>
-          
-          {/* Action buttons */}
-          <div className={styles.actionButtons}>
-            <motion.button 
-              className={styles.tryAgainButton}
-              onClick={onRetry}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.6 }}
-            >
-              Try Again
-            </motion.button>
-            
-            <motion.button 
-              className={styles.nextWordButton}
-              onClick={onNextWord}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.7 }}
-            >
-              Next Word
-            </motion.button>
-          </div>
-        </div>
-      </div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* Action Buttons */}
+      <motion.div
+        className={styles.actionButtons}
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.6, type: 'spring', bounce: 0.5 }}
+      >
+        {!success && (
+          <motion.button
+            className={`${styles.actionButton} ${styles.retryButton}`}
+            onClick={onRetry}
+            whileHover={{ scale: 1.05, rotate: 2 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className={styles.buttonEmoji}>🔄</span>
+            <span className={styles.buttonText}>Try Again</span>
+          </motion.button>
+        )}
+
+        <motion.button
+          className={`${styles.actionButton} ${styles.nextButton}`}
+          onClick={onNextWord}
+          whileHover={{ scale: 1.05, rotate: -2 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <span className={styles.buttonEmoji}>➡️</span>
+          <span className={styles.buttonText}>Next Word</span>
+        </motion.button>
+      </motion.div>
+
+      {/* Motivational Messages */}
+      <motion.div
+        className={styles.motivationalMessage}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8 }}
+      >
+        <span className={styles.messageEmoji}>✨</span>
+        <p className={styles.messageText}>
+          {success 
+            ? "You're a phonics superstar! Keep it up!" 
+            : "Every mistake helps you learn! You're getting better!"}
+        </p>
+      </motion.div>
     </div>
   );
 };

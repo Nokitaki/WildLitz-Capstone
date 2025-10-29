@@ -1,358 +1,224 @@
-/* src/styles/games/vanishing/VanishingGame.module.css */
+/* VanishingGame.module.css - Kid-Friendly Wildlitz Design */
 
-.gameContainer {
-    width: 100%;
-    height: 100vh;
-    overflow: hidden;
-    font-family: 'Poppins', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    background: linear-gradient(135deg, #7cb342 0%, #558b2f 100%);
-  }
-  
-  .gameContent {
-    width: 90%;
-    height: 90%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-  }
-  
-  .screenContainer {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden; /* Ensure no scrolling */
-  }
-  
-  /* Fox Mascot Styling */
-  .foxMascot {
-    position: fixed; /* Fixed position instead of absolute */
-    bottom: 20px;
-    left: 20px;
-    width: 120px;
-    height: 120px;
-    z-index: 1000; /* High z-index to appear on top */
-    pointer-events: none; /* Make sure it doesn't interfere with clicks */
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2)); /* Add drop shadow for better visibility */
-  }
-  
-  .foxImage {
-    width: 100%;
-    height: auto;
-  }
-  
-  /* Speech bubble styling */
-  .speechBubble {
-    position: absolute;
-    top: -70px; /* Positioned above the fox */
-    left: 60px;
-    background-color: white;
-    border-radius: 15px;
-    padding: 10px 14px;
-    min-width: 180px;
-    max-width: 220px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    font-size: 0.85rem;
-    color: #333;
-    text-align: center;
-    z-index: 101;
-    pointer-events: none; /* So clicks pass through */
-  }
-  
-  .speechBubble:after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 30px; /* Position the speech tail to point at the fox */
-    border-top: 10px solid white;
-    border-left: 7px solid transparent;
-    border-right: 7px solid transparent;
-  }
-  
-  /* Progress indicator */
-  /* Enhanced Progress Indicator Styling - Better Visibility */
-
-.progressIndicator {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background-color: rgba(255, 255, 255, 0.95); /* Made more opaque */
-  border-radius: 20px;
-  padding: 12px 16px;
-  width: 140px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  backdrop-filter: blur(10px);
-  z-index: 10;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border: 2px solid rgba(124, 179, 66, 0.3);
-}
-
-.progressLabel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #2c3e50; /* Dark blue-gray for better visibility */
-  font-size: 0.8rem;
-  margin-bottom: 8px;
-  font-weight: 600;
-}
-
-.progressNumbers {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #2c3e50; /* Dark blue-gray for better visibility */
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
-}
-
-.progressBar {
+.vanishingGameContainer {
   width: 100%;
-  height: 6px;
-  background-color: rgba(220, 220, 220, 0.8);
-  border-radius: 3px;
+  min-height: 100vh;
+  position: relative;
   overflow: hidden;
-  margin-bottom: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.progressFill {
-  height: 100%;
-  background: linear-gradient(90deg, #7cb342, #8bc34a);
-  border-radius: 3px;
-  transition: width 0.5s ease;
-  box-shadow: 0 1px 3px rgba(124, 179, 66, 0.3);
-}
-
-.progressStats {
+/* 🎭 Mascot Container - CUTE WILDLITZ CHARACTER! */
+.mascotContainer {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 5;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  font-size: 0.7rem;
-  gap: 3px;
+  align-items: center;
+  gap: 15px;
+  pointer-events: none;
+}
+
+.mascotImage {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.3));
+  animation: mascotBounce 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes mascotBounce {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+
+/* Speech Bubble */
+.speechBubble {
+  position: relative;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  padding: 15px 25px;
+  border-radius: 20px;
+  border: 4px solid #fff;
+  box-shadow: 0 8px 20px rgba(255, 165, 0, 0.4);
+  font-family: 'Fredoka One', 'Comic Sans MS', cursive;
+  font-size: 1rem;
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  max-width: 250px;
   text-align: center;
+  animation: bubbleWiggle 0.5s ease-in-out;
+  pointer-events: none;
 }
 
-.progressStats span {
-  background-color: rgba(124, 179, 66, 0.1);
-  padding: 3px 8px;
-  border-radius: 12px;
-  border: 1px solid rgba(124, 179, 66, 0.3);
-  color: #2e5d32; /* Dark green for better visibility */
-  font-weight: 600;
-}
-
-.streakBadge {
-  background: linear-gradient(135deg, #ff9800, #f57c00) !important;
-  color: white !important;
-  font-weight: 700 !important;
-  box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
-}
-
-/* Enhanced responsiveness */
-@media (max-width: 1024px) {
-  .progressIndicator {
-    width: 120px;
-    padding: 10px 12px;
-    top: 10px;
-    right: 10px;
-  }
-  
-  .progressNumbers {
-    font-size: 1rem;
-  }
-  
-  .progressStats {
-    font-size: 0.65rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .progressIndicator {
-    width: 100px;
-    padding: 8px 10px;
-    top: 10px;
-    right: 10px;
-  }
-  
-  .progressLabel {
-    font-size: 0.7rem;
-    margin-bottom: 6px;
-  }
-  
-  .progressNumbers {
-    font-size: 0.9rem;
-  }
-  
-  .progressBar {
-    height: 5px;
-    margin-bottom: 6px;
-  }
-  
-  .progressStats {
-    font-size: 0.6rem;
-    gap: 2px;
-  }
-  
-  .progressStats span {
-    padding: 2px 6px;
-  }
-}
-  
-  /* Media queries for responsive design */
-  @media (max-width: 1200px) {
-    .gameContent {
-      width: 95%;
-    }
-    
-    .foxMascot {
-      width: 100px;
-      height: 100px;
-      bottom: 15px;
-      left: 15px;
-    }
-    
-    .speechBubble {
-      top: -60px;
-      left: 50px;
-      min-width: 160px;
-      max-width: 200px;
-      font-size: 0.8rem;
-      padding: 8px 12px;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .gameContent {
-      width: 98%;
-      height: 98%;
-    }
-    
-    .progressIndicator {
-      width: 90px;
-      padding: 6px 10px;
-    }
-    
-    .progressNumbers {
-      font-size: 0.9rem;
-    }
-    
-    .foxMascot {
-      width: 80px;
-      height: 80px;
-      bottom: 10px;
-      left: 10px;
-    }
-    
-    .speechBubble {
-      top: -50px;
-      left: 40px;
-      min-width: 140px;
-      max-width: 180px;
-      font-size: 0.7rem;
-      padding: 6px 10px;
-    }
-  }
-  
-  /* For large displays */
-  @media (min-width: 1440px) {
-    .gameContent {
-      width: 80%;
-      height: 85%;
-    }
-    
-    .foxMascot {
-      width: 140px;
-      height: 140px;
-      bottom: 30px;
-      left: 30px;
-    }
-    
-    .speechBubble {
-      top: -80px;
-      left: 70px;
-      min-width: 220px;
-      max-width: 280px;
-      font-size: 1rem;
-    }
-  }
-  
-  /* For extra wide displays */
-  @media (min-width: 1800px) {
-    .gameContent {
-      width: 70%;
-    }
-  }
-
-  /* ADD THESE STYLES FOR TEAM SCOREBOARD: */
-
-/* Team Scoreboard Styling */
-.teamScoreBoard {
-  position: fixed;
-  top: 15px;
+.speechBubble::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  background-color: rgba(255, 255, 255, 0.95);
-  border-radius: 25px;
-  padding: 12px 20px;
-  gap: 20px;
-  z-index: 10;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border: 2px solid rgba(124, 179, 66, 0.3);
-  backdrop-filter: blur(10px);
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-top: 15px solid #FFA500;
 }
 
-.teamScore {
+@keyframes bubbleWiggle {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.05) rotate(-2deg); }
+  50% { transform: scale(1.1) rotate(2deg); }
+  75% { transform: scale(1.05) rotate(-2deg); }
+}
+
+/* Loading State */
+.loadingContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px 16px;
-  border-radius: 15px;
-  transition: all 0.3s ease;
-  min-width: 80px;
-  /* Add dark text color for visibility */
-  color: #2c3e50;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 30px;
 }
 
-.teamScore.activeTeam {
-  background: linear-gradient(135deg, #7cb342, #8bc34a);
-  color: white;
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(124, 179, 66, 0.3);
-}
-
-.teamName {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 4px;
-  /* Ensure text is dark when not active */
-  color: inherit;
-}
-
-.teamPoints {
-  font-size: 1.8rem;
-  font-weight: 800;
-  line-height: 1;
-  /* Ensure text is dark when not active */
-  color: inherit;
-}
-
-.scoreDivider {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: #7cb342;
-  padding: 8px;
-  background-color: rgba(124, 179, 66, 0.1);
+.loadingSpinner {
+  width: 80px;
+  height: 80px;
+  border: 8px solid rgba(255, 255, 255, 0.3);
+  border-top: 8px solid #FFD700;
   border-radius: 50%;
-  min-width: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loadingText {
+  font-family: 'Fredoka One', cursive;
+  font-size: 2rem;
+  color: #fff;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.95); }
+}
+
+/* Error State */
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 20px;
+  padding: 20px;
+}
+
+.errorEmoji {
+  font-size: 5rem;
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px) rotate(-5deg); }
+  75% { transform: translateX(10px) rotate(5deg); }
+}
+
+.errorTitle {
+  font-family: 'Fredoka One', cursive;
+  font-size: 2.5rem;
+  color: #fff;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
   text-align: center;
+}
+
+.errorMessage {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  max-width: 600px;
+}
+
+.errorButton {
+  padding: 15px 40px;
+  background: linear-gradient(135deg, #4CAF50, #81C784);
+  border: none;
+  border-radius: 25px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.3rem;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+  transition: all 0.3s ease;
+  border: 4px solid #fff;
+}
+
+.errorButton:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(76, 175, 80, 0.6);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .mascotContainer {
+    bottom: 10px;
+    left: 10px;
+  }
+
+  .mascotImage {
+    width: 80px;
+    height: 80px;
+  }
+
+  .speechBubble {
+    font-size: 0.85rem;
+    padding: 12px 20px;
+    max-width: 180px;
+  }
+
+  .speechBubble::after {
+    bottom: -12px;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-top: 12px solid #FFA500;
+  }
+
+  .loadingText {
+    font-size: 1.5rem;
+  }
+
+  .errorTitle {
+    font-size: 2rem;
+  }
+
+  .errorMessage {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .mascotContainer {
+    bottom: 5px;
+    left: 5px;
+  }
+
+  .mascotImage {
+    width: 60px;
+    height: 60px;
+  }
+
+  .speechBubble {
+    font-size: 0.75rem;
+    padding: 10px 15px;
+    max-width: 150px;
+  }
 }

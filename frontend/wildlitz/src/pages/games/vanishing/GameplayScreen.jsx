@@ -1,11 +1,11 @@
-// src/pages/games/vanishing/GameplayScreen.jsx
+// src/pages/games/vanishing/GameplayScreen.jsx - REDESIGNED FOR KIDS
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/vanishing/GameplayScreen.module.css';
 
 /**
- * Enhanced GameplayScreen component for the Vanishing Game
- * Includes all gameplay improvements for classroom use
+ * 🎨 COMPLETELY REDESIGNED GameplayScreen for Kids
+ * Features: Colorful UI, Fun animations, Clear feedback, Kid-friendly interactions
  */
 const GameplayScreen = ({ 
   wordData, 
@@ -17,1590 +17,505 @@ const GameplayScreen = ({
   onStatsUpdate,
   classEnergy = 100,
   onEnergyUpdate,
-  // ADD THESE NEW PROPS:
   teamPlay = false,
   currentTeam = 'teamA',
   teamScores = { teamA: 0, teamB: 0 },
   teamNames = { teamA: 'Team A', teamB: 'Team B' }
 }) => {
-  // Destructure word data
   const { word, pattern, patternPosition } = wordData;
   
-  // Basic game states
+  // Game states
   const [timeRemaining, setTimeRemaining] = useState(5);
-  const [vanishState, setVanishState] = useState('visible'); // visible, vanishing, vanished
+  const [vanishState, setVanishState] = useState('visible');
   const [hasAnswered, setHasAnswered] = useState(false);
-  
-  // Enhanced preview phase states
-  const [preVanishPhase, setPreVanishPhase] = useState('initial'); // 'initial', 'preview', 'ready', 'vanishing'
+  const [preVanishPhase, setPreVanishPhase] = useState('initial');
   const [showPhonicsHint, setShowPhonicsHint] = useState(false);
-  const [playingAudio, setPlayingAudio] = useState(false);
   
   // Enhanced vanishing effects
   const [vanishingStyle, setVanishingStyle] = useState('fade');
   const [vanishingLetters, setVanishingLetters] = useState([]);
-  const [syllableVanishOrder, setSyllableVanishOrder] = useState([]);
   
-  // Response phase states - simplified to prevent flickering
-  const [responsePhase, setResponsePhase] = useState('none');
-  const [phaseTimer, setPhaseTimer] = useState(0);
-  const [showHandRaise, setShowHandRaise] = useState(false);
-  const [participationCount, setParticipationCount] = useState(0);
+  // Fun feedback states
+  const [showStars, setShowStars] = useState(false);
+  const [showEncouragement, setShowEncouragement] = useState(false);
+  const [encouragementText, setEncouragementText] = useState('');
   
-  // Single timer reference for response phases
+  // Audio refs
+  const wordAudioRef = useRef(null);
+  const successSoundRef = useRef(null);
+  
+  // Initialize vanishing style based on difficulty
+  useEffect(() => {
+    const styles = ['fade', 'blur', 'letterDrop', 'syllable'];
+    const randomStyle = styles[Math.floor(Math.random() * styles.length)];
+    setVanishingStyle(config.difficulty === 'hard' ? 'letterDrop' : randomStyle);
+  }, [config.difficulty]);
 
-  
-  // Participation energy system - use props
-  const [energyLevel, setEnergyLevel] = useState(classEnergy || 100);
-  const [consecutiveCorrect, setConsecutiveCorrect] = useState(gameStats?.streakCount || 0);
-  const [celebrationTriggered, setCelebrationTriggered] = useState(false);
-
-
-  const [showVisualFeedback, setShowVisualFeedback] = useState(false);
-  const [feedbackType, setFeedbackType] = useState(''); // 'correct' or 'incorrect'
-  const [audioPlaying, setAudioPlaying] = useState(false);
-  
-  // Update energy when prop changes
-  useEffect(() => {
-    if (classEnergy !== undefined) {
-      setEnergyLevel(classEnergy);
-    }
-  }, [classEnergy]);
-  
-  // Update streak when gameStats change
-  useEffect(() => {
-    if (gameStats?.streakCount !== undefined) {
-      setConsecutiveCorrect(gameStats.streakCount);
-    }
-  }, [gameStats]);
-  
-  // Teacher controls
-  const [teacherPaused, setTeacherPaused] = useState(false);
-  const [speedMultiplier, setSpeedMultiplier] = useState(1);
-  const [showHint, setShowHint] = useState(false);
-  const [discussionMode, setDiscussionMode] = useState(false);
-  
-  // Error handling and support
-  const [attempts, setAttempts] = useState(0);
-  const [needsSupport, setNeedsSupport] = useState(false);
-  const [encouragementMessage, setEncouragementMessage] = useState('');
-  
-  // References - simplified
-  const timerRef = useRef(null);
-  const responseTimerRef = useRef(null);
-  const phaseTimeoutRef = useRef(null);
-  
-  // Keyboard controls for teacher
-  useEffect(() => {
-    const handleKeyPress = (event) => {
-      if (event.code === 'Space') {
-        event.preventDefault();
-        handleTeacherPlayPause();
-      } else if (event.key === 'r' || event.key === 'R') {
-        handleInstantReveal();
-      } else if (event.key === 'ArrowLeft') {
-        adjustSpeed(-0.2);
-      } else if (event.key === 'ArrowRight') {
-        adjustSpeed(0.2);
-      } else if (event.key === 's' || event.key === 'S') {
-        handleSkip();
-      } else if (event.key === 'd' || event.key === 'D') {
-        toggleDiscussionMode();
-      } else if (event.key === 'h' || event.key === 'H') {
-        setShowHint(!showHint);
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [vanishState, preVanishPhase, teacherPaused]);
-  
-  // Initialize game
-  useEffect(() => {
-    if (!wordData?.word) return;
-    
-    initializeGame();
-  }, [wordData?.word, config]);
-  
-  // Initialize the game with all settings
-  const initializeGame = () => {
-    // Reset all states
-    resetGameStates();
-    
-    // Determine vanishing style
-    const style = selectVanishingStyle();
-    setVanishingStyle(style);
-    
-    // Set initial display duration
-    const duration = getVanishDuration();
-    setTimeRemaining(duration / 1000);
-    
-    // Start enhanced preview sequence
-    startEnhancedPreview();
-    
-    // Prepare special effects
-    if (style === 'letterDrop') {
-      prepareLetterDrop();
-    } else if (style === 'syllable') {
-      prepareSyllableVanish();
-    }
-  };
-  
-  // Cleanup function to clear all timers
-  const clearAllTimers = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    if (responseTimerRef.current) {
-      clearInterval(responseTimerRef.current);
-      responseTimerRef.current = null;
-    }
-    if (phaseTimeoutRef.current) {
-      clearTimeout(phaseTimeoutRef.current);
-      phaseTimeoutRef.current = null;
-    }
-  };
-  
-  // Reset all game states
-  const resetGameStates = () => {
-    setPreVanishPhase('initial');
-    setVanishState('visible');
-    setHasAnswered(false);
-    setShowPhonicsHint(false);
-    setPlayingAudio(false);
-    setResponsePhase('none');
-    setPhaseTimer(0);
-    setShowHandRaise(false);
-    setTeacherPaused(false);
-    setCelebrationTriggered(false);
-    setShowHint(false);
-    setDiscussionMode(false);
-    setAttempts(0);
-    setNeedsSupport(false);
-    setEncouragementMessage('');
-    
-    // Clear all timers
-    clearAllTimers();
-  };
-  
-  // Select vanishing style based on content - AVOID BLUR
-  const selectVanishingStyle = () => {
-    const { challengeLevel } = config;
-    
-    if (challengeLevel === 'simple_sentences') {
-      return 'gentle_fade'; // Changed from blur
-    } else if (challengeLevel === 'phrases') {
-      return 'syllable';
-    } else if (challengeLevel === 'compound_words') {
-      return 'word_split'; // Changed from puzzle
-    } else {
-      // Better animations for simple words
-      const styles = ['gentle_fade', 'letter_by_letter', 'shrink_away'];
-      return styles[Math.floor(Math.random() * styles.length)];
-    }
-  };
-  
-  // Enhanced preview sequence
-  const startEnhancedPreview = () => {
-  // Phase 1: Initial display
-  setTimeout(() => {
-    setPreVanishPhase('preview');
-  }, 100);
-  
-  // Show phonics pattern highlight
-  setTimeout(() => {
-    setShowPhonicsHint(true);
-  }, 500);
-  
- 
-  
-  // Phase 2: Get ready cue
-  setTimeout(() => {
-    setPreVanishPhase('ready');
-    setShowPhonicsHint(false);
-  }, 2500);
-  
-  // Phase 3: Start vanishing
-  setTimeout(() => {
-    setPreVanishPhase('vanishing');
-    if (!teacherPaused) {
-      startVanishingSequence();
-    }
-  }, 3500);
-};
-  
-  // Start the vanishing sequence
-  const startVanishingSequence = () => {
-    setVanishState('vanishing');
-    
-    if (vanishingStyle === 'letterDrop') {
-      startLetterDropEffect();
-    } else if (vanishingStyle === 'syllable') {
-      startSyllableVanishEffect();
-    } else {
-      startDefaultVanishTimer();
-    }
-  };
-  
-  // Get vanish duration based on settings
-  const getVanishDuration = () => {
-    let baseDuration;
-    
-    switch(config.difficulty) {
-      case 'easy': baseDuration = 5000; break;
-      case 'medium': baseDuration = 4000; break;
-      case 'hard': baseDuration = 3000; break;
-      default: baseDuration = 4000;
-    }
-    
-    // Adjust for content complexity
-    if (config.challengeLevel === 'simple_sentences') {
-      baseDuration += 2000;
-    } else if (config.challengeLevel === 'phrases') {
-      baseDuration += 1000;
-    }
-    
-    // Apply teacher speed adjustment
-    return baseDuration / speedMultiplier;
-  };
-  
-  // Letter drop effect
-  const prepareLetterDrop = () => {
-    if (!wordData?.word) return;
-    
-    const letters = wordData.word.split('').map((letter, index) => ({
-      letter,
-      index,
-      dropped: false,
-      delay: Math.random() * 1000
-    }));
-    
-    setVanishingLetters(letters);
-  };
-  
-  const startLetterDropEffect = () => {
-    const duration = getVanishDuration();
-    
-    vanishingLetters.forEach((letterObj) => {
-      setTimeout(() => {
-        setVanishingLetters(prev => 
-          prev.map(l => 
-            l.index === letterObj.index ? { ...l, dropped: true } : l
-          )
-        );
-      }, letterObj.delay);
-    });
-    
-    setTimeout(() => {
-      onVanishComplete();
-    }, duration);
-  };
-  
-  // Syllable vanish effect
-  const prepareSyllableVanish = () => {
-    if (!wordData?.syllableBreakdown) return;
-    
-    const syllables = wordData.syllableBreakdown.split('-');
-    const order = syllables.map((_, index) => index).sort(() => Math.random() - 0.5);
-    setSyllableVanishOrder(order);
-  };
-  
-  const startSyllableVanishEffect = () => {
-    const duration = getVanishDuration();
-    const syllableInterval = duration / syllableVanishOrder.length;
-    
-    syllableVanishOrder.forEach((syllableIndex, orderIndex) => {
-      setTimeout(() => {
-        const syllableElement = document.querySelector(`[data-syllable-index="${syllableIndex}"]`);
-        if (syllableElement) {
-          syllableElement.classList.add('syllable-vanished');
-        }
-      }, orderIndex * syllableInterval);
-    });
-    
-    setTimeout(() => {
-      onVanishComplete();
-    }, duration);
-  };
-  
-  // Default vanish timer
-  const startDefaultVanishTimer = () => {
-    const duration = getVanishDuration();
-    const steps = 60;
-    const stepDuration = duration / steps;
-    
-    let currentStep = 0;
-    timerRef.current = setInterval(() => {
-      if (teacherPaused) return;
-      
-      currentStep++;
-      setTimeRemaining((duration - (currentStep * stepDuration)) / 1000);
-      
-      if (currentStep >= steps) {
-        clearInterval(timerRef.current);
-        onVanishComplete();
-      }
-    }, stepDuration);
-  };
-  
-  // Handle vanish completion
-  const onVanishComplete = () => {
-    setVanishState('vanished');
-    setTimeRemaining(0);
-    startResponsePhase();
-  };
-  
-  // Simplified response phase handling - no flickering
-  const startResponsePhase = () => {
-    // Immediate safety check
-    if (hasAnswered) return;
-    
-    // Clear any existing response timers
-    clearAllTimers();
-    
-    // Start with a delay after word fully vanishes
-    phaseTimeoutRef.current = setTimeout(() => {
-      if (!hasAnswered) {
-        // Start thinking phase
-        setResponsePhase('thinking');
-        setPhaseTimer(5);
-        
-        responseTimerRef.current = setInterval(() => {
-          setPhaseTimer(prev => {
-            if (prev <= 1) {
-              // Move to whisper phase
-              setResponsePhase('whisper');
-              setPhaseTimer(30);
-              return 30;
-            }
-            if (prev === 26) {
-              // After thinking ends, switch to whisper
-              setResponsePhase('whisper');
-              return prev - 1;
-            }
-            if (prev === 1 && responsePhase === 'whisper') {
-              // After whisper ends, switch to response
-              setResponsePhase('response');
-              setShowHandRaise(true);
-              setPhaseTimer(0);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      }
-    }, 1500);
-  };
-  
-  // Handle user responses - prevent multiple calls
- const handleUserResponse = (recognized) => {
-  if (hasAnswered) return;
-  
-  setHasAnswered(true);
-  clearAllTimers();
-  setResponsePhase('none');
-  setShowHandRaise(false);
-  setPhaseTimer(0);
-  setAttempts(prev => prev + 1);
-  setVanishState('visible');
-  setPreVanishPhase('answered');
-  
-  // Visual feedback
-  setFeedbackType(recognized ? 'correct' : 'incorrect');
-  setShowVisualFeedback(true);
-  
-  setTimeout(() => {
-    setShowVisualFeedback(false);
-  }, 1500);
-    
-  // Update participation and energy
-  updateParticipationStats(recognized);
-  
-  // Show encouragement if struggling
-  if (!recognized && attempts > 0) {
-    setNeedsSupport(true);
-    showEncouragement();
+  // Preview phase sequence
+  // Preview phase sequence
+useEffect(() => {
+  if (preVanishPhase === 'initial') {
+    const timer = setTimeout(() => {
+      setPreVanishPhase('preview');
+      playWordAudio();
+    }, 500);
+    return () => clearTimeout(timer);
   }
   
-  // Report result with delay for feedback
-  console.log('📤 Sending result to VanishingGame immediately:', recognized);
-  onResult(recognized, word);
-};
-// Handle "Give up" button specifically
-const handleGiveUp = () => {
-  if (hasAnswered) return;
-  
-  setHasAnswered(true);
-  clearAllTimers();
-  setResponsePhase('none');
-  setShowHandRaise(false);
-  setPhaseTimer(0);
-  setAttempts(prev => prev + 1);
-  
-  // Show the word
-  setVanishState('visible');
-  setPreVanishPhase('answered');
-  
-  // Use special "giveup" feedback type
-  setFeedbackType('giveup');
-  setShowVisualFeedback(true);
-  
-  setTimeout(() => {
-    setShowVisualFeedback(false);
-  }, 1500);
-    
-  // Update participation and energy (counts as incorrect)
-  updateParticipationStats(false);
-  
-    onResult('giveup', word);
-};
-
-
-// NEW FUNCTION - Handle showing the word (preview only)
-const handleShowWord = () => {
-  if (hasAnswered) return;
-  
-  // Show the word temporarily without marking as incorrect
-  setVanishState('visible');
-  setPreVanishPhase('revealed');
-  
-  // Set a timer to hide it again after 3 seconds
-  setTimeout(() => {
-    if (!hasAnswered) {
-      setVanishState('vanished');
-      setPreVanishPhase('vanishing');
-    }
-  }, 3000);
-};
-  
-  // Update participation statistics
-  const updateParticipationStats = (recognized) => {
-    setParticipationCount(prev => prev + 1);
-    
-    if (recognized) {
-      setConsecutiveCorrect(prev => prev + 1);
-      const newEnergy = Math.min(100, energyLevel + 10);
-      setEnergyLevel(newEnergy);
-      
-      // Update parent energy state
-      if (onEnergyUpdate) {
-        onEnergyUpdate(newEnergy);
-      }
-      
-      // Trigger celebration for streaks
-      if (consecutiveCorrect > 0 && (consecutiveCorrect + 1) % 3 === 0) {
-        setCelebrationTriggered(true);
-        setTimeout(() => setCelebrationTriggered(false), 2000);
-      }
-    } else {
-      setConsecutiveCorrect(0);
-      const newEnergy = Math.max(0, energyLevel - 5);
-      setEnergyLevel(newEnergy);
-      
-      // Update parent energy state
-      if (onEnergyUpdate) {
-        onEnergyUpdate(newEnergy);
-      }
-    }
-  };
-  
-  // Show encouragement message
-  const showEncouragement = () => {
-    const messages = [
-      "That's okay! Let's try again!",
-      "You're getting better at this!",
-      "Keep trying! You can do it!",
-      "No worries! Practice makes perfect!",
-      "Good effort! Let's see it once more!"
-    ];
-    
-    const message = messages[Math.floor(Math.random() * messages.length)];
-    setEncouragementMessage(message);
-    
-    setTimeout(() => {
-      setEncouragementMessage('');
-      setNeedsSupport(false);
+  if (preVanishPhase === 'preview') {
+    const timer = setTimeout(() => {
+      setPreVanishPhase('ready');
     }, 3000);
-  };
+    return () => clearTimeout(timer);
+  }
   
-  // Teacher control functions
-  const handleTeacherPlayPause = () => {
-    setTeacherPaused(!teacherPaused);
-    
-    if (!teacherPaused && preVanishPhase === 'vanishing' && vanishState === 'visible') {
-      startVanishingSequence();
-    }
-  };
-  
-  const handleInstantReveal = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    setVanishState('visible');
+  if (preVanishPhase === 'ready') {
+  const timer = setTimeout(() => {
     setPreVanishPhase('vanishing');
+    // Word stays visible, then starts vanishing
     setTimeout(() => {
-      handleUserResponse(false);
-    }, 1500);
-  };
-  
-  const adjustSpeed = (delta) => {
-    setSpeedMultiplier(prev => Math.max(0.5, Math.min(2, prev + delta)));
-  };
-  
- const handleSkip = () => {
-  if (hasAnswered) return;
-  
-  console.log('⏭️ Skip button pressed - generating new word without counting as progress');
-  
-  // Skip without marking as wrong
-  setHasAnswered(true);
-  clearAllTimers();
-  setResponsePhase('none');
-  setShowHandRaise(false);
-  setPhaseTimer(0);
-  
-  // Show the word briefly
-  setVanishState('visible');
-  setPreVanishPhase('answered');
-  
-  // Show "Skipped" feedback (neutral, not wrong)
-  setFeedbackType('skipped');
-  setShowVisualFeedback(true);
-  
-  setTimeout(() => {
-    setShowVisualFeedback(false);
-  }, 800);
-  
-  // ⭐ CHANGED: Use 'skip' instead of null
-  setTimeout(() => {
-    onResult('skip', word);
-  }, 800);
-};
-  
-  const toggleDiscussionMode = () => {
-    setDiscussionMode(!discussionMode);
-    if (!discussionMode) {
-      setTeacherPaused(true);
-    }
-  };
-  
-  // Get vanishing opacity for different effects
-  const getVanishingOpacity = () => {
-    if (vanishState === 'visible' || preVanishPhase !== 'vanishing') return 1;
-    if (vanishState === 'vanished') return 0;
-    
-    const duration = getVanishDuration() / 1000;
-    const progress = 1 - (timeRemaining / duration);
-    
-    switch(vanishingStyle) {
-      case 'fade':
-        return 1 - progress;
-      case 'blur':
-        return 1;
-      case 'puzzle':
-        return Math.max(0, 1 - (progress * 1.5));
-      default:
-        return 1 - progress;
-    }
-  };
-  
-  // Get blur amount for blur effect
-  const getBlurAmount = () => {
-    if (vanishingStyle !== 'blur' || vanishState !== 'vanishing') return 0;
-    
-    const duration = getVanishDuration() / 1000;
-    const progress = 1 - (timeRemaining / duration);
-    
-    return progress * 20;
-  };
-  
-  // Get transform for puzzle effect
-  const getPuzzleTransform = () => {
-    if (vanishingStyle !== 'puzzle' || vanishState !== 'vanishing') return 'none';
-    
-    const duration = getVanishDuration() / 1000;
-    const progress = 1 - (timeRemaining / duration);
-    
-    const angle = progress * 45;
-    const spread = progress * 100;
-    
-    return `rotate(${angle}deg) scale(${1 - progress * 0.5})`;
-  };
-  
-  // Enhanced word rendering with new gentle effects
-  const renderEnhancedWordWithHighlight = () => {
-    switch(vanishingStyle) {
-      case 'letterDrop':
-      case 'letter_by_letter':
-        return renderLetterByLetterWord();
-      case 'syllable':
-        return renderSyllableVanishWord();
-      case 'puzzle':
-      case 'word_split':
-        return renderWordSplitEffect();
-      case 'shrink_away':
-        return renderShrinkAwayWord();
-      case 'gentle_fade':
-      default:
-        return renderGentleFadeWord();
-    }
-  };
-  
-  // Gentle fade - much easier on eyes
-  const renderGentleFadeWord = () => {
-    const highlightedWord = renderBasicHighlighting();
-    
-    return (
-      <motion.div
-        animate={{
-          opacity: getVanishingOpacity(),
-          scale: vanishState === 'vanishing' ? 0.95 : 1
-        }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-      >
-        {highlightedWord}
-      </motion.div>
-    );
-  };
-  
-  // Shrink away effect
-  const renderShrinkAwayWord = () => {
-    const highlightedWord = renderBasicHighlighting();
-    
-    return (
-      <motion.div
-        animate={{
-          scale: vanishState === 'vanishing' ? 0 : 1,
-          opacity: getVanishingOpacity()
-        }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-      >
-        {highlightedWord}
-      </motion.div>
-    );
-  };
-  
-  // Letter by letter fade (gentle version of letterDrop)
-  const renderLetterByLetterWord = () => {
-    const word = wordData.word;
-    const letters = word.split('');
-    
-    return (
-      <span>
-        {letters.map((letter, index) => (
-          <motion.span
-            key={index}
-            animate={{
-              opacity: vanishState === 'vanishing' 
-                ? Math.max(0, 1 - (index / letters.length) * (1 - getVanishingOpacity()))
-                : 1
-            }}
-            transition={{
-              duration: 0.1,
-              delay: vanishState === 'vanishing' ? index * 0.05 : 0
-            }}
-          >
-            {letter}
-          </motion.span>
-        ))}
-      </span>
-    );
-  };
-  
-  // Word split for compound words (gentler than puzzle)
-  const renderWordSplitEffect = () => {
-    const word = wordData.word;
-    const midPoint = Math.floor(word.length / 2);
-    const leftPart = word.substring(0, midPoint);
-    const rightPart = word.substring(midPoint);
-    
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <motion.span
-          animate={{
-            x: vanishState === 'vanishing' ? -20 : 0,
-            opacity: getVanishingOpacity()
-          }}
-          transition={{ duration: 0.3 }}
-        >
-          {leftPart}
-        </motion.span>
-        <motion.span
-          animate={{
-            x: vanishState === 'vanishing' ? 20 : 0,
-            opacity: getVanishingOpacity()
-          }}
-          transition={{ duration: 0.3 }}
-        >
-          {rightPart}
-        </motion.span>
-      </div>
-    );
-  };
-  
-  // Basic highlighting without blur
-  const renderBasicHighlighting = () => {
-    const { word, pattern } = wordData;
-    
-    if (!config.highlightTarget || !pattern) {
-      return <span>{word}</span>;
-    }
-    
-    const getHighlightColor = (focus) => {
-      switch(focus) {
-        case 'short_vowels': return '#e53935';
-        case 'long_vowels': return '#1976d2';
-        case 'blends': return '#7b1fa2';
-        case 'digraphs': return '#388e3c';
-        default: return '#e53935';
+      startVanishing();
+    }, 100); // Small delay to ensure word is visible first
+  }, 1000);
+  return () => clearTimeout(timer);
+}
+}, [preVanishPhase]);
+
+  // Timer countdown
+  useEffect(() => {
+    if (preVanishPhase === 'vanishing' && vanishState === 'vanished' && !hasAnswered) {
+      if (timeRemaining > 0) {
+        const timer = setTimeout(() => setTimeRemaining(timeRemaining - 1), 1000);
+        return () => clearTimeout(timer);
       }
-    };
-    
-    const highlightColor = getHighlightColor(config.learningFocus);
-    
-    // Handle sentences/phrases
-    if (config.challengeLevel === 'simple_sentences' || config.challengeLevel === 'phrases') {
-      const regex = new RegExp(`(${pattern})`, 'gi');
-      const parts = word.split(regex);
-      
-      return (
-        <span>
-          {parts.map((part, index) => 
-            regex.test(part) ? (
-              <span 
-                key={index} 
-                style={{ 
-                  color: highlightColor,
-                  background: `${highlightColor}20`,
-                  padding: '2px 4px',
-                  borderRadius: '4px'
-                }}
-              >
-                {part}
-              </span>
-            ) : (
-              <span key={index}>{part}</span>
-            )
-          )}
-        </span>
-      );
     }
-    
-    // Single word highlighting
-    const patternIndex = word.toLowerCase().indexOf(pattern.toLowerCase());
-    
-    if (patternIndex === -1) {
-      return <span>{word}</span>;
+  }, [timeRemaining, preVanishPhase, vanishState, hasAnswered]);
+
+  const playWordAudio = () => {
+    if (wordAudioRef.current) {
+      wordAudioRef.current.play().catch(() => {
+        // Audio not available, silent fail
+      });
     }
-    
-    const beforePattern = word.substring(0, patternIndex);
-    const patternText = word.substring(patternIndex, patternIndex + pattern.length);
-    const afterPattern = word.substring(patternIndex + pattern.length);
-    
-    return (
-      <>
-        <span>{beforePattern}</span>
-        <span 
-          style={{ 
-            color: highlightColor,
-            background: `${highlightColor}20`,
-            padding: '2px 4px',
-            borderRadius: '4px'
-          }}
-        >
-          {patternText}
-        </span>
-        <span>{afterPattern}</span>
-      </>
-    );
-  };
-  
-  // Render letter drop effect
-  const renderLetterDropWord = () => {
-    if (vanishingLetters.length === 0) {
-      return <span>{wordData.word}</span>;
-    }
-    
-    return (
-      <span>
-        {vanishingLetters.map((letterObj, index) => (
-          <motion.span
-            key={index}
-            className={`${styles.letterDrop} ${letterObj.dropped ? styles.dropped : ''}`}
-            animate={{
-              y: letterObj.dropped ? 50 : 0,
-              opacity: letterObj.dropped ? 0 : 1,
-              rotate: letterObj.dropped ? Math.random() * 360 : 0
-            }}
-            transition={{
-              duration: 0.8,
-              ease: "easeIn"
-            }}
-          >
-            {letterObj.letter}
-          </motion.span>
-        ))}
-      </span>
-    );
-  };
-  
-  // Render syllable vanish effect
-  const renderSyllableVanishWord = () => {
-    if (!wordData.syllableBreakdown || !wordData.syllableBreakdown.includes('-')) {
-      return renderDefaultWord();
-    }
-    
-    const syllables = wordData.syllableBreakdown.split('-');
-    
-    return (
-      <span>
-        {syllables.map((syllable, index) => (
-          <motion.span
-            key={index}
-            data-syllable-index={index}
-            className={styles.syllableVanish}
-            transition={{ duration: 0.5 }}
-          >
-            {syllable}
-            {index < syllables.length - 1 && <span className={styles.hyphen}>-</span>}
-          </motion.span>
-        ))}
-      </span>
-    );
-  };
-  
-  // Render puzzle effect
-  const renderPuzzleWord = () => {
-    const word = wordData.word;
-    const midPoint = Math.floor(word.length / 2);
-    const leftPart = word.substring(0, midPoint);
-    const rightPart = word.substring(midPoint);
-    
-    return (
-      <div className={styles.puzzleContainer}>
-        <motion.span
-          className={styles.puzzlePiece}
-          animate={{
-            x: vanishState === 'vanishing' ? -30 : 0,
-            rotate: vanishState === 'vanishing' ? -15 : 0,
-            opacity: getVanishingOpacity()
-          }}
-          transition={{ duration: 0.1 }}
-        >
-          {leftPart}
-        </motion.span>
-        <motion.span
-          className={styles.puzzlePiece}
-          animate={{
-            x: vanishState === 'vanishing' ? 30 : 0,
-            rotate: vanishState === 'vanishing' ? 15 : 0,
-            opacity: getVanishingOpacity()
-          }}
-          transition={{ duration: 0.1 }}
-        >
-          {rightPart}
-        </motion.span>
-      </div>
-    );
-  };
-  
-  // Default word rendering
-  const renderDefaultWord = () => {
-    const { word, pattern } = wordData;
-    
-    if (!config.highlightTarget || !pattern) {
-      return <span>{word}</span>;
-    }
-    
-    // Get highlight color based on learning focus
-    const getHighlightColor = (focus) => {
-      switch(focus) {
-        case 'short_vowels': return '#e53935';
-        case 'long_vowels': return '#1976d2';
-        case 'blends': return '#7b1fa2';
-        case 'digraphs': return '#388e3c';
-        default: return '#e53935';
-      }
-    };
-    
-    const highlightColor = getHighlightColor(config.learningFocus);
-    
-    // Handle different text types
-    if (config.challengeLevel === 'simple_sentences' || config.challengeLevel === 'phrases') {
-      const regex = new RegExp(`(${pattern})`, 'gi');
-      const parts = word.split(regex);
-      
-      return (
-        <motion.div
-          style={{
-            filter: `blur(${getBlurAmount()}px)`,
-            transform: getPuzzleTransform()
-          }}
-          transition={{ duration: 0.1 }}
-        >
-          {parts.map((part, index) => 
-            regex.test(part) ? (
-              <span 
-                key={index} 
-                className={styles.highlightedPattern}
-                style={{ 
-                  color: highlightColor,
-                  background: `${highlightColor}20`,
-                  padding: '2px 4px',
-                  borderRadius: '4px'
-                }}
-              >
-                {part}
-              </span>
-            ) : (
-              <span key={index}>{part}</span>
-            )
-          )}
-        </motion.div>
-      );
-    }
-    
-    // Single word highlighting
-    const patternIndex = word.toLowerCase().indexOf(pattern.toLowerCase());
-    
-    if (patternIndex === -1) {
-      return (
-        <motion.div
-          style={{
-            filter: `blur(${getBlurAmount()}px)`,
-            transform: getPuzzleTransform()
-          }}
-          transition={{ duration: 0.1 }}
-        >
-          {word}
-        </motion.div>
-      );
-    }
-    
-    const beforePattern = word.substring(0, patternIndex);
-    const patternText = word.substring(patternIndex, patternIndex + pattern.length);
-    const afterPattern = word.substring(patternIndex + pattern.length);
-    
-    return (
-      <motion.div
-        style={{
-          filter: `blur(${getBlurAmount()}px)`,
-          transform: getPuzzleTransform()
-        }}
-        transition={{ duration: 0.1 }}
-      >
-        <span>{beforePattern}</span>
-        <span 
-          className={styles.highlightedPattern}
-          style={{ 
-            color: highlightColor,
-            background: `${highlightColor}20`,
-            padding: '2px 4px',
-            borderRadius: '4px'
-          }}
-        >
-          {patternText}
-        </span>
-        <span>{afterPattern}</span>
-      </motion.div>
-    );
-  };
-  
-  // Get pattern name for display
-  const getPatternName = (pattern) => {
-    const patternNames = {
-      'a': 'Short A', 'e': 'Short E', 'i': 'Short I', 'o': 'Short O', 'u': 'Short U',
-      'ai': 'Long A (ai)', 'ea': 'Long E (ea)', 'ight': 'Long I (ight)',
-      'oa': 'Long O (oa)', 'ue': 'Long U (ue)',
-      'bl': 'BL Blend', 'cr': 'CR Blend', 'st': 'ST Blend',
-      'ch': 'CH Digraph', 'sh': 'SH Digraph', 'th': 'TH Digraph'
-    };
-    
-    return patternNames[pattern?.toLowerCase()] || pattern?.toUpperCase() || '';
-  };
-  
-  // Get display names
-  const getChallengeLevelName = () => {
-    const names = {
-      simple_words: 'Simple Words',
-      compound_words: 'Compound Words',
-      phrases: 'Phrases', 
-      simple_sentences: 'Simple Sentences'
-    };
-    return names[config.challengeLevel] || config.challengeLevel;
-  };
-  
-  const getLearningFocusName = () => {
-    const names = {
-      short_vowels: 'Short Vowels',
-      long_vowels: 'Long Vowels',
-      blends: 'Blends',
-      digraphs: 'Digraphs'
-    };
-    return names[config.learningFocus] || config.learningFocus;
   };
 
-
-
-
-
- const playWordAudio = async (text) => {
-  if (!text || !config.enableAudio) return;
+  const startVanishing = () => {
+  // Get vanish speed from config
+  const speedMultipliers = {
+    'slow': 3000,      // 3 seconds to vanish
+    'normal': 1500,    // 1.5 seconds to vanish
+    'fast': 800,       // 0.8 seconds to vanish
+    'instant': 300     // 0.3 seconds to vanish
+  };
   
-  // Prevent multiple audio playbacks
-  if (audioPlaying) return;
+  const vanishDuration = speedMultipliers[config.vanishSpeed] || 1500;
   
-  const textToRead = wordData.word || text;
+  // Start vanishing immediately
+  setVanishState('vanishing');
   
-  setAudioPlaying(true);
-  
-  try {
-    console.log('Calling TTS API...'); 
-    const response = await fetch('/api/phonics/text-to-speech/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text: textToRead,
-        voice: config.voiceType || 'happy'
-      })
+  if (vanishingStyle === 'letterDrop') {
+    // Vanish letters one by one
+    const letters = word.split('').map((_, index) => index);
+    const shuffled = [...letters].sort(() => Math.random() - 0.5);
+    const letterDelay = vanishDuration / letters.length;
+    
+    shuffled.forEach((letterIndex, i) => {
+      setTimeout(() => {
+        setVanishingLetters(prev => [...prev, letterIndex]);
+      }, i * letterDelay);
     });
     
-    if (response.ok) {
-      const data = await response.json();
-      
-      if (data.success && data.audio_data) {
-        console.log('Playing audio with voice:', data.voice_used);
-        const audio = new Audio(`data:audio/mp3;base64,${data.audio_data}`);
-        audio.onended = () => {
-          setAudioPlaying(false);
-        };
-        audio.onerror = (e) => {
-          console.error('Audio playback error:', e);
-          setAudioPlaying(false);
-        };
-        await audio.play();
-        return;
-      }
-    }
-    
-    // Fallback to browser TTS if API fails
-    useBrowserTTS(textToRead);
-    
-  } catch (error) {
-    console.error('TTS API error:', error);
-    useBrowserTTS(textToRead);
-  }
-};
-
-// Add helper function for browser TTS
-const useBrowserTTS = (text) => {
-  if ('speechSynthesis' in window) {
-    // Cancel any ongoing speech first
-    window.speechSynthesis.cancel();
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    
-    // Get available voices
-    const voices = window.speechSynthesis.getVoices();
-    
-    // Voice preferences based on config
-    const voicePreferences = {
-      'happy': ['Google US English Female', 'Microsoft Zira', 'Alex'],
-      'gentle': ['Google UK English Female', 'Microsoft Hazel', 'Victoria'],
-      'playful': ['Google US English Male', 'Microsoft David', 'Daniel'],
-      'friendly': ['Google UK English Male', 'Microsoft Mark', 'Tom']
-    };
-    
-    const currentVoiceType = config.voiceType || 'happy';
-    const preferredNames = voicePreferences[currentVoiceType] || voicePreferences['happy'];
-    
-    // Try to find one of the preferred voices
-    let preferredVoice = null;
-    for (const prefName of preferredNames) {
-      preferredVoice = voices.find(voice => voice.name.includes(prefName));
-      if (preferredVoice) break;
-    }
-    
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
-    }
-    
-    utterance.rate = 0.8;
-    utterance.volume = 1.0;
-    utterance.pitch = 1.0;
-    
-    utterance.onend = () => {
-      setAudioPlaying(false);
-    };
-    utterance.onerror = () => {
-      setAudioPlaying(false);
-    };
-    
-    window.speechSynthesis.speak(utterance);
+    // Mark as fully vanished
+    setTimeout(() => {
+      setVanishState('vanished');
+    }, vanishDuration + 200);
   } else {
-    setAudioPlaying(false);
+    // For other styles (fade, blur, etc), just fade out gradually
+    setTimeout(() => {
+      setVanishState('vanished');
+    }, vanishDuration);
   }
 };
 
-
-
+  const handleIKnowIt = () => {
+  if (hasAnswered) return;
+  setHasAnswered(true);
   
+  // Show the word again!
+  setVanishState('visible');
+  setPreVanishPhase('preview');
+  
+  // Fun success feedback
+  setShowStars(true);
+  setEncouragementText('🌟 Amazing! You got it! 🌟');
+  setShowEncouragement(true);
+  
+  if (successSoundRef.current) {
+    successSoundRef.current.play().catch(() => {});
+  }
+  
+  setTimeout(() => {
+    onResult(true, word, 5 - timeRemaining);
+  }, 1500);
+};
+
+  const handleShowWord = () => {
+  if (hasAnswered) return;
+  setHasAnswered(true);
+  
+  // Show the word again!
+  setVanishState('visible');
+  setPreVanishPhase('preview');
+  
+  setEncouragementText('👀 That\'s okay! Keep practicing!');
+  setShowEncouragement(true);
+  
+  setTimeout(() => {
+    onResult(false, word, 5 - timeRemaining);
+  }, 1500);
+};
+
+  const handleGiveUp = () => {
+  if (hasAnswered) return;
+  setHasAnswered(true);
+  
+  // Show the word again!
+  setVanishState('visible');
+  setPreVanishPhase('preview');
+  
+  setEncouragementText('💪 Don\'t worry! You\'ll get the next one!');
+  setShowEncouragement(true);
+  
+  setTimeout(() => {
+    onResult('giveup', word, 5 - timeRemaining);
+  }, 1500);
+};
+
+  const handleSkip = () => {
+    if (hasAnswered) return;
+    setHasAnswered(true);
+    onResult('skip', word, 0);
+  };
+
+  // Render word with vanishing effect
+  // Render word with vanishing effect
+const renderWord = () => {
+  const letters = word.split('');
+  
+  // During preview and ready - show word clearly
+  if (preVanishPhase === 'preview' || preVanishPhase === 'ready') {
+    return (
+      <motion.div
+        className={styles.wordDisplay}
+        initial={{ scale: 0.5, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', bounce: 0.5 }}
+      >
+        {letters.map((letter, index) => {
+          const isPattern = pattern && word.toLowerCase().indexOf(pattern.toLowerCase()) <= index && 
+                           index < word.toLowerCase().indexOf(pattern.toLowerCase()) + pattern.length;
+          
+          return (
+            <motion.span
+              key={index}
+              className={`${styles.letter} ${isPattern && config.highlightTarget ? styles.patternLetter : ''}`}
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: index * 0.1, type: 'spring', bounce: 0.6 }}
+            >
+              {letter}
+            </motion.span>
+          );
+        })}
+      </motion.div>
+    );
+  }
+  
+  // During vanishing phase - gradually disappear
+  // During vanishing phase - gradually disappear
+if (preVanishPhase === 'vanishing') {
+  // Calculate opacity based on vanish state and speed
+  const getOpacityStyle = () => {
+    // Word is fully gone
+    if (vanishState === 'vanished') {
+      return { opacity: 0 };
+    }
+    // Word is currently vanishing
+    if (vanishState === 'vanishing') {
+      const durations = {
+        'slow': '3s',
+        'normal': '1.5s', 
+        'fast': '0.8s',
+        'instant': '0.3s'
+      };
+      return {
+        opacity: 0,
+        transition: `opacity ${durations[config.vanishSpeed] || '1.5s'} ease-out`
+      };
+    }
+    // Word is still visible (before vanishing starts)
+    return { opacity: 1 };
+  };
+
   return (
-    <div className={styles.gameplayContainer}>
-      <div className={styles.gameplayCard}>
-        {/* Teacher Controls Bar */}
-        <div className={styles.teacherControlBar}>
-          <div className={styles.teacherControls}>
-  <button 
-    className={styles.teacherButton}
-    onClick={handleTeacherPlayPause}
-    title="Spacebar: Play/Pause"
-  >
-    {teacherPaused ? '▶️' : '⏸️'}
-  </button>
-  <button 
-    className={styles.teacherButton}
-    onClick={handleInstantReveal}
-    title="R: Instant Reveal"
-  >
-    👁️
-  </button>
-  <button 
-    className={styles.teacherButton}
-    onClick={() => setShowHint(!showHint)}
-    title="H: Toggle Hint"
-  >
-    💡
-  </button>
-  <button 
-    className={styles.teacherButton}
-    onClick={toggleDiscussionMode}
-    title="D: Discussion Mode"
-  >
-    💬
-  </button>
-  
-  {/* ADD AUDIO BUTTON HERE */}
-  {config.enableAudio && (
-  <button 
-    className={styles.teacherButton}
-    onClick={() => playWordAudio(wordData.word)}
-    disabled={audioPlaying || !wordData.word}
-    title="Audio: Play Word"
-  >
-    {audioPlaying ? '🔊' : '🔈'}
-  </button>
-)}
-  
-  <div className={styles.speedControl}>
-    <button onClick={() => adjustSpeed(-0.2)}>⬇️</button>
-    <span>{speedMultiplier.toFixed(1)}x</span>
-    <button onClick={() => adjustSpeed(0.2)}>⬆️</button>
-  </div>
-</div>
-          
-          {/* Participation Energy Meter */}
-          <div className={styles.energyMeter}>
-            <div className={styles.energyLabel}>Class Energy</div>
-            <div className={styles.energyBar}>
-              <motion.div 
-                className={styles.energyFill}
-                animate={{ width: `${energyLevel}%` }}
-                style={{
-                  backgroundColor: energyLevel > 70 ? '#4caf50' : 
-                                   energyLevel > 40 ? '#ff9800' : '#f44336'
-                }}
-              />
-            </div>
-            <div className={styles.energyStats}>
-              <span>Streak: {gameStats?.streakCount || consecutiveCorrect}</span>
-              <span>Participation: {gameStats?.wordsAttempted || participationCount}</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Game Header */}
-        <div className={styles.gameHeader}>
-          <div className={styles.gameInfo}>
-            <h2 className={styles.gameTitle}>
-              {getChallengeLevelName()} - {getLearningFocusName()}
-            </h2>
-            <p className={styles.vanishingWarning}>
-              Quick! Read before it vanishes!
-            </p>
-          </div>
-        </div>
-        
-        {/* Vanishing Timer Bar */}
-        <div className={styles.timerBarContainer}>
-          <motion.div 
-            className={styles.timerBar}
-            initial={{ width: '100%' }}
-            animate={{ 
-              width: preVanishPhase === 'vanishing' ? `${(timeRemaining / (getVanishDuration() / 1000)) * 100}%` : '100%',
-              backgroundColor: timeRemaining < 2 ? '#f44336' : '#ff9800'
-            }}
-            transition={{ duration: 0.1 }}
-          />
-        </div>
-        
-        {/* Word Display Area */}
-        <div className={styles.wordDisplayArea}>
-
-         
-          
-          {/* Visual Feedback Overlay */}
-          <AnimatePresence>
-            {showVisualFeedback && (
-              <motion.div
-                className={styles.visualFeedbackOverlay}
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.5 }}
-                transition={{ duration: 0.3 }}
-              >
-                <motion.div
-                  className={`${styles.feedbackIcon} ${styles[feedbackType]}`}
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    rotate: feedbackType === 'correct' ? [0, 15, -15, 0] : 0
-                  }}
-                  transition={{ duration: 0.6 }}
-                >
-               {feedbackType === 'revealed' ? (
-  <div className={styles.revealedFeedback}>
-    <span className={styles.eyeMark}>👁️</span>
-    <span className={styles.feedbackText}>Word revealed!</span>
-  </div>
-) : feedbackType === 'correct' ? (
-  <div className={styles.successFeedback}>
-    <span className={styles.checkMark}>✅</span>
-    <span className={styles.feedbackText}>Correct!</span>
-  </div>
-) : feedbackType === 'giveup' ? (
-  <div className={styles.giveUpFeedback}>
-    <span className={styles.encourageMark}>💪</span>
-    <span className={styles.feedbackText}>Better luck next time!</span>
-  </div>
-) : feedbackType === 'skipped' ? (
-  <div className={styles.skippedFeedback}>
-    <span className={styles.skipMark}>⏭️</span>
-    <span className={styles.feedbackText}>Skipped!</span>
-  </div>
-) : (
-  <div className={styles.errorFeedback}>
-    <span className={styles.xMark}>❌</span>
-    <span className={styles.feedbackText}>Try again!</span>
-  </div>
-)}
-                </motion.div>
-                
-                {/* Flash effect */}
-                <motion.div
-                  className={`${styles.flashEffect} ${styles[feedbackType]}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0, 0.3, 0] }}
-                  transition={{ duration: 0.5 }}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-          
-          {/* Current Team Indicator for Team Play */}
-          {teamPlay && (
-            <motion.div 
-              className={styles.currentTeamIndicator}
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
+    <div className={styles.wordDisplay}>
+      {vanishingStyle === 'letterDrop' ? (
+        // Letter drop animation
+        letters.map((letter, index) => {
+          const isVanished = vanishingLetters.includes(index);
+          return (
+            <motion.span
+              key={index}
+              className={styles.letter}
+              animate={{
+                opacity: isVanished ? 0 : 1,
+                y: isVanished ? 50 : 0,
+                rotate: isVanished ? 180 : 0,
+              }}
               transition={{ duration: 0.5 }}
             >
-              <span className={styles.teamTurnLabel}>Current Turn:</span>
-              <span className={styles.currentTeamName}>
-                {currentTeam === 'teamA' ? teamNames.teamA : teamNames.teamB}
+              {letter}
+            </motion.span>
+          );
+        })
+      ) : (
+        // Fade/blur animation for entire word - GHOST EFFECT!
+        <div style={getOpacityStyle()}>
+          {letters.map((letter, index) => {
+            const isPattern = pattern && word.toLowerCase().indexOf(pattern.toLowerCase()) <= index && 
+                             index < word.toLowerCase().indexOf(pattern.toLowerCase()) + pattern.length;
+            return (
+              <span 
+                key={index} 
+                className={`${styles.letter} ${isPattern && config.highlightTarget ? styles.patternLetter : ''}`}
+              >
+                {letter}
               </span>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+  
+  // Fallback - show word (when button clicked)
+  return (
+    <div className={styles.wordDisplay}>
+      {letters.map((letter, index) => (
+        <span key={index} className={styles.letter}>
+          {letter}
+        </span>
+      ))}
+    </div>
+  );
+};
+
+  return (
+    <div className={styles.gameplayContainer}>
+      {/* 🎨 Fun Background Elements */}
+      <div className={styles.backgroundElements}>
+        <div className={styles.floatingCloud} style={{ top: '10%', left: '5%' }}>☁️</div>
+        <div className={styles.floatingCloud} style={{ top: '15%', right: '8%' }}>☁️</div>
+        <div className={styles.floatingStar} style={{ top: '70%', left: '10%' }}>⭐</div>
+        <div className={styles.floatingStar} style={{ top: '65%', right: '12%' }}>✨</div>
+      </div>
+
+      {/* 📊 Top Game Info Bar */}
+      <div className={styles.gameInfoBar}>
+        <motion.div 
+          className={styles.roundIndicator}
+          whileHover={{ scale: 1.05 }}
+        >
+          <span className={styles.roundEmoji}>🎯</span>
+          <span className={styles.roundText}>Round {round}/{totalRounds}</span>
+        </motion.div>
+        
+        <motion.div 
+          className={styles.scoreIndicator}
+          whileHover={{ scale: 1.05 }}
+        >
+          <span className={styles.scoreEmoji}>⭐</span>
+          <span className={styles.scoreText}>Score: {gameStats?.wordsRecognized || 0}</span>
+        </motion.div>
+        
+        {teamPlay && (
+          <div className={styles.teamIndicator}>
+            <span className={styles.teamEmoji}>👥</span>
+            <span className={styles.teamText}>
+              {teamNames[currentTeam]}: {teamScores[currentTeam]}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* 🎮 Main Game Area */}
+      <div className={styles.mainGameArea}>
+        {/* Phase Indicators */}
+        <AnimatePresence mode="wait">
+          {preVanishPhase === 'preview' && (
+            <motion.div
+              className={styles.phaseMessage}
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0, rotate: 180 }}
+              transition={{ type: 'spring', bounce: 0.5 }}
+            >
+              <span className={styles.messageEmoji}>👀</span>
+              <span className={styles.messageText}>Look at this word!</span>
             </motion.div>
           )}
           
-          You should put the audio button code in GameplayScreen.jsx right after the word card, still inside the wordContainer. Here's exactly where:
-javascript<div className={styles.wordContainer}>
-  <motion.div 
-    className={styles.wordCard}
-    animate={{ 
-      opacity: getVanishingOpacity(),
-      scale: preVanishPhase === 'preview' ? 1.05 : 1,
-      boxShadow: preVanishPhase === 'preview' 
-        ? "0 0 20px rgba(124, 179, 66, 0.6)" 
-        : "0 5px 15px rgba(0, 0, 0, 0.1)"
-    }}
-    transition={{ duration: 0.5 }}
-  >
-    <div className={`${styles.wordText} ${styles[vanishingStyle]}`}>
-      {renderEnhancedWordWithHighlight()}
-    </div>
-    
-    {/* Vanishing style indicator */}
-    {preVanishPhase === 'preview' && (
-      <motion.div 
-        className={styles.vanishStyleIndicator}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      >
-        Effect: {vanishingStyle.charAt(0).toUpperCase() + vanishingStyle.slice(1)}
-      </motion.div>
-    )}
-    
-    {/* Syllable breakdown hint */}
-    {preVanishPhase === 'preview' && wordData.syllableBreakdown && (
-      <motion.div 
-        className={styles.syllableHint}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-      >
-        {wordData.syllableBreakdown}
-      </motion.div>
-    )}
-  </motion.div>
-  
- 
-            
-            {/* Enhanced phonics pattern highlight */}
-            {showPhonicsHint && (
-              <motion.div 
-                className={styles.phonicsPatternHint}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-              >
-                Pattern: {getPatternName(wordData.pattern)}
-              </motion.div>
-            )}
-            
-            {/* Get ready cue */}
-            {preVanishPhase === 'ready' && (
-              <motion.div 
-                className={styles.readyCue}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-              >
-                <div className={styles.countdown}>
-                  Get Ready...
-                </div>
-              </motion.div>
-            )}
-            
-            {/* Audio playing indicator */}
-            {(playingAudio || audioPlaying) && (
-             <motion.div 
-    className={styles.audioIndicator}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: 20 }}
-  >
-    <motion.div 
-      className={styles.audioWave}
-      animate={{ scale: [1, 1.2, 1] }}
-      transition={{ repeat: Infinity, duration: 0.8 }}
-    >
-      🔊
-    </motion.div>
-    Listen carefully...
-  </motion.div>
-)}
-            
-            {/* Teacher hint display */}
-            {showHint && (
-              <motion.div 
-                className={styles.teacherHint}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                Hint: Starts with "{wordData.word?.charAt(0)}" - {wordData.syllableBreakdown?.split('-').length || 1} syllables
-              </motion.div>
-            )}
-          </div>
-          
-          {/* Response Phase Indicators */}
-          <AnimatePresence>
-            {responsePhase === 'thinking' && (
-              <motion.div 
-                className={styles.responsePhase}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                <div className={styles.phaseIcon}>🤔</div>
-                <div className={styles.phaseText}>Think Time</div>
-                <div className={styles.phaseTimer}>{phaseTimer}s</div>
-              </motion.div>
-            )}
-            
-            {responsePhase === 'whisper' && (
-              <motion.div 
-                className={styles.responsePhase}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                <div className={styles.phaseIcon}>🗣️</div>
-                <div className={styles.phaseText}>Whisper to your neighbor</div>
-                <div className={styles.phaseTimer}>{phaseTimer}s</div>
-              </motion.div>
-            )}
-            
-            {responsePhase === 'response' && showHandRaise && (
-              <motion.div 
-                className={styles.responsePhase}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                <div className={styles.phaseIcon}>✋</div>
-                <div className={styles.phaseText}>Raise your hand if you know!</div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          
-          {/* Time left indicator */}
-          <div className={styles.timeLeftIndicator}>
-            {timeRemaining > 0 && preVanishPhase === 'vanishing' && (
-              <motion.div 
-                className={styles.timeLeftBadge}
-                animate={{
-                  scale: [1, 1.1, 1],
-                }}
-                transition={{ duration: 1, repeat: Infinity }}
-              >
-                {Math.ceil(timeRemaining)}s left
-              </motion.div>
-            )}
-          </div>
-          
-          {/* Word recognition prompt */}
-          <div className={styles.wordPrompt}>
-            {vanishState === 'vanished' ? "What was the word?" : 
-             discussionMode ? "Discussion Mode - Take your time!" :
-             "Do you recognize this word?"}
-          </div>
-          
-          {/* Celebration effects */}
-          {celebrationTriggered && (
-            <motion.div 
-              className={styles.celebrationOverlay}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+          {preVanishPhase === 'ready' && (
+            <motion.div
+              className={`${styles.phaseMessage} ${styles.readyMessage}`}
+              initial={{ scale: 0, rotate: 180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0, rotate: -180 }}
+              transition={{ type: 'spring', bounce: 0.5 }}
             >
-              <div className={styles.celebrationText}>Great Streak! 🎉</div>
+              <span className={styles.messageEmoji}>🚀</span>
+              <span className={styles.messageText}>Get Ready!</span>
+            </motion.div>
+          )}
+          
+          {preVanishPhase === 'vanishing' && vanishState === 'vanished' && !hasAnswered && (
+            <motion.div
+              className={`${styles.phaseMessage} ${styles.thinkMessage}`}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', bounce: 0.5 }}
+            >
+              <span className={styles.messageEmoji}>🤔</span>
+              <span className={styles.messageText}>Can you remember?</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Word Display Area */}
+        <div className={styles.wordArea}>
+          {renderWord()}
+          
+          {/* Timer Display */}
+          {preVanishPhase === 'vanishing' && vanishState === 'vanished' && !hasAnswered && (
+            <motion.div
+              className={styles.timerDisplay}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', bounce: 0.6 }}
+            >
+              <div className={styles.timerCircle}>
+                <span className={styles.timerNumber}>{timeRemaining}</span>
+              </div>
+              <span className={styles.timerLabel}>seconds left!</span>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Success Stars Animation */}
+        <AnimatePresence>
+          {showStars && (
+            <>
               {[...Array(10)].map((_, i) => (
                 <motion.div
                   key={i}
-                  className={styles.confetti}
+                  className={styles.successStar}
+                  initial={{ 
+                    scale: 0, 
+                    x: 0, 
+                    y: 0,
+                    opacity: 1 
+                  }}
+                  animate={{ 
+                    scale: [0, 1, 0.8, 0],
+                    x: Math.random() * 400 - 200,
+                    y: Math.random() * 400 - 200,
+                    opacity: [1, 1, 0.5, 0]
+                  }}
+                  transition={{ 
+                    duration: 1.5,
+                    delay: i * 0.1 
+                  }}
                   style={{
                     position: 'absolute',
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                  }}
-                  animate={{
-                    y: [0, -100, 100],
-                    x: [0, Math.random() * 100 - 50],
-                    rotate: [0, 360],
-                    scale: [1, 0.5, 0],
-                  }}
-                  transition={{
-                    duration: 2,
-                    ease: "easeOut"
+                    top: '50%',
+                    left: '50%',
+                    fontSize: '2rem'
                   }}
                 >
-                  🎊
+                  ⭐
                 </motion.div>
               ))}
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Encouragement Message */}
+        <AnimatePresence>
+          {showEncouragement && (
+            <motion.div
+              className={styles.encouragementBubble}
+              initial={{ scale: 0, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0, y: -50 }}
+              transition={{ type: 'spring', bounce: 0.6 }}
+            >
+              {encouragementText}
             </motion.div>
           )}
-          
-          {/* Encouragement message */}
-          {encouragementMessage && (
-            <motion.div 
-              className={styles.encouragementMessage}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-            >
-              {encouragementMessage}
-            </motion.div>
-          )}
-        </div>
-        
-        {/* Control Buttons */}
-        <div className={styles.controlButtonsContainer}>
-            <div className={styles.controlButtons}>
-            <motion.button 
-              className={styles.responseButton}
-              onClick={() => handleUserResponse(true)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              disabled={hasAnswered || preVanishPhase !== 'vanishing' || vanishState !== 'vanished'}
-            >
-              I know it!
-            </motion.button>
-            
-            <motion.button 
-              className={`${styles.responseButton} ${styles.previewButton}`}
-              onClick={handleShowWord}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              disabled={hasAnswered || preVanishPhase !== 'vanishing' || vanishState !== 'vanished'}
-            >
-              Show me
-            </motion.button>
-
-
-            <motion.button 
-  className={`${styles.responseButton} ${styles.giveUpButton}`}
-  onClick={handleGiveUp}  // ⭐ CHANGED
-  whileHover={{ scale: 1.05 }}
-  whileTap={{ scale: 0.95 }}
-  disabled={hasAnswered || preVanishPhase !== 'vanishing' || vanishState !== 'vanished'}
->
-  Give up
-</motion.button>
-            
-          <motion.button 
-            className={styles.responseButton}
-            onClick={handleSkip}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            disabled={hasAnswered}
-          >
-            Skip Word
-          </motion.button>
-        </div>
+        </AnimatePresence>
       </div>
-        
-        {/* Game Settings Info */}
-        <div className={styles.gameSettings}>
-          <span>
-            Speed: {speedMultiplier.toFixed(1)}x | 
-            {config.highlightTarget ? ' Patterns Highlighted' : ' No Highlighting'} | 
-            {config.difficulty} Mode
-            {teacherPaused && ' | ⏸️ PAUSED'}
-          </span>
-        </div>
-        
-        {/* Teacher Instructions */}
-        <div className={styles.teacherInstructions}>
-          <div className={styles.instructionItem}>SPACE: Play/Pause</div>
-          <div className={styles.instructionItem}>R: Instant Reveal</div>
-          <div className={styles.instructionItem}>←/→: Adjust Speed</div>
-          <div className={styles.instructionItem}>S: Skip</div>
-          <div className={styles.instructionItem}>D: Discussion</div>
-          <div className={styles.instructionItem}>H: Hint</div>
-        </div>
+
+      {/* 🎮 Action Buttons */}
+      <div className={styles.actionButtons}>
+        <motion.button
+          className={`${styles.actionButton} ${styles.iKnowItButton}`}
+          onClick={handleIKnowIt}
+          disabled={hasAnswered || preVanishPhase !== 'vanishing' || vanishState !== 'vanished'}
+          whileHover={{ scale: 1.05, rotate: 2 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <span className={styles.buttonEmoji}>✅</span>
+          <span className={styles.buttonText}>I Know It!</span>
+        </motion.button>
+
+        <motion.button
+          className={`${styles.actionButton} ${styles.showMeButton}`}
+          onClick={handleShowWord}
+          disabled={hasAnswered || preVanishPhase !== 'vanishing' || vanishState !== 'vanished'}
+          whileHover={{ scale: 1.05, rotate: -2 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <span className={styles.buttonEmoji}>👀</span>
+          <span className={styles.buttonText}>Show Me</span>
+        </motion.button>
+
+        <motion.button
+          className={`${styles.actionButton} ${styles.giveUpButton}`}
+          onClick={handleGiveUp}
+          disabled={hasAnswered || preVanishPhase !== 'vanishing' || vanishState !== 'vanished'}
+          whileHover={{ scale: 1.05, rotate: 2 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <span className={styles.buttonEmoji}>💭</span>
+          <span className={styles.buttonText}>Give Up</span>
+        </motion.button>
+
+        <motion.button
+          className={`${styles.actionButton} ${styles.skipButton}`}
+          onClick={handleSkip}
+          disabled={hasAnswered}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <span className={styles.buttonEmoji}>⏭️</span>
+          <span className={styles.buttonText}>Skip</span>
+        </motion.button>
       </div>
+
+      {/* Hidden Audio Elements - Optional (remove if audio files not available) */}
+      {/* <audio ref={wordAudioRef} src="/sounds/word-audio.mp3" />
+      <audio ref={successSoundRef} src="/sounds/success.mp3" /> */}
     </div>
   );
 };

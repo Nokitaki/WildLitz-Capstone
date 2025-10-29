@@ -8,7 +8,7 @@ import styles from '../../../styles/games/vanishing/GameCompleteScreen.module.cs
  * Displays summary statistics and recommendations
  */
 const GameCompleteScreen = ({ 
-  stats, 
+  gameStats, 
   config, 
   score, 
   totalWords, 
@@ -17,6 +17,36 @@ const GameCompleteScreen = ({
   teamScores, 
   teamNames 
 }) => {
+
+   if (!gameStats) {
+    return (
+      <div style={{ 
+        background: 'white', 
+        padding: '40px', 
+        borderRadius: '30px', 
+        textAlign: 'center',
+        maxWidth: '600px',
+        margin: '0 auto'
+      }}>
+        <h2 style={{ fontSize: '2rem', marginBottom: '20px' }}>⚠️ Game Complete</h2>
+        <p style={{ marginBottom: '30px' }}>Unable to load game statistics.</p>
+        <button 
+          onClick={onReturnToMenu}
+          style={{
+            padding: '15px 30px',
+            fontSize: '1.2rem',
+            background: 'linear-gradient(135deg, #FF9800, #FFB74D)',
+            color: 'white',
+            border: 'none',
+            borderRadius: '15px',
+            cursor: 'pointer'
+          }}
+        >
+          🏠 Return to Menu
+        </button>
+      </div>
+    );
+  }
   // Add team winner logic
   const getTeamResults = () => {
     if (!config.teamPlay || !teamScores) return null;
@@ -41,10 +71,11 @@ const GameCompleteScreen = ({
   
   // Get different pattern stats
   const getPatternStats = () => {
-    const result = [];
-    
-    if (stats.patternStats) {
-      Object.entries(stats.patternStats).forEach(([pattern, data]) => {
+  const result = [];
+  
+  // Safety check - ensure gameStats and patternStats exist
+  if (gameStats && gameStats.patternStats) {
+    Object.entries(gameStats.patternStats).forEach(([pattern, data]) => {
         if (data.attempted > 0) {
           const successRate = Math.round((data.correct / data.attempted) * 100);
           result.push({
