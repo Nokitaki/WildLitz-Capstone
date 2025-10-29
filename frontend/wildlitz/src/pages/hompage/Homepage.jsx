@@ -1,5 +1,5 @@
-// New homepage layout with added games and sections
-// latest update: 2025-09-23
+// Enhanced homepage with light brown theme matching profile
+// Latest update: 2025-10-30
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -11,11 +11,10 @@ import { motion } from 'framer-motion';
 import GameTipsModal from '../../components/modals/GameTipsModal';
 import AuthModal from '../../components/auth/AuthModal';
 
-import tigerCharacter from '../../assets/img/visuals/tiger-controller.png'; // Make sure path is correct
+import tigerCharacter from '../../assets/img/visuals/tiger-controller.png';
 import gameController from '../../assets/img/visuals/game-controller.png';
 import syllableGameCard from '../../assets/img/visuals/syllable-game-card.png';
 import syllableGameCardRight from '../../assets/img/visuals/syllable-game-card-right.png';
-// --- ADD THESE NEW IMPORTS ---
 import fbIcon from '../../assets/img/visuals/fb-icon.png';
 import xIcon from '../../assets/img/visuals/x-icon.png';
 import instagramIcon from '../../assets/img/visuals/instagram-icon.png';
@@ -43,33 +42,47 @@ function HomePage() {
   const [authMode, setAuthMode] = useState('login');
 
   useEffect(() => {
-    document.body.style.overflow = 'auto';
-    document.documentElement.style.overflow = 'auto';
-    document.body.style.height = 'auto';
-    document.documentElement.style.height = 'auto';
+    // Prevent double scrollbar by ensuring only body scrolls
+    document.body.style.overflow = '';
+    document.body.style.overflowX = 'hidden';
+    document.documentElement.style.overflow = '';
+    document.documentElement.style.overflowX = 'hidden';
+    document.body.style.height = '';
+    document.documentElement.style.height = '';
     
     const root = document.getElementById('root');
     if (root) {
-      root.style.height = 'auto';
-      root.style.overflow = 'visible';
+      root.style.height = '';
+      root.style.minHeight = '';
+      root.style.overflow = '';
     }
+
+    return () => {
+      // Cleanup
+      document.body.style.overflow = '';
+      document.body.style.overflowX = '';
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.overflowX = '';
+    };
   }, []);
 
-  const handleLoginClick = () => {
-    setAuthMode('login');
-    setAuthModalOpen(true);
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
-  const handleSignUpClick = () => {
-    setAuthMode('register');
-    setAuthModalOpen(true);
+  const handleHowToPlayClick = (gameId) => {
+    setSelectedGame(gameId);
+    setModalOpen(true);
   };
 
-  const handleLogoutClick = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Logout error:', error);
+  const handleStartGameFromModal = (difficulty) => {
+    setModalOpen(false);
+    if (isAuthenticated) {
+      navigate(`/games/${selectedGame}`, { state: { difficulty } });
+    } else {
+      setAuthMode('register');
+      setAuthModalOpen(true);
     }
   };
 
@@ -77,356 +90,466 @@ function HomePage() {
     setAuthModalOpen(false);
   };
 
-  const handleProfileClick = () => {
-    navigate('/profile');
-  };
-
-  const handleGameClick = (gameSlug) => {
-    if (isAuthenticated) {
-      navigate(`/games/${gameSlug}`);
-    } else {
-      handleLoginClick();
-    }
-  };
-
-  const handleHowToPlayClick = (gameType) => {
-    setSelectedGame(gameType);
-    setModalOpen(true);
-  };
-
-  const handleStartGameFromModal = () => {
-    setModalOpen(false);
-    if (selectedGame) {
-      handleGameClick(selectedGame);
-    }
+  const openAuthModal = (mode) => {
+    setAuthMode(mode);
+    setAuthModalOpen(true);
   };
 
   return (
-    <div className={styles.container}>
-      
-      {/* --- Always-Floating Auth Buttons --- */}
-      <div className={`${styles.authSection} ${styles.floatingAuth}`}>
-        {isLoading ? (
-          <div className={styles.loading}>Loading...</div>
-        ) : isAuthenticated ? (
-          <>
-            <button onClick={handleProfileClick} className={styles.loginBtn}>
-              Hi, {user?.first_name || 'Friend'}!
-            </button>
-            <button onClick={handleLogoutClick} className={styles.registerBtn}>
-              Logout
-            </button>
-          </>
-        ) : (
-          <>
-            <button onClick={handleLoginClick} className={styles.loginBtn}>
-              Login
-            </button>
-            <button onClick={handleSignUpClick} className={styles.registerBtn}>
-              Register
-            </button>
-          </>
-        )}
-      </div>
+    <div className={styles.pageContainer}>
+      {/* Header */}
+      <header className={styles.header}>
+        <div className={styles.logoContainer}>
+          <img src={wildLitzLogo} alt="Wildlitz Logo" className={styles.logo} />
+          <h1 className={styles.logoText}>Wildlitz</h1>
+        </div>
+        
+        <nav className={styles.nav}>
+          <a href="#home" className={styles.navLink}>Home</a>
+          <a href="#games" className={styles.navLink}>Games</a>
+          <a href="#purpose" className={styles.navLink}>Purpose</a>
+          <a href="#about" className={styles.navLink}>About Us</a>
+        </nav>
 
-      <section className={styles.upperBody}>
-              
-        <header className={styles.header}>
-          <div className={styles.logoContainer}>
-            <img 
-              src={wildLitzLogo} 
-              alt="WildLitz Logo" 
-              className={styles.logo} 
-            />
-            <h1 className={styles.logoText}>Wildlitz</h1>
+        <div className={styles.authSection}>
+          {isAuthenticated ? (
+            <>
+              <button onClick={() => navigate('/profile')} className={styles.profileBtn}>
+                Profile
+              </button>
+              <button onClick={handleLogout} className={styles.logoutBtn}>
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => openAuthModal('login')} className={styles.loginBtn}>
+                Login
+              </button>
+              <button onClick={() => openAuthModal('register')} className={styles.registerBtn}>
+                Register
+              </button>
+            </>
+          )}
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section id="home" className={styles.upperBody}>
+        <div className={styles.heroSection}>
+          <motion.img 
+            src={tigerCharacter} 
+            alt="Tiger with Controller" 
+            className={styles.tigerCharacter}
+            animate={{ y: [0, -20, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          />
+          
+          <div className={styles.heroText}>
+            <motion.h2 
+              className={styles.heroTitle}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              🎮  Let's Play & Learn! 
+            </motion.h2>
+            <motion.p 
+              className={styles.heroSubtitle}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              Join Grade 3 Filipino students on an exciting adventure! Master reading through super fun games that make learning feel like playtime! 🚀✨
+            </motion.p>
           </div>
           
-          <nav className={styles.nav}>
-            <a href="#" className={styles.navLink}>Home</a>
-            <a href="#about" className={styles.navLink}>About Us</a>
-          </nav>
-          
-          {/* The third grid column is now an empty spacer */}
-        </header>
-
-        <section className={styles.heroSection}>
-          <div className={styles.heroContent}>
-            <img src={tigerCharacter} alt="Tiger Character" className={styles.tigerCharacter} />
-            <div className={styles.heroText}>
-              <h2 className={styles.heroTitle}>
-                LEARN TO READ BY <br /> PLAYING GAMES
-              </h2>
-            </div>
-            <img src={gameController} alt="Game Controller" className={styles.gameController} />
-          </div>
-        </section>
-
+          <motion.img 
+            src={gameController} 
+            alt="Game Controller" 
+            className={styles.gameController}
+            animate={{ 
+              rotate: [0, 5, -5, 0],
+              y: [0, -10, 0]
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
       </section>
 
-      {/* --- 2. REPLACE THE EMPTY MIDBODY SECTION WITH THIS --- */}
-      <section className={styles.midBody}>
-         <img src={bunnyVisual} alt="Bunny visual" className={styles.bunnyVisual} />
-
+      {/* Games Section */}
+      <section id="games" className={styles.midBody}>
         <div className={styles.gameSelectionContainer}>
-         
-          {/* --- Syllable Clapping Game --- */}
-          <div className={styles.gameEntry} key="game-1">
-            <div 
-              className={styles.gameImageContainer} 
-              onClick={() => handleGameClick('syllable-clapping')}
-            >
-              <video src={syllableClappingGame} className={styles.gameVisual} autoPlay loop muted />
-              <img src={syllableGameCard} alt="Game Card Frame" className={styles.gameFrameImage} />
-            </div>
+          
+          {/* Syllable Clapping Game */}
+          <div className={styles.gameEntry}>
             <div className={styles.gameTextContent}>
-              <h3 className={styles.gameTitle}>Syllable Clapping Game</h3>
+              <h3 className={styles.gameTitle}>👏 Syllable Clapping Game 🎵</h3>
               <p className={styles.gameDescription}>
-                A fun, interactive game where kids clap out the syllables in words, helping them understand word structure and rhythm in a playful way.
+                Break words into beats! Listen, clap along, and become a syllable master through rhythm and sound. Can you clap the perfect beat? 🎶
               </p>
               <button 
                 className={styles.playButton} 
                 onClick={() => handleHowToPlayClick('syllable-clapping')}
               >
-                How to Play
+                Let's Clap! 🎉
               </button>
             </div>
-          </div>
-          
-          {/* --- Sound Safari Game --- */}
-          <div className={styles.gameEntry} key="game-2">
-            <div 
-              className={styles.gameImageContainer} 
-              onClick={() => handleGameClick('sound-safari')}
+            <motion.div 
+              className={styles.gameImageContainer}
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
             >
-              <video src={soundSafariGame} className={styles.gameVisual} autoPlay loop muted />
-              <img src={syllableGameCardRight} alt="Second Game Card Frame" className={styles.gameFrameImage} />
-            </div>
+              <video 
+                className={styles.gameVisual} 
+                src={syllableClappingGame} 
+                autoPlay 
+                loop 
+                muted 
+              />
+              <motion.img 
+                src={syllableGameCard} 
+                alt="First Game Card Frame" 
+                className={styles.gameFrameImage}
+                animate={{
+                  scale: [1, 1.02, 1],
+                  opacity: [1, 0.95, 1]
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+            </motion.div>
+          </div>
+
+          {/* Sound Safari Game */}
+          <div className={styles.gameEntry}>
             <div className={styles.gameTextContent}>
-              <h3 className={styles.gameTitle}>Sound Safari Game</h3>
-              <img src={coinGif} alt="Animated coin" className={styles.coinVisual} />
+              <h3 className={styles.gameTitle}>🦁 Sound Safari Expedition! 🔊</h3>
               <p className={styles.gameDescription}>
-                Embark on an auditory adventure! This game teaches phonetic awareness by identifying and distinguishing different sounds in a playful safari setting.
+                Embark on a wild phonics adventure! Hunt for letter sounds, match them to words, and discover the amazing building blocks of reading! 🗺️✨
               </p>
               <button 
                 className={styles.playButton} 
                 onClick={() => handleHowToPlayClick('sound-safari')}
               >
-                How to Play
+                Start Safari! 🚀
               </button>
             </div>
+            <motion.div 
+              className={styles.gameImageContainer}
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <video 
+                className={styles.gameVisual} 
+                src={soundSafariGame} 
+                autoPlay 
+                loop 
+                muted 
+              />
+              <motion.img 
+                src={syllableGameCardRight} 
+                alt="Second Game Card Frame" 
+                className={styles.gameFrameImage}
+                animate={{
+                  scale: [1, 1.02, 1],
+                  rotate: [0, 1, -1, 0]
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+            </motion.div>
           </div>
 
-          {/* --- Vanishing Game --- */}
-          <div className={styles.gameEntry} key="game-3">
-            <div 
-              className={styles.gameImageContainer} 
-              onClick={() => handleGameClick('vanishing-game')}
-            >
-              <video src={vanishingGame} className={styles.gameVisual} autoPlay loop muted />
-              <img src={syllableGameCard} alt="Game Card Frame" className={styles.gameFrameImage} />
-            </div>
+          {/* Vanishing Vowels Game */}
+          <div className={styles.gameEntry}>
             <div className={styles.gameTextContent}>
-              <h3 className={styles.gameTitle}>Vanishing Game</h3>
-              <img src={crossGif} alt="Animated cross" className={styles.crossVisual} />
+              <h3 className={styles.gameTitle}>✨ Vanishing game 🔍</h3>
               <p className={styles.gameDescription}>
-                A memory and phonics challenge where letters vanish from words, encouraging kids to recall letter sounds and spellings to complete the word.
+                Crack the code and solve the puzzle! Missing letters need your help - can you fill in the blanks and reveal the hidden words? Become a word detective! 🕵️
               </p>
               <button 
                 className={styles.playButton} 
                 onClick={() => handleHowToPlayClick('vanishing-game')}
               >
-                How to Play
+                Solve Mysteries! 🎯
               </button>
             </div>
+            <motion.div 
+              className={styles.gameImageContainer}
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <video 
+                className={styles.gameVisual} 
+                src={vanishingGame} 
+                autoPlay 
+                loop 
+                muted 
+              />
+              <motion.img 
+                src={syllableGameCard} 
+                alt="Third Game Card Frame" 
+                className={styles.gameFrameImage}
+                animate={{
+                  scale: [1, 1.03, 1],
+                  y: [0, -5, 0]
+                }}
+                transition={{
+                  duration: 3.5,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+            </motion.div>
           </div>
 
-           {/* --- Crossword Game --- */}
-         <div className={styles.gameEntry} key="game-4">
-  <motion.div 
-    className={styles.gameImageContainer} 
-    onClick={() => handleGameClick('crossword-puzzle')}
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
-      backgroundSize: '200% 200%',
-      borderRadius: '20px',
-      padding: '40px',
-      minHeight: '320px',
-      position: 'relative',
-      overflow: 'hidden',
-      boxShadow: '0 20px 60px rgba(102, 126, 234, 0.4), inset 0 0 30px rgba(255, 255, 255, 0.1)',
-      cursor: 'pointer'
-    }}
-    animate={{
-      backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
-    }}
-    transition={{
-      duration: 6,
-      repeat: Infinity,
-      ease: "linear"
-    }}
-    whileHover={{
-      scale: 1.02,
-      boxShadow: '0 25px 70px rgba(102, 126, 234, 0.5), inset 0 0 40px rgba(255, 255, 255, 0.15)'
-    }}
-  >
-    {/* Floating orbs background */}
-    <div style={{
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
-      top: 0,
-      left: 0,
-      overflow: 'hidden',
-      pointerEvents: 'none'
-    }}>
-      <motion.div 
-        style={{
-          position: 'absolute',
-          width: '150px',
-          height: '150px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%)',
-          top: '-50px',
-          left: '-50px',
-        }}
-        animate={{
-          x: [0, 30, 0],
-          y: [0, -30, 0],
-          scale: [1, 1.1, 0.9, 1]
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      />
-      <motion.div 
-        style={{
-          position: 'absolute',
-          width: '200px',
-          height: '200px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
-          bottom: '-80px',
-          right: '-80px',
-        }}
-        animate={{
-          x: [0, -30, 0],
-          y: [0, 20, 0],
-          scale: [1, 0.9, 1.1, 1]
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      />
-    </div>
-
-    {/* Main Animation Container */}
-    <motion.div
-      style={{ 
-        transform: 'scale(1.5)', 
-        position: 'relative',
-        zIndex: 1
-      }}
-      whileHover={{ 
-        scale: 1.6,
-        rotate: 3,
-        transition: { duration: 0.3, type: 'spring', stiffness: 300 }
-      }}
-      whileTap={{ scale: 1.45 }}
-      animate={{
-        y: [0, -10, 0],
-      }}
-      transition={{
-        y: {
-          duration: 4,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }
-      }}
-    >
-      <CrosswordAnimation />
-    </motion.div>
-    
-    <motion.img 
-      src={syllableGameCardRight} 
-      alt="Fourth Game Card Frame" 
-      className={styles.gameFrameImage}
-      animate={{
-        scale: [1, 1.02, 1],
-        opacity: [1, 0.95, 1]
-      }}
-      transition={{
-        duration: 3,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }}
-    />
-  </motion.div>
-  
-  <div className={styles.gameTextContent}>
-    <h3 className={styles.gameTitle}>Crossword Game</h3>
-    <p className={styles.gameDescription}>
-      A classic puzzle with a phonics twist. Kids use letter sounds and clues to fill in the words, reinforcing vocabulary and spelling skills.
-    </p>
-    <button 
-      className={styles.playButton} 
-      onClick={() => handleHowToPlayClick('crossword-puzzle')}
-    >
-      How to Play
-    </button>
-  </div>
-</div>
-
-
-        {/* --- ADD THE PROJECT PURPOSE SECTION HERE --- */}
-        <div className={styles.purposeSection}>
-            <img src={bugsby1Visual} alt="Pixel monster" className={styles.bugsby1Visual} />
-            <img src={bugsby2Visual} alt="Pixel monster" className={styles.bugsby2Visual} />
-          <h3 className={styles.purposeTitle}>Project Purpose</h3>
-
-          <div className={styles.projectPurposeContainer}>
-            <div className={styles.purposeImagePlaceholder}>
-              {/* This div is the placeholder for your photo */}
-            </div>
-            <div className={styles.purposeTextContent}>
-              <p className={styles.purposeDescription}>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus id viverra elit. Aliquam molestie dui in cursus bibendum. Sed porta, felis id eleifend condimentum, metus sapien dapibus nibh, id vulputate neque ante vitae enim. Praesent nunc lorem, condimentum eget consectetur at, iaculis sed tortor.
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus id viverra elit. Aliquam molestie dui in cursus bibendum. Sed porta, felis id eleifend condimentum, metus sapien dapibus nibh, id vulputate neque ante vitae enim. Praesent nunc lorem, condimentum ege 
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus id viverra elit. Aliquam molestie dui in id vulputate neque ante vitae en
+          {/* Crossword Game */}
+          <div className={styles.gameEntry}>
+            <div className={styles.gameTextContent}>
+              <h3 className={styles.gameTitle}>🧩 Word Puzzle Challenge! 🌟</h3>
+              <p className={styles.gameDescription}>
+                Become a word master! Use letter sounds and clever clues to crack the crossword puzzle. Can you fill in all the words and win? 🏆
               </p>
+              <button 
+                className={styles.playButton} 
+                onClick={() => handleHowToPlayClick('crossword-puzzle')}
+              >
+                Take Challenge! 💪
+              </button>
             </div>
+            <motion.div 
+              className={styles.gameImageContainer}
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                <motion.div
+                  style={{ 
+                    transform: 'scale(1.5)', 
+                    position: 'relative',
+                    zIndex: 1
+                  }}
+                  animate={{
+                    y: [0, -10, 0],
+                  }}
+                  transition={{
+                    y: {
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }
+                  }}
+                >
+                  <CrosswordAnimation />
+                </motion.div>
+              </div>
+              <motion.img 
+                src={syllableGameCardRight} 
+                alt="Fourth Game Card Frame" 
+                className={styles.gameFrameImage}
+                animate={{
+                  scale: [1, 1.02, 1],
+                  opacity: [1, 0.95, 1]
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+            </motion.div>
           </div>
 
-          <p className={styles.purposeFullWidthText}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus id viverra elit. Aliquam molestie dui in cursus bibendum. Sed porta, felis id eleifend condimentum, metus sapien dapibus nibh, id vulputate neque ante vitae enim. Praesent nunc lorem, condimentum eget consectetur at, iaculis sed tortor. Maecenas ut suscipit lectus. Suspendisse varius lacus a dictum interdum. Nulla imperdiet mi id lacus volutpat interdum.
-          </p>
-        </div>
+          {/* Project Purpose Section */}
+          <div id="purpose" className={styles.purposeSection}>
+            <motion.img 
+              src={bugsby1Visual} 
+              alt="Pixel monster" 
+              className={styles.bugsby1Visual}
+              animate={{ x: [0, 10, 0], rotate: [0, 5, 0] }}
+              transition={{ duration: 4, repeat: Infinity }}
+            />
+            <motion.img 
+              src={bugsby2Visual} 
+              alt="Pixel monster" 
+              className={styles.bugsby2Visual}
+              animate={{ x: [0, -10, 0], rotate: [0, -5, 0] }}
+              transition={{ duration: 4, repeat: Infinity }}
+            />
+            
+            <motion.h3 
+              className={styles.purposeTitle}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              Our Mission
+            </motion.h3>
+
+            <div className={styles.projectPurposeContainer}>
+              <motion.div 
+                className={styles.purposeImagePlaceholder}
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+              >
+                <div className={styles.purposeImageContent}>
+                  <motion.div 
+                    className={styles.statsCard}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <div className={styles.statNumber}>Grade 3</div>
+                    <div className={styles.statLabel}>Our primary focus - helping Grade 3 Filipino students master reading</div>
+                  </motion.div>
+                  <motion.div 
+                    className={styles.statsCard}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <div className={styles.statNumber}>4 Games</div>
+                    <div className={styles.statLabel}>Engaging phonics-based games designed by educators</div>
+                  </motion.div>
+                </div>
+              </motion.div>
+              
+              <motion.div 
+                className={styles.purposeTextContent}
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+              >
+                <p className={styles.purposeDescription}>
+                  <span className={styles.highlightText}>WildLitz</span> was born from a critical need: addressing the literacy challenges faced by Filipino Grade 3 students. Many young learners struggle with reading comprehension and foundational literacy skills, and we recognized that traditional teaching methods weren't reaching every child effectively.
+                  <br/><br/>
+                  Our platform transforms reading education by combining proven <strong>phonics-based instruction</strong> with engaging game mechanics. Each activity is carefully designed around the five pillars of literacy: <strong>phonemic awareness, phonics, fluency, vocabulary, and comprehension</strong>.
+                  <br/><br/>
+                  Through colorful characters, interactive challenges, and immediate feedback, we make learning to read feel less like studying and more like an adventure—helping Grade 3 students develop the foundational skills they need to become confident, lifelong readers.
+                </p>
+              </motion.div>
+            </div>
+
+            <motion.div 
+              className={styles.purposeFullWidthText}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className={styles.impactGrid}>
+                <div className={styles.impactCard}>
+                  <div className={styles.impactIcon}>🎯</div>
+                  <h4>Evidence-Based Approach</h4>
+                  <p>Built on research-proven methods that have helped millions of children learn to read effectively</p>
+                </div>
+                <div className={styles.impactCard}>
+                  <div className={styles.impactIcon}>📚</div>
+                  <h4>Phonics-Based Method</h4>
+                  <p>Structured phonics curriculum focusing on letter-sound relationships and decoding skills</p>
+                </div>
+               
+                <div className={styles.impactCard}>
+                  <div className={styles.impactIcon}>📊</div>
+                  <h4>Track Your Progress</h4>
+                  <p>Detailed analytics showing performance, time spent, and skills mastered over time</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
 
         </div>
       </section>
 
-      {/* --- ADD THE "ABOUT US" CONTENT INSIDE lowerBody --- */}
-      <section className={styles.lowerBody}>
-        <div className={styles.aboutUsContainer}>
-          <h3 className={styles.aboutUsTitle}>About Us</h3>
-          <div className={styles.aboutUsImagePlaceholder}>
-            {/* Placeholder for the "About Us" image or graphic */}
+      {/* About Us Section */}
+      <section id="about" className={styles.lowerBody}>
+        <motion.div 
+          className={styles.aboutUsContainer}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+        >
+          <motion.h3 
+            className={styles.aboutUsTitle}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            About Us
+          </motion.h3>
+          
+          <div className={styles.aboutUsContent}>
+            <motion.div 
+              className={styles.aboutUsImagePlaceholder}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className={styles.teamVisualization}>
+                <div className={styles.teamCircle}>
+                  <span className={styles.teamEmoji}>👨‍💻</span>
+                </div>
+                <div className={styles.teamCircle}>
+                  <span className={styles.teamEmoji}>👩‍🎨</span>
+                </div>
+                <div className={styles.teamCircle}>
+                  <span className={styles.teamEmoji}>👨‍🏫</span>
+                </div>
+                <div className={styles.teamCircle}>
+                  <span className={styles.teamEmoji}>👩‍💻</span>
+                </div>
+              </div>
+            </motion.div>
+            
+            <motion.div 
+              className={styles.aboutUsTextContainer}
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <p className={styles.aboutUsDescription}>
+                We are a passionate team of <strong>educators, developers, and designers</strong> united by a single mission: to make learning to read an exciting and unforgettable adventure for every Filipino child.
+                <br/><br/>
+                We believe that games are a uniquely powerful tool for education. Our approach is rooted in <strong>proven pedagogical principles</strong>, where foundational phonics and vocabulary are seamlessly woven into captivating gameplay that feels less like a lesson and more like a journey.
+                <br/><br/>
+                Each experience is thoughtfully crafted to help build not just essential literacy skills, but also the <strong>confidence and curiosity</strong> that foster a genuine, lifelong love for learning. By blending imaginative worlds with robust technology, we're dedicated to transforming screen time into a constructive and joyful step on the path to becoming a confident, enthusiastic reader.
+              </p>
+              
+              <div className={styles.valuesList}>
+                <div className={styles.valueItem}>
+                  <span className={styles.valueIcon}>❤️</span>
+                  <span className={styles.valueText}><strong>Passion</strong> for education and child development</span>
+                </div>
+                <div className={styles.valueItem}>
+                  <span className={styles.valueIcon}>🎓</span>
+                  <span className={styles.valueText}><strong>Expertise</strong> in pedagogy and technology</span>
+                </div>
+                <div className={styles.valueItem}>
+                  <span className={styles.valueIcon}>🤝</span>
+                  <span className={styles.valueText}><strong>Commitment</strong> to Filipino learners' success</span>
+                </div>
+                <div className={styles.valueItem}>
+                  <span className={styles.valueIcon}>✨</span>
+                  <span className={styles.valueText}><strong>Innovation</strong> in educational game design</span>
+                </div>
+              </div>
+            </motion.div>
           </div>
-          <p className={styles.aboutUsDescription}>
-  We are a passionate team of educators, developers, and designers united by a single, core mission: to make learning to read an exciting and unforgettable adventure for every child. We believe that games are a uniquely powerful tool for education. Our approach is rooted in proven pedagogical principles, where foundational phonics and vocabulary are seamlessly woven into captivating gameplay that feels less like a lesson and more like a journey.
-<br/><br/>
-  Each experience is thoughtfully crafted to help build not just essential literacy skills, but also the confidence and curiosity that foster a genuine, lifelong love for learning. By blending imaginative worlds with robust technology, we're dedicated to transforming screen time into a constructive and joyful step on the path to becoming a confident, enthusiastic reader.
-</p>
-        </div>
+        </motion.div>
       </section>
 
-      {/* --- Footer Section --- */}
+      {/* Footer Section */}
       <section className={styles.bottomBodyFooter}>
         <div className={styles.footerContainer}>
           <div className={styles.footerTop}>
@@ -459,9 +582,10 @@ function HomePage() {
 
             <div className={styles.footerColumn}>
               <h4>Navigation</h4>
-              <a href="#">Home</a>
-              <a href="#">About Us</a>
-              <a href="#">Purpose</a>
+              <a href="#home">Home</a>
+              <a href="#games">Games</a>
+              <a href="#purpose">Purpose</a>
+              <a href="#about">About Us</a>
             </div>
 
             <div className={styles.footerColumn}>
