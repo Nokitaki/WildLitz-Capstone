@@ -424,9 +424,8 @@ const GameplayScreen = ({
   }
   
   // Report result with delay for feedback
-  setTimeout(() => {
-    onResult(recognized, word);
-  }, 1000);
+  console.log('📤 Sending result to VanishingGame immediately:', recognized);
+  onResult(recognized, word);
 };
 // Handle "Give up" button specifically
 const handleGiveUp = () => {
@@ -454,11 +453,7 @@ const handleGiveUp = () => {
   // Update participation and energy (counts as incorrect)
   updateParticipationStats(false);
   
-  // Report result with delay for feedback
-  setTimeout(() => {
-    // ⭐ CHANGED: Send 'giveup' instead of false
     onResult('giveup', word);
-  }, 1000);
 };
 
 

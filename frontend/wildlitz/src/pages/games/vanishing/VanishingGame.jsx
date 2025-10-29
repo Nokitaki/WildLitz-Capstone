@@ -146,9 +146,79 @@ const handleWordResult = (recognized, word, responseTime) => {
   const result = { recognized, word, responseTime };
   setLastResult(result);
   
+  // ⭐ FIX 1: Handle "I know it" (recognized === true)
+  if (recognized === true) {
+    console.log('✅ I KNOW IT BUTTON PRESSED!!!');
+    
+    // Count as correct attempt
+    const newStats = { ...gameStats };
+    newStats.wordsAttempted++;
+    newStats.wordsRecognized++;
+    newStats.timeSpent = Date.now() - sessionStartTime;
+    newStats.streakCount++;
+    newStats.maxStreak = Math.max(newStats.maxStreak, newStats.streakCount);
+    
+    // Pattern-specific tracking
+    const currentPattern = gameConfig.learningFocus;
+    if (!newStats.patternStats[currentPattern]) {
+      newStats.patternStats[currentPattern] = { 
+        attempted: 0, 
+        correct: 0, 
+        averageTime: 0 
+      };
+    }
+    newStats.patternStats[currentPattern].attempted++;
+    newStats.patternStats[currentPattern].correct++;
+    
+    // Calculate response time
+    const actualResponseTime = responseTime || (Date.now() - gameStartTime) / 1000;
+    
+    // Update average response time
+    newStats.averageResponseTime = 
+      (newStats.averageResponseTime * (newStats.wordsAttempted - 1) + actualResponseTime) / 
+      newStats.wordsAttempted;
+    
+    // Update pattern average time
+    const patternStats = newStats.patternStats[currentPattern];
+    patternStats.averageTime = 
+      (patternStats.averageTime * (patternStats.attempted - 1) + actualResponseTime) / 
+      patternStats.attempted;
+    
+    // Calculate success rate
+    newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
+    
+    // Track difficulty progression
+    newStats.difficultyProgression.push({
+      round: currentRound,
+      word: word,
+      recognized: true,
+      responseTime: actualResponseTime,
+      pattern: currentPattern,
+      action: 'knew_it'
+    });
+    
+    setGameStats(newStats);
+    
+    // ✅ FIX: Show bubble message (not alert!)
+    setBubbleMessage("Excellent! You got it right! 🎉✨");
+    setShowBubble(true);
+    console.log('💬 Bubble message set for I KNOW IT!');
+    
+    // Auto-hide bubble after 3 seconds
+    setTimeout(() => {
+      setShowBubble(false);
+    }, 8000);
+    
+    setGameState('feedback');
+    
+    return;
+  }
+  
+  // ⭐ FIX 2: Handle "Give up" (recognized === 'giveup') - REMOVE alert()!
   if (recognized === 'giveup') {
     console.log('👋 GIVE UP HANDLER TRIGGERED!!!');
-    alert('Give up detected!');
+    // ❌ REMOVED: alert('Give up detected!'); // This blocks the UI!
+    
     // Count as incorrect attempt
     const newStats = { ...gameStats };
     newStats.wordsAttempted++;
@@ -193,9 +263,17 @@ const handleWordResult = (recognized, word, responseTime) => {
       action: 'giveup'
     });
     
-   setBubbleMessage("Better luck next time! Every try makes you stronger! 💪");
+    setGameStats(newStats);
+    
+    // ✅ FIX: Show bubble message properly
+    setBubbleMessage("Better luck next time! Every try makes you stronger! 💪");
     setShowBubble(true);
-    console.log('💬 Bubble message set!');
+    console.log('💬 Bubble message set for GIVE UP!');
+    
+    // Auto-hide bubble after 3 seconds
+    setTimeout(() => {
+      setShowBubble(false);
+    }, 8000);
     
     setGameState('feedback');
     
@@ -213,7 +291,7 @@ const handleWordResult = (recognized, word, responseTime) => {
       return;
     }
     
-    // ⭐ IMMEDIATE: Switch to loading state RIGHT AWAY
+    // Switch to loading state RIGHT AWAY
     setGameState('loading');
     
     // Generate new word in background
@@ -251,9 +329,12 @@ const handleWordResult = (recognized, word, responseTime) => {
         }
         
         // If we couldn't find unique word, just use the last one
-        if (!newWord && newWords && newWords.length > 0) {
-          console.log('⚠️ Using duplicate word since pool is small');
-          newWord = newWords[0];
+        if (!newWord) {
+          const newWords = await generateVanishingGameWords(gameConfig, 1);
+          if (newWords && newWords.length > 0) {
+            console.log('⚠️ Using duplicate word since pool is small');
+            newWord = newWords[0];
+          }
         }
         
         if (newWord) {
@@ -307,11 +388,17 @@ const handleWordResult = (recognized, word, responseTime) => {
     setGameStats(newStats);
     setBubbleMessage("Word skipped! Let's try the next one! ⏭️");
     setShowBubble(true);
+    
+    // Auto-hide bubble after 3 seconds
+    setTimeout(() => {
+      setShowBubble(false);
+    }, 8000);
+    
     setGameState('feedback');
     return;
   }
   
-  // ===== NORMAL WORD PROCESSING (for true/false) =====
+  // ===== NORMAL WORD PROCESSING (for false - incorrect answer) =====
   
   if (gameConfig.teamPlay) {
     if (recognized) {
@@ -327,6 +414,14 @@ const handleWordResult = (recognized, word, responseTime) => {
   newStats.wordsAttempted++;
   newStats.timeSpent = Date.now() - sessionStartTime;
   
+  if (recognized) {
+    newStats.wordsRecognized++;
+    newStats.streakCount++;
+    newStats.maxStreak = Math.max(newStats.maxStreak, newStats.streakCount);
+  } else {
+    newStats.streakCount = 0;
+  }
+  
   const currentPattern = gameConfig.learningFocus;
   if (!newStats.patternStats[currentPattern]) {
     newStats.patternStats[currentPattern] = { 
@@ -336,15 +431,8 @@ const handleWordResult = (recognized, word, responseTime) => {
     };
   }
   newStats.patternStats[currentPattern].attempted++;
-  
   if (recognized) {
-    newStats.wordsRecognized++;
     newStats.patternStats[currentPattern].correct++;
-    newStats.streakCount++;
-    newStats.maxStreak = Math.max(newStats.maxStreak, newStats.streakCount);
-    setScore(prevScore => prevScore + 1);
-  } else {
-    newStats.streakCount = 0;
   }
   
   const actualResponseTime = responseTime || (Date.now() - gameStartTime) / 1000;
@@ -363,13 +451,13 @@ const handleWordResult = (recognized, word, responseTime) => {
   newStats.difficultyProgression.push({
     round: currentRound,
     word: word,
-    recognized,
+    recognized: recognized,
     responseTime: actualResponseTime,
-    pattern: currentPattern
+    pattern: currentPattern,
+    action: recognized ? 'correct' : 'incorrect'
   });
   
   setGameStats(newStats);
-  setGameState('feedback');
   
   let feedbackMessage;
   if (recognized) {
@@ -391,6 +479,13 @@ const handleWordResult = (recognized, word, responseTime) => {
   
   setBubbleMessage(feedbackMessage);
   setShowBubble(true);
+  
+  // Auto-hide bubble after 3 seconds
+  setTimeout(() => {
+    setShowBubble(false);
+  }, 8000);
+  
+  setGameState('feedback');
 };
 
   /**
