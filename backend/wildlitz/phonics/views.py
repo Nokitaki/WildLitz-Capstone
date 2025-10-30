@@ -196,8 +196,9 @@ def create_phonics_prompt(challenge_level, learning_focus, difficulty, word_coun
         'hard': 'more challenging vocabulary that expands learning'
     }
     
-    prompt = f"""
-    Generate {word_count} educational words for a phonics vanishing game designed for elementary students.
+    prompt = f"""You are an expert phonics educator creating learning materials for elementary students.
+
+{"⚠️ CRITICAL REQUIREMENT: Generate COMPLETE SENTENCES, not single words! Each entry must be a full sentence with subject and verb. ⚠️" if challenge_level == 'simple_sentences' else ""}
     
     TARGET SPECIFICATIONS:
     - Challenge Level: {level_descriptions[challenge_level]}
@@ -250,13 +251,19 @@ def create_phonics_prompt(challenge_level, learning_focus, difficulty, word_coun
     - Examples: "big blue car", "happy little dog"
     - Keep syllable breakdown as the full phrase
         """
-    elif challenge_level == 'simple_sentences':
+    if challenge_level == 'simple_sentences':
         prompt += """
-    - Complete thoughts with subject and predicate
-    - 4-8 words maximum
-    - Use simple sentence structure
-    - End with appropriate punctuation
-    - Examples: "The dog ran fast.", "I like to play."
+‼️ CRITICAL: GENERATE COMPLETE SENTENCES, NOT SINGLE WORDS! ‼️
+
+- MUST be complete sentences with subject and verb
+- 4-8 words per sentence
+- End with proper punctuation (. ! ?)
+- DO NOT generate single words like "cat" or "dog"
+- Each "word" field must contain a FULL SENTENCE
+- Examples for short vowels: "The cat sat on the mat.", "A big dog ran so fast.", "The sun is hot today."
+- Examples for long vowels: "I like to bake a cake.", "The green tree is tall.", "We ride a bike home."
+
+‼️ REMEMBER: YOU MUST GENERATE SENTENCES, NOT WORDS! ‼️
         """
     
     prompt += f"""
@@ -265,19 +272,37 @@ def create_phonics_prompt(challenge_level, learning_focus, difficulty, word_coun
     """
     
     if learning_focus == 'short_vowels':
-        prompt += """
+        if challenge_level == 'simple_sentences':
+            prompt += """
+    - Focus on a, e, i, o, u making their short sounds
+    - MUST generate complete SENTENCES (not single words!)
+    - Each sentence must have a subject and verb
+    - Include words with short vowel sounds in the sentences
+    - Examples: "The cat sat down.", "A red pen is here.", "The pig is big.", "The dog can hop.", "The sun is fun."
+            """
+        else:
+            prompt += """
     - Focus on a, e, i, o, u making their short sounds
     - Target different vowels across the word list
     - Clear examples of CVC patterns (consonant-vowel-consonant)
     - Examples: cat, bed, pig, dog, sun
-        """
+            """
     elif learning_focus == 'long_vowels':
-        prompt += """
+        if challenge_level == 'simple_sentences':
+            prompt += """
+    - Focus on long vowel sounds and patterns
+    - MUST generate complete SENTENCES (not single words!)
+    - Each sentence must have a subject and verb
+    - Include words with long vowel sounds in the sentences
+    - Examples: "I like cake a lot.", "The tree is so green.", "My bike is nice.", "We go home today.", "That tune is cute."
+            """
+        else:
+            prompt += """
     - Focus on long vowel sounds and patterns
     - Include silent-e pattern (cake, bike, home)
     - Include vowel teams where appropriate (ai, ea, oa)
     - Show how long vowels "say their name"
-        """
+            """
     elif learning_focus == 'blends':
         prompt += """
     - Two or three consonants that each keep their sound
@@ -350,6 +375,131 @@ def validate_word_structure(word_obj):
             return False
     
     return True
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def generate_example_words(request):
+    """
+    Generate example words for a given phonics pattern using AI
+    Now considers both pattern, challenge level, and learning focus
+    """
+    try:
+        data = request.data
+        pattern = data.get('pattern', 'short_a')
+        challenge_level = data.get('challengeLevel', 'simple_words')
+        learning_focus = data.get('learningFocus', 'short_vowels')
+        count = data.get('count', 5)
+        
+        logger.info(f"Generating {count} examples for pattern: {pattern}, challenge: {challenge_level}, focus: {learning_focus}")
+        
+        # Create AI prompt that considers all contexts
+        prompt = f"""Generate {count} example words that match ALL of these criteria:
+
+1. Challenge Level: {challenge_level}
+   - simple_words: Single words (3-7 letters)
+   - compound_words: Two words joined together (like "snowflake", "rainbow")
+   - phrases: Short 2-3 word phrases (like "red car", "big dog")
+   - simple_sentences: Complete short sentences (like "The cat runs.")
+
+2. Learning Focus: {learning_focus}
+   - short_vowels: Words with a, e, i, o, u making short sounds
+   - long_vowels: Words with a, e, i, o, u making long sounds
+   - blends: Words with consonant blends (bl, st, fr, etc.)
+   - digraphs: Words with digraphs (sh, ch, th, wh, ph)
+
+3. Pattern: {pattern}
+
+IMPORTANT: The examples MUST match the challenge level format!
+
+Return ONLY a JSON array of {count} words/phrases/sentences, nothing else.
+Format: ["example1", "example2", "example3", ...]
+
+Examples:
+- For compound_words + short_vowels: ["hotdog", "sunset", "sandbox", "batcap", "bedmat"]
+- For simple_words + digraphs: ["ship", "chat", "fish", "bath", "phone"]
+- For phrases + short_vowels: ["red cat", "hot dog", "big bus"]
+"""
+        
+        # Call OpenAI API
+        response = openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a phonics education expert helping children learn to read."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=200
+        )
+        
+        # Parse AI response
+        ai_text = response.choices[0].message.content.strip()
+        
+        # Clean and parse JSON
+        if '```json' in ai_text:
+            ai_text = ai_text.split('```json')[1].split('```')[0].strip()
+        elif '```' in ai_text:
+            ai_text = ai_text.split('```')[1].split('```')[0].strip()
+        
+        example_words = json.loads(ai_text)
+        
+        logger.info(f"Successfully generated {len(example_words)} example words")
+        
+        return Response({
+            'success': True,
+            'examples': example_words,
+            'pattern': pattern,
+            'challengeLevel': challenge_level,
+            'learningFocus': learning_focus
+        })
+        
+    except Exception as e:
+        logger.error(f"Error generating example words: {str(e)}")
+        # Smart fallback based on challenge level and learning focus
+        fallback = get_smart_fallback(
+            data.get('pattern', 'short_a'),
+            data.get('challengeLevel', 'simple_words'),
+            data.get('learningFocus', 'short_vowels')
+        )
+        
+        return Response({
+            'success': True,
+            'examples': fallback,
+            'pattern': data.get('pattern'),
+            'fallback': True
+        })
+
+
+def get_smart_fallback(pattern, challenge_level, learning_focus):
+    """Generate smart fallback examples based on all parameters"""
+    
+    fallbacks = {
+        'simple_words': {
+            'short_vowels': ['cat', 'bed', 'pig', 'hot', 'sun'],
+            'long_vowels': ['cake', 'tree', 'bike', 'rope', 'cube'],
+            'blends': ['stop', 'frog', 'clip', 'drop', 'swim'],
+            'digraphs': ['ship', 'chat', 'thin', 'when', 'phone']
+        },
+        'compound_words': {
+            'short_vowels': ['hotdog', 'sunset', 'sandbox', 'batcap', 'laptop'],
+            'long_vowels': ['rainbow', 'seaweed', 'beehive', 'moonlight', 'daytime'],
+            'blends': ['playground', 'backpack', 'flagpole', 'classroom', 'snowflake'],
+            'digraphs': ['seashell', 'toothbrush', 'fishpond', 'shopfront', 'pathway']
+        },
+        'phrases': {
+            'short_vowels': ['red cat', 'hot dog', 'big bus', 'wet hen', 'fat pig'],
+            'long_vowels': ['blue sky', 'green tree', 'nice day', 'home base', 'cute face'],
+            'blends': ['stop sign', 'flag pole', 'drop zone', 'swim fast', 'step up'],
+            'digraphs': ['fish tank', 'ship sail', 'thick rope', 'phone call', 'shop cart']
+        },
+        'simple_sentences': {
+            'short_vowels': ['The cat sat.', 'A big dog ran.', 'The sun is hot.'],
+            'long_vowels': ['I like cake.', 'The tree is green.', 'We play games.'],
+            'blends': ['Stop the car.', 'The flag is blue.', 'Frogs can jump.'],
+            'digraphs': ['Ships sail fast.', 'I chat with mom.', 'Fish swim quick.']
+        }
+    }
+    
+    return fallbacks.get(challenge_level, {}).get(learning_focus, ['word1', 'word2', 'word3', 'word4', 'word5'])
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def save_game_session(request):

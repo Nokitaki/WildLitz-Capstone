@@ -88,7 +88,11 @@ const VanishingGame = () => {
   const handleStartGame = async (config) => {
     console.log('🚀 Starting game with config:', config);
     
-    setGameConfig(config);
+    setGameConfig({
+      ...config,
+      enableAudio: config.enableAudio !== undefined ? config.enableAudio : true,
+      voiceType: config.voiceType || 'happy'
+    });
     setTotalRounds(config.numberOfQuestions || 10);
     setLoadingWords(true);
     setWordGenerationError(null);
@@ -272,46 +276,50 @@ const VanishingGame = () => {
     }
     
     // ⏭️ Handle "Skip"
-    if (recognized === 'skip') {
-      console.log('⏭️ Skip pressed');
-      
-      const newStats = { ...gameStats };
-      newStats.wordsSkipped++;
-      newStats.timeSpent = Date.now() - sessionStartTime;
-      
-      newStats.difficultyProgression.push({
-        round: currentRound,
-        word: word,
-        recognized: false,
-        responseTime: 0,
-        pattern: gameConfig.learningFocus,
-        action: 'skipped'
-      });
-      
-      setGameStats(newStats);
-      handleNextWord();
-      return;
-    }
+    // ⏭️ Handle "Skip" - FIXED: doesn't count as a round
+if (recognized === 'skip') {
+  console.log('⏭️ Skip pressed');
+  
+  const newStats = { ...gameStats };
+  newStats.wordsSkipped++;
+  newStats.timeSpent = Date.now() - sessionStartTime;
+  
+  newStats.difficultyProgression.push({
+    round: currentRound,
+    word: word,
+    recognized: false,
+    responseTime: 0,
+    pattern: gameConfig.learningFocus,
+    action: 'skipped'
+  });
+  
+  setGameStats(newStats);
+  handleNextWord(false);
+  return;
+}
   };
 
   /**
    * 📝 Handle next word
    */
-  const handleNextWord = () => {
-    console.log('➡️ Moving to next word');
-    
-    if (currentRound >= totalRounds) {
-      // Game complete!
-      console.log('🎉 Game complete!');
-      handleGameComplete();
-    } else {
-      // Move to next word
+  const handleNextWord = (countRound = true) => {
+  console.log('➡️ Moving to next word', { countRound });
+  
+  if (currentRound >= totalRounds) {
+    // Game complete!
+    console.log('🎉 Game complete!');
+    handleGameComplete();
+  } else {
+    // Move to next word
+    if (countRound) {
+      // Only increment round if countRound is true
       setCurrentRound(currentRound + 1);
-      setCurrentWordIndex(currentWordIndex + 1);
-      setGameState('gameplay');
-      setGameStartTime(Date.now());
     }
-  };
+    setCurrentWordIndex(currentWordIndex + 1);
+    setGameState('gameplay');
+    setGameStartTime(Date.now());
+  }
+};
 
   /**
    * 🔄 Handle retry (try same word again)
@@ -610,12 +618,14 @@ const VanishingGame = () => {
       </div>
     ) : (
       <GameCompleteScreen
-        gameStats={gameStats}
-        config={gameConfig}
-        onPlayAgain={handlePlayAgain}
-        onReturnToMenu={handleReturnToMenu}
-        onViewAnalytics={handleViewAnalytics}
-      />
+  gameStats={gameStats}
+  config={gameConfig}
+  score={gameStats.wordsRecognized}
+  totalWords={gameStats.wordsAttempted}
+  onPlayAgain={handlePlayAgain}
+  onReturnToMenu={handleReturnToMenu}
+  onViewAnalytics={handleViewAnalytics}
+/>
     )}
   </motion.div>
 )}

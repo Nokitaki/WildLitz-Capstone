@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/vanishing/GameplayScreen.module.css';
+import vanishingAudioService from '../../../services/vanishingAudioService';
 
 /**
  * 🎨 COMPLETELY REDESIGNED GameplayScreen for Kids
@@ -55,11 +56,18 @@ const peekTimeoutRef = useRef(null);
 
   // Preview phase sequence
   // Preview phase sequence
+// Preview phase sequence with AUDIO
 useEffect(() => {
   if (preVanishPhase === 'initial') {
     const timer = setTimeout(() => {
       setPreVanishPhase('preview');
-      playWordAudio();
+      
+      // 🔊 PLAY WORD AUDIO HERE
+      if (config.enableAudio && word) {
+        vanishingAudioService.speakWord(word, {
+          voiceType: config.voiceType || 'happy'
+        });
+      }
     }, 500);
     return () => clearTimeout(timer);
   }
@@ -72,16 +80,15 @@ useEffect(() => {
   }
   
   if (preVanishPhase === 'ready') {
-  const timer = setTimeout(() => {
-    setPreVanishPhase('vanishing');
-    // Word stays visible, then starts vanishing
-    setTimeout(() => {
-      startVanishing();
-    }, 100); // Small delay to ensure word is visible first
-  }, 1000);
-  return () => clearTimeout(timer);
-}
-}, [preVanishPhase]);
+    const timer = setTimeout(() => {
+      setPreVanishPhase('vanishing');
+      setTimeout(() => {
+        startVanishing();
+      }, 100);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }
+}, [preVanishPhase, word, config]);
 
   // Timer countdown
   useEffect(() => {
@@ -161,8 +168,8 @@ useEffect(() => {
   setEncouragementText('🌟 Amazing! You got it! 🌟');
   setShowEncouragement(true);
   
-  if (successSoundRef.current) {
-    successSoundRef.current.play().catch(() => {});
+  if (config.enableAudio) {
+    vanishingAudioService.playSuccessSound();
   }
   
   setTimeout(() => {

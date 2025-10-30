@@ -10,4 +10,5 @@ urlpatterns = [
     path('get-user-analytics/', views.get_user_analytics, name='get_user_analytics'),
     path('get-pattern-performance/', views.get_pattern_performance, name='get_pattern_performance'),
     path('log-game-result/', views.log_game_result, name='log_game_result'),
+    path('generate-example-words/', views.generate_example_words, name='generate_example_words'),
 ]

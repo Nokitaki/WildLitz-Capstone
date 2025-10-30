@@ -1,8 +1,8 @@
-// src/pages/games/vanishing/FeedbackScreen_NEW.jsx - Kid-Friendly Design
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/vanishing/FeedbackScreen.module.css';
-
+import axios from 'axios';
+import { API_ENDPOINTS } from '../../../config/api';
 
 /**
  * 🎨 REDESIGNED FeedbackScreen for Kids
@@ -11,6 +11,9 @@ import styles from '../../../styles/games/vanishing/FeedbackScreen.module.css';
 const FeedbackScreen = ({ wordData, config, onNextWord, onRetry, success }) => {
   const { word, pattern, patternPosition, phonicsRule } = wordData;
   const [showExamples, setShowExamples] = useState(false);
+
+  const [exampleWords, setExampleWords] = useState([]);
+const [loadingExamples, setLoadingExamples] = useState(false);
 
   // Render word with highlighted pattern
   const renderWordWithHighlight = () => {
@@ -36,6 +39,47 @@ const FeedbackScreen = ({ wordData, config, onNextWord, onRetry, success }) => {
       </span>
     );
   };
+
+  useEffect(() => {
+  loadExampleWords();
+}, [pattern]);
+
+const loadExampleWords = async () => {
+  setLoadingExamples(true);
+  try {
+    const response = await axios.post(
+      `${API_ENDPOINTS.PHONICS}/generate-example-words/`,
+      {
+        pattern: pattern,
+        challengeLevel: config.challengeLevel, 
+        learningFocus: config.learningFocus,    
+        count: 5
+      }
+    );
+    
+    if (response.data.success) {
+      setExampleWords(response.data.examples);
+    }
+  } catch (error) {
+    console.error('Error loading examples:', error);
+    // Fallback to static examples
+    setExampleWords(getStaticExamples());
+  } finally {
+    setLoadingExamples(false);
+  }
+};
+
+// Keep static examples as fallback
+const getStaticExamples = () => {
+  const examples = {
+    'short_a': ['cat', 'hat', 'bat', 'sat', 'mat'],
+    'short_e': ['bed', 'pet', 'red', 'get', 'wet'],
+    'short_i': ['hit', 'sit', 'fit', 'big', 'pig'],
+    'short_o': ['hot', 'pot', 'dot', 'top', 'hop'],
+    'short_u': ['sun', 'run', 'fun', 'but', 'cup']
+  };
+  return examples[pattern] || ['example1', 'example2', 'example3'];
+};
 
   // Get example words
   const getExampleWords = () => {
@@ -165,18 +209,25 @@ const FeedbackScreen = ({ wordData, config, onNextWord, onRetry, success }) => {
               transition={{ duration: 0.3 }}
             >
               <div className={styles.examplesGrid}>
-                {getExampleWords().map((example, index) => (
-                  <motion.div
-                    key={index}
-                    className={styles.exampleWord}
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ delay: index * 0.1, type: 'spring', bounce: 0.5 }}
-                  >
-                    {example}
-                  </motion.div>
-                ))}
-              </div>
+  {loadingExamples ? (
+    <div style={{ textAlign: 'center', padding: '20px' }}>
+      <div className={styles.spinner}></div>
+      <p>Generating examples...</p>
+    </div>
+  ) : (
+    exampleWords.map((example, index) => (
+      <motion.div
+        key={index}
+        className={styles.exampleWord}
+        initial={{ scale: 0, rotate: -180 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ delay: index * 0.1, type: 'spring', bounce: 0.5 }}
+      >
+        {example}
+      </motion.div>
+    ))
+  )}
+</div>
             </motion.div>
           )}
         </AnimatePresence>
