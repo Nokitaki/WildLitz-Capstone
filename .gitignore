@@ -2,3 +2,4 @@ backend/wildlitz/.env
 *.pyc
 backend/wildlitz/sentence_formation/migrations/*.pyc
 backend/wildlitz/django_error.log
+backend/wildlitz/django_error.log
