@@ -569,3 +569,202 @@ ERROR 2025-10-29 02:31:27,978 views Error saving game session: {'message': 'new 
 ERROR 2025-10-29 02:31:27,983 log Internal Server Error: /api/phonics/save-game-session/
 ERROR 2025-10-29 02:31:27,985 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
 ERROR 2025-10-29 02:31:27,985 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
+ERROR 2025-10-30 01:15:36,145 views No animals found for sound=l, position=beginning, difficulty=easy
+ERROR 2025-10-30 01:16:19,410 views No animals found for sound=s, position=ending, difficulty=medium
+ERROR 2025-10-30 01:17:05,975 views No animals found for sound=l, position=beginning, difficulty=easy
+ERROR 2025-10-30 01:24:43,630 views Error fetching safari animals: [WinError 10053] An established connection was aborted by the software in your host machine
+ERROR 2025-10-30 01:24:43,791 views Error getting sound examples: [Errno 11001] getaddrinfo failed
+ERROR 2025-10-30 01:24:43,808 log Internal Server Error: /api/phonemics/sound-examples/
+ERROR 2025-10-30 01:24:43,805 views Error fetching safari animals: [Errno 11001] getaddrinfo failed
+ERROR 2025-10-30 01:24:43,809 views Error getting sound examples: [Errno 11001] getaddrinfo failed
+ERROR 2025-10-30 01:24:43,827 log Internal Server Error: /api/phonemics/sound-examples/
+ERROR 2025-10-30 01:24:44,009 views Traceback (most recent call last):
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+        pool_request.request
+    )
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection.py", line 101, in handle_request
+    raise exc
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection.py", line 78, in handle_request
+    stream = self._connect(request)
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection.py", line 124, in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpcore\_backends\sync.py", line 207, in connect_tcp
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [WinError 10053] An established connection was aborted by the software in your host machine
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Spencer\Desktop\WildLitz-Capstone\backend\wildlitz\phonemics\views.py", line 157, in get_safari_animals_by_sound
+    correct_response = correct_query.execute()
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\postgrest\_sync\request_builder.py", line 58, in execute
+    r = self.session.request(
+        self.http_method,
+    ...<3 lines>...
+        headers=self.headers,
+    )
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+        request,
+    ...<2 lines>...
+        history=[],
+    )
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+        request,
+        follow_redirects=follow_redirects,
+        history=history,
+    )
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\Python313\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [WinError 10053] An established connection was aborted by the software in your host machine
+
+ERROR 2025-10-30 01:24:44,012 log Internal Server Error: /api/phonemics/animals/
+ERROR 2025-10-30 01:24:44,009 views Traceback (most recent call last):
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+        pool_request.request
+    )
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection.py", line 101, in handle_request
+    raise exc
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection.py", line 78, in handle_request
+    stream = self._connect(request)
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection.py", line 124, in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpcore\_backends\sync.py", line 207, in connect_tcp
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Spencer\Desktop\WildLitz-Capstone\backend\wildlitz\phonemics\views.py", line 157, in get_safari_animals_by_sound
+    correct_response = correct_query.execute()
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\postgrest\_sync\request_builder.py", line 58, in execute
+    r = self.session.request(
+        self.http_method,
+    ...<3 lines>...
+        headers=self.headers,
+    )
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+        request,
+    ...<2 lines>...
+        history=[],
+    )
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+        request,
+        follow_redirects=follow_redirects,
+        history=history,
+    )
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\Python313\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\Spencer\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+ERROR 2025-10-30 01:24:44,014 log Internal Server Error: /api/phonemics/animals/
+ERROR 2025-10-30 08:44:34,431 views No animals found for sound=l, position=beginning, difficulty=easy
+ERROR 2025-10-30 09:02:25,211 views No animals found for sound=c, position=beginning, difficulty=easy
+ERROR 2025-10-30 09:06:23,762 views No animals found for sound=c, position=beginning, difficulty=easy
+ERROR 2025-10-30 09:17:08,176 views No animals found for sound=z, position=beginning, difficulty=easy
+ERROR 2025-10-30 09:20:36,120 views No animals found for sound=c, position=beginning, difficulty=easy
+ERROR 2025-10-30 09:33:20,086 views No animals found for sound=w, position=beginning, difficulty=easy
+ERROR 2025-10-30 09:40:55,225 views No animals for sound=l
+ERROR 2025-10-30 09:44:26,205 views No animals for sound=z
+ERROR 2025-10-30 09:45:07,054 views No animals for sound=c
+ERROR 2025-10-30 09:46:37,460 views No animals for sound=l
+ERROR 2025-10-30 09:52:54,179 views No animals for sound=l
+ERROR 2025-10-30 09:54:07,946 views No animals for sound=k
+ERROR 2025-10-30 09:56:15,870 views No animals for sound=k
+ERROR 2025-10-30 09:56:16,239 views No animals for sound=m
+ERROR 2025-10-30 09:56:16,583 views No animals for sound=k
+ERROR 2025-10-30 09:56:49,849 views No animals for sound=g
+ERROR 2025-10-30 09:56:50,233 views No animals for sound=g
+ERROR 2025-10-30 09:56:50,629 views No animals for sound=g
+ERROR 2025-10-30 09:56:51,047 views No animals for sound=h
+ERROR 2025-10-30 10:03:30,333 views No animals for sound=z
+ERROR 2025-10-30 10:03:30,560 views No animals for sound=l
+ERROR 2025-10-30 10:04:09,208 views No animals for sound=k
+ERROR 2025-10-30 10:04:09,465 views No animals for sound=f
+ERROR 2025-10-30 10:04:09,717 views No animals for sound=l
+ERROR 2025-10-30 10:04:09,947 views No animals for sound=w
+ERROR 2025-10-30 10:04:10,225 views No animals for sound=t
+ERROR 2025-10-30 10:04:10,510 views No animals for sound=g
+ERROR 2025-10-30 10:04:10,758 views No animals for sound=h
+ERROR 2025-10-30 10:04:10,986 views No animals for sound=c
+ERROR 2025-10-30 10:04:11,211 views No animals for sound=b
+ERROR 2025-10-30 10:04:49,185 views No animals for sound=f
+ERROR 2025-10-30 10:04:49,349 views No animals for sound=t
+ERROR 2025-10-30 10:04:49,652 views No animals for sound=m
+ERROR 2025-10-30 10:05:30,796 views No animals for sound=s
+ERROR 2025-10-30 10:12:24,813 views No animals for sound=s
+ERROR 2025-10-30 10:13:28,094 views No animals for sound=s
+ERROR 2025-10-30 10:21:51,717 views No animals for sound=s
+ERROR 2025-10-30 10:26:56,768 views No animals for sound=z
+ERROR 2025-10-30 10:39:56,169 views No animals for sound=c
+ERROR 2025-10-30 10:39:56,435 views No animals for sound=l
+ERROR 2025-10-30 10:39:56,698 views No animals for sound=r
+ERROR 2025-10-30 10:41:46,886 views No animals for sound=s
+ERROR 2025-10-30 10:42:26,161 views No animals for sound=w
+ERROR 2025-10-30 10:42:26,403 views No animals for sound=m
+ERROR 2025-10-30 10:42:26,632 views No animals for sound=p
+ERROR 2025-10-30 10:46:01,531 views No animals for sound=s
+ERROR 2025-10-30 10:51:15,079 views No animals for sound=d
+ERROR 2025-10-30 10:53:17,968 views No animals for sound=f
+ERROR 2025-10-30 10:55:00,537 views No animals for sound=d
+ERROR 2025-10-30 10:55:00,919 views No animals for sound=s
+ERROR 2025-10-30 10:55:01,333 views No animals for sound=k
+ERROR 2025-10-30 11:15:26,369 views No animals for sound=z
+ERROR 2025-10-30 11:15:26,639 views No animals for sound=l
+ERROR 2025-10-30 11:19:17,874 views No animals for sound=l

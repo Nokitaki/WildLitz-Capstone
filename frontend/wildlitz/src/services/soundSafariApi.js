@@ -34,7 +34,8 @@ export const fetchSafariAnimals = async (params) => {
 
 export const fetchRandomSound = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/random-sound/`);
+    // ✅ FIXED: Use PHONEMICS_API instead of API_BASE_URL
+    const response = await fetch(`${PHONEMICS_API}/random-sound/`);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -49,8 +50,9 @@ export const fetchRandomSound = async () => {
 
 export const fetchSoundExamples = async (sound) => {
   try {
+    // ✅ FIXED: Use PHONEMICS_API instead of API_BASE_URL
     const response = await fetch(
-      `${API_BASE_URL}/sound-examples/?sound=${sound}`
+      `${PHONEMICS_API}/sound-examples/?sound=${sound}`
     );
 
     if (!response.ok) {
@@ -66,7 +68,8 @@ export const fetchSoundExamples = async (sound) => {
 
 export const submitGameResults = async (results) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/submit-results/`, {
+    // ✅ FIXED: Use PHONEMICS_API instead of API_BASE_URL
+    const response = await fetch(`${PHONEMICS_API}/submit-results/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

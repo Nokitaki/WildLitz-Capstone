@@ -1,5 +1,5 @@
 // src/pages/games/soundsafari/ResultScreen.jsx
-// FIXED VERSION - Correct scoring when no animals have the target sound
+// UPDATED VERSION - Position-aware scoring and validation
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
@@ -15,8 +15,8 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
   const isMountedRef = useRef(true);
   const speechTimeoutRef = useRef(null);
   
-  // Extract results
-  const { correctAnimals, incorrectAnimals, selectedAnimals, targetSound } = results;
+  // ✅ Extract results with soundPosition
+  const { correctAnimals, incorrectAnimals, selectedAnimals, targetSound, soundPosition } = results;
   
   // Calculate results
   const correctSelected = selectedAnimals.filter(animal => 
@@ -31,9 +31,9 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
     !selectedAnimals.some(a => a.id === animal.id)
   );
   
-  // ✅ FIXED: Calculate score with proper handling for "no correct animals" case
+  // ✅ Calculate score with proper handling for edge cases
   const calculateScore = () => {
-    // Special case: No correct animals exist (no animals with target sound)
+    // Special case: No correct animals exist
     if (!correctAnimals || correctAnimals.length === 0) {
       // If player also selected nothing, that's CORRECT! (100%)
       if (!selectedAnimals || selectedAnimals.length === 0) {
@@ -66,19 +66,32 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
     return "🌱";
   };
   
-  // ✅ FIXED: Better feedback messages for edge cases
+  // ✅ Position-aware feedback messages
+  const getPositionText = () => {
+    if (!soundPosition) return '';
+    switch(soundPosition) {
+      case 'beginning': return 'at the beginning';
+      case 'middle': return 'in the middle';
+      case 'ending': return 'at the end';
+      case 'anywhere': return 'anywhere';
+      default: return '';
+    }
+  };
+  
   const getCharacterFeedback = () => {
-    // Special case: No animals with target sound
+    const positionText = getPositionText();
+    
+    // Special case: No animals with target sound at the position
     if (!correctAnimals || correctAnimals.length === 0) {
       if (score === 100) {
-        return `Perfect! You correctly identified that there were NO animals with the "${targetSound}" sound! Great listening skills! 🎯`;
+        return `Perfect! You correctly identified that there were NO animals with the "${targetSound}" sound ${positionText}! Great listening skills! 🎯`;
       } else {
-        return `Oops! There were NO animals with the "${targetSound}" sound, so you shouldn't have selected any. Let's try again!`;
+        return `Oops! There were NO animals with the "${targetSound}" sound ${positionText}, so you shouldn't have selected any. Let's try again!`;
       }
     }
     
-    // Normal case messages
-    const correctMessage = `You found ${correctSelected.length} out of ${correctAnimals.length} animals with the "${targetSound}" sound!`;
+    // Normal case messages with position context
+    const correctMessage = `You found ${correctSelected.length} out of ${correctAnimals.length} animals with the "${targetSound}" sound ${positionText}!`;
     
     if (score >= 90) {
       return `Wonderful job! ${correctMessage} That's excellent listening!`;
@@ -142,12 +155,12 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
   // Navigation handlers
   const handleNextRoundClick = () => {
     stopAllSpeech();
-    setTimeout(() => onNextRound(), 100);
+    onNextRound(); // ✅ Call immediately - no delay
   };
-  
+
   const handleTryAgainClick = () => {
     stopAllSpeech();
-    setTimeout(() => onTryAgain(), 100);
+    onTryAgain(); // ✅ Call immediately - no delay
   };
   
   return (
@@ -212,13 +225,13 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
           </div>
         </div>
         
-        {/* Feedback Message - Special case for no correct animals */}
+        {/* ✅ Feedback Message - Special case for no correct animals */}
         {(!correctAnimals || correctAnimals.length === 0) && (
           <div className={styles.feedbackMessageBox}>
             <p className={styles.feedbackContent}>
               {score === 100 
-                ? `🎯 Smart choice! There were no animals with the "${targetSound}" sound.`
-                : `💡 Tip: There were no animals with the "${targetSound}" sound in this round!`
+                ? `🎯 Smart choice! There were no animals with the "${targetSound}" sound ${getPositionText()}.`
+                : `💡 Tip: There were no animals with the "${targetSound}" sound ${getPositionText()} in this round!`
               }
             </p>
           </div>
@@ -261,7 +274,7 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
                 <div className={styles.emptyState}>
                   <p>
                     {correctAnimals && correctAnimals.length === 0 
-                      ? `No animals with "${targetSound}" sound` 
+                      ? `No animals with "${targetSound}" sound ${getPositionText()}` 
                       : 'No correct animals selected'
                     }
                   </p>

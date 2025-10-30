@@ -23,16 +23,9 @@ export const SOUND_DESCRIPTIONS = {
   'k': 'Short sound from the back of your throat: "k"',
   'w': 'Round your lips like saying "oo": "w"',
   'd': 'Tap your tongue behind your teeth: "d"',
-  'e': 'Open your mouth for "eh"',
   'r': 'Make a growling sound: "rrr"',
   'c': 'Make a "k" sound but softer: "c"',
-  'h': 'Breathe out with your mouth open: "h"',
-  'j': 'Make a buzzing sound with your tongue: "j"',
-  'v': 'Bite your lower lip gently and hum: "vvv"',
-  'n': 'Hum with your tongue touching the roof of your mouth: "nnn"',
-  'sh': 'Make a quiet "shushing" sound: "sh"',
-  'ch': 'Make a sneezing sound: "ch"',
-  'th': 'Put your tongue between your teeth and breathe: "th"'
+  'h': 'Breathe out with your mouth open: "h"'
 };
 
 // Game difficulty levels
@@ -51,6 +44,7 @@ export const DIFFICULTY_LEVELS = {
     numAnimals: 12, 
     timeLimit: 30, 
     soundPositions: [SOUND_POSITIONS.beginning, SOUND_POSITIONS.middle, SOUND_POSITIONS.ending]
+    // ✅ Removed SOUND_POSITIONS.anywhere - hard mode now only uses beginning, middle, ending
   }
 };
 

@@ -127,7 +127,14 @@ def get_safari_animals_by_sound(request):
     difficulty = request.GET.get('difficulty', 'easy')
     environment = request.GET.get('environment', '')
     sound_position = request.GET.get('position', '')
-    exclude_ids = request.GET.getlist('exclude[]', [])  # Animals to exclude
+    exclude_ids = request.GET.getlist('exclude[]', [])
+    
+    # ✅ CORE SOUNDS FILTER
+    CORE_SOUNDS = ['g', 'k', 'w', 'd', 'r', 'c', 'h', 's', 'm', 't', 'b', 'p', 'f', 'l', 'z']
+    
+    if target_sound not in CORE_SOUNDS:
+        logger.warning(f"Invalid sound requested: {target_sound}. Using 's' as fallback.")
+        target_sound = 's'
     
     try:
         # Build query for animals with the target sound
@@ -138,7 +145,8 @@ def get_safari_animals_by_sound(request):
         if environment:
             correct_query = correct_query.eq('environment', environment)
         
-        if sound_position:
+        # ✅ Handle "anywhere" mode
+        if sound_position and sound_position != 'anywhere':
             correct_query = correct_query.eq('sound_position', sound_position)
             
         if exclude_ids:
@@ -148,9 +156,48 @@ def get_safari_animals_by_sound(request):
         correct_response = correct_query.execute()
         correct_animals = correct_response.data or []
         
-        # Build query for animals without the target sound
+        # ✅ FALLBACK: If no animals found for specific position, try "anywhere"
+        if len(correct_animals) == 0 and sound_position and sound_position != 'anywhere':
+            logger.warning(f"No animals for sound={target_sound}, position={sound_position}. Trying 'anywhere'...")
+            
+            fallback_query = supabase.table('safari_animals').select('*')
+            fallback_query = fallback_query.eq('target_sound', target_sound)
+            fallback_query = fallback_query.eq('difficulty_level', difficulty)
+            
+            if environment:
+                fallback_query = fallback_query.eq('environment', environment)
+                
+            if exclude_ids:
+                fallback_query = fallback_query.not_.in_('id', exclude_ids)
+            
+            fallback_response = fallback_query.execute()
+            correct_animals = fallback_response.data or []
+            sound_position = 'anywhere'
+            
+            logger.info(f"Fallback: Found {len(correct_animals)} animals")
+        
+        # ✅ If STILL no animals, return minimal error (don't crash)
+        if len(correct_animals) == 0:
+            logger.error(f"No animals for sound={target_sound}")
+            # Return empty but valid response
+            return JsonResponse({
+                'animals': [],
+                'metadata': {
+                    'target_sound': target_sound,
+                    'sound_position': sound_position,
+                    'difficulty': difficulty,
+                    'total_correct_available': 0,
+                    'total_incorrect_available': 0,
+                    'selected_correct': 0,
+                    'selected_incorrect': 0,
+                    'warning': f'No animals available for sound "{target_sound}"'
+                }
+            })
+        
+        # Get incorrect animals
         incorrect_query = supabase.table('safari_animals').select('*')
         incorrect_query = incorrect_query.neq('target_sound', target_sound)
+        incorrect_query = incorrect_query.in_('target_sound', CORE_SOUNDS)
         incorrect_query = incorrect_query.eq('difficulty_level', difficulty)
         
         if environment:
@@ -159,82 +206,52 @@ def get_safari_animals_by_sound(request):
         if exclude_ids:
             incorrect_query = incorrect_query.not_.in_('id', exclude_ids)
        
-        # Get animals without the target sound
         incorrect_response = incorrect_query.execute()
         incorrect_animals = incorrect_response.data or []
         
-        logger.info(f"Found {len(correct_animals)} correct and {len(incorrect_animals)} incorrect animals")
+        logger.info(f"Found {len(correct_animals)} correct and {len(incorrect_animals)} incorrect")
         
-        # Update image URLs for all animals using new utility functions
+        # Update image URLs
         correct_animals = batch_update_animal_images(correct_animals)
         incorrect_animals = batch_update_animal_images(incorrect_animals)
         
-        # Determine number of animals needed based on difficulty
+        # Determine numbers based on difficulty
         difficulty_settings = {
             'easy': {'total': 6, 'correct_min': 2, 'correct_max': 4},
             'medium': {'total': 8, 'correct_min': 3, 'correct_max': 5},
             'hard': {'total': 12, 'correct_min': 4, 'correct_max': 7}
         }
         
-        settings_for_difficulty = difficulty_settings.get(difficulty, difficulty_settings['easy'])
-        total_animals = settings_for_difficulty['total']
-        correct_min = settings_for_difficulty['correct_min']
-        correct_max = settings_for_difficulty['correct_max']
+        settings = difficulty_settings.get(difficulty, difficulty_settings['easy'])
+        total_animals = settings['total']
+        correct_min = settings['correct_min']
+        correct_max = settings['correct_max']
         
-        # Determine how many correct animals to include
-        num_correct = min(
-            max(correct_min, min(correct_max, len(correct_animals))),
-            len(correct_animals)
-        )
-        num_incorrect = min(total_animals - num_correct, len(incorrect_animals))
+        num_correct = min(max(correct_min, min(correct_max, len(correct_animals))), len(correct_animals))
         
-        # Randomly select animals
-        selected_correct = random.sample(correct_animals, num_correct)
-        selected_incorrect = random.sample(incorrect_animals, num_incorrect)
+        if num_correct == 0:
+            num_correct = min(1, len(correct_animals))
         
-        # Combine and prepare response
+        num_incorrect = total_animals - num_correct
+        
+        # Select animals
+        selected_correct = random.sample(correct_animals, min(num_correct, len(correct_animals)))
+        selected_incorrect = random.sample(incorrect_animals, min(num_incorrect, len(incorrect_animals)))
+        
         all_animals = selected_correct + selected_incorrect
         random.shuffle(all_animals)
         
-        # Transform data for frontend with updated image URLs
-        animals_data = []
         for animal in all_animals:
-            animals_data.append({
-                'id': animal['id'],
-                'name': animal['name'],
-                'hasSound': animal['target_sound'],
-                'image': animal.get('image_url') or animal.get('image') or generate_animal_image_url(animal['name']) or "🐾",  # Updated with new URL generation
-                'image_url': animal.get('image_url') or generate_animal_image_url(animal['name']),  # Ensure image_url is always present
-                'soundPosition': animal['sound_position'],
-                'environment': animal['environment']
-            })
+            animal['hasSound'] = animal['target_sound'] == target_sound
         
-        # Update correct and incorrect animals data with new image URLs
-        correct_animals_data = []
-        for animal in selected_correct:
-            correct_animals_data.append({
-                'id': animal['id'], 
-                'name': animal['name'], 
-                'hasSound': animal['target_sound'], 
-                'image': animal.get('image_url') or generate_animal_image_url(animal['name']),
-                'image_url': animal.get('image_url') or generate_animal_image_url(animal['name'])
-            })
-        
-        incorrect_animals_data = []
-        for animal in selected_incorrect:
-            incorrect_animals_data.append({
-                'id': animal['id'], 
-                'name': animal['name'], 
-                'hasSound': animal['target_sound'], 
-                'image': animal.get('image_url') or generate_animal_image_url(animal['name']),
-                'image_url': animal.get('image_url') or generate_animal_image_url(animal['name'])
-            })
+        logger.info(f"Returning {len(all_animals)} animals: {num_correct} correct, {num_incorrect} incorrect")
         
         return JsonResponse({
-            'animals': animals_data,
-            'correctAnimals': correct_animals_data,
-            'incorrectAnimals': incorrect_animals_data,
-            'debug': {
+            'animals': all_animals,
+            'metadata': {
+                'target_sound': target_sound,
+                'sound_position': sound_position,
+                'difficulty': difficulty,
                 'total_correct_available': len(correct_animals),
                 'total_incorrect_available': len(incorrect_animals),
                 'selected_correct': num_correct,
@@ -244,33 +261,46 @@ def get_safari_animals_by_sound(request):
         
     except Exception as e:
         import traceback
-        logger.error(f"Error fetching safari animals: {str(e)}")
+        logger.error(f"Error: {str(e)}")
         logger.error(traceback.format_exc())
         return JsonResponse({'error': str(e)}, status=500)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_random_sound(request):
-    """Get a random sound for the game"""
+    """Get a random sound for the game - only core sounds"""
+    # ✅ CORE SOUNDS ONLY
+    CORE_SOUNDS = ['g', 'k', 'w', 'd', 'r', 'c', 'h', 's', 'm', 't', 'b', 'p', 'f', 'l', 'z']
+    
     try:
-        # Get all unique sounds from the database
+        # Get all unique sounds from the database that are core sounds
         response = supabase.table('safari_animals').select('target_sound').execute()
         
         if response.data:
             unique_sounds = list(set([animal['target_sound'] for animal in response.data]))
-            random_sound = random.choice(unique_sounds)
+            # ✅ Filter to only core sounds
+            core_sounds_in_db = [s for s in unique_sounds if s in CORE_SOUNDS]
             
-            return JsonResponse({
-                'sound': random_sound,
-                'available_sounds': unique_sounds
-            })
-        else:
-            # Fallback to predefined sounds if database is empty
-            default_sounds = ['s', 'm', 't', 'b', 'p', 'f', 'l', 'z']
-            return JsonResponse({
-                'sound': random.choice(default_sounds),
-                'available_sounds': default_sounds
-            })
+            if core_sounds_in_db:
+                random_sound = random.choice(core_sounds_in_db)
+                return JsonResponse({
+                    'sound': random_sound,
+                    'available_sounds': core_sounds_in_db
+                })
+        
+        # ✅ Fallback to core sounds only
+        return JsonResponse({
+            'sound': random.choice(CORE_SOUNDS),
+            'available_sounds': CORE_SOUNDS
+        })
+            
+    except Exception as e:
+        logger.error(f"Error getting random sound: {str(e)}")
+        # ✅ Fallback to core sounds
+        return JsonResponse({
+            'sound': random.choice(CORE_SOUNDS),
+            'available_sounds': CORE_SOUNDS
+        })
             
     except Exception as e:
         logger.error(f"Error getting random sound: {str(e)}")

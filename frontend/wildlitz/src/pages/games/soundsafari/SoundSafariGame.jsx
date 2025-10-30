@@ -1,4 +1,5 @@
-// src/pages/games/soundsafari/SoundSafariGame.jsx <updated on 2025-05-16>
+// src/pages/games/soundsafari/SoundSafariGame.jsx
+// UPDATED VERSION - Position-aware validation with core sounds only
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -34,7 +35,7 @@ import {
 
 /**
  * Main Sound Safari Game component that manages game state and flow
- * Updated to use Supabase data instead of mock data
+ * Updated to use Supabase data with position-aware validation
  */
 const SoundSafariGame = () => {
   // Game states: 'config', 'loading', 'intro', 'gameplay', 'results', 'complete'
@@ -76,41 +77,38 @@ const SoundSafariGame = () => {
   /**
    * Handle starting a new game with the given configuration
    */
-const handleStartGame = async (config) => {
-  setGameConfig(config);
-  
-  // 🆕 Reset analytics tracking for new game
-  setSessionStartTime(Date.now());
-  setRoundResults([]);
-  
-  setCurrentRound(1);
-  setScore(0);
-  setSoundsUsed([config.targetSound]);
-  setGameState('loading');
-  setFromIntroScreen(false);
-  setError(null);
-  
-  await prepareNewRound(config.targetSound, config.difficulty);
-  
-  setTimeout(() => {
-    setGameState('intro');
-    const introMessage = `Today we're learning about the "${config.targetSound}" sound. Listen and find it in animal names!`;
-    setBubbleMessage(introMessage);
-    setShowBubble(true);
+  const handleStartGame = async (config) => {
+    setGameConfig(config);
+    
+    // Reset analytics tracking for new game
+    setSessionStartTime(Date.now());
+    setRoundResults([]);
+    
+    setCurrentRound(1);
+    setScore(0);
+    setSoundsUsed([config.targetSound]);
+    setGameState('loading');
+    setFromIntroScreen(false);
+    setError(null);
+    
+    await prepareNewRound(config.targetSound, config.difficulty, 0, []);
     
     setTimeout(() => {
-      setShowBubble(false);
-    }, 8000);
-  }, 2000);
-};
+      setGameState('intro');
+      const introMessage = `Today we're learning about the "${config.targetSound}" sound. Listen and find it in animal names!`;
+      setBubbleMessage(introMessage);
+      setShowBubble(true);
+      
+      setTimeout(() => {
+        setShowBubble(false);
+      }, 8000);
+    }, 2000);
+  };
   
   /**
-   * Prepare a new round of the game using Supabase data
+   * Save game session analytics to database
+   * Called when all rounds are completed
    */
-  /**
- * Save game session analytics to database
- * Called when all rounds are completed
- */
   const saveGameSession = async () => {
     try {
       // Calculate totals from all rounds
@@ -154,53 +152,113 @@ const handleStartGame = async (config) => {
     }
   };
 
-  const prepareNewRound = async (targetSound = gameConfig.targetSound, difficulty = gameConfig.difficulty) => {
-    setIsLoading(true);
-    setError(null);
+  /**
+   * Prepare a new round of the game using Supabase data
+   */
+const prepareNewRound = async (targetSound = gameConfig.targetSound, difficulty = gameConfig.difficulty, retryCount = 0, triedSounds = []) => {
+  setIsLoading(true);
+  setError(null);
+  
+  try {
+  // Add current sound to tried sounds list
+  const currentTriedSounds = [...triedSounds, targetSound];
+  
+  // ✅ FIX: Always use the position selected by user - don't randomize
+  const soundPosition = gameConfig.soundPosition;
+  
+  // Update game config (keep original position, only update sound)
+  setGameConfig(prev => ({
+    ...prev,
+    targetSound
+    // ✅ Don't update soundPosition - keep user's selection throughout all rounds
+  }));
     
-    try {
-      // Set sound position based on difficulty
-      const difficultySettings = DIFFICULTY_LEVELS[difficulty];
-      const positions = difficultySettings.soundPositions;
-      const soundPosition = positions[Math.floor(Math.random() * positions.length)];
+    console.log(`🎯 Attempt ${retryCount + 1}: Trying sound "${targetSound}" at position "${soundPosition}"`);
+    
+    // Fetch animals from Supabase
+    const response = await fetchSafariAnimals({
+      sound: targetSound,
+      difficulty: difficulty,
+      environment: gameConfig.environment,
+      position: soundPosition
+    });
+    
+    // ✅ Check if we got animals
+    if (response.animals && response.animals.length > 0) {
+      setRoundAnimals(response.animals);
+      console.log(`✅ Success! Loaded ${response.animals.length} animals for sound "${targetSound}"`);
+      return; // Success - exit function
+    }
+    
+    // ⚠️ No animals found - need to retry
+    console.warn(`⚠️ No animals found for sound "${targetSound}" at position "${soundPosition}"`);
+    
+    // ✅ Try up to 15 times (once for each core sound)
+    if (retryCount < 15) {
+      console.log(`🔄 Retrying with a different sound (attempt ${retryCount + 1}/15)...`);
       
-      // Update game config
-      setGameConfig(prev => ({
-        ...prev,
-        targetSound,
-        soundPosition
-      }));
+      // Get all available sounds
+      const allSounds = Object.keys(SOUND_DESCRIPTIONS);
       
-      // Fetch animals from Supabase
-      const response = await fetchSafariAnimals({
-        sound: targetSound,
-        difficulty: difficulty,
-        environment: gameConfig.environment,
-        position: soundPosition
-      });
+      // Filter out sounds we've already tried
+      const availableSounds = allSounds.filter(sound => !currentTriedSounds.includes(sound));
       
-      if (response.animals && response.animals.length > 0) {
-        setRoundAnimals(response.animals);
+      if (availableSounds.length > 0) {
+        // Pick a random sound from the ones we haven't tried
+        const newSound = availableSounds[Math.floor(Math.random() * availableSounds.length)];
+        console.log(`🎲 Trying new sound: "${newSound}" (${availableSounds.length} sounds left to try)`);
+        
+        // Retry with new sound
+        return prepareNewRound(newSound, difficulty, retryCount + 1, currentTriedSounds);
       } else {
-        throw new Error('No animals found for the specified criteria');
+        console.error('❌ All sounds have been tried!');
       }
-      
-    } catch (error) {
-      console.error('Error preparing round:', error);
-      setError(`Failed to load animals: ${error.message}`);
-      
-      // Fallback: show error message or retry
-      setBubbleMessage(`Sorry, there was an error loading the animals. Please try again.`);
+    }
+    
+    // ❌ After all retries failed - gracefully handle it
+    console.error('❌ Unable to find animals after trying all sounds');
+    
+    // ✅ Instead of crashing, skip to next round or end game
+    if (currentRound >= totalRounds) {
+      // If this was the last round, just complete the game
+      console.log('🎮 This was the last round anyway - completing game...');
+      await saveGameSession();
+      setGameState('complete');
+    } else {
+      // Skip to next round with a different sound
+      console.log('⏭️ Skipping this round and moving to next...');
+      setBubbleMessage(`Oops! We couldn't find animals for this round. Let's try another one!`);
       setShowBubble(true);
       
-      setTimeout(() => {
+      setTimeout(async () => {
         setShowBubble(false);
-        setGameState('config'); // Go back to config screen
-      }, 3000);
-    } finally {
-      setIsLoading(false);
+        setCurrentRound(prev => prev + 1);
+        
+        // Try again with a completely random sound
+        const randomSound = Object.keys(SOUND_DESCRIPTIONS)[
+          Math.floor(Math.random() * Object.keys(SOUND_DESCRIPTIONS).length)
+        ];
+        
+        await prepareNewRound(randomSound, difficulty, 0, []); // Reset retry count
+      }, 2000);
     }
-  };
+    
+  } catch (error) {
+    console.error('❌ Error preparing round:', error);
+    setError(`Failed to load animals: ${error.message}`);
+    
+    // Show error message
+    setBubbleMessage(`Sorry, there was an error loading the animals. Let's try again!`);
+    setShowBubble(true);
+    
+    setTimeout(() => {
+      setShowBubble(false);
+      setGameState('config'); // Go back to config screen
+    }, 3000);
+  } finally {
+    setIsLoading(false);
+  }
+};
   
   /**
    * Select a new target sound for the next round
@@ -276,6 +334,7 @@ const handleStartGame = async (config) => {
       case 'beginning': return 'at the beginning';
       case 'middle': return 'in the middle';
       case 'ending': return 'at the end';
+      case 'anywhere': return 'anywhere';
       default: return 'anywhere';
     }
   };
@@ -300,26 +359,52 @@ const handleStartGame = async (config) => {
   
   /**
    * Handle submitting answers
-    */
+   */
   const handleSubmitAnswers = (selected) => {
     setSelectedAnimals(selected);
     
-    // Calculate correct and incorrect
-    const correctAnimals = roundAnimals.filter(animal => 
-      animal.hasSound === gameConfig.targetSound
-    );
+    // ✅ FIX: Get correct animals based on sound AND position
+    const correctAnimals = roundAnimals.filter(animal => {
+      // Check if animal has the target sound
+      if (animal.target_sound !== gameConfig.targetSound) {
+        return false;
+      }
+      
+      // ✅ If position is "anywhere", any animal with the sound is correct
+      if (gameConfig.soundPosition === 'anywhere') {
+        return true;
+      }
+      
+      // ✅ Otherwise, position must match exactly
+      return animal.sound_position === gameConfig.soundPosition;
+    });
     
-    const correctSelections = selected.filter(animal => 
-      animal.hasSound === gameConfig.targetSound
-    ).length;
+    // ✅ FIX: Validate selected animals based on sound AND position
+    const correctSelections = selected.filter(animal => {
+      // Check if animal has the target sound
+      if (animal.target_sound !== gameConfig.targetSound) {
+        return false;
+      }
+      
+      // ✅ If position is "anywhere", any animal with the sound is correct
+      if (gameConfig.soundPosition === 'anywhere') {
+        return true;
+      }
+      
+      // ✅ Otherwise, position must match exactly
+      return animal.sound_position === gameConfig.soundPosition;
+    }).length;
     
     const incorrectSelections = selected.length - correctSelections;
     
-    // Calculate round score
-    const roundScore = (correctSelections / correctAnimals.length) * 100;
+    // ✅ FIX: Handle case where there are no correct animals (should never happen with backend fix)
+    const roundScore = correctAnimals.length > 0 
+      ? (correctSelections / correctAnimals.length) * 100 
+      : 0;
+    
     setScore(prevScore => prevScore + roundScore);
     
-    // 🆕 Track this round's results for analytics
+    // Track this round's results for analytics
     setRoundResults(prev => [...prev, {
       round: currentRound,
       animalsShown: roundAnimals.length,
@@ -334,27 +419,26 @@ const handleStartGame = async (config) => {
   /**
    * Handle moving to next round
    */
-/**
- * Save game session analytics to database
- * Called when all rounds are completed
- */
-
 const handleNextRound = async () => {
   // Check if game is complete (all rounds finished)
   if (currentRound >= totalRounds) {
     console.log('🎮 Game complete! Saving analytics...');
-    await saveGameSession(); // ✅ Save analytics before showing complete screen
+    await saveGameSession();
     setGameState('complete');
     return;
   }
   
+  // ✅ FIX: Change state IMMEDIATELY to unmount ResultsScreen
+  setGameState('loading');
+  
   // Continue to next round
   setCurrentRound(prev => prev + 1);
   const newSound = await selectNewTargetSound();
-  await prepareNewRound(newSound, gameConfig.difficulty);
   
-  setGameState('loading');
+  // Reset retry count and tried sounds for new round
+  await prepareNewRound(newSound, gameConfig.difficulty, 0, []);
   
+  // After prepareNewRound completes, transition to intro
   setTimeout(() => {
     setGameState('intro');
   }, 2000);
@@ -365,7 +449,7 @@ const handleNextRound = async () => {
    */
   const handleTryAgain = async () => {
     // Re-fetch animals for the same round
-    await prepareNewRound(gameConfig.targetSound, gameConfig.difficulty);
+    await prepareNewRound(gameConfig.targetSound, gameConfig.difficulty, 0, []);
     
     setGameState('intro');
     setFromIntroScreen(false);
@@ -385,30 +469,30 @@ const handleNextRound = async () => {
    * Handle playing again after game completion
    */
   const handlePlayAgain = async () => {
-  // 🆕 Reset analytics tracking for new game
-  setSessionStartTime(Date.now());
-  setRoundResults([]);
-  
-  setCurrentRound(1);
-  setScore(0);
-  setFromIntroScreen(false);
-  
-  const newSound = await selectNewTargetSound();
-  await prepareNewRound(newSound, gameConfig.difficulty);
-  
-  setGameState('loading');
-  
-  setTimeout(() => {
-    setGameState('intro');
-    const introMessage = `Welcome back! Today we're learning about the "${newSound}" sound. Listen and find it in animal names!`;
-    setBubbleMessage(introMessage);
-    setShowBubble(true);
+    // Reset analytics tracking for new game
+    setSessionStartTime(Date.now());
+    setRoundResults([]);
+    
+    setCurrentRound(1);
+    setScore(0);
+    setFromIntroScreen(false);
+    
+    const newSound = await selectNewTargetSound();
+    await prepareNewRound(newSound, gameConfig.difficulty, 0, []);
+    
+    setGameState('loading');
     
     setTimeout(() => {
-      setShowBubble(false);
-    }, 8000);
-  }, 2000);
-};
+      setGameState('intro');
+      const introMessage = `Welcome back! Today we're learning about the "${newSound}" sound. Listen and find it in animal names!`;
+      setBubbleMessage(introMessage);
+      setShowBubble(true);
+      
+      setTimeout(() => {
+        setShowBubble(false);
+      }, 8000);
+    }, 2000);
+  };
   
   /**
    * Handle changing difficulty after game completion
@@ -433,47 +517,49 @@ const handleNextRound = async () => {
   };
   
   /**
-   * Calculate final stats for results screen
+   * ✅ UPDATED: Calculate final stats for results screen with position validation
    */
   const getGameResults = () => {
-    // Calculate which animals were correct and incorrect
-    const correctAnimals = roundAnimals.filter(animal => animal.hasSound === gameConfig.targetSound);
-    const incorrectAnimals = roundAnimals.filter(animal => animal.hasSound !== gameConfig.targetSound);
+    // ✅ FIX: Filter correct animals based on sound AND position
+    const correctAnimals = roundAnimals.filter(animal => {
+      // Check if animal has the target sound
+      if (animal.target_sound !== gameConfig.targetSound) {
+        return false;
+      }
+      
+      // ✅ If position is "anywhere", any animal with the sound is correct
+      if (gameConfig.soundPosition === 'anywhere') {
+        return true;
+      }
+      
+      // ✅ Otherwise, position must match exactly
+      return animal.sound_position === gameConfig.soundPosition;
+    });
+    
+    const incorrectAnimals = roundAnimals.filter(animal => {
+      // If animal has different sound, it's incorrect
+      if (animal.target_sound !== gameConfig.targetSound) {
+        return true;
+      }
+      
+      // ✅ If position is "anywhere", no animals with target sound are incorrect
+      if (gameConfig.soundPosition === 'anywhere') {
+        return false;
+      }
+      
+      // ✅ Otherwise, animals with target sound but wrong position are incorrect
+      return animal.sound_position !== gameConfig.soundPosition;
+    });
     
     return {
       correctAnimals,
       incorrectAnimals,
       selectedAnimals,
-      targetSound: gameConfig.targetSound
+      targetSound: gameConfig.targetSound,
+      soundPosition: gameConfig.soundPosition  // ✅ Add position for feedback
     };
   };
   
-  /** REMOVED FOR NOW [DONT CHANGE!!]
-   * Render the progress indicator
-   
-  const renderProgressIndicator = () => {
-    if (gameState === 'config') return null;
-    
-    return (
-      <div className={styles.progressIndicator}>
-        <div className={styles.progressLabel}>
-          <div className={styles.progressNumbers}>
-            {currentRound}/{totalRounds}
-          </div>
-          <div>Round</div>
-        </div>
-        <div className={styles.progressBar}>
-          <div 
-            className={styles.progressFill}
-            style={{ width: `${(currentRound / totalRounds) * 100}%` }}
-          />
-        </div>
-      </div>
-    );
-  };
-
-  */
-
   /**
    * Determine if the mascot should be shown
    */
@@ -501,7 +587,6 @@ const handleNextRound = async () => {
   return (
     <div className={`${styles.gameContainer} ${getEnvironmentClass()}`}>
       <div className={styles.gameContent}>
-     
         
         {/* Add Fox Mascot that only appears during intro and gameplay */}
         {shouldShowMascot() && (
