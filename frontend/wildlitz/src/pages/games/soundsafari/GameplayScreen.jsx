@@ -508,7 +508,7 @@ const GameplayScreen = ({
                   whileTap={introductionsComplete && !isIntroducing ? { scale: 0.97 } : {}}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ 
-                    opacity: isIntroducing && !isAnimalHighlighted(animal) ? 0.3 : (!introductionsComplete ? 0.6 : 1), 
+                    opacity: isIntroducing && !isAnimalHighlighted(animal) ? 0.3 : 1, // ✅ Only fade during active intro, not after
                     y: 0,
                     scale: 1
                   }}
