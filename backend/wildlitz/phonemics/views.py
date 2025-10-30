@@ -140,7 +140,12 @@ def get_safari_animals_by_sound(request):
         # Build query for animals with the target sound
         correct_query = supabase.table('safari_animals').select('*')
         correct_query = correct_query.eq('target_sound', target_sound)
-        correct_query = correct_query.eq('difficulty_level', difficulty)
+        
+        # ✅ FIX: For hard mode, use ALL difficulty levels (easy, medium, hard)
+        # For easy/medium mode, filter by specific difficulty
+        if difficulty != 'hard':
+            correct_query = correct_query.eq('difficulty_level', difficulty)
+        # Hard mode: Don't filter by difficulty_level - uses all animals!
         
         if environment:
             correct_query = correct_query.eq('environment', environment)
@@ -162,7 +167,11 @@ def get_safari_animals_by_sound(request):
             
             fallback_query = supabase.table('safari_animals').select('*')
             fallback_query = fallback_query.eq('target_sound', target_sound)
-            fallback_query = fallback_query.eq('difficulty_level', difficulty)
+            
+            # ✅ FIX: For hard mode, use ALL difficulty levels
+            if difficulty != 'hard':
+                fallback_query = fallback_query.eq('difficulty_level', difficulty)
+            # Hard mode: Don't filter by difficulty_level - uses all animals!
             
             if environment:
                 fallback_query = fallback_query.eq('environment', environment)
@@ -198,7 +207,11 @@ def get_safari_animals_by_sound(request):
         incorrect_query = supabase.table('safari_animals').select('*')
         incorrect_query = incorrect_query.neq('target_sound', target_sound)
         incorrect_query = incorrect_query.in_('target_sound', CORE_SOUNDS)
-        incorrect_query = incorrect_query.eq('difficulty_level', difficulty)
+        
+        # ✅ FIX: For hard mode, use ALL difficulty levels
+        if difficulty != 'hard':
+            incorrect_query = incorrect_query.eq('difficulty_level', difficulty)
+        # Hard mode: Don't filter by difficulty_level - uses all animals!
         
         if environment:
             incorrect_query = incorrect_query.eq('environment', environment)
