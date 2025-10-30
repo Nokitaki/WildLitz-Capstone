@@ -39,7 +39,9 @@ const GameplayScreen = ({
   const [showStars, setShowStars] = useState(false);
   const [showEncouragement, setShowEncouragement] = useState(false);
   const [encouragementText, setEncouragementText] = useState('');
-  
+  // Add this new state for "Show Me" peek functionality
+const [isPeeking, setIsPeeking] = useState(false);
+const peekTimeoutRef = useRef(null);
   // Audio refs
   const wordAudioRef = useRef(null);
   const successSoundRef = useRef(null);
@@ -90,6 +92,15 @@ useEffect(() => {
       }
     }
   }, [timeRemaining, preVanishPhase, vanishState, hasAnswered]);
+
+  // Cleanup peek timeout on unmount
+useEffect(() => {
+  return () => {
+    if (peekTimeoutRef.current) {
+      clearTimeout(peekTimeoutRef.current);
+    }
+  };
+}, []);
 
   const playWordAudio = () => {
     if (wordAudioRef.current) {
@@ -160,19 +171,29 @@ useEffect(() => {
 };
 
   const handleShowWord = () => {
-  if (hasAnswered) return;
-  setHasAnswered(true);
+  if (hasAnswered || isPeeking) return;
   
-  // Show the word again!
+  // Show word temporarily for 5 seconds
+  setIsPeeking(true);
   setVanishState('visible');
   setPreVanishPhase('preview');
   
-  setEncouragementText('👀 That\'s okay! Keep practicing!');
+  setEncouragementText('👀 Take a good look! 5 seconds...');
   setShowEncouragement(true);
   
-  setTimeout(() => {
-    onResult(false, word, 5 - timeRemaining);
-  }, 1500);
+  // Clear any existing timeout
+  if (peekTimeoutRef.current) {
+    clearTimeout(peekTimeoutRef.current);
+  }
+  
+  // Hide word again after 5 seconds
+  peekTimeoutRef.current = setTimeout(() => {
+    setVanishState('vanished');
+    setPreVanishPhase('vanishing');
+    setIsPeeking(false);
+    setShowEncouragement(false);
+    setEncouragementText('');
+  }, 5000);
 };
 
   const handleGiveUp = () => {
@@ -464,7 +485,7 @@ if (preVanishPhase === 'vanishing') {
         <motion.button
           className={`${styles.actionButton} ${styles.iKnowItButton}`}
           onClick={handleIKnowIt}
-          disabled={hasAnswered || preVanishPhase !== 'vanishing' || vanishState !== 'vanished'}
+          disabled={hasAnswered || isPeeking || preVanishPhase !== 'vanishing' || vanishState !== 'vanished'}
           whileHover={{ scale: 1.05, rotate: 2 }}
           whileTap={{ scale: 0.95 }}
         >
