@@ -77,12 +77,17 @@ const SoundSafariLoadingScreen = ({
   
   // Rotate through fun facts
   useEffect(() => {
-    const factInterval = setInterval(() => {
-      setFactsIndex(prev => (prev + 1) % funFacts.length);
-    }, 4000);
-    
-    return () => clearInterval(factInterval);
-  }, []);
+  // ✅ Auto-continue after 3 seconds of showing loading screen
+  const autoTimer = setTimeout(() => {
+    console.log('⏭️ Auto-continuing from loading screen...');
+    onContinue();
+  }, 3000); // 3 seconds - adjust as needed
+  
+  // Cleanup
+  return () => {
+    clearTimeout(autoTimer);
+  };
+}, [onContinue]);
   
   // Get difficulty icon
   const getDifficultyIcon = () => {
@@ -173,26 +178,6 @@ const SoundSafariLoadingScreen = ({
                 </div>
                 <p>{funFacts[factsIndex]}</p>
               </motion.div>
-            </div>
-            
-            <div className={styles.actionButtons}>
-              <motion.button 
-                className={styles.skipButton}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onContinue}
-              >
-                Skip
-              </motion.button>
-              <motion.button 
-                className={styles.startButton}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onContinue}
-                disabled={progress < 100}
-              >
-                Start Sound Hunt!
-              </motion.button>
             </div>
           </div>
           

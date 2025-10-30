@@ -28,6 +28,7 @@ const GameplayScreen = ({
   const [showCenterStage, setShowCenterStage] = useState(false);
   const [isIntroducing, setIsIntroducing] = useState(false);
   const [canSkipAnimal, setCanSkipAnimal] = useState(false);
+  const [introductionsComplete, setIntroductionsComplete] = useState(false);
   
   // ============ REFS FOR STATE TRACKING ============
   const timerRef = useRef(null);
@@ -185,11 +186,12 @@ const GameplayScreen = ({
         }
         
         console.log('✅ All animals introduced');
-        
+
         setShowCenterStage(false);
         isIntroducingRef.current = false;
         setIsIntroducing(false);
-        
+        setIntroductionsComplete(true); // ✅ NEW: Enable selections after introductions
+
         setTimeout(() => {
           startTimer();
           resolve();
@@ -237,6 +239,7 @@ const GameplayScreen = ({
   const handleStartGame = () => {
     console.log('🚀 User clicked Start - beginning game sequence');
     setGameStarted(true);
+    setIntroductionsComplete(false); // ✅ NEW: Reset for new game
     // Small delay to let UI update
     setTimeout(() => {
       startGameSequence();
@@ -286,8 +289,9 @@ const GameplayScreen = ({
   // ============ USER INTERACTION HANDLERS ============
   
   const handleToggleSelect = (animal) => {
-    if (isIntroducingRef.current) {
-      console.log('⚠️ Cannot select during introduction');
+    // ✅ UPDATED: Check both isIntroducing and introductionsComplete
+    if (isIntroducingRef.current || !introductionsComplete) {
+      console.log('⚠️ Cannot select - introductions not complete');
       return;
     }
     
@@ -500,11 +504,11 @@ const GameplayScreen = ({
                     ${selectedAnimals.some(a => a.id === animal.id) ? styles.selected : ''} 
                     ${isAnimalHighlighted(animal) ? styles.highlighted : ''}`}
                   onClick={() => handleToggleSelect(animal)}
-                  whileHover={!isIntroducing ? { scale: 1.03, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" } : {}}
-                  whileTap={!isIntroducing ? { scale: 0.97 } : {}}
+                  whileHover={introductionsComplete && !isIntroducing ? { scale: 1.03, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" } : {}}
+                  whileTap={introductionsComplete && !isIntroducing ? { scale: 0.97 } : {}}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ 
-                    opacity: isIntroducing && !isAnimalHighlighted(animal) ? 0.3 : 1, 
+                    opacity: isIntroducing && !isAnimalHighlighted(animal) ? 0.3 : (!introductionsComplete ? 0.6 : 1), 
                     y: 0,
                     scale: 1
                   }}
@@ -513,7 +517,8 @@ const GameplayScreen = ({
                     duration: 0.3
                   }}
                   style={{
-                    cursor: isIntroducing ? 'default' : 'pointer'
+                    cursor: (!introductionsComplete || isIntroducing) ? 'not-allowed' : 'pointer',
+                    pointerEvents: (!introductionsComplete || isIntroducing) ? 'none' : 'auto'
                   }}
                 >
                   <div className={styles.animalImage}>
@@ -574,25 +579,25 @@ const GameplayScreen = ({
             <div className={styles.actionButtons}>
               <motion.button 
                 className={styles.clearButton}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
+                whileHover={introductionsComplete ? { scale: 1.03 } : {}}
+                whileTap={introductionsComplete ? { scale: 0.97 } : {}}
                 onClick={handleClearSelection}
-                disabled={selectedAnimals.length === 0 || isIntroducing}
-                style={{ opacity: isIntroducing ? 0.5 : 1 }}
+                disabled={selectedAnimals.length === 0 || !introductionsComplete || isIntroducing}
+                style={{ opacity: (!introductionsComplete || isIntroducing) ? 0.5 : 1 }}
               >
                 <span className={styles.buttonIcon}>🔄</span>
                 Clear Selection
               </motion.button>
               <motion.button 
                 className={styles.submitButton}
-                whileHover={{ scale: 1.03, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" }}
-                whileTap={{ scale: 0.97 }}
+                whileHover={introductionsComplete ? { scale: 1.03, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" } : {}}
+                whileTap={introductionsComplete ? { scale: 0.97 } : {}}
                 onClick={handleSubmit}
-                disabled={isIntroducing}
-                style={{ opacity: isIntroducing ? 0.5 : 1 }}
+                disabled={!introductionsComplete || isIntroducing}
+                style={{ opacity: (!introductionsComplete || isIntroducing) ? 0.5 : 1 }}
               >
                 <span className={styles.buttonIcon}>✅</span>
-                Submit Answer
+                {!introductionsComplete ? 'Wait for introductions...' : 'Submit Answer'}
               </motion.button>
             </div>
           </div>
