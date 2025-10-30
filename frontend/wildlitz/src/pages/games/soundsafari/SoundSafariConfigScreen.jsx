@@ -24,9 +24,13 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
   
   // Handle quick start with default settings
   const handleQuickStart = () => {
+    // Generate random sound for first round
+    const allSounds = ['g', 'k', 'w', 'd', 'r', 'c', 'h', 's', 'm', 't', 'b', 'p', 'f', 'l', 'z'];
+    const randomSound = allSounds[Math.floor(Math.random() * allSounds.length)];
+    
     const config = {
       soundPosition: 'beginning',
-      targetSound: 's',
+      targetSound: randomSound,
       environment: 'jungle',
       difficulty: 'easy'
     };
@@ -38,9 +42,13 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
   
   // Handle start game with custom settings
   const handleStartGame = () => {
+    // Generate random sound for first round
+    const allSounds = ['g', 'k', 'w', 'd', 'r', 'c', 'h', 's', 'm', 't', 'b', 'p', 'f', 'l', 'z'];
+    const randomSound = allSounds[Math.floor(Math.random() * allSounds.length)];
+    
     const config = {
       soundPosition,
-      targetSound: 's', // Default to 's' sound
+      targetSound: randomSound,
       environment,
       difficulty
     };

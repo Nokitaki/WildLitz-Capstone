@@ -776,50 +776,12 @@ ERROR 2025-10-30 13:24:26,056 views Error saving game session: {'message': 'new 
 ERROR 2025-10-30 13:24:26,060 log Internal Server Error: /api/phonics/save-game-session/
 ERROR 2025-10-30 13:24:26,060 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
 ERROR 2025-10-30 13:24:26,060 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
-ERROR 2025-10-30 22:04:19,127 views Error saving game session: {'message': 'new row violates row-level security policy (USING expression) for table "phonics_pattern_performance"', 'code': '42501', 'hint': None, 'details': None}
-ERROR 2025-10-30 22:04:19,133 log Internal Server Error: /api/phonics/save-game-session/
-ERROR 2025-10-30 22:04:19,134 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
-ERROR 2025-10-30 22:04:19,134 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
-ERROR 2025-10-30 22:12:40,475 views Error saving game session: {'message': 'new row violates row-level security policy (USING expression) for table "phonics_pattern_performance"', 'code': '42501', 'hint': None, 'details': None}
-ERROR 2025-10-30 22:12:40,476 log Internal Server Error: /api/phonics/save-game-session/
-ERROR 2025-10-30 22:12:40,478 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
-ERROR 2025-10-30 22:12:40,478 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
-ERROR 2025-10-30 22:52:18,515 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 22:52:18,514 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:05:38,551 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:05:38,554 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:07:32,606 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:07:32,608 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:07:45,372 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:07:45,376 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:08:03,607 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:08:03,609 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:08:14,382 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:08:14,386 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:08:26,211 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:08:26,214 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:09:38,459 views JSON parsing error: Illegal trailing comma before end of object: line 9 column 82 (char 319)
-ERROR 2025-10-30 23:09:50,239 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:09:50,242 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:13:11,011 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:13:11,016 views Error generating example words: name 'anthropic_client' is not defined
-ERROR 2025-10-30 23:23:25,809 views JSON parsing error: Illegal trailing comma before end of object: line 9 column 76 (char 311)
-ERROR 2025-10-30 23:23:25,812 views AI response content: ```json
-[
-    {
-        "word": "cake",
-        "syllableBreakdown": "cake",
-        "targetLetter": "a_e", 
-        "definition": "A sweet dessert often served at celebrations",
-        "pattern": "silent_e",
-        "patternPosition": "end",
-        "phonicsRule": "Silent 'e' at the end makes the vowel say its name",
-    },
-    {
-        "word": "bike",
-        "syllableBreakdown": "bike",
-        "targetLetter": "i_e", 
-        "definition": "A two-wheeled vehicle you pedal to move",
-        ...
-ERROR 2025-10-30 23:23:50,094 views JSON parsing error: Illegal trailing comma before end of object: line 9 column 77 (char 297)
-ERROR 2025-10-30 23:52:05,836 views AI generation failed: AI response not in expected JSON format
+ERROR 2025-10-30 21:37:36,719 views No animals for sound=l
+ERROR 2025-10-30 21:38:04,205 views No animals for sound=l
+ERROR 2025-10-30 21:38:44,486 views No animals for sound=c
+ERROR 2025-10-30 21:41:42,845 views No animals for sound=c
+ERROR 2025-10-30 22:12:44,388 views No animals for sound=z
+ERROR 2025-10-30 22:15:34,827 views No animals for sound=c
+ERROR 2025-10-30 22:19:31,572 views No animals for sound=h
+ERROR 2025-10-30 22:21:36,743 views No animals for sound=z
+ERROR 2025-10-30 22:23:06,401 views No animals for sound=c
