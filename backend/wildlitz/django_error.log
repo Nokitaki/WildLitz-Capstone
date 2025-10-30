@@ -768,3 +768,11 @@ ERROR 2025-10-30 10:55:01,333 views No animals for sound=k
 ERROR 2025-10-30 11:15:26,369 views No animals for sound=z
 ERROR 2025-10-30 11:15:26,639 views No animals for sound=l
 ERROR 2025-10-30 11:19:17,874 views No animals for sound=l
+ERROR 2025-10-30 12:36:53,213 views Error saving game session: {'message': 'new row violates row-level security policy (USING expression) for table "phonics_pattern_performance"', 'code': '42501', 'hint': None, 'details': None}
+ERROR 2025-10-30 12:36:53,216 log Internal Server Error: /api/phonics/save-game-session/
+ERROR 2025-10-30 12:36:53,217 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
+ERROR 2025-10-30 12:36:53,217 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
+ERROR 2025-10-30 13:24:26,056 views Error saving game session: {'message': 'new row violates row-level security policy (USING expression) for table "phonics_pattern_performance"', 'code': '42501', 'hint': None, 'details': None}
+ERROR 2025-10-30 13:24:26,060 log Internal Server Error: /api/phonics/save-game-session/
+ERROR 2025-10-30 13:24:26,060 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194
+ERROR 2025-10-30 13:24:26,060 basehttp "POST /api/phonics/save-game-session/ HTTP/1.1" 500 194

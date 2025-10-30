@@ -313,13 +313,6 @@ if (preVanishPhase === 'vanishing') {
 
   return (
     <div className={styles.gameplayContainer}>
-      {/* 🎨 Fun Background Elements */}
-      <div className={styles.backgroundElements}>
-        <div className={styles.floatingCloud} style={{ top: '10%', left: '5%' }}>☁️</div>
-        <div className={styles.floatingCloud} style={{ top: '15%', right: '8%' }}>☁️</div>
-        <div className={styles.floatingStar} style={{ top: '70%', left: '10%' }}>⭐</div>
-        <div className={styles.floatingStar} style={{ top: '65%', right: '12%' }}>✨</div>
-      </div>
 
       {/* 📊 Top Game Info Bar */}
       <div className={styles.gameInfoBar}>
