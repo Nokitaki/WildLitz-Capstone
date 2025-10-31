@@ -12,7 +12,8 @@ const GameCompleteScreen = ({
   config, 
   score, 
   totalWords, 
-  onPlayAgain, 
+  onPlayAgain,
+  onReturnToMenu, 
   onViewAnalytics, // ANALYTICS ADDED
   teamScores, 
   teamNames 
@@ -346,9 +347,9 @@ const GameCompleteScreen = ({
         </button>
         {/* END ANALYTICS ADDED */}
         <button 
-          className={styles.exitButton}
-          onClick={() => window.location.href = '/'}
-        >
+  className={styles.exitButton}
+  onClick={onReturnToMenu}  // ✅ FIXED!
+>
           🏠 Exit Game
         </button>
       </motion.div>

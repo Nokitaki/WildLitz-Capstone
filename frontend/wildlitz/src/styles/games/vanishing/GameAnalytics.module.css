@@ -293,7 +293,7 @@
 }
 
 .sessionCard {
-  background: #f7fafc;
+  background: #667eea;
   border-radius: 12px;
   padding: 20px;
   border: 2px solid #e2e8f0;
@@ -315,7 +315,7 @@
 
 .sessionDate {
   font-size: 14px;
-  color: #718096;
+  color: #2d3748;
   font-weight: 600;
 }
 
@@ -349,14 +349,15 @@
 
 .sessionStatLabel {
   font-size: 12px;
-  color: #718096;
+  color: #4a5568;
   margin-bottom: 5px;
+  font-weight: 600;
 }
 
 .sessionStatValue {
   font-size: 18px;
   font-weight: 700;
-  color: #2d3748;
+  color: #1a202c;
 }
 
 /* Team Scores */
@@ -378,13 +379,13 @@
 .teamName {
   font-size: 14px;
   font-weight: 600;
-  color: #4a5568;
+  color: #2d3748;
 }
 
 .teamPoints {
   font-size: 24px;
   font-weight: 700;
-  color: #2d3748;
+  color: #1a202c;
 }
 
 /* Expanded Session Details */
