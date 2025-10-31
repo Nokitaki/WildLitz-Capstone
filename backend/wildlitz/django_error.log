@@ -785,3 +785,41 @@ ERROR 2025-10-30 22:15:34,827 views No animals for sound=c
 ERROR 2025-10-30 22:19:31,572 views No animals for sound=h
 ERROR 2025-10-30 22:21:36,743 views No animals for sound=z
 ERROR 2025-10-30 22:23:06,401 views No animals for sound=c
+ERROR 2025-10-31 22:27:38,970 views AI generation failed: AI response not in expected JSON format
+ERROR 2025-10-31 22:31:56,833 views AI generation failed: AI response not in expected JSON format
+ERROR 2025-10-31 22:49:10,760 views JSON parsing error: Illegal trailing comma before end of object: line 9 column 77 (char 354)
+ERROR 2025-10-31 22:51:23,088 views AI generation failed: AI response not in expected JSON format
+ERROR 2025-10-31 22:57:29,088 views AI generation failed: AI response not in expected JSON format
+ERROR 2025-10-31 23:05:41,082 views AI generation failed: AI response not in expected JSON format
+ERROR 2025-10-31 23:12:41,347 views AI generation failed: AI response not in expected JSON format
+ERROR 2025-10-31 23:15:21,883 views JSON parsing error: Illegal trailing comma before end of object: line 9 column 76 (char 357)
+ERROR 2025-10-31 23:15:21,884 views AI response content: ```json
+[
+    {
+        "word": "The black cat ran fast.",
+        "syllableBreakdown": "The black cat ran fast.",
+        "targetLetter": "bl", 
+        "definition": "A small animal with dark fur that moves quickly",
+        "pattern": "bl_blend",
+        "patternPosition": "beginning",
+        "phonicsRule": "The 'bl' blend makes the /bl/ sound like in 'blue'",
+    },
+    {
+        "word": "The clown wore a red nose.",
+        "syllableBreakdown": "The clown wore a red nose.",
+        "target...
+ERROR 2025-10-31 23:23:15,588 views JSON parsing error: Illegal trailing comma before end of object: line 9 column 78 (char 376)
+ERROR 2025-10-31 23:23:15,592 views AI response content: ```json
+[
+    {
+        "word": "The black cat slept on the mat.",
+        "syllableBreakdown": "The black cat slept on the mat.",
+        "targetLetter": "bl",
+        "definition": "A small, dark-colored feline that rests on a rug.",
+        "pattern": "bl_blend",
+        "patternPosition": "beginning",
+        "phonicsRule": "The 'bl' blend makes two distinct sounds in 'black'.",
+    },
+    {
+        "word": "The clown wore a big red nose.",
+        "syllableBreakdown": "The clown wore a big ...

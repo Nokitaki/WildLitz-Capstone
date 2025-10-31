@@ -89,6 +89,10 @@ const VanishingGame = () => {
    */
   const handleStartGame = async (config) => {
     console.log('🚀 Starting game with config:', config);
+
+    setCurrentRound(1);  // ⬅️ ADD THIS LINE!
+  setScore(0);         // ⬅️ ADD THIS LINE!
+  setCurrentWordIndex(0);  // ⬅️ ADD THIS LINE!
     
     setGameConfig({
       ...config,
@@ -413,6 +417,7 @@ const VanishingGame = () => {
     // Reset all game state
     setGameState('config');
     setCurrentRound(1);
+    setTotalRounds(10);
     setScore(0);
     setWordData([]);
     setCurrentWordIndex(0);
@@ -456,6 +461,7 @@ const VanishingGame = () => {
   // Reset all game state
   setGameState('config');
   setCurrentRound(1);
+  setTotalRounds(10);
   setScore(0);
   setCurrentWordIndex(0);
   setUsedWords([]);
