@@ -122,7 +122,10 @@ def log_phonemics_activity(user, activity_type, question_data, user_answer, corr
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_safari_animals_by_sound(request):
-    """Get animals for a specific sound and difficulty from Supabase"""
+    """
+    Get animals for a specific sound and difficulty from Supabase.
+    Uses 20-level cascading fallback strategy to GUARANTEE animals are always returned.
+    """
     target_sound = request.GET.get('sound', 's')
     difficulty = request.GET.get('difficulty', 'easy')
     environment = request.GET.get('environment', '')
@@ -137,146 +140,411 @@ def get_safari_animals_by_sound(request):
         target_sound = 's'
     
     try:
-        # Build query for animals with the target sound
-        correct_query = supabase.table('safari_animals').select('*')
-        correct_query = correct_query.eq('target_sound', target_sound)
+        # ============================================================
+        # STRATEGY: Try 20 different queries with decreasing specificity
+        # until we find animals. This GUARANTEES we always return animals.
+        # ============================================================
         
-        # ✅ FIX: For hard mode, use ALL difficulty levels (easy, medium, hard)
-        # For easy/medium mode, filter by specific difficulty
-        if difficulty != 'hard':
-            correct_query = correct_query.eq('difficulty_level', difficulty)
-        # Hard mode: Don't filter by difficulty_level - uses all animals!
+        animals_found = []
+        strategy_used = ""
         
-        if environment:
-            correct_query = correct_query.eq('environment', environment)
-        
-        # ✅ Handle "anywhere" mode
-        if sound_position and sound_position != 'anywhere':
-            correct_query = correct_query.eq('sound_position', sound_position)
-            
-        if exclude_ids:
-            correct_query = correct_query.not_.in_('id', exclude_ids)
-        
-        # Get animals with correct sound
-        correct_response = correct_query.execute()
-        correct_animals = correct_response.data or []
-        
-        # ✅ FALLBACK: If no animals found for specific position, try "anywhere"
-        if len(correct_animals) == 0 and sound_position and sound_position != 'anywhere':
-            logger.warning(f"No animals for sound={target_sound}, position={sound_position}. Trying 'anywhere'...")
-            
-            fallback_query = supabase.table('safari_animals').select('*')
-            fallback_query = fallback_query.eq('target_sound', target_sound)
-            
-            # ✅ FIX: For hard mode, use ALL difficulty levels
+        # ----------------------------------------------------------
+        # ATTEMPT 1: Exact match (sound + position + environment + difficulty)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0 and sound_position and sound_position != 'anywhere' and environment:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('sound_position', sound_position)
+            query = query.eq('environment', environment)
             if difficulty != 'hard':
-                fallback_query = fallback_query.eq('difficulty_level', difficulty)
-            # Hard mode: Don't filter by difficulty_level - uses all animals!
-            
-            if environment:
-                fallback_query = fallback_query.eq('environment', environment)
-                
+                query = query.eq('difficulty_level', difficulty)
             if exclude_ids:
-                fallback_query = fallback_query.not_.in_('id', exclude_ids)
+                query = query.not_.in_('id', exclude_ids)
             
-            fallback_response = fallback_query.execute()
-            correct_animals = fallback_response.data or []
-            sound_position = 'anywhere'
-            
-            logger.info(f"Fallback: Found {len(correct_animals)} animals")
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "1_exact_match"
+                logger.info(f"✅ Attempt 1 (Exact): Found {len(animals_found)} animals")
         
-        # ✅ If STILL no animals, return minimal error (don't crash)
-        if len(correct_animals) == 0:
-            logger.error(f"No animals for sound={target_sound}")
-            # Return empty but valid response
-            return JsonResponse({
+        # ----------------------------------------------------------
+        # ATTEMPT 2: sound + position + environment (any difficulty)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0 and sound_position and sound_position != 'anywhere' and environment:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('sound_position', sound_position)
+            query = query.eq('environment', environment)
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "2_no_difficulty_filter"
+                logger.info(f"✅ Attempt 2 (No difficulty): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 3: sound + environment + difficulty (any position)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0 and environment:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('environment', environment)
+            if difficulty != 'hard':
+                query = query.eq('difficulty_level', difficulty)
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "3_no_position_filter"
+                logger.info(f"✅ Attempt 3 (No position): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 4: sound + position + difficulty (any environment)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0 and sound_position and sound_position != 'anywhere':
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('sound_position', sound_position)
+            if difficulty != 'hard':
+                query = query.eq('difficulty_level', difficulty)
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "4_no_environment_filter"
+                logger.info(f"✅ Attempt 4 (No environment): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 5: sound + environment (any position, any difficulty)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0 and environment:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('environment', environment)
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "5_sound_environment_only"
+                logger.info(f"✅ Attempt 5 (Sound + environment): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 6: sound + position (any environment, any difficulty)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0 and sound_position and sound_position != 'anywhere':
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('sound_position', sound_position)
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "6_sound_position_only"
+                logger.info(f"✅ Attempt 6 (Sound + position): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 7: sound + difficulty (any position, any environment)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            if difficulty != 'hard':
+                query = query.eq('difficulty_level', difficulty)
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "7_sound_difficulty_only"
+                logger.info(f"✅ Attempt 7 (Sound + difficulty): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 8: sound + jungle environment (any position, any difficulty)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('environment', 'jungle')
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "8_sound_jungle_only"
+                logger.info(f"✅ Attempt 8 (Sound + jungle): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 9: sound + savanna environment (any position, any difficulty)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('environment', 'savanna')
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "9_sound_savanna_only"
+                logger.info(f"✅ Attempt 9 (Sound + savanna): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 10: sound + ocean environment (any position, any difficulty)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('environment', 'ocean')
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "10_sound_ocean_only"
+                logger.info(f"✅ Attempt 10 (Sound + ocean): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 11: sound + arctic environment (any position, any difficulty)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('environment', 'arctic')
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "11_sound_arctic_only"
+                logger.info(f"✅ Attempt 11 (Sound + arctic): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 12: sound + beginning position (any environment, any difficulty)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('sound_position', 'beginning')
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "12_sound_beginning_only"
+                logger.info(f"✅ Attempt 12 (Sound + beginning): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 13: sound + middle position (any environment, any difficulty)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('sound_position', 'middle')
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "13_sound_middle_only"
+                logger.info(f"✅ Attempt 13 (Sound + middle): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 14: sound + ending position (any environment, any difficulty)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('sound_position', 'ending')
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "14_sound_ending_only"
+                logger.info(f"✅ Attempt 14 (Sound + ending): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 15: sound + easy difficulty (any position, any environment)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('difficulty_level', 'easy')
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "15_sound_easy_only"
+                logger.info(f"✅ Attempt 15 (Sound + easy): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 16: sound + medium difficulty (any position, any environment)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('difficulty_level', 'medium')
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "16_sound_medium_only"
+                logger.info(f"✅ Attempt 16 (Sound + medium): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 17: sound + hard difficulty (any position, any environment)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            query = query.eq('difficulty_level', 'hard')
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "17_sound_hard_only"
+                logger.info(f"✅ Attempt 17 (Sound + hard): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 18: sound only with exclude_ids applied
+        # ----------------------------------------------------------
+        if len(animals_found) == 0:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "18_sound_only_with_exclusions"
+                logger.info(f"✅ Attempt 18 (Sound only + exclusions): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 19: sound only (ignore exclude_ids)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0:
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "19_sound_only_no_exclusions"
+                logger.warning(f"⚠️ Attempt 19 (Sound only, no exclusions): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # ATTEMPT 20: ABSOLUTE FINAL FALLBACK - Get ANY animals (even different sound)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0:
+            query = supabase.table('safari_animals').select('*')
+            if environment:
+                query = query.eq('environment', environment)
+            query = query.limit(10)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            if len(animals_found) > 0:
+                strategy_used = "20_any_animals_absolute_fallback"
+                logger.error(f"🚨 Attempt 20 (ABSOLUTE FALLBACK - ANY ANIMALS): Found {len(animals_found)} animals")
+        
+        # ----------------------------------------------------------
+        # If STILL no animals found, return error (should NEVER happen if DB has ANY data)
+        # ----------------------------------------------------------
+        if len(animals_found) == 0:
+            logger.critical(f"💥 CRITICAL: NO ANIMALS FOUND AT ALL after 20 attempts! Database may be empty!")
+            return Response({
+                'success': False,
                 'animals': [],
-                'metadata': {
-                    'target_sound': target_sound,
-                    'sound_position': sound_position,
-                    'difficulty': difficulty,
-                    'total_correct_available': 0,
-                    'total_incorrect_available': 0,
-                    'selected_correct': 0,
-                    'selected_incorrect': 0,
-                    'warning': f'No animals available for sound "{target_sound}"'
-                }
-            })
+                'error': f'CRITICAL: No animals found in database after 20 fallback attempts. Please populate the database.',
+                'fallback_used': None
+            }, status=status.HTTP_404_NOT_FOUND)
         
-        # Get incorrect animals
+        # ----------------------------------------------------------
+        # Now get incorrect animals (different sound)
+        # ----------------------------------------------------------
         incorrect_query = supabase.table('safari_animals').select('*')
         incorrect_query = incorrect_query.neq('target_sound', target_sound)
-        incorrect_query = incorrect_query.in_('target_sound', CORE_SOUNDS)
         
-        # ✅ FIX: For hard mode, use ALL difficulty levels
-        if difficulty != 'hard':
-            incorrect_query = incorrect_query.eq('difficulty_level', difficulty)
-        # Hard mode: Don't filter by difficulty_level - uses all animals!
+        # Apply same filters based on which strategy worked
+        if strategy_used.startswith('1_') or strategy_used.startswith('2_'):
+            # Attempts 1-2 had environment
+            if environment:
+                incorrect_query = incorrect_query.eq('environment', environment)
+        elif strategy_used.startswith('3_') or strategy_used.startswith('7_'):
+            # Attempts 3, 7 had difficulty
+            if difficulty != 'hard':
+                incorrect_query = incorrect_query.eq('difficulty_level', difficulty)
+        elif strategy_used.startswith('8_'):
+            incorrect_query = incorrect_query.eq('environment', 'jungle')
+        elif strategy_used.startswith('9_'):
+            incorrect_query = incorrect_query.eq('environment', 'savanna')
+        elif strategy_used.startswith('10_'):
+            incorrect_query = incorrect_query.eq('environment', 'ocean')
+        elif strategy_used.startswith('11_'):
+            incorrect_query = incorrect_query.eq('environment', 'arctic')
         
-        if environment:
-            incorrect_query = incorrect_query.eq('environment', environment)
-            
-        if exclude_ids:
+        if exclude_ids and not strategy_used.startswith('19_'):
             incorrect_query = incorrect_query.not_.in_('id', exclude_ids)
-       
+        
         incorrect_response = incorrect_query.execute()
         incorrect_animals = incorrect_response.data or []
         
-        logger.info(f"Found {len(correct_animals)} correct and {len(incorrect_animals)} incorrect")
+        # Limit incorrect animals
+        max_incorrect = 8
+        if len(incorrect_animals) > max_incorrect:
+            import random
+            incorrect_animals = random.sample(incorrect_animals, max_incorrect)
         
-        # Update image URLs
-        correct_animals = batch_update_animal_images(correct_animals)
-        incorrect_animals = batch_update_animal_images(incorrect_animals)
+        # Combine correct and incorrect animals
+        all_animals = animals_found + incorrect_animals
         
-        # Determine numbers based on difficulty
-        difficulty_settings = {
-            'easy': {'total': 6, 'correct_min': 2, 'correct_max': 4},
-            'medium': {'total': 8, 'correct_min': 3, 'correct_max': 5},
-            'hard': {'total': 12, 'correct_min': 4, 'correct_max': 7}
-        }
-        
-        settings = difficulty_settings.get(difficulty, difficulty_settings['easy'])
-        total_animals = settings['total']
-        correct_min = settings['correct_min']
-        correct_max = settings['correct_max']
-        
-        num_correct = min(max(correct_min, min(correct_max, len(correct_animals))), len(correct_animals))
-        
-        if num_correct == 0:
-            num_correct = min(1, len(correct_animals))
-        
-        num_incorrect = total_animals - num_correct
-        
-        # Select animals
-        selected_correct = random.sample(correct_animals, min(num_correct, len(correct_animals)))
-        selected_incorrect = random.sample(incorrect_animals, min(num_incorrect, len(incorrect_animals)))
-        
-        all_animals = selected_correct + selected_incorrect
+        # Shuffle to mix correct and incorrect
+        import random
         random.shuffle(all_animals)
         
-        for animal in all_animals:
-            animal['hasSound'] = animal['target_sound'] == target_sound
+        logger.info(f"✅ Returning {len(animals_found)} correct + {len(incorrect_animals)} incorrect = {len(all_animals)} total animals (Strategy: {strategy_used})")
         
-        logger.info(f"Returning {len(all_animals)} animals: {num_correct} correct, {num_incorrect} incorrect")
-        
-        return JsonResponse({
+        return Response({
+            'success': True,
             'animals': all_animals,
-            'metadata': {
-                'target_sound': target_sound,
-                'sound_position': sound_position,
-                'difficulty': difficulty,
-                'total_correct_available': len(correct_animals),
-                'total_incorrect_available': len(incorrect_animals),
-                'selected_correct': num_correct,
-                'selected_incorrect': num_incorrect
-            }
+            'correct_count': len(animals_found),
+            'incorrect_count': len(incorrect_animals),
+            'total_count': len(all_animals),
+            'fallback_used': strategy_used
         })
         
     except Exception as e:
-        import traceback
-        logger.error(f"Error: {str(e)}")
-        logger.error(traceback.format_exc())
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.error(f"Error fetching safari animals: {str(e)}")
+        return Response({
+            'success': False,
+            'error': str(e),
+            'animals': []
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

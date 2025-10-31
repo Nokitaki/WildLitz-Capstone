@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Toad",
+    "target_sound": "t",
+    "sound_position": "beginning",
+    "environment": "jungle",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Mandrill",
+    "target_sound": "r",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Toucan",
+    "target_sound": "k",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Woodpecker",
+    "target_sound": "k",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Giraffe",
+    "target_sound": "g",
+    "sound_position": "beginning",
+    "environment": "savanna",
+    "difficulty_level": "medium"
+  }
+]
