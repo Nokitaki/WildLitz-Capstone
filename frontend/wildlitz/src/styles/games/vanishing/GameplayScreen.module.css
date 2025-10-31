@@ -555,4 +555,134 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+  
+}
+
+/* Team Scoreboard Styling */
+.teamScoreBoard {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 15px 25px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.teamScore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 25px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 15px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  min-width: 150px;
+}
+
+.teamScore.activeTeam {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  border: 3px solid #FFD700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 0 40px rgba(255, 215, 0, 0.4);
+  transform: scale(1.05);
+}
+
+.teamHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.teamIcon {
+  font-size: 1.5rem;
+}
+
+.teamName {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.teamPoints {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: white;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+  line-height: 1;
+}
+
+.activeTeam .teamPoints {
+  color: #FFD700;
+  text-shadow: 
+    2px 2px 0px #FF6B00,
+    3px 3px 6px rgba(0, 0, 0, 0.5);
+}
+
+.vsText {
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: white;
+  text-shadow: 
+    2px 2px 0px rgba(0, 0, 0, 0.3),
+    0 0 10px rgba(255, 255, 255, 0.5);
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 10px 15px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.turnIndicator {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #FF6B00;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  margin-top: 5px;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .teamScoreBoard {
+    gap: 10px;
+    padding: 10px 15px;
+  }
+  
+  .teamScore {
+    min-width: 120px;
+    padding: 10px 15px;
+  }
+  
+  .teamName {
+    font-size: 0.9rem;
+  }
+  
+  .teamPoints {
+    font-size: 2rem;
+  }
+  
+  .vsText {
+    font-size: 1.2rem;
+    padding: 8px 12px;
+  }
+  
+  .turnIndicator {
+    font-size: 0.75rem;
+  }
 }

@@ -342,33 +342,75 @@ if (preVanishPhase === 'vanishing') {
   return (
     <div className={styles.gameplayContainer}>
 
-      {/* 📊 Top Game Info Bar */}
-      <div className={styles.gameInfoBar}>
-        <motion.div 
-          className={styles.roundIndicator}
-          whileHover={{ scale: 1.05 }}
-        >
-          <span className={styles.roundEmoji}>🎯</span>
-          <span className={styles.roundText}>Round {round}/{totalRounds}</span>
-        </motion.div>
-        
-        <motion.div 
-          className={styles.scoreIndicator}
-          whileHover={{ scale: 1.05 }}
-        >
-          <span className={styles.scoreEmoji}>⭐</span>
-          <span className={styles.scoreText}>Score: {gameStats?.wordsRecognized || 0}</span>
-        </motion.div>
-        
-        {teamPlay && (
-          <div className={styles.teamIndicator}>
-            <span className={styles.teamEmoji}>👥</span>
-            <span className={styles.teamText}>
-              {teamNames[currentTeam]}: {teamScores[currentTeam]}
-            </span>
-          </div>
+{/* 📊 Top Game Info Bar */}
+<div className={styles.gameInfoBar}>
+  <motion.div 
+    className={styles.roundIndicator}
+    whileHover={{ scale: 1.05 }}
+  >
+    <span className={styles.roundEmoji}>🎯</span>
+    <span className={styles.roundText}>Round {round}/{totalRounds}</span>
+  </motion.div>
+  
+  {/* Show solo score OR team scoreboard */}
+  {!teamPlay ? (
+    <motion.div 
+      className={styles.scoreIndicator}
+      whileHover={{ scale: 1.05 }}
+    >
+      <span className={styles.scoreEmoji}>⭐</span>
+      <span className={styles.scoreText}>Score: {gameStats?.wordsRecognized || 0}</span>
+    </motion.div>
+  ) : (
+    <div className={styles.teamScoreBoard}>
+      <motion.div 
+        className={`${styles.teamScore} ${currentTeam === 'teamA' ? styles.activeTeam : ''}`}
+        animate={{ scale: currentTeam === 'teamA' ? 1.05 : 1 }}
+        transition={{ type: "spring", stiffness: 300 }}
+      >
+        <div className={styles.teamHeader}>
+          <span className={styles.teamIcon}>🔵</span>
+          <span className={styles.teamName}>{teamNames.teamA}</span>
+        </div>
+        <div className={styles.teamPoints}>{teamScores.teamA}</div>
+        {currentTeam === 'teamA' && (
+          <motion.div 
+            className={styles.turnIndicator}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ repeat: Infinity, duration: 1, repeatType: "reverse" }}
+          >
+            👉 YOUR TURN!
+          </motion.div>
         )}
-      </div>
+      </motion.div>
+      
+      <div className={styles.vsText}>VS</div>
+      
+      <motion.div 
+        className={`${styles.teamScore} ${currentTeam === 'teamB' ? styles.activeTeam : ''}`}
+        animate={{ scale: currentTeam === 'teamB' ? 1.05 : 1 }}
+        transition={{ type: "spring", stiffness: 300 }}
+      >
+        <div className={styles.teamHeader}>
+          <span className={styles.teamIcon}>🔴</span>
+          <span className={styles.teamName}>{teamNames.teamB}</span>
+        </div>
+        <div className={styles.teamPoints}>{teamScores.teamB}</div>
+        {currentTeam === 'teamB' && (
+          <motion.div 
+            className={styles.turnIndicator}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ repeat: Infinity, duration: 1, repeatType: "reverse" }}
+          >
+            👉 YOUR TURN!
+          </motion.div>
+        )}
+      </motion.div>
+    </div>
+  )}
+</div>
 
       {/* 🎮 Main Game Area */}
       <div className={styles.mainGameArea}>

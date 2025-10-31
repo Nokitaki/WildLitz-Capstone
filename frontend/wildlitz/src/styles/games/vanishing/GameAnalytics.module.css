@@ -356,3 +356,290 @@
   opacity: 1;
   transform: scale(1) rotate(0deg);
 }
+
+/* src/styles/games/vanishing/GameAnalytics.module.css - ENHANCED WITH TEAM STYLES */
+
+/* Filter Tabs */
+.filterTabs {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.filterTab {
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #e0e0e0;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filterTab:hover {
+  border-color: #667eea;
+  color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.filterTab.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Team Statistics Card */
+.teamStatsCard {
+  background: linear-gradient(135deg, #fff9e6, #fff3cd);
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 30px;
+  border: 3px solid #FFD700;
+  box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
+}
+
+.teamStatsTitle {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.teamStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.teamStatItem {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.teamStatLabel {
+  display: block;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.teamStatValue {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #667eea;
+}
+
+.popularMatchup {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 15px;
+  border-radius: 12px;
+  text-align: center;
+  border: 2px dashed #FFD700;
+}
+
+.popularMatchupLabel {
+  font-weight: 600;
+  color: #666;
+  margin-right: 10px;
+}
+
+.popularMatchupValue {
+  font-weight: 800;
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+/* Session Cards */
+.sessionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.sessionCard {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.sessionCard:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.sessionCard.soloSession {
+  border-left: 5px solid #667eea;
+}
+
+.sessionCard.teamSession {
+  border-left: 5px solid #FFD700;
+  background: linear-gradient(to right, #fff9e6 0%, white 10%);
+}
+
+.sessionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.sessionType {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.sessionDate {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.sessionStats {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.sessionStat {
+  font-size: 0.95rem;
+  color: #666;
+  font-weight: 600;
+}
+
+/* Team Details in Session Card */
+.teamDetails {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-top: 15px;
+  padding: 15px;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 12px;
+  border: 2px solid #FFD700;
+}
+
+.teamScore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.teamName {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #333;
+}
+
+.teamPoints {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #667eea;
+}
+
+.teamVsDivider {
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: #999;
+}
+
+/* Expanded Session Details */
+.sessionExpanded {
+  overflow: hidden;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px dashed #e0e0e0;
+}
+
+.expandedStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.expandedStat {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.expandedLabel {
+  font-size: 0.85rem;
+  color: #999;
+  font-weight: 600;
+}
+
+.expandedValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+}
+
+/* No Data Message */
+.noDataMessage {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+}
+
+.noDataMessage p {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.noDataHint {
+  font-size: 0.95rem;
+  color: #667eea;
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .teamStatsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .filterTabs {
+    gap: 10px;
+  }
+  
+  .filterTab {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .teamDetails {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .expandedStats {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .teamStatsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .expandedStats {
+    grid-template-columns: 1fr;
+  }
+}

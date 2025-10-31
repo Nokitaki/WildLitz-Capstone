@@ -64,6 +64,8 @@ const VanishingGame = () => {
   // Team play states
   const [currentTeam, setCurrentTeam] = useState('teamA');
   const [teamScores, setTeamScores] = useState({ teamA: 0, teamB: 0 });
+
+  const [teamNames, setTeamNames] = useState({ teamA: 'Team A', teamB: 'Team B' });
   
   // Enhanced game statistics
   const [gameStats, setGameStats] = useState({
@@ -96,6 +98,15 @@ const VanishingGame = () => {
     setTotalRounds(config.numberOfQuestions || 10);
     setLoadingWords(true);
     setWordGenerationError(null);
+
+      if (config.teamPlay) {
+    setTeamNames({
+      teamA: config.teamAName || 'Team A',
+      teamB: config.teamBName || 'Team B'
+    });
+    setTeamScores({ teamA: 0, teamB: 0 });
+    setCurrentTeam('teamA');
+  }
     
     try {
       // Generate words using AI service
@@ -134,170 +145,183 @@ const VanishingGame = () => {
    * 🎯 Handle word result from gameplay
    */
   const handleWordResult = (recognized, word, responseTime) => {
-    console.log('🔍 handleWordResult:', { recognized, word, responseTime });
+  console.log('🔍 handleWordResult:', { recognized, word, responseTime });
+  
+  const result = { recognized, word, responseTime };
+  setLastResult(result);
+  
+  // ✅ Handle "I Know It" (correct answer)
+  if (recognized === true) {
+    console.log('✅ Correct answer!');
     
-    const result = { recognized, word, responseTime };
-    setLastResult(result);
+    const newStats = { ...gameStats };
+    newStats.wordsAttempted++;
+    newStats.wordsRecognized++;
+    newStats.timeSpent = Date.now() - sessionStartTime;
+    newStats.streakCount++;
+    newStats.maxStreak = Math.max(newStats.maxStreak, newStats.streakCount);
     
-    // ✅ Handle "I Know It" (correct answer)
-    if (recognized === true) {
-      console.log('✅ Correct answer!');
-      
-      const newStats = { ...gameStats };
-      newStats.wordsAttempted++;
-      newStats.wordsRecognized++;
-      newStats.timeSpent = Date.now() - sessionStartTime;
-      newStats.streakCount++;
-      newStats.maxStreak = Math.max(newStats.maxStreak, newStats.streakCount);
-      
-      // Pattern-specific tracking
-      const currentPattern = gameConfig.learningFocus;
-      if (!newStats.patternStats[currentPattern]) {
-        newStats.patternStats[currentPattern] = { 
-          attempted: 0, 
-          correct: 0, 
-          averageTime: 0 
-        };
-      }
-      newStats.patternStats[currentPattern].attempted++;
-      newStats.patternStats[currentPattern].correct++;
-      
-      // Calculate response time
-      const actualResponseTime = responseTime || (Date.now() - gameStartTime) / 1000;
-      
-      // Update average response time
-      newStats.averageResponseTime = 
-        (newStats.averageResponseTime * (newStats.wordsAttempted - 1) + actualResponseTime) / 
-        newStats.wordsAttempted;
-      
-      // Update pattern average time
-      const patternStats = newStats.patternStats[currentPattern];
-      patternStats.averageTime = 
-        (patternStats.averageTime * (patternStats.attempted - 1) + actualResponseTime) / 
-        patternStats.attempted;
-      
-      // Calculate success rate
-      newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
-      
-      // Track difficulty progression
-      newStats.difficultyProgression.push({
-        round: currentRound,
-        word: word,
-        recognized: true,
-        responseTime: actualResponseTime,
-        pattern: currentPattern,
-        action: 'knew_it'
-      });
-      
-      setGameStats(newStats);
-      
-      // 🎭 Mascot encouragement!
+    // Pattern-specific tracking
+    const currentPattern = gameConfig.learningFocus;
+    if (!newStats.patternStats[currentPattern]) {
+      newStats.patternStats[currentPattern] = { 
+        attempted: 0, 
+        correct: 0, 
+        averageTime: 0 
+      };
+    }
+    newStats.patternStats[currentPattern].attempted++;
+    newStats.patternStats[currentPattern].correct++;
+    
+    // Calculate response time
+    const actualResponseTime = responseTime || (Date.now() - gameStartTime) / 1000;
+    
+    // Update average response time
+    newStats.averageResponseTime = 
+      (newStats.averageResponseTime * (newStats.wordsAttempted - 1) + actualResponseTime) / 
+      newStats.wordsAttempted;
+    
+    // Update pattern average time
+    const patternStats = newStats.patternStats[currentPattern];
+    patternStats.averageTime = 
+      (patternStats.averageTime * (patternStats.attempted - 1) + actualResponseTime) / 
+      patternStats.attempted;
+    
+    // Calculate success rate
+    newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
+    
+    // Track difficulty progression
+    newStats.difficultyProgression.push({
+      round: currentRound,
+      word: word,
+      recognized: true,
+      responseTime: actualResponseTime,
+      pattern: currentPattern,
+      action: 'knew_it'
+    });
+    
+    setGameStats(newStats);
+
+    // 🏆 Team score update
+    if (gameConfig.teamPlay) {
+      setTeamScores(prev => ({
+        ...prev,
+        [currentTeam]: prev[currentTeam] + 1
+      }));
+    }
+    
+    // 🎭 Mascot encouragement!
+    if (gameConfig.teamPlay) {
+      setBubbleMessage(`Excellent! Point for ${teamNames[currentTeam]}! 🎉`);
+    } else {
       setBubbleMessage('Excellent! You got it right! 🎉✨');
-      setShowBubble(true);
-      setTimeout(() => setShowBubble(false), 3000);
-      
-      setGameState('feedback');
-      return;
     }
+    setShowBubble(true);
+    setTimeout(() => setShowBubble(false), 3000);
     
-    // 👋 Handle "Give up"
-    if (recognized === 'giveup') {
-      console.log('👋 Give up selected');
-      
-      const newStats = { ...gameStats };
-      newStats.wordsAttempted++;
-      newStats.timeSpent = Date.now() - sessionStartTime;
-      newStats.streakCount = 0; // Reset streak
-      
-      const currentPattern = gameConfig.learningFocus;
-      if (!newStats.patternStats[currentPattern]) {
-        newStats.patternStats[currentPattern] = { attempted: 0, correct: 0, averageTime: 0 };
-      }
-      newStats.patternStats[currentPattern].attempted++;
-      
-      newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
-      
-      newStats.difficultyProgression.push({
-        round: currentRound,
-        word: word,
-        recognized: false,
-        responseTime: responseTime || 0,
-        pattern: currentPattern,
-        action: 'gave_up'
-      });
-      
-      setGameStats(newStats);
-      
-      // 🎭 Mascot encouragement for giving up
-      setBubbleMessage('That\'s okay! Let\'s learn this word together! 💪');
-      setShowBubble(true);
-      setTimeout(() => setShowBubble(false), 3000);
-      
-      setGameState('feedback');
-      return;
+    setGameState('feedback');
+  }
+  
+  // 👋 Handle "Give up"
+  else if (recognized === 'giveup') {
+    console.log('👋 Give up selected');
+    
+    const newStats = { ...gameStats };
+    newStats.wordsAttempted++;
+    newStats.timeSpent = Date.now() - sessionStartTime;
+    newStats.streakCount = 0; // Reset streak
+    
+    const currentPattern = gameConfig.learningFocus;
+    if (!newStats.patternStats[currentPattern]) {
+      newStats.patternStats[currentPattern] = { attempted: 0, correct: 0, averageTime: 0 };
     }
+    newStats.patternStats[currentPattern].attempted++;
     
-    // 👀 Handle "Show me"
-    if (recognized === false) {
-      console.log('👀 Show me pressed');
-      
-      const newStats = { ...gameStats };
-      newStats.wordsAttempted++;
-      newStats.wordsShown++;
-      newStats.timeSpent = Date.now() - sessionStartTime;
-      newStats.streakCount = 0; // Reset streak
-      
-      const currentPattern = gameConfig.learningFocus;
-      if (!newStats.patternStats[currentPattern]) {
-        newStats.patternStats[currentPattern] = { attempted: 0, correct: 0, averageTime: 0 };
-      }
-      newStats.patternStats[currentPattern].attempted++;
-      
-      newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
-      
-      newStats.difficultyProgression.push({
-        round: currentRound,
-        word: word,
-        recognized: false,
-        responseTime: responseTime || 0,
-        pattern: currentPattern,
-        action: 'showed'
-      });
-      
-      setGameStats(newStats);
-      
-      // 🎭 Mascot support message
-      setBubbleMessage('Good job asking for help! Learning is great! 📚');
-      setShowBubble(true);
-      setTimeout(() => setShowBubble(false), 3000);
-      
-      setGameState('feedback');
-      return;
+    newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
+    
+    newStats.difficultyProgression.push({
+      round: currentRound,
+      word: word,
+      recognized: false,
+      responseTime: responseTime || 0,
+      pattern: currentPattern,
+      action: 'gave_up'
+    });
+    
+    setGameStats(newStats);
+    
+    // 🎭 Mascot encouragement for giving up
+    setBubbleMessage('That\'s okay! Let\'s learn this word together! 💪');
+    setShowBubble(true);
+    setTimeout(() => setShowBubble(false), 3000);
+    
+    setGameState('feedback');
+  }
+  
+  // 👀 Handle "Show me"
+  else if (recognized === false) {
+    console.log('👀 Show me pressed');
+    
+    const newStats = { ...gameStats };
+    newStats.wordsAttempted++;
+    newStats.wordsShown++;
+    newStats.timeSpent = Date.now() - sessionStartTime;
+    newStats.streakCount = 0; // Reset streak
+    
+    const currentPattern = gameConfig.learningFocus;
+    if (!newStats.patternStats[currentPattern]) {
+      newStats.patternStats[currentPattern] = { attempted: 0, correct: 0, averageTime: 0 };
     }
+    newStats.patternStats[currentPattern].attempted++;
     
-    // ⏭️ Handle "Skip"
-    // ⏭️ Handle "Skip" - FIXED: doesn't count as a round
-if (recognized === 'skip') {
-  console.log('⏭️ Skip pressed');
+    newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
+    
+    newStats.difficultyProgression.push({
+      round: currentRound,
+      word: word,
+      recognized: false,
+      responseTime: responseTime || 0,
+      pattern: currentPattern,
+      action: 'showed'
+    });
+    
+    setGameStats(newStats);
+    
+    // 🎭 Mascot support message
+    setBubbleMessage('Good job asking for help! Learning is great! 📚');
+    setShowBubble(true);
+    setTimeout(() => setShowBubble(false), 3000);
+    
+    setGameState('feedback');
+  }
   
-  const newStats = { ...gameStats };
-  newStats.wordsSkipped++;
-  newStats.timeSpent = Date.now() - sessionStartTime;
+  // ⏭️ Handle "Skip" - doesn't count as a round
+  else if (recognized === 'skip') {
+    console.log('⏭️ Skip pressed');
+    
+    const newStats = { ...gameStats };
+    newStats.wordsSkipped++;
+    newStats.timeSpent = Date.now() - sessionStartTime;
+    
+    newStats.difficultyProgression.push({
+      round: currentRound,
+      word: word,
+      recognized: false,
+      responseTime: 0,
+      pattern: gameConfig.learningFocus,
+      action: 'skipped'
+    });
+    
+    setGameStats(newStats);
+    handleNextWord(false);
+    return; // Skip exits early, no team switch
+  }
   
-  newStats.difficultyProgression.push({
-    round: currentRound,
-    word: word,
-    recognized: false,
-    responseTime: 0,
-    pattern: gameConfig.learningFocus,
-    action: 'skipped'
-  });
-  
-  setGameStats(newStats);
-  handleNextWord(false);
-  return;
-}
-  };
+  // 🎯 Team switching logic (runs for all actions except skip)
+  if (gameConfig.teamPlay) {
+    setCurrentTeam(prev => prev === 'teamA' ? 'teamB' : 'teamA');
+  }
+};
 
   /**
    * 📝 Handle next word
@@ -360,7 +384,10 @@ if (recognized === 'skip') {
   maxStreak: finalStats.maxStreak || 0,
   timeSpent: Math.round(finalStats.timeSpent || 0),
   patternStats: finalStats.patternStats || {},
-  wordList: wordData || []
+  wordList: wordData || [],
+  teamPlay: gameConfig.teamPlay || false,
+  teamScores: gameConfig.teamPlay ? teamScores : null,
+  teamNames: gameConfig.teamPlay ? teamNames : null
   };
   
   console.log('📤 Sending session data:', sessionData);
@@ -426,31 +453,36 @@ if (recognized === 'skip') {
    * 🔄 Handle play again
    */
   const handlePlayAgain = () => {
-    console.log('🔄 Playing again');
-    
-    // Reset game but keep config
-    setCurrentRound(1);
-    setScore(0);
-    setCurrentWordIndex(0);
-    setUsedWords([]);
-    setLastResult(null);
-    setGameStats({
-      wordsAttempted: 0,
-      wordsRecognized: 0,
-      wordsSkipped: 0,
-      wordsShown: 0,
-      averageResponseTime: 0,
-      timeSpent: 0,
-      streakCount: 0,
-      maxStreak: 0,
-      successRate: 0,
-      patternStats: {},
-      difficultyProgression: []
-    });
-    
-    // Start new game with same config
-    handleStartGame(gameConfig);
-  };
+  // Reset all game state
+  setGameState('config');
+  setCurrentRound(1);
+  setScore(0);
+  setCurrentWordIndex(0);
+  setUsedWords([]);
+  setLastResult(null);
+  setClassEnergy(100);
+  
+  // ADD THESE LINES - Reset team state
+  setCurrentTeam('teamA');
+  setTeamScores({ teamA: 0, teamB: 0 });
+  
+  // Reset stats
+  setGameStats({
+    wordsAttempted: 0,
+    wordsRecognized: 0,
+    wordsSkipped: 0,
+    wordsShown: 0,
+    averageResponseTime: 0,
+    timeSpent: 0,
+    streakCount: 0,
+    maxStreak: 0,
+    successRate: 0,
+    patternStats: {},
+    difficultyProgression: [],
+    totalWords: 0,
+    correctWords: 0
+  });
+};
 
   return (
     <div className={styles.vanishingGameContainer}>
@@ -513,14 +545,19 @@ if (recognized === 'skip') {
             exit={{ opacity: 0, scale: 0.9 }}
           >
             <GameplayScreen
-              wordData={wordData[currentWordIndex]}
-              config={gameConfig}
-              onResult={handleWordResult}
-              round={currentRound}
-              totalRounds={totalRounds}
-              gameStats={gameStats}
-              classEnergy={classEnergy}
-            />
+  wordData={wordData[currentWordIndex]}
+  config={gameConfig}
+  onResult={handleWordResult}
+  round={currentRound}
+  totalRounds={totalRounds}
+  gameStats={gameStats}
+  classEnergy={classEnergy}
+  // ADD THESE TEAM PROPS:
+  teamPlay={gameConfig.teamPlay || false}
+  currentTeam={currentTeam}
+  teamScores={teamScores}
+  teamNames={teamNames}
+/>
           </motion.div>
         )}
 
@@ -625,6 +662,9 @@ if (recognized === 'skip') {
   onPlayAgain={handlePlayAgain}
   onReturnToMenu={handleReturnToMenu}
   onViewAnalytics={handleViewAnalytics}
+  // ADD THESE TEAM PROPS:
+  teamScores={teamScores}
+  teamNames={teamNames}
 />
     )}
   </motion.div>
