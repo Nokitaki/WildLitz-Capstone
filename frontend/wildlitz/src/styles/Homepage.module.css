@@ -767,7 +767,8 @@ body {
   top: 450px; /* Adjust as needed */
   right: 10%; /* Adjust as needed */
   width: 300px;
-  transform: translateX(90%) translateY(65%);
+  transform: translateX(90%) translateY(75%);
+  z-index: -2; 
 }
 
 .bugsby2Visual {
@@ -775,7 +776,8 @@ body {
   top: 20px;  /* Adjust as needed */
   right: 0;   /* Adjust as needed */
   width: 150px;
-  transform: translateX(55%) translateY(350%);
+  transform: translateX(55%) translateY(370%);
+  z-index: -1;
 }
 
 .coinVisual {
