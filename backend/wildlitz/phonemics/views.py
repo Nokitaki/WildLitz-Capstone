@@ -119,6 +119,30 @@ def log_phonemics_activity(user, activity_type, question_data, user_answer, corr
     except Exception as e:
         logger.error(f"Error logging phonemics activity: {str(e)}")
 
+def get_difficulty_requirements(difficulty):
+    """
+    Get the required number of correct and total animals for each difficulty level.
+    Guarantees minimum 3 correct animals in every round.
+    """
+    requirements = {
+        'easy': {
+            'min_correct': 3,
+            'total_animals': 6,
+            'max_incorrect': 3
+        },
+        'medium': {
+            'min_correct': 3,
+            'total_animals': 8,
+            'max_incorrect': 5
+        },
+        'hard': {
+            'min_correct': 3,
+            'total_animals': 12,
+            'max_incorrect': 9
+        }
+    }
+    return requirements.get(difficulty, requirements['easy'])
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_safari_animals_by_sound(request):
@@ -472,25 +496,89 @@ def get_safari_animals_by_sound(request):
                 strategy_used = "20_any_animals_absolute_fallback"
                 logger.error(f"🚨 Attempt 20 (ABSOLUTE FALLBACK - ANY ANIMALS): Found {len(animals_found)} animals")
         
-        # ----------------------------------------------------------
-        # If STILL no animals found, return error (should NEVER happen if DB has ANY data)
-        # ----------------------------------------------------------
-        if len(animals_found) == 0:
-            logger.critical(f"💥 CRITICAL: NO ANIMALS FOUND AT ALL after 20 attempts! Database may be empty!")
+        # ============================================================
+        # ✅ NEW: GUARANTEE MINIMUM 3 CORRECT ANIMALS
+        # ============================================================
+        requirements = get_difficulty_requirements(difficulty)
+        min_correct = requirements['min_correct']
+        total_animals = requirements['total_animals']
+        max_incorrect = requirements['max_incorrect']
+        
+        logger.info(f"📊 Requirements for {difficulty}: min_correct={min_correct}, total={total_animals}")
+        logger.info(f"🔍 Found {len(animals_found)} correct animals initially")
+        
+        # Check if we have minimum correct animals
+        if len(animals_found) < min_correct:
+            logger.warning(f"⚠️ Only found {len(animals_found)} correct animals, need {min_correct}")
+            
+            # Try to get more correct animals by relaxing filters progressively
+            additional_query = supabase.table('safari_animals').select('*')
+            additional_query = additional_query.eq('target_sound', target_sound)
+            
+            # If position was specified and we don't have enough, try ANY position
+            if sound_position and sound_position != 'anywhere':
+                logger.info(f"🔄 Relaxing position filter to get more animals")
+                # Don't filter by position
+            
+            # Exclude animals we already have
+            if animals_found and len(animals_found) > 0:
+                already_found_ids = [animal['id'] for animal in animals_found]
+                additional_query = additional_query.not_.in_('id', already_found_ids)
+            
+            if exclude_ids:
+                additional_query = additional_query.not_.in_('id', exclude_ids)
+            
+            additional_response = additional_query.execute()
+            additional_animals = additional_response.data or []
+            
+            logger.info(f"🔄 Found {len(additional_animals)} additional animals")
+            
+            # Add animals until we reach minimum
+            needed = min_correct - len(animals_found)
+            if len(additional_animals) >= needed:
+                animals_found.extend(additional_animals[:needed])
+                logger.info(f"✅ Added {needed} animals, now have {len(animals_found)} correct")
+            else:
+                # Add all we found
+                animals_found.extend(additional_animals)
+                logger.warning(f"⚠️ Could only add {len(additional_animals)} more, total: {len(animals_found)}")
+        
+        # Final check - if STILL not enough correct animals after relaxing filters
+        if len(animals_found) < min_correct:
+            logger.error(f"🚨 CRITICAL: Only {len(animals_found)} correct animals found after all attempts!")
+            logger.error(f"🚨 Database needs more animals for sound='{target_sound}' position='{sound_position}'")
+            
+            # Return error with detailed information
             return Response({
                 'success': False,
                 'animals': [],
-                'error': f'CRITICAL: No animals found in database after 20 fallback attempts. Please populate the database.',
-                'fallback_used': None
+                'error': f'Insufficient animals in database. Found {len(animals_found)} but need minimum {min_correct} for {difficulty} difficulty.',
+                'details': {
+                    'target_sound': target_sound,
+                    'sound_position': sound_position,
+                    'environment': environment,
+                    'difficulty': difficulty,
+                    'found': len(animals_found),
+                    'required': min_correct
+                },
+                'fallback_used': strategy_used
             }, status=status.HTTP_404_NOT_FOUND)
         
-        # ----------------------------------------------------------
-        # Now get incorrect animals (different sound)
-        # ----------------------------------------------------------
+        logger.info(f"✅ Have {len(animals_found)} correct animals (minimum {min_correct} satisfied)")
+        
+        # ============================================================
+        # ✅ UPDATED: Get incorrect animals (different sound)
+        # Calculate how many incorrect animals we need based on difficulty
+        # ============================================================
+        num_correct = len(animals_found)
+        num_incorrect_needed = total_animals - num_correct
+        
+        logger.info(f"📊 Composition: {num_correct} correct + {num_incorrect_needed} incorrect = {total_animals} total")
+        
         incorrect_query = supabase.table('safari_animals').select('*')
         incorrect_query = incorrect_query.neq('target_sound', target_sound)
         
-        # Apply same filters based on which strategy worked
+        # Apply same filters based on which strategy worked for correct animals
         if strategy_used.startswith('1_') or strategy_used.startswith('2_'):
             # Attempts 1-2 had environment
             if environment:
@@ -508,26 +596,41 @@ def get_safari_animals_by_sound(request):
         elif strategy_used.startswith('11_'):
             incorrect_query = incorrect_query.eq('environment', 'arctic')
         
+        # Exclude the correct animals we already have
+        if animals_found:
+            correct_animal_ids = [animal['id'] for animal in animals_found]
+            incorrect_query = incorrect_query.not_.in_('id', correct_animal_ids)
+        
         if exclude_ids and not strategy_used.startswith('19_'):
             incorrect_query = incorrect_query.not_.in_('id', exclude_ids)
         
         incorrect_response = incorrect_query.execute()
         incorrect_animals = incorrect_response.data or []
         
-        # Limit incorrect animals
-        max_incorrect = 8
-        if len(incorrect_animals) > max_incorrect:
-            import random
-            incorrect_animals = random.sample(incorrect_animals, max_incorrect)
+        logger.info(f"🔍 Found {len(incorrect_animals)} incorrect animals")
         
-        # Combine correct and incorrect animals
+        # ✅ Select the exact number of incorrect animals needed
+        if len(incorrect_animals) > num_incorrect_needed:
+            import random
+            incorrect_animals = random.sample(incorrect_animals, num_incorrect_needed)
+            logger.info(f"✂️ Trimmed to {num_incorrect_needed} incorrect animals")
+        elif len(incorrect_animals) < num_incorrect_needed:
+            logger.warning(f"⚠️ Only have {len(incorrect_animals)} incorrect animals, need {num_incorrect_needed}")
+            # This is OK - we'll just have fewer total animals than ideal
+        
+        # ============================================================
+        # ✅ FINAL: Combine and return animals with guarantee verification
+        # ============================================================
         all_animals = animals_found + incorrect_animals
         
         # Shuffle to mix correct and incorrect
         import random
         random.shuffle(all_animals)
         
-        logger.info(f"✅ Returning {len(animals_found)} correct + {len(incorrect_animals)} incorrect = {len(all_animals)} total animals (Strategy: {strategy_used})")
+        # Final verification log
+        logger.info(f"✅ GUARANTEED: Returning {len(animals_found)} correct (minimum {min_correct}) + {len(incorrect_animals)} incorrect = {len(all_animals)} total animals")
+        logger.info(f"📊 Strategy used: {strategy_used}")
+        logger.info(f"🎯 Minimum requirement satisfied: {len(animals_found) >= min_correct}")
         
         return Response({
             'success': True,
@@ -535,6 +638,8 @@ def get_safari_animals_by_sound(request):
             'correct_count': len(animals_found),
             'incorrect_count': len(incorrect_animals),
             'total_count': len(all_animals),
+            'min_correct_guaranteed': min_correct,
+            'requirement_met': len(animals_found) >= min_correct,
             'fallback_used': strategy_used
         })
         

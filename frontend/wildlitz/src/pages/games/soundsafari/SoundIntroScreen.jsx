@@ -16,6 +16,7 @@ const SoundIntroScreen = ({ targetSound, onContinue }) => {
   const [activeExample, setActiveExample] = useState(null);
   const [examples, setExamples] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isButtonEnabled, setIsButtonEnabled] = useState(false);
   
   // Get description for this target sound
   const soundDescription = SOUND_DESCRIPTIONS[targetSound] || 
@@ -60,6 +61,15 @@ const SoundIntroScreen = ({ targetSound, onContinue }) => {
     setActiveExample(word);
     playSpeech(word, 0.8, () => setActiveExample(null));
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsButtonEnabled(true);
+    }, 3000); // 3 seconds
+    
+    // Cleanup timer on unmount
+    return () => clearTimeout(timer);
+  }, []);
   
   return (
     <div className={styles.introContainer}>
@@ -162,9 +172,20 @@ const SoundIntroScreen = ({ targetSound, onContinue }) => {
             <div className={styles.startButtonContainer}>
                 <motion.button 
                   className={styles.continueButton}
-                  whileHover={{ scale: 1.03, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={onContinue}
+                  whileHover={isButtonEnabled ? { scale: 1.03, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" } : {}}
+                  whileTap={isButtonEnabled ? { scale: 0.97 } : {}}
+                  onClick={isButtonEnabled ? onContinue : undefined}
+                  disabled={!isButtonEnabled}
+                  animate={{
+                    opacity: isButtonEnabled ? 1 : 0.4
+                  }}
+                  transition={{
+                    opacity: { duration: 0.5, ease: "easeInOut" }
+                  }}
+                  style={{
+                    cursor: isButtonEnabled ? 'pointer' : 'not-allowed',
+                    pointerEvents: isButtonEnabled ? 'auto' : 'none'
+                  }}
                 >
                   Start the Safari!
                   <span className={styles.buttonEmoji}>🦁</span>

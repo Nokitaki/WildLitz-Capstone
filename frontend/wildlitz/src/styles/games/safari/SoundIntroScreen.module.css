@@ -334,6 +334,13 @@
   transition: all 0.2s ease;
 }
 
+/* ✅ ADD THIS NEW CSS RULE */
+.continueButton:disabled {
+  background-color: #b0b0b0;
+  cursor: not-allowed;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
 .continueButton:hover {
   background-color: #6dbdb3;
   box-shadow: 0 6px 14px rgba(76, 175, 80, 0.4);
