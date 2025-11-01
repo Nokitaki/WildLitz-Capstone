@@ -160,7 +160,7 @@ function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Join Grade 3 Filipino students on an exciting adventure! Master reading through super fun games that make learning feel like playtime! 🚀✨
+              Join on an exciting adventure! Master reading through super fun games that make learning feel like playtime! 🚀✨
             </motion.p>
           </div>
           
