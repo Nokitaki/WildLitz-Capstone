@@ -1,83 +1,25 @@
-// src/pages/games/soundsafari/GameCompleteScreen.jsx <created on 2025-01-03>
+// frontend/wildlitz/src/pages/games/soundsafari/GameCompleteScreen.jsx
+// UPDATED: Analytics already saved in main component, this just displays results
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../../styles/games/safari/GameCompleteScreen.module.css';
 import WildLitzFox from '../../../assets/img/wildlitz-idle.png';
-import soundSafariAnalyticsService from '../../../services/soundSafariAnalyticsService';
 
 /**
  * Game Complete Screen - Shown after all rounds are complete
- * WITH ANALYTICS INTEGRATION
+ * UPDATED: No longer saves analytics (handled by main game component)
  */
 const GameCompleteScreen = ({ 
   score, 
   totalRounds, 
   onPlayAgain, 
   onChangeDifficulty,
-  // NEW: Optional props for analytics
-  gameConfig = null,
-  totalAnimals = 0,
-  totalCorrect = 0
+  gameConfig = null
 }) => {
   const navigate = useNavigate();
   
-  // Save analytics when component mounts
-  useEffect(() => {
-    saveGameAnalytics();
-  }, []);
-
-  const saveGameAnalytics = async () => {
-    try {
-      // Only save if we have the necessary data
-      if (!gameConfig) {
-        console.log('No game config provided, skipping analytics');
-        return;
-      }
-
-      const token = localStorage.getItem('access_token');
-      
-      if (!token) {
-        console.log('User not logged in, skipping analytics save');
-        return;
-      }
-
-      // Calculate game statistics
-      const totalIncorrect = totalAnimals - totalCorrect;
-      const successRate = totalAnimals > 0 ? ((totalCorrect / totalAnimals) * 100) : 0;
-
-      // Format session data
-      const sessionData = soundSafariAnalyticsService.formatSessionData(
-        {
-          totalAnimals: totalAnimals,
-          correctSelections: totalCorrect,
-          incorrectSelections: totalIncorrect,
-          successRate: successRate,
-          timeSpent: 0, // Can be tracked if needed
-          completed: true
-        },
-        {
-          targetSound: gameConfig.targetSound || 's',
-          soundPosition: gameConfig.soundPosition || 'beginning',
-          environment: gameConfig.environment || 'jungle',
-          difficulty: gameConfig.difficulty || 'easy'
-        }
-      );
-
-      // Save to database
-      const result = await soundSafariAnalyticsService.saveGameSession(sessionData);
-      
-      if (result.success) {
-        console.log('✅ Sound Safari analytics saved successfully!');
-      } else {
-        console.warn('⚠️ Failed to save Sound Safari analytics:', result.error);
-      }
-    } catch (error) {
-      console.error('❌ Error saving Sound Safari analytics:', error);
-    }
-  };
-
   // Calculate final percentage
   const finalPercentage = Math.round((score / totalRounds) * 100);
   
@@ -90,173 +32,177 @@ const GameCompleteScreen = ({
     };
     if (finalPercentage >= 70) return {
       title: "🌟 Great Safari Guide!",
-      message: "You're doing wonderfully! Your listening skills are improving!",
-      color: "#8BC34A"
+      message: "You're doing really well at identifying sounds! Keep practicing!",
+      color: "#2196F3"
     };
     if (finalPercentage >= 50) return {
-      title: "👍 Good Safari Tracker!",
-      message: "Nice effort! Keep practicing and you'll become even better!",
-      color: "#FFC107"
-    };
-    return {
-      title: "🌱 Safari Adventurer!",
-      message: "Every adventure helps you learn! Keep exploring sounds!",
+      title: "👍 Good Effort!",
+      message: "You're learning! Keep playing to get even better at hearing sounds!",
       color: "#FF9800"
     };
+    return {
+      title: "🎯 Keep Trying!",
+      message: "Learning takes practice! Try the easier level and you'll improve!",
+      color: "#F44336"
+    };
   };
-
+  
   const feedback = getFeedbackMessage();
-
-  // Confetti animation for high scores
-  const showConfetti = finalPercentage >= 70;
-
+  
   return (
-    <div className={styles.completeContainer}>
-      {showConfetti && (
-        <div className={styles.confettiContainer}>
-          {Array.from({ length: 40 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className={styles.confettiPiece}
-              style={{
-                backgroundColor: `hsl(${Math.random() * 360}, 80%, 60%)`,
-                width: `${Math.random() * 10 + 5}px`,
-                height: `${Math.random() * 10 + 5}px`,
-                top: `-50px`,
-                left: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: ['0vh', '120vh'],
-                x: [0, Math.random() * 100 - 50],
-                rotate: [0, Math.random() * 720 * (Math.random() > 0.5 ? 1 : -1)],
-                opacity: [1, 0.8, 0],
-              }}
-              transition={{
-                duration: Math.random() * 3 + 3,
-                ease: "easeOut",
-                delay: Math.random() * 0.5,
-              }}
-            />
-          ))}
-        </div>
-      )}
-
-      <motion.div 
-        className={styles.completeCard}
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5, type: "spring" }}
-      >
-        {/* Header */}
-        <div className={styles.completeHeader}>
-          <h1 className={styles.completeTitle}>Safari Adventure Complete!</h1>
-        </div>
-
-        {/* Mascot */}
-        <motion.div 
-          className={styles.mascotContainer}
-          initial={{ y: -20 }}
-          animate={{ y: [0, -10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
+    <motion.div
+      className={styles.completeContainer}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.8 }}
+      transition={{ duration: 0.5 }}
+    >
+      <div className={styles.completeCard}>
+        {/* Character */}
+        <motion.div
+          className={styles.character}
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
         >
-          <img src={WildLitzFox} alt="WildLitz Fox" className={styles.mascotImage} />
+          <img src={WildLitzFox} alt="WildLitz Fox" />
         </motion.div>
-
-        {/* Feedback Message */}
-        <div className={styles.feedbackSection} style={{ borderColor: feedback.color }}>
-          <h2 className={styles.feedbackTitle} style={{ color: feedback.color }}>
-            {feedback.title}
-          </h2>
-          <p className={styles.feedbackMessage}>{feedback.message}</p>
-        </div>
-
-        {/* Final Score */}
-        <div className={styles.scoreSection}>
-          <div className={styles.scoreBanner} style={{ background: `linear-gradient(135deg, ${feedback.color}, ${feedback.color}dd)` }}>
-            <div className={styles.scoreLabel}>Final Score</div>
-            <div className={styles.scoreLarge}>{finalPercentage}%</div>
-            <div className={styles.scoreDetails}>
-              {score.toFixed(1)} out of {totalRounds} rounds
+        
+        {/* Title */}
+        <motion.div
+          className={styles.title}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <h2>Safari Complete!</h2>
+          <p className={styles.subtitle}>You finished all {totalRounds} rounds!</p>
+        </motion.div>
+        
+        {/* Score Display */}
+        <motion.div
+          className={styles.scoreDisplay}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
+        >
+          <div className={styles.scoreCircle} style={{ borderColor: feedback.color }}>
+            <div className={styles.scoreValue} style={{ color: feedback.color }}>
+              {Math.round(score)}
             </div>
+            <div className={styles.scoreLabel}>out of {totalRounds * 100}</div>
           </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className={styles.statsGrid}>
+        </motion.div>
+        
+        {/* Feedback Message */}
+        <motion.div
+          className={styles.feedback}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          style={{ backgroundColor: `${feedback.color}20` }}
+        >
+          <h3 style={{ color: feedback.color }}>{feedback.title}</h3>
+          <p>{feedback.message}</p>
+        </motion.div>
+        
+        {/* Stats Summary */}
+        <motion.div
+          className={styles.statsGrid}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.0 }}
+        >
           <div className={styles.statCard}>
             <div className={styles.statIcon}>🎯</div>
-            <div className={styles.statValue}>{totalRounds}</div>
-            <div className={styles.statLabel}>Rounds Played</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>🦁</div>
-            <div className={styles.statValue}>{totalCorrect || 0}</div>
-            <div className={styles.statLabel}>Animals Found</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>✨</div>
-            <div className={styles.statValue}>{finalPercentage}%</div>
             <div className={styles.statLabel}>Accuracy</div>
+            <div className={styles.statValue}>{finalPercentage}%</div>
           </div>
-        </div>
-
+          
+          <div className={styles.statCard}>
+            <div className={styles.statIcon}>🔊</div>
+            <div className={styles.statLabel}>Sound</div>
+            <div className={styles.statValue}>
+              {gameConfig?.targetSound?.toUpperCase() || '-'}
+            </div>
+          </div>
+          
+          <div className={styles.statCard}>
+            <div className={styles.statIcon}>📍</div>
+            <div className={styles.statLabel}>Position</div>
+            <div className={styles.statValue}>
+              {gameConfig?.soundPosition?.charAt(0).toUpperCase() + 
+               gameConfig?.soundPosition?.slice(1) || '-'}
+            </div>
+          </div>
+          
+          <div className={styles.statCard}>
+            <div className={styles.statIcon}>⭐</div>
+            <div className={styles.statLabel}>Difficulty</div>
+            <div className={styles.statValue}>
+              {gameConfig?.difficulty?.charAt(0).toUpperCase() + 
+               gameConfig?.difficulty?.slice(1) || '-'}
+            </div>
+          </div>
+        </motion.div>
+        
         {/* Action Buttons */}
-        <div className={styles.actionButtons}>
-          <motion.button
-            className={styles.playAgainButton}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+        <motion.div
+          className={styles.actions}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2 }}
+        >
+          <button
+            className={styles.playAgainBtn}
             onClick={onPlayAgain}
           >
-            <span className={styles.buttonIcon}>🔄</span>
-            Play Again
-          </motion.button>
+            🔄 Play Again
+          </button>
           
-          <motion.button
-            className={styles.changeDifficultyButton}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
+            className={styles.changeDifficultyBtn}
             onClick={onChangeDifficulty}
           >
-            <span className={styles.buttonIcon}>⚙️</span>
-            Change Settings
-          </motion.button>
+            ⚙️ Change Settings
+          </button>
           
-          <motion.button
-            className={styles.profileButton}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/profile')}
+          <button
+            className={styles.viewAnalyticsBtn}
+            onClick={() => navigate('/games/sound-safari/analytics')}
           >
-            <span className={styles.buttonIcon}>📊</span>
-            View Progress
-          </motion.button>
-          
-          <motion.button
-            className={styles.homeButton}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/home')}
-          >
-            <span className={styles.buttonIcon}>🏠</span>
-            Main Menu
-          </motion.button>
-        </div>
-
-        {/* Encouraging Message */}
-        <div className={styles.encouragementBox}>
-          <p className={styles.encouragementText}>
-            🎉 Great job completing the Sound Safari! Visit your profile to see how you're improving!
-          </p>
-        </div>
-      </motion.div>
-    </div>
+            📊 View Progress
+          </button>
+        </motion.div>
+        
+        {/* Confetti effect for high scores */}
+        {finalPercentage >= 90 && (
+          <div className={styles.confetti}>
+            {[...Array(50)].map((_, i) => (
+              <motion.div
+                key={i}
+                className={styles.confettiPiece}
+                initial={{ y: -100, x: Math.random() * window.innerWidth, opacity: 1 }}
+                animate={{ 
+                  y: window.innerHeight + 100,
+                  x: Math.random() * window.innerWidth,
+                  opacity: 0,
+                  rotate: Math.random() * 720
+                }}
+                transition={{ 
+                  duration: 3 + Math.random() * 2,
+                  delay: Math.random() * 0.5
+                }}
+                style={{
+                  backgroundColor: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1'][Math.floor(Math.random() * 4)]
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </motion.div>
   );
 };
 
 export default GameCompleteScreen;
-
-
-
-
-
