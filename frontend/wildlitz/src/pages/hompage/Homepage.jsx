@@ -188,7 +188,7 @@ function HomePage() {
         </section>
       </section>
 
-      {/* --- 2. REPLACE THE EMPTY MIDBODY SECTION WITH THIS --- */}
+      {/* --- MIDBODY SECTION (Games and Our Mission) --- */}
       <section className={styles.midBody}>
         <img
           src={bunnyVisual}
@@ -197,7 +197,9 @@ function HomePage() {
         />
 
         <div className={styles.gameSelectionContainer}>
-          {/* --- Syllable Clapping Game --- */}
+          {/* --- Syllable Clapping Game --- (etc.) */}
+          {/* ... (All 4 game entries are here) ... */}
+          
           <div className={styles.gameEntry} key="game-1">
             <div
               className={styles.gameImageContainer}
@@ -232,7 +234,6 @@ function HomePage() {
             </div>
           </div>
 
-          {/* --- Sound Safari Game --- */}
           <div className={styles.gameEntry} key="game-2">
             <div
               className={styles.gameImageContainer}
@@ -272,7 +273,6 @@ function HomePage() {
             </div>
           </div>
 
-          {/* --- Vanishing Game --- */}
           <div className={styles.gameEntry} key="game-3">
             <div
               className={styles.gameImageContainer}
@@ -312,7 +312,6 @@ function HomePage() {
             </div>
           </div>
 
-          {/* --- Crossword Game --- */}
           <div className={styles.gameEntry} key="game-4">
             <motion.div
               className={styles.gameImageContainer}
@@ -464,7 +463,7 @@ function HomePage() {
             </div>
           </div>
 
-          {/* --- ADD THE PROJECT PURPOSE SECTION HERE --- */}
+          {/* --- PROJECT PURPOSE SECTION (Our Mission) --- */}
           <div className={styles.purposeSection}>
             <img
               src={bugsby1Visual}
@@ -480,16 +479,14 @@ function HomePage() {
 
             <div className={styles.projectPurposeContainer}>
               <div className={styles.purposeImagePlaceholder}>
-                {/* This div is the placeholder for your photo */}
-                {/* --- INSERT THE IMAGE TAG HERE --- */}
                 <img
                   src={visualKids}
                   alt="Kids learning and reading"
                   style={{
                     width: "100%",
                     height: "100%",
-                    objectFit: "cover", // Ensures the image covers the area
-                    borderRadius: "20px", // Matches the parent border-radius
+                    objectFit: "cover", 
+                    borderRadius: "20px",
                   }}
                 />
               </div>
@@ -524,11 +521,50 @@ function HomePage() {
               comprehension—that they need to become confident, lifelong readers
               and succeed in their academic lives.
             </p>
+            
+            {/* --- INSERTED IMPACT GRID HERE --- */}
+            <div className={styles.impactGrid}>
+                <motion.div 
+                    className={styles.impactCard}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                >
+                    <div className={styles.impactIcon}>🎯</div>
+                    <h4>Evidence-Based Approach</h4>
+                    <p>Built on research-proven methods that have helped millions of children learn to read effectively</p>
+                </motion.div>
+                <motion.div 
+                    className={styles.impactCard}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                >
+                    <div className={styles.impactIcon}>📚</div>
+                    <h4>Phonics-Based Method</h4>
+                    <p>Structured phonics curriculum focusing on letter-sound relationships and decoding skills</p>
+                </motion.div>
+                <motion.div 
+                    className={styles.impactCard}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                >
+                    <div className={styles.impactIcon}>📊</div>
+                    <h4>Track Your Progress</h4>
+                    <p>Detailed analytics showing performance, time spent, and skills mastered over time</p>
+                </motion.div>
+            </div>
+            {/* ------------------------------- */}
+
           </div>
         </div>
       </section>
 
-      {/* --- ADD THE "ABOUT US" CONTENT INSIDE lowerBody --- */}
+      {/* --- LOWERBODY SECTION (About Us) --- */}
       <section className={styles.lowerBody}>
         <div className={styles.aboutUsContainer}>
           <h3 className={styles.aboutUsTitle}>About Us</h3>
@@ -561,6 +597,42 @@ function HomePage() {
             transforming screen time into a constructive and joyful step on the
             path to becoming a confident, enthusiastic reader.
           </p>
+
+          {/* --- INSERTED VALUE LIST HERE, INSIDE aboutUsContainer --- */}
+          <motion.div
+            className={styles.valuesList} /* Removed floating class for normal flow */
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <div className={styles.valueItem}>
+                <span className={styles.valueIcon}>❤️</span>
+                <span className={styles.valueText}>
+                    <strong>Passion</strong> for education and child development
+                </span>
+            </div>
+            <div className={styles.valueItem}>
+                <span className={styles.valueIcon}>🎓</span>
+                <span className={styles.valueText}>
+                    <strong>Expertise</strong> in pedagogy and technology
+                </span>
+            </div>
+            <div className={styles.valueItem}>
+                <span className={styles.valueIcon}>🤝</span>
+                <span className={styles.valueText}>
+                    <strong>Commitment</strong> to Filipino learners' success
+                </span>
+            </div>
+            <div className={styles.valueItem}>
+                <span className={styles.valueIcon}>✨</span>
+                <span className={styles.valueText}>
+                    <strong>Innovation</strong> in educational game design
+                </span>
+            </div>
+          </motion.div>
+          {/* ------------------------------- */}
+
         </div>
       </section>
 
