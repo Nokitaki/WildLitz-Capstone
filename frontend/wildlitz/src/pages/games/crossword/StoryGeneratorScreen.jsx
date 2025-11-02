@@ -1,8 +1,9 @@
 // src/pages/games/crossword/StoryGeneratorScreen.jsx
-// OPTIMIZED VERSION - Reduced animations and improved performance
+// OPTIMIZED VERSION - No default selection, removed sight-words, added audio
 import React, { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { Volume2 } from 'lucide-react';
 import styles from '../../../styles/games/crossword/StoryGeneratorScreen.module.css';
 import { StoryLoadingScreen } from '../../../components/common/LoadingStates';
 import CrosswordAnalyticsDashboard from '../../../pages/games/crossword/CrosswordAnalyticsDashboard';
@@ -27,8 +28,13 @@ const ThemeOption = memo(({ themeOption, isSelected, onSelect }) => {
 
 ThemeOption.displayName = 'ThemeOption';
 
-// Memoized Skill Option Component
-const SkillOption = memo(({ skill, isSelected, onToggle }) => {
+// Memoized Skill Option Component with Audio
+const SkillOption = memo(({ skill, isSelected, onToggle, onPlayAudio }) => {
+  const handleAudioClick = (e) => {
+    e.stopPropagation(); // Prevent triggering the skill selection
+    onPlayAudio(skill.name);
+  };
+
   return (
     <div 
       className={`${styles.skillOption} ${isSelected ? styles.selected : ''}`}
@@ -36,6 +42,14 @@ const SkillOption = memo(({ skill, isSelected, onToggle }) => {
     >
       <span className={styles.skillIcon}>{skill.icon}</span>
       <span className={styles.skillName}>{skill.name}</span>
+      <button 
+        className={styles.audioButton}
+        onClick={handleAudioClick}
+        type="button"
+        aria-label={`Play audio for ${skill.name}`}
+      >
+        <Volume2 size={18} />
+      </button>
     </div>
   );
 });
@@ -45,9 +59,9 @@ SkillOption.displayName = 'SkillOption';
 const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   const navigate = useNavigate();
   
-  // Form state
+  // Form state - START WITH EMPTY ARRAY (NO DEFAULT SELECTION)
   const [theme, setTheme] = useState('jungle');
-  const [focusSkills, setFocusSkills] = useState(['sight-words']);
+  const [focusSkills, setFocusSkills] = useState([]); // Changed from ['sight-words'] to []
   const [characterNames, setCharacterNames] = useState('');
   const [episodeCount, setEpisodeCount] = useState(3);
   
@@ -62,7 +76,17 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   const timeoutRef = useRef(null);
   const progressIntervalRef = useRef(null);
   
-  // Memoized static data
+  // Speech synthesis reference
+  const speechSynthRef = useRef(null);
+  
+  // Initialize speech synthesis
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      speechSynthRef.current = window.speechSynthesis;
+    }
+  }, []);
+  
+  // Memoized static data - REMOVED 'sight-words' option
   const availableThemes = useMemo(() => [
     { id: 'jungle', name: 'Jungle Adventure', icon: '🌴', description: 'Explore lush rainforests filled with wildlife and mystery.' },
     { id: 'ocean', name: 'Ocean Discovery', icon: '🌊', description: 'Dive into underwater worlds and discover marine life.' },
@@ -72,14 +96,41 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
     { id: 'fairytale', name: 'Fairy Tale Kingdom', icon: '🏰', description: 'Discover magical castles and meet enchanted creatures.' }
   ], []);
   
+  // REMOVED 'sight-words' from available skills
   const availableSkills = useMemo(() => [
-    { id: 'sight-words', name: 'Sight Words', icon: '👁️' },
     { id: 'phonics-sh', name: 'Phonics: SH Sound', icon: '📊' },
     { id: 'phonics-ch', name: 'Phonics: CH Sound', icon: '🎵' },
     { id: 'long-vowels', name: 'Long Vowel Sounds', icon: '🔤' },
     { id: 'compound-words', name: 'Compound Words', icon: '🔗' },
     { id: 'action-verbs', name: 'Action Verbs', icon: '🏃‍♂️' }
   ], []);
+  
+  // Audio playback function
+  const playSkillAudio = useCallback((skillName) => {
+    if (speechSynthRef.current) {
+      // Cancel any ongoing speech
+      speechSynthRef.current.cancel();
+      
+      // Create utterance
+      const utterance = new SpeechSynthesisUtterance(skillName);
+      utterance.rate = 0.9; // Slightly slower for clarity
+      utterance.pitch = 1.1; // Slightly higher pitch for children
+      utterance.volume = 1.0;
+      
+      // Try to use a child-friendly voice if available
+      const voices = speechSynthRef.current.getVoices();
+      const preferredVoice = voices.find(voice => 
+        voice.name.includes('Google') && voice.name.includes('US English')
+      ) || voices.find(voice => voice.lang === 'en-US') || voices[0];
+      
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+      
+      // Speak
+      speechSynthRef.current.speak(utterance);
+    }
+  }, []);
   
   // Memoized handlers
   const handleSkillToggle = useCallback((skillId) => {
@@ -115,6 +166,10 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
       }
+      // Stop any ongoing speech
+      if (speechSynthRef.current) {
+        speechSynthRef.current.cancel();
+      }
     };
   }, []);
   
@@ -122,6 +177,12 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   const generateStory = useCallback(async (e) => {
     if (e && e.preventDefault) {
       e.preventDefault();
+    }
+    
+    // Validate that at least one skill is selected
+    if (focusSkills.length === 0) {
+      setError('Please select at least one focus skill');
+      return;
     }
     
     setIsGenerating(true);
@@ -319,11 +380,12 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
                     skill={skill}
                     isSelected={focusSkills.includes(skill.id)}
                     onToggle={handleSkillToggle}
+                    onPlayAudio={playSkillAudio}
                   />
                 ))}
               </div>
               <p className={styles.skillHint}>
-                💡 Select 1-3 skills for the best results
+                💡 Select 1-3 skills for the best results. Click 🔊 to hear each skill!
               </p>
             </div>
             

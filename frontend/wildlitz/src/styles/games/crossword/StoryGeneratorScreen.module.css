@@ -1,5 +1,6 @@
 /* src/styles/games/crossword/StoryGeneratorScreen.module.css */
 /* OPTIMIZED VERSION - Reduced animations and improved performance */
+/* UPDATED with audio button styles */
 
 .generatorContainer {
   width: 100%;
@@ -231,10 +232,10 @@
   line-height: 1.4;
 }
 
-/* Skill Options - Optimized */
+/* Skill Options - Optimized with Audio Button */
 .skillOptions {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 15px;
 }
 
@@ -251,6 +252,7 @@
   font-weight: 600;
   color: #7b1fa2;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: relative;
 }
 
 .skillOption:hover {
@@ -276,6 +278,44 @@
 
 .skillName {
   font-size: 0.95rem;
+  flex: 1;
+}
+
+/* Audio Button Styles */
+.audioButton {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  color: white;
+  flex-shrink: 0;
+}
+
+.audioButton:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 10px rgba(255, 152, 0, 0.4);
+  background: linear-gradient(135deg, #ffa726, #f57c00);
+}
+
+.audioButton:active {
+  transform: scale(0.95);
+}
+
+.skillOption.selected .audioButton {
+  background: linear-gradient(135deg, #ffb74d, #ff9800);
+  box-shadow: 0 2px 8px rgba(255, 183, 77, 0.5);
+}
+
+.skillOption.selected .audioButton:hover {
+  background: linear-gradient(135deg, #ffc107, #ffa000);
+  transform: scale(1.15);
 }
 
 .skillHint {
@@ -518,7 +558,7 @@
   }
 
   .skillOptions {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   }
 
   .actionButtons {
