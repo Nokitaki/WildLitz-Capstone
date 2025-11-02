@@ -126,14 +126,12 @@ if DEBUG:
     }
 else:
     # Production database (PostgreSQL recommended)
-    if not DEBUG:
-        import dj_database_url
+    import dj_database_url
     DATABASES = {
         'default': dj_database_url.config(
             default=env('DATABASE_URL'),
-            conn_max_age=0,  # ✅ change from 600 to 0
-            conn_health_checks=False,  # ✅ disable health checks for direct connect
-            ssl_require=True,  # ✅ ensure SSL is used
+            conn_max_age=600,
+            conn_health_checks=True,
         )
     }
 
@@ -216,18 +214,14 @@ LOGGING = {
         },
     },
     'filters': {
-    'require_debug_true': {
-        '()': 'django.utils.log.RequireDebugTrue',
-    },
-    'always': {
-        '()': 'django.utils.log.CallbackFilter',
-        'callback': lambda record: True,
-    },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
     },
     'handlers': {
         'console': {
             'level': 'INFO',
-            'filters': ['always'],
+            'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
