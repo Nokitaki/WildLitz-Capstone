@@ -196,10 +196,10 @@ function HomePage() {
           className={styles.bunnyVisual}
         />
 
-        <div className={styles.gameSelectionContainer}>
+        <div className={styles.gameSelectionContainer} id="games">
+          {" "}
+          {/* ID ADDED */}
           {/* --- Syllable Clapping Game --- (etc.) */}
-          {/* ... (All 4 game entries are here) ... */}
-          
           <div className={styles.gameEntry} key="game-1">
             <div
               className={styles.gameImageContainer}
@@ -223,7 +223,9 @@ function HomePage() {
               <p className={styles.gameDescription}>
                 A fun, interactive game where kids clap out the syllables in
                 words, helping them understand word structure and rhythm in a
-                playful way.
+                playful way. Break words into beats! Listen, clap along, and
+                become a syllable master through rhythm and sound. Can you clap
+                the perfect beat? 👏🎶
               </p>
               <button
                 className={styles.playButton}
@@ -233,7 +235,6 @@ function HomePage() {
               </button>
             </div>
           </div>
-
           <div className={styles.gameEntry} key="game-2">
             <div
               className={styles.gameImageContainer}
@@ -262,7 +263,9 @@ function HomePage() {
               <p className={styles.gameDescription}>
                 Embark on an auditory adventure! This game teaches phonetic
                 awareness by identifying and distinguishing different sounds in
-                a playful safari setting.
+                a playful safari setting. Embark on a wild phonics adventure!
+                Hunt for letter sounds, match them to words, and discover the
+                amazing building blocks of reading! 🗺️✨
               </p>
               <button
                 className={styles.playButton}
@@ -272,7 +275,6 @@ function HomePage() {
               </button>
             </div>
           </div>
-
           <div className={styles.gameEntry} key="game-3">
             <div
               className={styles.gameImageContainer}
@@ -301,7 +303,9 @@ function HomePage() {
               <p className={styles.gameDescription}>
                 A memory and phonics challenge where letters vanish from words,
                 encouraging kids to recall letter sounds and spellings to
-                complete the word.
+                complete the word. Crack the code and solve the puzzle! Missing
+                letters need your help - can you fill in the blanks and reveal
+                the hidden words? Become a word detective! 🕵️
               </p>
               <button
                 className={styles.playButton}
@@ -311,7 +315,6 @@ function HomePage() {
               </button>
             </div>
           </div>
-
           <div className={styles.gameEntry} key="game-4">
             <motion.div
               className={styles.gameImageContainer}
@@ -452,7 +455,9 @@ function HomePage() {
               <p className={styles.gameDescription}>
                 A classic puzzle with a phonics twist. Kids use letter sounds
                 and clues to fill in the words, reinforcing vocabulary and
-                spelling skills.
+                spelling skills. Become a word master! Use letter sounds and
+                clever clues to crack the crossword puzzle. Can you fill in all
+                the words and win? 🏆
               </p>
               <button
                 className={styles.playButton}
@@ -462,9 +467,10 @@ function HomePage() {
               </button>
             </div>
           </div>
-
           {/* --- PROJECT PURPOSE SECTION (Our Mission) --- */}
-          <div className={styles.purposeSection}>
+          <div className={styles.purposeSection} id="purpose">
+            {" "}
+            {/* ID ADDED */}
             <img
               src={bugsby1Visual}
               alt="Pixel monster"
@@ -476,7 +482,6 @@ function HomePage() {
               className={styles.bugsby2Visual}
             />
             <h3 className={styles.purposeTitle}>Our Mission</h3>
-
             <div className={styles.projectPurposeContainer}>
               <div className={styles.purposeImagePlaceholder}>
                 <img
@@ -485,7 +490,7 @@ function HomePage() {
                   style={{
                     width: "100%",
                     height: "100%",
-                    objectFit: "cover", 
+                    objectFit: "cover",
                     borderRadius: "20px",
                   }}
                 />
@@ -494,21 +499,18 @@ function HomePage() {
                 <p className={styles.purposeDescription}>
                   WildLitz was born from a critical need: addressing the
                   literacy challenges faced by Filipino Grade 3 students. Many
-                  young learners struggle with reading comprehension and
-                  foundational literacy skills, and we recognized that
-                  traditional teaching methods weren't reaching every child
-                  effectively.
+                  young learners struggle with reading and foundational literacy
+                  skills, and we recognized that traditional teaching methods
+                  weren't reaching every child effectively.
                   <br />
                   <br />
                   Our platform transforms reading education by combining proven
                   phonics-based instruction with engaging game mechanics. Each
                   activity is carefully designed around the five pillars of
-                  literacy: phonemic awareness, phonics, fluency, vocabulary,
-                  and comprehension.
+                  literacy: phonemic awareness, phonics, fluency, vocabulary.
                 </p>
               </div>
             </div>
-
             <p className={styles.purposeFullWidthText}>
               Through colorful characters, interactive challenges, and immediate
               feedback, we make learning to read feel less like studying and
@@ -517,55 +519,64 @@ function HomePage() {
               areas where they need the most practice. This dynamic approach
               ensures maximum engagement and retention. By consistently engaging
               with WildLitz, Grade 3 students develop the foundational
-              skills—from recognizing phonemes to mastering complex
-              comprehension—that they need to become confident, lifelong readers
-              and succeed in their academic lives.
+              skills—from recognizing phonemes to mastering complex reading—that
+              they need to become confident, lifelong readers and succeed in
+              their academic lives.
             </p>
-            
-            {/* --- INSERTED IMPACT GRID HERE --- */}
+            {/* --- INSERTED IMPACT GRID HERE (New Location) --- */}
             <div className={styles.impactGrid}>
-                <motion.div 
-                    className={styles.impactCard}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                >
-                    <div className={styles.impactIcon}>🎯</div>
-                    <h4>Evidence-Based Approach</h4>
-                    <p>Built on research-proven methods that have helped millions of children learn to read effectively</p>
-                </motion.div>
-                <motion.div 
-                    className={styles.impactCard}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.1 }}
-                >
-                    <div className={styles.impactIcon}>📚</div>
-                    <h4>Phonics-Based Method</h4>
-                    <p>Structured phonics curriculum focusing on letter-sound relationships and decoding skills</p>
-                </motion.div>
-                <motion.div 
-                    className={styles.impactCard}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                >
-                    <div className={styles.impactIcon}>📊</div>
-                    <h4>Track Your Progress</h4>
-                    <p>Detailed analytics showing performance, time spent, and skills mastered over time</p>
-                </motion.div>
+              <motion.div
+                className={styles.impactCard}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
+                <div className={styles.impactIcon}>🎯</div>
+                <h4>Evidence-Based Approach</h4>
+                <p>
+                  Built on research-proven methods that have helped millions of
+                  children learn to read effectively
+                </p>
+              </motion.div>
+              <motion.div
+                className={styles.impactCard}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+              >
+                <div className={styles.impactIcon}>📚</div>
+                <h4>Phonics-Based Method</h4>
+                <p>
+                  Structured phonics curriculum focusing on letter-sound
+                  relationships and decoding skills
+                </p>
+              </motion.div>
+              <motion.div
+                className={styles.impactCard}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <div className={styles.impactIcon}>📊</div>
+                <h4>Track Your Progress</h4>
+                <p>
+                  Detailed analytics showing performance, time spent, and skills
+                  mastered over time
+                </p>
+              </motion.div>
             </div>
             {/* ------------------------------- */}
-
           </div>
         </div>
       </section>
 
       {/* --- LOWERBODY SECTION (About Us) --- */}
-      <section className={styles.lowerBody}>
+      <section className={styles.lowerBody} id="about">
+        {" "}
+        {/* ID ADDED */}
         <div className={styles.aboutUsContainer}>
           <h3 className={styles.aboutUsTitle}>About Us</h3>
           <div className={styles.aboutUsImagePlaceholder}>
@@ -598,41 +609,40 @@ function HomePage() {
             path to becoming a confident, enthusiastic reader.
           </p>
 
-          {/* --- INSERTED VALUE LIST HERE, INSIDE aboutUsContainer --- */}
+          {/* --- INSERTED VALUE LIST HERE (New Location) --- */}
           <motion.div
-            className={styles.valuesList} /* Removed floating class for normal flow */
+            className={styles.valuesList}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
             <div className={styles.valueItem}>
-                <span className={styles.valueIcon}>❤️</span>
-                <span className={styles.valueText}>
-                    <strong>Passion</strong> for education and child development
-                </span>
+              <span className={styles.valueIcon}>❤️</span>
+              <span className={styles.valueText}>
+                <strong>Passion</strong> for education and child development
+              </span>
             </div>
             <div className={styles.valueItem}>
-                <span className={styles.valueIcon}>🎓</span>
-                <span className={styles.valueText}>
-                    <strong>Expertise</strong> in pedagogy and technology
-                </span>
+              <span className={styles.valueIcon}>🎓</span>
+              <span className={styles.valueText}>
+                <strong>Expertise</strong> in pedagogy and technology
+              </span>
             </div>
             <div className={styles.valueItem}>
-                <span className={styles.valueIcon}>🤝</span>
-                <span className={styles.valueText}>
-                    <strong>Commitment</strong> to Filipino learners' success
-                </span>
+              <span className={styles.valueIcon}>🤝</span>
+              <span className={styles.valueText}>
+                <strong>Commitment</strong> to Filipino learners' success
+              </span>
             </div>
             <div className={styles.valueItem}>
-                <span className={styles.valueIcon}>✨</span>
-                <span className={styles.valueText}>
-                    <strong>Innovation</strong> in educational game design
-                </span>
+              <span className={styles.valueIcon}>✨</span>
+              <span className={styles.valueText}>
+                <strong>Innovation</strong> in educational game design
+              </span>
             </div>
           </motion.div>
           {/* ------------------------------- */}
-
         </div>
       </section>
 
@@ -692,8 +702,9 @@ function HomePage() {
             <div className={styles.footerColumn}>
               <h4>Navigation</h4>
               <a href="#">Home</a>
-              <a href="#">About Us</a>
-              <a href="#">Purpose</a>
+              <a href="#games">Games</a> {/* ADDED GAMES LINK */}
+              <a href="#purpose">Purpose</a> {/* CORRECTED LINK */}
+              <a href="#about">About Us</a> {/* CORRECTED LINK */}
             </div>
 
             <div className={styles.footerColumn}>
