@@ -75,64 +75,6 @@ def register_user(request):
         return Response({
             'error': str(e)
         }, status=status.HTTP_400_BAD_REQUEST)
-    
-
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def login_user(request):
-    """Login user and return JWT tokens"""
-    try:
-        data = request.data
-        username = data.get('username')  # Your frontend sends 'username' (which is email)
-        password = data.get('password')
-        
-        if not username or not password:
-            return Response({
-                'error': 'Email and password are required'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Authenticate user
-        from django.contrib.auth import authenticate
-        user = authenticate(username=username, password=password)
-        
-        if user is None:
-            return Response({
-                'error': 'Invalid credentials'
-            }, status=status.HTTP_401_UNAUTHORIZED)
-        
-        # Generate JWT tokens
-        from rest_framework_simplejwt.tokens import RefreshToken
-        refresh = RefreshToken.for_user(user)
-        
-        # Update last login
-        from django.contrib.auth import login
-        login(request, user)
-        
-        # Create/update session record
-        UserSession.objects.create(
-            user=user,
-            ip_address=request.META.get('REMOTE_ADDR'),
-            user_agent=request.META.get('HTTP_USER_AGENT', '')
-        )
-        
-        return Response({
-            'access': str(refresh.access_token),
-            'refresh': str(refresh),
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-            }
-        }, status=status.HTTP_200_OK)
-        
-    except Exception as e:
-        print(f"Login error: {str(e)}")  # This will show in logs
-        return Response({
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

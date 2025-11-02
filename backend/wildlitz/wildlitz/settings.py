@@ -126,12 +126,14 @@ if DEBUG:
     }
 else:
     # Production database (PostgreSQL recommended)
-    import dj_database_url
+    if not DEBUG:
+        import dj_database_url
     DATABASES = {
         'default': dj_database_url.config(
             default=env('DATABASE_URL'),
-            conn_max_age=600,
-            conn_health_checks=True,
+            conn_max_age=0,  # ✅ change from 600 to 0
+            conn_health_checks=False,  # ✅ disable health checks for direct connect
+            ssl_require=True,  # ✅ ensure SSL is used
         )
     }
 
