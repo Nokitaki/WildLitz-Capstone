@@ -64,7 +64,7 @@ export const authService = {
   // Authentication endpoints
   async login(email, password) {
     const response = await authAPI.post('/auth/login/', {
-      username: email,
+      email,
       password,
     });
     return response.data;
