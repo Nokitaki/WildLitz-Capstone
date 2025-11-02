@@ -1,4 +1,4 @@
-// src/pages/games/crossword/GameplayScreen.jsx - OPTIMIZED VERSION
+// src/pages/games/crossword/GameplayScreen.jsx - WITH AUDIO FEATURES
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BackToHomeButton from '../crossword/BackToHomeButton';
@@ -28,12 +28,17 @@ const GameplayScreen = ({
   const [showCelebration, setShowCelebration] = useState(false);
   const [confettiPieces, setConfettiPieces] = useState([]);
   const [showHintTooltip, setShowHintTooltip] = useState(false);
+  
+  // NEW: Audio state for reading questions and choices
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [revealedLetters, setRevealedLetters] = useState({}); // Track revealed letters per word
 
   const gridInitializedRef = useRef(false);
   const wordStartTime = useRef(Date.now());
   const hintsUsedForCurrentWordRef = useRef(0);
   const celebrationTimeoutRef = useRef(null);
   const feedbackTimeoutRef = useRef(null);
+  const speechSynthRef = useRef(null); // For speech synthesis
 
   const INITIAL_HINTS = 3;
 
@@ -55,10 +60,76 @@ const GameplayScreen = ({
     );
   }
 
+  // Define currentWord early, before functions that use it
   const currentWord = puzzle.words[currentWordIndex];
   const totalWords = puzzle.words.length;
   const solvedCount = Object.keys(solvedClues).length;
   const isCurrentWordSolved = solvedClues[currentWord?.answer];
+
+  // Initialize speech synthesis and load voices
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      speechSynthRef.current = window.speechSynthesis;
+      
+      // Load voices - some browsers load them asynchronously
+      const loadVoices = () => {
+        const voices = speechSynthRef.current.getVoices();
+        console.log('Available voices:', voices.map(v => v.name + ' (' + v.lang + ')'));
+      };
+      
+      // Try loading voices immediately
+      loadVoices();
+      
+      // Also listen for voiceschanged event (for Chrome)
+      if (speechSynthRef.current.onvoiceschanged !== undefined) {
+        speechSynthRef.current.onvoiceschanged = loadVoices;
+      }
+    }
+  }, []);
+
+  // NEW: Function to speak text using Web Speech API with British UK voice
+  const speakText = useCallback((text) => {
+    if (!speechSynthRef.current) return;
+    
+    // Cancel any ongoing speech
+    speechSynthRef.current.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9; // Slightly slower for kids
+    utterance.pitch = 1.0; // Normal pitch for UK voice
+    utterance.volume = 1;
+    
+    // Get British English voice
+    const voices = speechSynthRef.current.getVoices();
+    const ukVoice = voices.find(voice => 
+      voice.lang === 'en-GB' || 
+      voice.name.includes('UK') || 
+      voice.name.includes('British')
+    );
+    if (ukVoice) {
+      utterance.voice = ukVoice;
+    } else {
+      utterance.lang = 'en-GB'; // Fallback to British English
+    }
+    
+    utterance.onstart = () => setIsPlayingAudio(true);
+    utterance.onend = () => setIsPlayingAudio(false);
+    utterance.onerror = () => setIsPlayingAudio(false);
+    
+    speechSynthRef.current.speak(utterance);
+  }, []);
+
+  // NEW: Function to read the current question/clue
+  const readQuestion = useCallback(() => {
+    if (currentWord?.clue) {
+      speakText(currentWord.clue);
+    }
+  }, [currentWord, speakText]);
+
+  // NEW: Function to read a choice when clicked
+  const readChoice = useCallback((choice) => {
+    speakText(choice);
+  }, [speakText]);
 
   // 🔥 OPTIMIZATION: Memoize computed values
   const gridWidth = useMemo(() => {
@@ -150,6 +221,7 @@ const GameplayScreen = ({
     return () => {
       if (celebrationTimeoutRef.current) clearTimeout(celebrationTimeoutRef.current);
       if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+      if (speechSynthRef.current) speechSynthRef.current.cancel();
       setShowCelebration(false);
       setConfettiPieces([]);
     };
@@ -176,6 +248,55 @@ const GameplayScreen = ({
       return newCells;
     });
   }, [puzzle.words]);
+
+  // NEW: Function to reveal one letter in the grid (for hints)
+  const revealOneLetter = useCallback((word) => {
+    if (!word) return;
+    
+    const wordIdx = puzzle.words.findIndex(w => w.answer === word.answer);
+    if (wordIdx === -1) return;
+
+    // Get already revealed letters for this word
+    const wordKey = `${wordIdx}-${word.answer}`;
+    const revealed = revealedLetters[wordKey] || [];
+    
+    // Find unrevealed letter indices
+    const unrevealedIndices = [];
+    for (let i = 0; i < word.answer.length; i++) {
+      if (!revealed.includes(i)) {
+        unrevealedIndices.push(i);
+      }
+    }
+    
+    if (unrevealedIndices.length === 0) return; // All letters already revealed
+    
+    // Pick a random unrevealed letter
+    const randomIdx = unrevealedIndices[Math.floor(Math.random() * unrevealedIndices.length)];
+    
+    // Update revealed letters tracking
+    setRevealedLetters(prev => ({
+      ...prev,
+      [wordKey]: [...(prev[wordKey] || []), randomIdx]
+    }));
+    
+    // Update grid to show the letter
+    setGridCells(prevCells => {
+      const newCells = [...prevCells];
+      const row = wordIdx * 2;
+      const col = randomIdx + 1;
+      const cellIndex = row * gridWidth + col;
+      
+      if (newCells[cellIndex]) {
+        newCells[cellIndex] = {
+          ...newCells[cellIndex],
+          value: newCells[cellIndex].letter,
+          revealed: true
+        };
+      }
+      
+      return newCells;
+    });
+  }, [puzzle.words, revealedLetters, gridWidth]);
 
   // Generate answer choices
   const generateChoicesForClue = useCallback((clue) => {
@@ -212,16 +333,17 @@ const GameplayScreen = ({
     setAnswerChoices(choices.sort(() => Math.random() - 0.5));
   }, [puzzle.words]);
 
-  // 🔥 OPTIMIZATION: Memoized celebration trigger with cleanup
+  // 🔥 OPTIMIZATION: Memoized celebration trigger with enhanced confetti
   const triggerCelebration = useCallback(() => {
     setShowCelebration(true);
     
-    const pieces = Array.from({ length: 20 }, (_, i) => ({
+    // Create more confetti pieces with better distribution
+    const pieces = Array.from({ length: 50 }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
-      delay: Math.random() * 0.2,
-      duration: 1.5 + Math.random() * 0.5,
-      emoji: ['🎉', '⭐', '✨', '🌟'][Math.floor(Math.random() * 4)]
+      delay: Math.random() * 0.3,
+      duration: 2 + Math.random() * 1,
+      emoji: ['🎉', '⭐', '✨', '🌟', '🎊', '🎈'][Math.floor(Math.random() * 6)]
     }));
     setConfettiPieces(pieces);
     
@@ -229,7 +351,7 @@ const GameplayScreen = ({
     celebrationTimeoutRef.current = setTimeout(() => {
       setShowCelebration(false);
       setConfettiPieces([]);
-    }, 2000);
+    }, 3000);
   }, []);
 
   // Move to next word
@@ -248,12 +370,16 @@ const GameplayScreen = ({
     setSelectedClue(puzzle.words[nextIndex]);
   }, [currentWordIndex, puzzle.words, solvedClues]);
 
-  // Handle answer selection
+  // Handle answer selection WITH AUDIO
   const handleSelectAnswer = useCallback((choice) => {
     if (feedback || isCurrentWordSolved) return;
     if (window.playClickSound) window.playClickSound();
+    
+    // Read the choice aloud
+    readChoice(choice);
+    
     setSelectedAnswer(choice);
-  }, [feedback, isCurrentWordSolved]);
+  }, [feedback, isCurrentWordSolved, readChoice]);
 
   // Handle submit answer
   const handleSubmitAnswer = useCallback(async () => {
@@ -335,16 +461,20 @@ const GameplayScreen = ({
     setFeedback(null);
   }, [puzzle.words]);
 
+  // MODIFIED: Hint now reveals one letter instead of the whole answer
   const handleUseHint = useCallback(() => {
     if (hintsRemaining > 0 && !isCurrentWordSolved) {
       if (window.playClickSound) window.playClickSound();
       setHintsRemaining(prev => prev - 1);
       hintsUsedForCurrentWordRef.current += 1;
-      setSelectedAnswer(currentWord.answer);
+      
+      // Reveal one letter in the grid
+      revealOneLetter(currentWord);
+      
       setShowHintTooltip(true);
       setTimeout(() => setShowHintTooltip(false), 2000);
     }
-  }, [hintsRemaining, isCurrentWordSolved, currentWord]);
+  }, [hintsRemaining, isCurrentWordSolved, currentWord, revealOneLetter]);
 
   // 🔥 OPTIMIZATION: Memoized word status
   const getWordStatus = useCallback((word) => {
@@ -353,7 +483,7 @@ const GameplayScreen = ({
     return 'pending';
   }, [solvedClues, currentWord]);
 
-  // 🔥 OPTIMIZATION: Memoized grid rendering with reduced animations
+  // 🔥 OPTIMIZATION: Memoized grid rendering with larger cells
   const renderedGrid = useMemo(() => {
     return puzzle.words.map((word, idx) => {
       const status = getWordStatus(word);
@@ -365,138 +495,153 @@ const GameplayScreen = ({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
-            padding: '10px 15px',
+            gap: '15px',
+            padding: '12px 20px',
             background: status === 'solved' ? 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)' : 
                        status === 'current' ? 'linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%)' : 
                        '#f8f9fa',
-            borderRadius: '12px',
+            borderRadius: '15px',
             border: status === 'current' ? '3px solid #ffc107' : '2px solid transparent',
             boxShadow: status === 'current' ? '0 4px 15px rgba(255,193,7,0.3)' : '0 2px 5px rgba(0,0,0,0.1)',
             transform: status === 'current' ? 'scale(1.02)' : 'scale(1)',
             transition: 'all 0.2s ease',
-            marginBottom: '8px'
+            marginBottom: '12px'
           }}
         >
           <div style={{
-            fontSize: '28px',
+            fontSize: '24px',
             fontWeight: 'bold',
             color: status === 'solved' ? '#28a745' : '#667eea',
-            minWidth: '45px',
-            textAlign: 'center'
+            minWidth: '40px'
           }}>
-            {status === 'solved' ? '✅' : word.number}
+            {word.number}.
           </div>
-          
-          <div style={{ display: 'flex', gap: '5px', flex: 1 }}>
-            {word.answer.split('').map((letter, i) => (
-              <div
-                key={i}
-                style={{
-                  width: '45px',
-                  height: '45px',
-                  border: status === 'solved' ? '3px solid #28a745' : 
-                         status === 'current' ? '3px solid #ffc107' : '3px solid #667eea',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '24px',
-                  fontWeight: 'bold',
-                  color: status === 'solved' ? '#155724' : '#5a3e7e',
-                  background: 'white',
-                  boxShadow: status === 'current' ? '0 2px 8px rgba(255,193,7,0.3)' : 'none'
-                }}
-              >
-                {isSolved ? letter : ''}
-              </div>
-            ))}
+          <div style={{
+            display: 'flex',
+            gap: '8px'
+          }}>
+            {word.answer.split('').map((letter, letterIdx) => {
+              const row = idx * 2;
+              const col = letterIdx + 1;
+              const cellIndex = row * gridWidth + col;
+              const cell = gridCells[cellIndex];
+              const isRevealed = cell?.revealed || false;
+              
+              return (
+                <div
+                  key={letterIdx}
+                  style={{
+                    width: '50px',
+                    height: '50px',
+                    border: isRevealed ? '3px solid #28a745' : '3px solid #dee2e6',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '24px',
+                    fontWeight: 'bold',
+                    background: isRevealed ? '#d4edda' : 'white',
+                    color: isRevealed ? '#155724' : '#adb5bd',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  {isRevealed ? letter.toUpperCase() : ''}
+                </div>
+              );
+            })}
           </div>
+          {isSolved && (
+            <div style={{
+              marginLeft: 'auto',
+              fontSize: '28px'
+            }}>
+              ✅
+            </div>
+          )}
         </div>
       );
     });
-  }, [puzzle.words, solvedClues, currentWord, getWordStatus]);
+  }, [puzzle.words, getWordStatus, solvedClues, gridCells, gridWidth]);
 
   return (
     <div style={{
       width: '100vw',
       height: '100vh',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      display: 'flex',
-      flexDirection: 'column',
-      padding: '15px',
-      boxSizing: 'border-box',
-      fontFamily: "'Poppins', 'Comic Sans MS', Arial, sans-serif",
       overflow: 'hidden',
       position: 'relative'
     }}>
-      {/* Home Button */}
-      <div style={{ position: 'absolute', top: '15px', left: '20px', zIndex: 100 }}>
-        <BackToHomeButton customMessage="Are you sure you want to quit? Your crossword progress will be lost!" />
-      </div>
+      <BackToHomeButton />
 
-      {/* Top Stats Bar */}
+      {/* Header */}
       <div style={{
+        padding: '15px 30px',
+        background: 'rgba(255,255,255,0.95)',
         display: 'flex',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        background: 'rgba(255, 255, 255, 0.98)',
-        padding: '12px 25px',
-        borderRadius: '18px',
-        boxShadow: '0 6px 18px rgba(0, 0, 0, 0.3)',
-        marginBottom: '15px'
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+        position: 'relative'
       }}>
-        <div style={{ display: 'flex', gap: '35px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '28px' }}>⏱️</span>
-            <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#5a3e7e' }}>{timeFormatted}</span>
+        {/* Left spacer for balance */}
+        <div style={{ width: '200px' }}></div>
+        
+        {/* Centered title */}
+        <div style={{ 
+          fontSize: '24px', 
+          fontWeight: 'bold', 
+          color: '#667eea',
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)'
+        }}>
+          📚 Episode {currentPuzzleIndex + 1} of {totalPuzzles}
+        </div>
+        
+        {/* Right side stats */}
+        <div style={{
+          display: 'flex',
+          gap: '25px',
+          alignItems: 'center',
+          fontSize: '18px',
+          fontWeight: '600'
+        }}>
+          <div style={{ color: '#667eea' }}>
+            ⏱️ {timeFormatted}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '28px' }}>💡</span>
-            <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#5a3e7e' }}>{hintsRemaining}</span>
+          <div style={{ color: '#ffc107' }}>
+            💡 {hintsRemaining}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '28px' }}>✅</span>
-            <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#5a3e7e' }}>{solvedCount}/{totalWords}</span>
+          <div style={{ color: '#28a745' }}>
+            ✅ {solvedCount}/{totalWords}
           </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <div style={{
         display: 'flex',
-        gap: '20px',
-        flex: 1,
-        overflow: 'hidden',
-        minHeight: 0
+        height: 'calc(100vh - 70px)',
+        padding: '20px',
+        gap: '20px'
       }}>
-        {/* LEFT SIDE - Grid */}
+        {/* LEFT SIDE - Word List and Grid */}
         <div style={{
-          flex: '0 0 58%',
-          background: 'white',
-          borderRadius: '20px',
-          padding: '20px',
-          boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)',
+          flex: '0 0 60%',
           display: 'flex',
           flexDirection: 'column',
+          gap: '15px',
           overflow: 'hidden'
         }}>
-          <h2 style={{
-            fontSize: '24px',
-            color: '#5a3e7e',
-            margin: '0 0 15px 0',
-            textAlign: 'center'
-          }}>
-            📖 {storyContext?.title || puzzle.title || "Crossword Puzzle"}
-          </h2>
-
-          {/* Word Number Quick Jump */}
+          {/* Word Number Buttons */}
           <div style={{
             display: 'flex',
             gap: '8px',
-            justifyContent: 'center',
-            marginBottom: '15px',
-            flexWrap: 'wrap'
+            flexWrap: 'wrap',
+            padding: '15px',
+            background: 'white',
+            borderRadius: '15px',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
           }}>
             {puzzle.words.map((word, idx) => {
               const status = getWordStatus(word);
@@ -505,9 +650,8 @@ const GameplayScreen = ({
                   key={idx}
                   onClick={() => handleJumpToWord(idx)}
                   style={{
-                    width: '42px',
-                    height: '42px',
-                    fontSize: '18px',
+                    padding: '10px 16px',
+                    fontSize: '16px',
                     fontWeight: 'bold',
                     border: status === 'current' ? '3px solid #ffc107' : '2px solid #667eea',
                     borderRadius: '10px',
@@ -524,11 +668,14 @@ const GameplayScreen = ({
             })}
           </div>
 
-          {/* Grid - No animations, pure performance */}
+          {/* Grid - Enhanced with better spacing */}
           <div style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '8px'
+            padding: '15px',
+            background: 'white',
+            borderRadius: '15px',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
           }}>
             {renderedGrid}
           </div>
@@ -543,7 +690,7 @@ const GameplayScreen = ({
           overflow: 'hidden',
           minHeight: 0
         }}>
-          {/* Current Clue Card */}
+          {/* Current Clue Card WITH AUDIO BUTTON */}
           <div style={{
             background: 'white',
             borderRadius: '18px',
@@ -575,21 +722,53 @@ const GameplayScreen = ({
                 Question {currentWordIndex + 1} of {totalWords}
               </div>
             </div>
+            
+            {/* Question with Audio Button */}
             <div style={{
-              fontSize: '20px',
-              color: '#2d3748',
-              lineHeight: '1.4',
-              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
               padding: '12px',
               background: '#f8f9fa',
               borderRadius: '10px',
               borderLeft: '4px solid #667eea'
             }}>
-              {currentWord.clue || `${currentWord.answer.length}-letter word`}
+              <div style={{
+                fontSize: '20px',
+                color: '#2d3748',
+                lineHeight: '1.4',
+                fontWeight: '600',
+                flex: 1
+              }}>
+                {currentWord.clue || `${currentWord.answer.length}-letter word`}
+              </div>
+              <button
+                onClick={readQuestion}
+                disabled={isPlayingAudio}
+                style={{
+                  background: isPlayingAudio ? '#ffc107' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '45px',
+                  height: '45px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '20px',
+                  cursor: isPlayingAudio ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 3px 10px rgba(0,0,0,0.2)',
+                  transition: 'all 0.2s ease',
+                  flexShrink: 0
+                }}
+                title="Listen to question"
+              >
+                {isPlayingAudio ? '⏸️' : '🔊'}
+              </button>
             </div>
           </div>
 
-          {/* Answer Choices */}
+          {/* Answer Choices WITH AUDIO */}
           <div style={{
             flex: 1,
             minHeight: 0,
@@ -780,7 +959,7 @@ const GameplayScreen = ({
                     whiteSpace: 'nowrap',
                     zIndex: 1000
                   }}>
-                    Answer revealed! ✨
+                    Letter revealed! ✨
                   </div>
                 )}
               </button>
@@ -808,7 +987,7 @@ const GameplayScreen = ({
         </div>
       </div>
 
-      {/* Feedback Overlay - Simplified */}
+      {/* Feedback Overlay */}
       <AnimatePresence>
         {feedback && !showCelebration && (
           <motion.div
@@ -822,102 +1001,89 @@ const GameplayScreen = ({
               left: '50%',
               transform: 'translate(-50%, -50%)',
               background: feedback.type === 'success' ? 
-                'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)' : 
-                'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-              borderRadius: '25px',
-              padding: '40px 60px',
-              textAlign: 'center',
-              boxShadow: '0 15px 40px rgba(0, 0, 0, 0.5)',
+                'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)' : 
+                'linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%)',
+              color: feedback.type === 'success' ? '#155724' : '#721c24',
+              padding: '30px 50px',
+              borderRadius: '20px',
+              fontSize: '24px',
+              fontWeight: 'bold',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
               zIndex: 1000,
-              border: '6px solid white'
+              border: feedback.type === 'success' ? '4px solid #28a745' : '4px solid #dc3545'
             }}
           >
-            <div style={{ fontSize: '90px', marginBottom: '15px' }}>
-              {feedback.type === 'success' ? '🎉' : '💪'}
-            </div>
-            <div style={{
-              fontSize: '42px',
-              fontWeight: 'bold',
-              color: 'white',
-              textShadow: '3px 3px 6px rgba(0,0,0,0.3)'
-            }}>
-              {feedback.type === 'success' ? 'CORRECT!' : 'Try Again!'}
-            </div>
+            {feedback.message}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Celebration Overlay - Optimized */}
+      {/* Celebration Overlay with Enhanced Confetti */}
       <AnimatePresence>
         {showCelebration && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'rgba(0,0,0,0.7)',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              zIndex: 999
-            }}
-          >
+          <>
+            {/* Success message overlay */}
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", duration: 0.4 }}
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ duration: 0.3 }}
               style={{
-                background: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+                color: 'white',
+                padding: '40px 60px',
                 borderRadius: '25px',
-                padding: '50px 70px',
-                textAlign: 'center',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                border: '6px solid white'
+                fontSize: '36px',
+                fontWeight: 'bold',
+                boxShadow: '0 15px 50px rgba(0,0,0,0.4)',
+                zIndex: 1001,
+                border: '5px solid white',
+                textAlign: 'center'
               }}
             >
-              <div style={{ fontSize: '100px', marginBottom: '20px' }}>🎉🌟✨</div>
-              <div style={{
-                fontSize: '42px',
-                fontWeight: 'bold',
-                color: 'white',
-                textShadow: '3px 3px 6px rgba(0,0,0,0.3)'
-              }}>
-                Amazing Work!
-              </div>
+              <div style={{ fontSize: '64px', marginBottom: '10px' }}>🎉</div>
+              <div>Correct!</div>
             </motion.div>
-          </motion.div>
+            
+            {/* Confetti pieces */}
+            {confettiPieces.map((piece) => (
+              <motion.div
+                key={piece.id}
+                initial={{ 
+                  y: -100, 
+                  opacity: 0, 
+                  scale: 0,
+                  x: `${piece.left}vw`
+                }}
+                animate={{
+                  y: ['-100px', `${window.innerHeight + 100}px`],
+                  opacity: [0, 1, 1, 0],
+                  scale: [0, 1.5, 1, 0.5],
+                  rotate: [0, 360, 720],
+                  x: `${piece.left + (Math.random() - 0.5) * 20}vw`
+                }}
+                transition={{
+                  duration: piece.duration,
+                  delay: piece.delay,
+                  ease: 'easeOut'
+                }}
+                style={{
+                  position: 'fixed',
+                  fontSize: '56px',
+                  zIndex: 1000,
+                  pointerEvents: 'none',
+                  filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.3))'
+                }}
+              >
+                {piece.emoji}
+              </motion.div>
+            ))}
+          </>
         )}
-      </AnimatePresence>
-
-      {/* Confetti - Reduced count */}
-      <AnimatePresence>
-        {confettiPieces.map(piece => (
-          <motion.div
-            key={piece.id}
-            initial={{ top: '-10%', left: `${piece.left}%`, opacity: 1 }}
-            animate={{ top: '110%', opacity: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{
-              duration: piece.duration,
-              delay: piece.delay,
-              ease: 'linear'
-            }}
-            style={{
-              position: 'fixed',
-              fontSize: '28px',
-              pointerEvents: 'none',
-              zIndex: 9999
-            }}
-          >
-            {piece.emoji}
-          </motion.div>
-        ))}
       </AnimatePresence>
     </div>
   );
