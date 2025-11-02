@@ -1,13 +1,46 @@
 // src/pages/games/crossword/StoryGeneratorScreen.jsx
-import React, { useState, useEffect, useRef } from 'react';
+// OPTIMIZED VERSION - Reduced animations and improved performance
+import React, { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../../styles/games/crossword/StoryGeneratorScreen.module.css';
 import { StoryLoadingScreen } from '../../../components/common/LoadingStates';
-// ADD THIS IMPORT at the top with other imports
 import CrosswordAnalyticsDashboard from '../../../pages/games/crossword/CrosswordAnalyticsDashboard';
 import { API_ENDPOINTS } from '../../../config/api';
 import BackToHomeButton from '../../games/crossword/BackToHomeButton';
+
+// Memoized Theme Option Component
+const ThemeOption = memo(({ themeOption, isSelected, onSelect }) => {
+  return (
+    <div 
+      className={`${styles.themeOption} ${isSelected ? styles.selected : ''}`}
+      onClick={() => onSelect(themeOption.id)}
+    >
+      <div className={styles.themeIcon}>{themeOption.icon}</div>
+      <div className={styles.themeContent}>
+        <h3 className={styles.themeName}>{themeOption.name}</h3>
+        <p className={styles.themeDescription}>{themeOption.description}</p>
+      </div>
+    </div>
+  );
+});
+
+ThemeOption.displayName = 'ThemeOption';
+
+// Memoized Skill Option Component
+const SkillOption = memo(({ skill, isSelected, onToggle }) => {
+  return (
+    <div 
+      className={`${styles.skillOption} ${isSelected ? styles.selected : ''}`}
+      onClick={() => onToggle(skill.id)}
+    >
+      <span className={styles.skillIcon}>{skill.icon}</span>
+      <span className={styles.skillName}>{skill.name}</span>
+    </div>
+  );
+});
+
+SkillOption.displayName = 'SkillOption';
 
 const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   const navigate = useNavigate();
@@ -26,163 +59,179 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   const [loadingMessage, setLoadingMessage] = useState('Creating your adventure...');
   
   // Timeout handling
-  const [timeoutId, setTimeoutId] = useState(null);
+  const timeoutRef = useRef(null);
+  const progressIntervalRef = useRef(null);
   
-  // Available themes and skills
-  const availableThemes = [
+  // Memoized static data
+  const availableThemes = useMemo(() => [
     { id: 'jungle', name: 'Jungle Adventure', icon: '🌴', description: 'Explore lush rainforests filled with wildlife and mystery.' },
     { id: 'ocean', name: 'Ocean Discovery', icon: '🌊', description: 'Dive into underwater worlds and discover marine life.' },
     { id: 'farm', name: 'Farm Life', icon: '🚜', description: 'Experience life on a farm with animals and crops.' },
     { id: 'space', name: 'Space Journey', icon: '🚀', description: 'Travel among the stars and explore distant planets.' },
     { id: 'city', name: 'City Adventure', icon: '🏙️', description: 'Navigate bustling streets and exciting urban landscapes.' },
     { id: 'fairytale', name: 'Fairy Tale Kingdom', icon: '🏰', description: 'Discover magical castles and meet enchanted creatures.' }
-  ];
+  ], []);
   
-  const availableSkills = [
+  const availableSkills = useMemo(() => [
     { id: 'sight-words', name: 'Sight Words', icon: '👁️' },
     { id: 'phonics-sh', name: 'Phonics: SH Sound', icon: '📊' },
     { id: 'phonics-ch', name: 'Phonics: CH Sound', icon: '🎵' },
     { id: 'long-vowels', name: 'Long Vowel Sounds', icon: '🔤' },
     { id: 'compound-words', name: 'Compound Words', icon: '🔗' },
     { id: 'action-verbs', name: 'Action Verbs', icon: '🏃‍♂️' }
-  ];
+  ], []);
   
-  // Handle skill selection
-  const handleSkillToggle = (skillId) => {
-    if (focusSkills.includes(skillId)) {
-      setFocusSkills(focusSkills.filter(id => id !== skillId));
-    } else {
-      setFocusSkills([...focusSkills, skillId]);
-    }
-  };
+  // Memoized handlers
+  const handleSkillToggle = useCallback((skillId) => {
+    setFocusSkills(prev => 
+      prev.includes(skillId) 
+        ? prev.filter(id => id !== skillId)
+        : [...prev, skillId]
+    );
+  }, []);
+
+  const handleThemeSelect = useCallback((themeId) => {
+    setTheme(themeId);
+  }, []);
+
+  const handleEpisodeIncrement = useCallback(() => {
+    setEpisodeCount(prev => Math.min(5, prev + 1));
+  }, []);
+
+  const handleEpisodeDecrement = useCallback(() => {
+    setEpisodeCount(prev => Math.max(1, prev - 1));
+  }, []);
+
+  const handleEpisodeChange = useCallback((e) => {
+    setEpisodeCount(parseInt(e.target.value));
+  }, []);
 
   // Clear timeout when component unmounts
   useEffect(() => {
     return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
       }
     };
-  }, [timeoutId]);
+  }, []);
   
   // Generate story with AI
-  const generateStory = async (e) => {
-  if (e && e.preventDefault) {
-    e.preventDefault();
-  }
-  
-  setIsGenerating(true);
-  setGenerationProgress(0);
-  setError(null);
-  setTimeoutWarning(false);
-  
-  // Set a timeout warning after 30 seconds
-  const warningId = setTimeout(() => {
-    setTimeoutWarning(true);
-  }, 30000);
-  
-  setTimeoutId(warningId);
-  
-  // Simulated progress updates
-  const progressInterval = setInterval(() => {
-    setGenerationProgress(prev => {
-      if (prev >= 90) {
-        clearInterval(progressInterval);
-        return 90;
+  const generateStory = useCallback(async (e) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+    
+    setIsGenerating(true);
+    setGenerationProgress(0);
+    setError(null);
+    setTimeoutWarning(false);
+    
+    // Set a timeout warning after 30 seconds
+    timeoutRef.current = setTimeout(() => {
+      setTimeoutWarning(true);
+    }, 30000);
+    
+    // Simulated progress updates (optimized with ref)
+    progressIntervalRef.current = setInterval(() => {
+      setGenerationProgress(prev => {
+        if (prev >= 90) {
+          return 90;
+        }
+        return prev + (prev < 50 ? 4 : (prev < 80 ? 2 : 1));
+      });
+    }, 1000);
+    
+    try {
+      const controller = new AbortController();
+      const fetchTimeout = setTimeout(() => controller.abort(), 60000);
+      
+      const requestBody = {
+        theme,
+        focusSkills: focusSkills.slice(0, 3),
+        characterNames: characterNames || undefined,
+        episodeCount: Math.min(episodeCount, 5),
+        gradeLevel: 3,
+      };
+      
+      console.log("Sending request with data:", requestBody);
+      
+      const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/generate-story/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      });
+      
+      clearTimeout(fetchTimeout);
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
       }
-      return prev + (prev < 50 ? 4 : (prev < 80 ? 2 : 1));
-    });
-  }, 1000);
-  
-  try {
-    const controller = new AbortController();
-    const fetchTimeout = setTimeout(() => controller.abort(), 60000);
     
-    const requestBody = {
-      theme,
-      focusSkills: focusSkills.slice(0, 3),
-      characterNames: characterNames || undefined,
-      episodeCount: Math.min(episodeCount, 5),
-      gradeLevel: 3,
-    };
-    
-    console.log("Sending request with data:", requestBody);
-    
-    // Updated API call using API_ENDPOINTS
-    const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/generate-story/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody),
-      signal: controller.signal
-    });
-    
-    clearTimeout(fetchTimeout);
-    
-    if (!response.ok) {
-      throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-    }
-  
-    const responseText = await response.text();
-    console.log("Response text:", responseText.substring(0, 200) + "...");
-    
-    const responseData = JSON.parse(responseText);
-    
-    clearInterval(progressInterval);
-    clearTimeout(warningId);
-    setTimeoutId(null);
-    
-    if (!responseData || !responseData.story || !responseData.puzzles) {
-      throw new Error("Response does not contain expected story data");
-    }
-    
-    setGenerationProgress(100);
-    
-    setTimeout(() => {
-      if (onStoryGenerated) {
-        onStoryGenerated(responseData);
+      const responseText = await response.text();
+      console.log("Response text:", responseText.substring(0, 200) + "...");
+      
+      const responseData = JSON.parse(responseText);
+      
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      
+      if (!responseData || !responseData.story || !responseData.puzzles) {
+        throw new Error("Response does not contain expected story data");
+      }
+      
+      setGenerationProgress(100);
+      
+      setTimeout(() => {
+        if (onStoryGenerated) {
+          onStoryGenerated(responseData);
+        }
+        setIsGenerating(false);
+      }, 500);
+      
+    } catch (err) {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      
+      if (err.name === 'AbortError') {
+        setError('Request timed out. The server is taking too long to respond. Try with fewer episodes or a simpler theme.');
+      } else {
+        setError(err.message || 'An error occurred while generating the story');
       }
       setIsGenerating(false);
-    }, 500);
-    
-  } catch (err) {
-    clearInterval(progressInterval);
-    clearTimeout(warningId);
-    setTimeoutId(null);
-    
-    if (err.name === 'AbortError') {
-      setError('Request timed out. The server is taking too long to respond. Try with fewer episodes or a simpler theme.');
-    } else {
-      setError(err.message || 'An error occurred while generating the story');
+      console.error('Error generating story:', err);
     }
-    setIsGenerating(false);
-    console.error('Error generating story:', err);
-  }
-};
+  }, [theme, focusSkills, characterNames, episodeCount, onStoryGenerated]);
   
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     setError(null);
     setIsGenerating(false);
     setGenerationProgress(0);
-  };
+  }, []);
   
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     if (onCancel) {
       onCancel();
     }
-  };
+  }, [onCancel]);
   
   return (
     <div className={styles.generatorContainer}>
       <BackToHomeButton position="top-left" />
-    
-
       <div className={styles.generatorCard}>
-
-       
-
-        
         <div className={styles.titleContainer}>
           <h1 className={styles.generatorTitle}>Story Adventure Creator</h1>
           <div className={styles.subtitleContainer}>
@@ -244,92 +293,76 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
               <div className={styles.themeOptionsContainer}>
                 <div className={styles.themeOptions}>
                   {availableThemes.map(themeOption => (
-                    <motion.div 
+                    <ThemeOption
                       key={themeOption.id}
-                      className={`${styles.themeOption} ${theme === themeOption.id ? styles.selected : ''}`}
-                      onClick={() => setTheme(themeOption.id)}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <div className={styles.themeIconContainer}>
-                        <span className={styles.themeEmoji}>{themeOption.icon}</span>
-                      </div>
-                      <div className={styles.themeDetails}>
-                        <h3 className={styles.themeName}>{themeOption.name}</h3>
-                        <p className={styles.themeDescription}>{themeOption.description}</p>
-                      </div>
-                    </motion.div>
+                      themeOption={themeOption}
+                      isSelected={theme === themeOption.id}
+                      onSelect={handleThemeSelect}
+                    />
                   ))}
                 </div>
               </div>
             </div>
             
-            {/* Skill Focus */}
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Focus Skills: <span className={styles.optionalHint}>(select up to 3)</span></label>
-              <div className={styles.skillsOptions}>
-                {availableSkills.map(skill => {
-                  const canSelect = focusSkills.includes(skill.id) || focusSkills.length < 3;
-                  
-                  return (
-                    <motion.div 
-                      key={skill.id}
-                      className={`${styles.skillOption} ${focusSkills.includes(skill.id) ? styles.selected : ''}`}
-                      onClick={() => canSelect && handleSkillToggle(skill.id)}
-                      whileHover={{ scale: canSelect ? 1.05 : 1 }}
-                      whileTap={{ scale: canSelect ? 0.95 : 1 }}
-                      disabled={!canSelect}
-                    >
-                      <div className={styles.skillCheckbox}>
-                        {focusSkills.includes(skill.id) ? skill.icon : ''}
-                      </div>
-                      <span>{skill.name}</span>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </div>
-            
-            {/* Character Names (Optional) */}
+            {/* Skills Selection */}
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>
-                Character Names (Optional):
-                <span className={styles.optionalHint}>Leave blank for AI to choose</span>
+                Focus Skills:
+                <span className={styles.skillCount}>
+                  {focusSkills.length} selected
+                </span>
               </label>
-              <input 
+              <div className={styles.skillOptions}>
+                {availableSkills.map(skill => (
+                  <SkillOption
+                    key={skill.id}
+                    skill={skill}
+                    isSelected={focusSkills.includes(skill.id)}
+                    onToggle={handleSkillToggle}
+                  />
+                ))}
+              </div>
+              <p className={styles.skillHint}>
+                💡 Select 1-3 skills for the best results
+              </p>
+            </div>
+            
+            {/* Character Names */}
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Character Names (Optional):</label>
+              <input
                 type="text"
+                className={styles.textInput}
+                placeholder="e.g., Alex, Maya, Sam (comma-separated)"
                 value={characterNames}
                 onChange={(e) => setCharacterNames(e.target.value)}
-                placeholder="e.g., Sam, Alex, Taylor"
-                className={styles.textInput}
               />
+              <p className={styles.inputHint}>
+                ✨ Leave blank for auto-generated names
+              </p>
             </div>
             
             {/* Episode Count */}
             <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Number of Episodes: <span className={styles.optionalHint}>(1-5)</span></label>
+              <label className={styles.formLabel}>Number of Episodes:</label>
               <div className={styles.episodeCountControls}>
-                <motion.button 
+                <button 
                   type="button"
                   className={styles.countButton}
-                  onClick={() => setEpisodeCount(Math.max(1, episodeCount - 1))}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  onClick={handleEpisodeDecrement}
                   disabled={episodeCount <= 1}
                 >
                   -
-                </motion.button>
+                </button>
                 <div className={styles.episodeCount}>{episodeCount}</div>
-                <motion.button 
+                <button 
                   type="button"
                   className={styles.countButton}
-                  onClick={() => setEpisodeCount(Math.min(5, episodeCount + 1))}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  onClick={handleEpisodeIncrement}
                   disabled={episodeCount >= 5}
                 >
                   +
-                </motion.button>
+                </button>
               </div>
               <div className={styles.episodeSlider}>
                 <input
@@ -338,7 +371,7 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
                   max="5"
                   step="1"
                   value={episodeCount}
-                  onChange={(e) => setEpisodeCount(parseInt(e.target.value))}
+                  onChange={handleEpisodeChange}
                   className={styles.slider}
                 />
               </div>
@@ -346,23 +379,19 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
             
             {/* Action Buttons */}
             <div className={styles.actionButtons}>
-              <motion.button 
+              <button 
                 type="button"
                 className={styles.cancelButton}
                 onClick={handleCancel}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 Cancel
-              </motion.button>
-              <motion.button 
+              </button>
+              <button 
                 type="submit"
                 className={styles.generateButton}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 Create Story
-              </motion.button>
+              </button>
             </div>
           </form>
         )}
