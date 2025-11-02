@@ -216,14 +216,18 @@ LOGGING = {
         },
     },
     'filters': {
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue',
-        },
+    'require_debug_true': {
+        '()': 'django.utils.log.RequireDebugTrue',
+    },
+    'always': {
+        '()': 'django.utils.log.CallbackFilter',
+        'callback': lambda record: True,
+    },
     },
     'handlers': {
         'console': {
             'level': 'INFO',
-            'filters': ['require_debug_true'],
+            'filters': ['always'],
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
