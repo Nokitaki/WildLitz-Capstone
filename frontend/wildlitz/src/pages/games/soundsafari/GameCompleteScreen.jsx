@@ -1,207 +1,344 @@
 // frontend/wildlitz/src/pages/games/soundsafari/GameCompleteScreen.jsx
-// UPDATED: Analytics already saved in main component, this just displays results
+// UPDATED - Shows overall success rate (like analytics) without points display
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../../styles/games/safari/GameCompleteScreen.module.css';
 import WildLitzFox from '../../../assets/img/wildlitz-idle.png';
 
 /**
  * Game Complete Screen - Shown after all rounds are complete
- * UPDATED: No longer saves analytics (handled by main game component)
+ * Displays overall success rate across all rounds
  */
 const GameCompleteScreen = ({ 
   score, 
   totalRounds, 
   onPlayAgain, 
   onChangeDifficulty,
-  gameConfig = null
+  totalCorrect = 0,
+  totalAnimalsWithSound = 0,
+  gameConfig = null,
+  roundsData = null // New prop for detailed round data
 }) => {
   const navigate = useNavigate();
+  const [showConfetti, setShowConfetti] = useState(false);
   
-  // Calculate final percentage
-  const finalPercentage = Math.round((score / totalRounds) * 100);
+  // Calculate overall success rate (like analytics)
+  const calculateOverallSuccessRate = () => {
+    if (roundsData && roundsData.length > 0) {
+      // Calculate from detailed round data if available
+      let totalCorrect = 0;
+      let totalAnimalsWithSound = 0;
+      
+      roundsData.forEach(round => {
+        // Access the correct property names from your analytics data
+        totalCorrect += round.correctCount || 0;
+        totalAnimalsWithSound += round.totalCorrectAnimals || 0;
+      });
+      
+      // Avoid division by zero
+      if (totalAnimalsWithSound === 0) {
+        return 0;
+      }
+      
+      return Math.round((totalCorrect / totalAnimalsWithSound) * 100);
+    } else {
+      // Fallback: Use props if detailed data not available
+      if (totalAnimalsWithSound === 0) {
+        return 0;
+      }
+      return Math.round((totalCorrect / totalAnimalsWithSound) * 100);
+    }
+  };
   
-  // Get feedback message based on score
+  // Calculate totals for display
+  const calculateTotals = () => {
+    if (roundsData && roundsData.length > 0) {
+      let totalCorrect = 0;
+      let totalAnimalsWithSound = 0;
+      
+      roundsData.forEach(round => {
+        totalCorrect += round.correctCount || 0;
+        totalAnimalsWithSound += round.totalCorrectAnimals || 0;
+      });
+      
+      return { totalCorrect, totalAnimalsWithSound };
+    } else {
+      return { 
+        totalCorrect, 
+        totalAnimalsWithSound 
+      };
+    }
+  };
+  
+  const overallSuccessRate = calculateOverallSuccessRate();
+  const { totalCorrect: calculatedCorrect, totalAnimalsWithSound: calculatedTotal } = calculateTotals();
+  
+  // Get feedback message based on success rate
   const getFeedbackMessage = () => {
-    if (finalPercentage >= 90) return {
+    if (overallSuccessRate >= 90) return {
       title: "🏆 Outstanding Safari Explorer!",
       message: "You have excellent phonemic awareness! You're a true sound detective!",
-      color: "#4CAF50"
+      color: "#4caf50",
+      emoji: "🏆"
     };
-    if (finalPercentage >= 70) return {
+    if (overallSuccessRate >= 70) return {
       title: "🌟 Great Safari Guide!",
       message: "You're doing really well at identifying sounds! Keep practicing!",
-      color: "#2196F3"
+      color: "#2196f3",
+      emoji: "🌟"
     };
-    if (finalPercentage >= 50) return {
+    if (overallSuccessRate >= 50) return {
       title: "👍 Good Effort!",
       message: "You're learning! Keep playing to get even better at hearing sounds!",
-      color: "#FF9800"
+      color: "#ff9800",
+      emoji: "👍"
     };
     return {
       title: "🎯 Keep Trying!",
       message: "Learning takes practice! Try the easier level and you'll improve!",
-      color: "#F44336"
+      color: "#f44336",
+      emoji: "🎯"
     };
   };
   
   const feedback = getFeedbackMessage();
   
+  // Get achievement badges based on performance
+  const getAchievementBadges = () => {
+    const badges = [];
+    if (overallSuccessRate === 100) badges.push({ icon: "💯", label: "Perfect Score!", color: "#ffd700" });
+    if (overallSuccessRate >= 90) badges.push({ icon: "🎯", label: "Expert Listener", color: "#4caf50" });
+    if (overallSuccessRate >= 70) badges.push({ icon: "⭐", label: "Sound Master", color: "#2196f3" });
+    if (overallSuccessRate >= 50) badges.push({ icon: "🔥", label: "Good Progress", color: "#ff5722" });
+    return badges;
+  };
+  
+  const badges = getAchievementBadges();
+  
+  // Show confetti on mount for good scores
+  useEffect(() => {
+    if (overallSuccessRate >= 70) {
+      setShowConfetti(true);
+      const timer = setTimeout(() => setShowConfetti(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [overallSuccessRate]);
+  
+  // Handle navigation
+  const handleGoHome = () => {
+    navigate('/home');
+  };
+  
   return (
-    <motion.div
-      className={styles.completeContainer}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.8 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className={styles.completeCard}>
-        {/* Character */}
+    <div className={styles.completeContainer}>
+      {/* Confetti Animation */}
+      <AnimatePresence>
+        {showConfetti && (
+          <div className={styles.confettiContainer}>
+            {Array.from({ length: 40 }).map((_, i) => (
+              <motion.div
+                key={i}
+                className={styles.confettiPiece}
+                style={{
+                  backgroundColor: `hsl(${Math.random() * 360}, 80%, 60%)`,
+                  width: `${Math.random() * 10 + 6}px`,
+                  height: `${Math.random() * 10 + 6}px`,
+                  top: `-20px`,
+                  left: `${Math.random() * 100}%`,
+                }}
+                initial={{ y: -20, opacity: 1 }}
+                animate={{
+                  y: window.innerHeight + 50,
+                  x: Math.random() * 100 - 50,
+                  rotate: Math.random() * 360 * (Math.random() > 0.5 ? 1 : -1),
+                  opacity: 0
+                }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  duration: 3 + Math.random() * 2,
+                  ease: 'easeOut'
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </AnimatePresence>
+      
+      {/* Single Scrollable Card */}
+      <motion.div 
+        className={styles.completeCard}
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+      >
+        {/* Character Mascot */}
         <motion.div
           className={styles.character}
-          initial={{ y: -50, opacity: 0 }}
+          initial={{ y: -30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
         >
-          <img src={WildLitzFox} alt="WildLitz Fox" />
+          <img src={WildLitzFox} alt="WildLitz Fox" className={styles.characterImage} />
         </motion.div>
         
-        {/* Title */}
+        {/* Header */}
         <motion.div
-          className={styles.title}
+          className={styles.header}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.3 }}
         >
-          <h2>Safari Complete!</h2>
+          <h1 className={styles.title}>
+            <span className={styles.titleIcon}>🎯</span>
+            Safari Complete!
+          </h1>
           <p className={styles.subtitle}>You finished all {totalRounds} rounds!</p>
         </motion.div>
         
-        {/* Score Display */}
+        {/* Score Display - Overall Success Rate Only */}
         <motion.div
-          className={styles.scoreDisplay}
+          className={styles.scoreSection}
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
+          transition={{ delay: 0.5, type: "spring", stiffness: 150 }}
         >
-          <div className={styles.scoreCircle} style={{ borderColor: feedback.color }}>
-            <div className={styles.scoreValue} style={{ color: feedback.color }}>
-              {Math.round(score)}
+          <div 
+            className={styles.scoreCircle} 
+            style={{ borderColor: feedback.color }}
+          >
+            <div className={styles.scorePercentage} style={{ color: feedback.color }}>
+              {overallSuccessRate}%
             </div>
-            <div className={styles.scoreLabel}>out of {totalRounds * 100}</div>
+            <div className={styles.scorePoints}>
+              {calculatedCorrect} / {calculatedTotal} correct
+            </div>
+            <div className={styles.scoreLabel}>Success Rate</div>
           </div>
         </motion.div>
         
         {/* Feedback Message */}
         <motion.div
-          className={styles.feedback}
+          className={styles.feedbackSection}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          style={{ backgroundColor: `${feedback.color}20` }}
+          transition={{ delay: 0.7 }}
         >
-          <h3 style={{ color: feedback.color }}>{feedback.title}</h3>
-          <p>{feedback.message}</p>
+          <div className={styles.feedbackBox} style={{ borderLeftColor: feedback.color }}>
+            <h2 className={styles.feedbackTitle} style={{ color: feedback.color }}>
+              {feedback.emoji} {feedback.title}
+            </h2>
+            <p className={styles.feedbackMessage}>{feedback.message}</p>
+          </div>
         </motion.div>
         
-        {/* Stats Summary */}
+        {/* Achievement Badges */}
+        {badges.length > 0 && (
+          <motion.div
+            className={styles.badgesSection}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 }}
+          >
+            <h3 className={styles.sectionTitle}>🎖️ Achievements Earned</h3>
+            <div className={styles.badgesGrid}>
+              {badges.map((badge, index) => (
+                <motion.div
+                  key={index}
+                  className={styles.badge}
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ 
+                    delay: 1 + index * 0.1, 
+                    type: "spring", 
+                    stiffness: 200 
+                  }}
+                >
+                  <div className={styles.badgeIcon}>{badge.icon}</div>
+                  <div className={styles.badgeLabel}>{badge.label}</div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+        
+        {/* Game Statistics */}
         <motion.div
-          className={styles.statsGrid}
+          className={styles.statsSection}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.0 }}
+          transition={{ delay: 1.1 }}
         >
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>🎯</div>
-            <div className={styles.statLabel}>Accuracy</div>
-            <div className={styles.statValue}>{finalPercentage}%</div>
-          </div>
-          
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>🔊</div>
-            <div className={styles.statLabel}>Sound</div>
-            <div className={styles.statValue}>
-              {gameConfig?.targetSound?.toUpperCase() || '-'}
+          <h3 className={styles.sectionTitle}>📊 Game Statistics</h3>
+          <div className={styles.statsGrid}>
+            <div className={styles.statCard}>
+              <div className={styles.statIcon}>🎯</div>
+              <div className={styles.statValue}>{overallSuccessRate}%</div>
+              <div className={styles.statLabel}>Accuracy</div>
             </div>
-          </div>
-          
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>📍</div>
-            <div className={styles.statLabel}>Position</div>
-            <div className={styles.statValue}>
-              {gameConfig?.soundPosition?.charAt(0).toUpperCase() + 
-               gameConfig?.soundPosition?.slice(1) || '-'}
+            <div className={styles.statCard}>
+              <div className={styles.statIcon}>📊</div>
+              <div className={styles.statValue}>{gameConfig?.targetSound?.toUpperCase() || '—'}</div>
+              <div className={styles.statLabel}>Sound</div>
             </div>
-          </div>
-          
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>⭐</div>
-            <div className={styles.statLabel}>Difficulty</div>
-            <div className={styles.statValue}>
-              {gameConfig?.difficulty?.charAt(0).toUpperCase() + 
-               gameConfig?.difficulty?.slice(1) || '-'}
+            <div className={styles.statCard}>
+              <div className={styles.statIcon}>📍</div>
+              <div className={styles.statValue}>
+                {gameConfig?.soundPosition === 'beginning' ? 'Start' : 
+                 gameConfig?.soundPosition === 'middle' ? 'Middle' : 
+                 gameConfig?.soundPosition === 'ending' ? 'End' : 'Any'}
+              </div>
+              <div className={styles.statLabel}>Position</div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statIcon}>⭐</div>
+              <div className={styles.statValue}>
+                {gameConfig?.difficulty === 'easy' ? 'Easy' :
+                 gameConfig?.difficulty === 'medium' ? 'Medium' : 'Hard'}
+              </div>
+              <div className={styles.statLabel}>Difficulty</div>
             </div>
           </div>
         </motion.div>
         
         {/* Action Buttons */}
         <motion.div
-          className={styles.actions}
+          className={styles.actionButtons}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2 }}
+          transition={{ delay: 1.3 }}
         >
-          <button
-            className={styles.playAgainBtn}
+          <motion.button
+            className={styles.playAgainButton}
             onClick={onPlayAgain}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            🔄 Play Again
-          </button>
-          
-          <button
-            className={styles.changeDifficultyBtn}
+            <span>🔄</span>
+            Play Again
+          </motion.button>
+          <motion.button
+            className={styles.changeDifficultyButton}
             onClick={onChangeDifficulty}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            ⚙️ Change Settings
-          </button>
-          
-          <button
-            className={styles.viewAnalyticsBtn}
-            onClick={() => navigate('/games/sound-safari/analytics')}
+            <span>⚙️</span>
+            Change Settings
+          </motion.button>
+          <motion.button
+            className={styles.homeButton}
+            onClick={handleGoHome}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            📊 View Progress
-          </button>
+            <span>🏠</span>
+            Go Home
+          </motion.button>
         </motion.div>
-        
-        {/* Confetti effect for high scores */}
-        {finalPercentage >= 90 && (
-          <div className={styles.confetti}>
-            {[...Array(50)].map((_, i) => (
-              <motion.div
-                key={i}
-                className={styles.confettiPiece}
-                initial={{ y: -100, x: Math.random() * window.innerWidth, opacity: 1 }}
-                animate={{ 
-                  y: window.innerHeight + 100,
-                  x: Math.random() * window.innerWidth,
-                  opacity: 0,
-                  rotate: Math.random() * 720
-                }}
-                transition={{ 
-                  duration: 3 + Math.random() * 2,
-                  delay: Math.random() * 0.5
-                }}
-                style={{
-                  backgroundColor: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1'][Math.floor(Math.random() * 4)]
-                }}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 };
 

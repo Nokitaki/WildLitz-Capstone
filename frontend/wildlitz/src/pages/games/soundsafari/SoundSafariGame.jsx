@@ -135,13 +135,6 @@ const SoundSafariGame = () => {
    */
   const saveCompleteSession = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      
-      if (!token) {
-        console.log('⚠️ User not logged in, skipping analytics save');
-        return { success: false, error: 'Not authenticated' };
-      }
-      
       const totalTimeSpent = Date.now() - sessionStartTime;
       
       const sessionData = soundSafariAnalyticsService.formatSessionData(
@@ -157,8 +150,12 @@ const SoundSafariGame = () => {
       const result = await soundSafariAnalyticsService.saveGameSession(sessionData);
       
       if (result.success) {
-        console.log('✅ Complete session saved successfully!');
-        console.log('   Session ID:', result.session_id);
+        if (result.anonymous) {
+          console.log('✅ Session saved anonymously (user not logged in)');
+        } else {
+          console.log('✅ Session saved successfully!');
+          console.log('   Session ID:', result.session_id);
+        }
       } else {
         console.error('❌ Failed to save session:', result.error);
       }
@@ -631,20 +628,16 @@ const SoundSafariGame = () => {
           )}
           
           {gameState === 'complete' && (
-            <motion.div
-              key="complete"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={styles.screenContainer}
-            >
-              <GameCompleteScreen 
-                score={score / totalRounds}
-                totalRounds={totalRounds}
-                onPlayAgain={handlePlayAgain}
-                onChangeDifficulty={handleChangeDifficulty}
-              />
-            </motion.div>
+            <GameCompleteScreen
+              score={score}
+              totalRounds={totalRounds}
+              totalCorrect={allRoundsData.reduce((sum, round) => sum + (round.correctCount || 0), 0)}
+              totalAnimalsWithSound={allRoundsData.reduce((sum, round) => sum + (round.totalCorrectAnimals || 0), 0)}
+              onPlayAgain={handlePlayAgain}
+              onChangeDifficulty={handleChangeDifficulty}
+              gameConfig={gameConfig}
+              roundsData={allRoundsData}
+            />
           )}
         </AnimatePresence>
         

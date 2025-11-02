@@ -1429,3 +1429,8 @@ INFO 2025-10-22 00:32:58,361 views Found 21 sessions for user_email: ken@gmail.c
 INFO 2025-10-22 00:33:09,999 views Session details retrieved: c93f6e98-d46b-468f-88f9-115ae75ccc0a
 INFO 2025-10-22 00:43:14,713 views Session details retrieved: 25dbe501-36b7-46b4-a2bc-dfa3980a2a3c
 INFO 2025-10-22 00:43:17,151 views Session details retrieved: 84291752-5fc3-46d4-b473-5da7f3814ce8
+INFO 2025-11-02 14:03:13,722 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-02 14:03:14,901 views Found 71 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-02 14:03:14,910 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-02 14:03:15,054 views Found 71 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-02 14:03:17,592 views Session details retrieved: 9fae10ce-0ef8-4a4c-bd3b-40c36e5aee58
