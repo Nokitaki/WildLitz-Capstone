@@ -1,5 +1,5 @@
-// src/pages/games/crossword/GameplayScreen.jsx - FIXED VERSION
-import React, { useState, useEffect, useRef } from 'react';
+// src/pages/games/crossword/GameplayScreen.jsx - OPTIMIZED VERSION
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BackToHomeButton from '../crossword/BackToHomeButton';
 import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
@@ -28,15 +28,14 @@ const GameplayScreen = ({
   const [showCelebration, setShowCelebration] = useState(false);
   const [confettiPieces, setConfettiPieces] = useState([]);
   const [showHintTooltip, setShowHintTooltip] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
 
   const gridInitializedRef = useRef(false);
-  const startTime = useRef(Date.now());
   const wordStartTime = useRef(Date.now());
-  const hintsUsedForCurrentWordRef = useRef(0); // ✅ Use ref instead of state
+  const hintsUsedForCurrentWordRef = useRef(0);
+  const celebrationTimeoutRef = useRef(null);
+  const feedbackTimeoutRef = useRef(null);
 
   const INITIAL_HINTS = 3;
-  const hintsUsed = INITIAL_HINTS - hintsRemaining;
 
   // Validation
   if (!puzzle || !puzzle.words || !Array.isArray(puzzle.words)) {
@@ -61,83 +60,19 @@ const GameplayScreen = ({
   const solvedCount = Object.keys(solvedClues).length;
   const isCurrentWordSolved = solvedClues[currentWord?.answer];
 
-  // Initialize grid
-  useEffect(() => {
-    if (puzzle && puzzle.words && !gridInitializedRef.current) {
-      createSimpleGrid();
-      gridInitializedRef.current = true;
-    }
-  }, [puzzle]);
+  // 🔥 OPTIMIZATION: Memoize computed values
+  const gridWidth = useMemo(() => {
+    const maxLength = Math.max(...puzzle.words.map(w => w.answer.length));
+    return maxLength + 2;
+  }, [puzzle.words]);
 
-  // Set initial selected clue
-  useEffect(() => {
-    if (puzzle && puzzle.words && puzzle.words.length > 0 && !selectedClue) {
-      setSelectedClue(puzzle.words[0]);
-      setCurrentWordIndex(0);
-    }
-  }, [puzzle]);
+  const gridHeight = useMemo(() => puzzle.words.length * 2, [puzzle.words.length]);
 
-  // Generate choices when clue changes
-  useEffect(() => {
-    if (currentWord && !solvedClues[currentWord.answer]) {
-      generateChoicesForClue(currentWord);
-      setSelectedAnswer(null);
-      setFeedback(null);
-      hintsUsedForCurrentWordRef.current = 0; // ✅ Reset ref
-      wordStartTime.current = Date.now();
-    }
-  }, [currentWordIndex, currentWord]);
-
-  // Sync solvedClues with solvedWords prop
-  useEffect(() => {
-    if (solvedWords && solvedWords.length > 0) {
-      const solved = {};
-      solvedWords.forEach(sw => {
-        const word = typeof sw === 'string' ? sw : sw.word;
-        if (word) solved[word] = true;
-      });
-      setSolvedClues(solved);
-    }
-  }, [solvedWords]);
-
-
-
-
-const updateGridWithWord = (word) => {
-  if (!word) return;
-  
-  const wordIdx = puzzle.words.findIndex(w => w.answer === word.answer);
-  if (wordIdx === -1) return;
-  
-  setGridCells(prevCells => {
-    const newCells = [...prevCells];
-    newCells.forEach((cell, idx) => {
-      if (cell.wordIndex === wordIdx) {
-        newCells[idx] = {
-          ...cell,
-          value: cell.letter,
-          revealed: true
-        };
-      }
-    });
-    return newCells;
-  });
-};
-
-
-
-
-
-  // Create simple grid layout
-  const createSimpleGrid = () => {
-    const words = puzzle.words;
-    const maxLength = Math.max(...words.map(w => w.answer.length));
-    const width = maxLength + 2;
-    const height = words.length * 2;
+  // 🔥 OPTIMIZATION: Memoized grid creation
+  const createSimpleGrid = useCallback(() => {
     const cells = [];
-
-    for (let row = 0; row < height; row++) {
-      for (let col = 0; col < width; col++) {
+    for (let row = 0; row < gridHeight; row++) {
+      for (let col = 0; col < gridWidth; col++) {
         cells.push({
           row,
           col,
@@ -151,13 +86,11 @@ const updateGridWithWord = (word) => {
       }
     }
 
-    words.forEach((word, wordIdx) => {
+    puzzle.words.forEach((word, wordIdx) => {
       const row = wordIdx * 2;
-      
       for (let i = 0; i < word.answer.length; i++) {
         const col = i + 1;
-        const cellIndex = row * width + col;
-        
+        const cellIndex = row * gridWidth + col;
         cells[cellIndex] = {
           row,
           col,
@@ -172,100 +105,87 @@ const updateGridWithWord = (word) => {
     });
 
     setGridCells(cells);
-  };
+  }, [puzzle.words, gridWidth, gridHeight]);
 
- const handleAnswerSelect = async (answer) => {
-  // Play click sound
-  if (window.playClickSound) window.playClickSound();
-  
-  if (!currentWord || isCurrentWordSolved) return;
-  
-  setSelectedAnswer(answer);
-  const correctAnswer = currentWord.answer;
-  const isCorrect = answer.toLowerCase() === correctAnswer.toLowerCase();
-
-  // Play appropriate sound
-  if (isCorrect && window.playCorrectSound) {
-    window.playCorrectSound();
-  } else if (!isCorrect && window.playWrongSound) {
-    window.playWrongSound();
-  }
-
-  // Show feedback
-  setFeedback({
-    type: isCorrect ? 'success' : 'error',
-    message: isCorrect ? `Correct! "${correctAnswer}" is the right answer!` : 'Try again!'
-  });
-
-  if (isCorrect) {
-    // Update solved clues
-    const newSolvedClues = { ...solvedClues };
-    newSolvedClues[correctAnswer] = true;
-    setSolvedClues(newSolvedClues);
-    
-    // Update grid - NOW THIS FUNCTION EXISTS!
-    updateGridWithWord(currentWord);
-    
-    // Calculate time spent on this word
-    const wordTimeSpent = Math.floor((Date.now() - wordStartTime.current) / 1000);
-    
-    // Log analytics
-    try {
-      if (sessionId) {
-        await crosswordAnalyticsService.logWordSolved(
-          sessionId,
-          {
-            word: correctAnswer,
-            clue: currentWord.clue,
-            timeSpent: wordTimeSpent,
-            hintsUsed: hintsUsedForCurrentWordRef.current
-          }
-        );
-      }
-    } catch (error) {
-      console.error('Failed to log word solved:', error);
+  // Initialize grid once
+  useEffect(() => {
+    if (!gridInitializedRef.current) {
+      createSimpleGrid();
+      gridInitializedRef.current = true;
     }
-    
-    // Notify parent
-    onWordSolved(
-      correctAnswer,
-      currentWord.definition || '',
-      currentWord.example || '',
-      hintsUsedForCurrentWordRef.current
-    );
-    
-    // Show celebration - FIXED: Properly clears after timeout
-    triggerCelebration();
-    
-    // Clear and move to next - FIXED: Ensures celebration completes
-    const cleanupTimeout = setTimeout(() => {
-      setFeedback(null);
-      setSelectedAnswer(null);
-      setShowCelebration(false); // ✅ ENSURE celebration is cleared
-      setConfettiPieces([]); // ✅ ENSURE confetti is cleared
-      moveToNextWord(); // ✅ NOW THIS FUNCTION EXISTS!
-    }, 2000); // Increased from 1500 to 2000ms to ensure animation completes
+  }, [createSimpleGrid]);
 
-    // Cleanup on unmount
-    return () => clearTimeout(cleanupTimeout);
-    
-  } else {
-    // Wrong answer - clear feedback after delay
-    setTimeout(() => {
+  // Set initial selected clue
+  useEffect(() => {
+    if (puzzle?.words?.length > 0 && !selectedClue) {
+      setSelectedClue(puzzle.words[0]);
+    }
+  }, [puzzle, selectedClue]);
+
+  // 🔥 OPTIMIZATION: Debounced choice generation
+  useEffect(() => {
+    if (currentWord && !solvedClues[currentWord.answer]) {
+      generateChoicesForClue(currentWord);
+      setSelectedAnswer(null);
       setFeedback(null);
-    }, 2000);
-  }
-};
+      hintsUsedForCurrentWordRef.current = 0;
+      wordStartTime.current = Date.now();
+    }
+  }, [currentWordIndex, currentWord?.answer]);
+
+  // Sync solved clues
+  useEffect(() => {
+    if (solvedWords?.length > 0) {
+      const solved = {};
+      solvedWords.forEach(sw => {
+        const word = typeof sw === 'string' ? sw : sw.word;
+        if (word) solved[word] = true;
+      });
+      setSolvedClues(solved);
+    }
+  }, [solvedWords]);
+
+  // 🔥 OPTIMIZATION: Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (celebrationTimeoutRef.current) clearTimeout(celebrationTimeoutRef.current);
+      if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+      setShowCelebration(false);
+      setConfettiPieces([]);
+    };
+  }, []);
+
+  // 🔥 OPTIMIZATION: Memoized update grid function
+  const updateGridWithWord = useCallback((word) => {
+    if (!word) return;
+    
+    const wordIdx = puzzle.words.findIndex(w => w.answer === word.answer);
+    if (wordIdx === -1) return;
+    
+    setGridCells(prevCells => {
+      const newCells = [...prevCells];
+      newCells.forEach((cell, idx) => {
+        if (cell.wordIndex === wordIdx) {
+          newCells[idx] = {
+            ...cell,
+            value: cell.letter,
+            revealed: true
+          };
+        }
+      });
+      return newCells;
+    });
+  }, [puzzle.words]);
 
   // Generate answer choices
-  const generateChoicesForClue = (clue) => {
-    if (!clue || !clue.answer) return;
+  const generateChoicesForClue = useCallback((clue) => {
+    if (!clue?.answer) return;
 
     const correctAnswer = clue.answer;
     const choices = [correctAnswer];
 
     const otherWords = puzzle.words
-      .filter(w => w && w.answer && w.answer !== correctAnswer)
+      .filter(w => w?.answer && w.answer !== correctAnswer)
       .map(w => w.answer);
 
     const similarLength = otherWords.filter(w => 
@@ -289,325 +209,159 @@ const updateGridWithWord = (word) => {
       otherWords.splice(randomIndex, 1);
     }
 
-    const shuffled = choices.sort(() => Math.random() - 0.5);
-    setAnswerChoices(shuffled);
-  };
+    setAnswerChoices(choices.sort(() => Math.random() - 0.5));
+  }, [puzzle.words]);
+
+  // 🔥 OPTIMIZATION: Memoized celebration trigger with cleanup
+  const triggerCelebration = useCallback(() => {
+    setShowCelebration(true);
+    
+    const pieces = Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      delay: Math.random() * 0.2,
+      duration: 1.5 + Math.random() * 0.5,
+      emoji: ['🎉', '⭐', '✨', '🌟'][Math.floor(Math.random() * 4)]
+    }));
+    setConfettiPieces(pieces);
+    
+    if (celebrationTimeoutRef.current) clearTimeout(celebrationTimeoutRef.current);
+    celebrationTimeoutRef.current = setTimeout(() => {
+      setShowCelebration(false);
+      setConfettiPieces([]);
+    }, 2000);
+  }, []);
+
+  // Move to next word
+  const moveToNextWord = useCallback(() => {
+    let nextIndex = currentWordIndex + 1;
+    
+    if (nextIndex >= puzzle.words.length) {
+      const allSolved = puzzle.words.every(word => solvedClues[word.answer]);
+      if (allSolved) return;
+      
+      nextIndex = puzzle.words.findIndex(word => !solvedClues[word.answer]);
+      if (nextIndex === -1) nextIndex = 0;
+    }
+    
+    setCurrentWordIndex(nextIndex);
+    setSelectedClue(puzzle.words[nextIndex]);
+  }, [currentWordIndex, puzzle.words, solvedClues]);
 
   // Handle answer selection
-  const handleSelectAnswer = (choice) => {
-  if (feedback || isCurrentWordSolved) return;
-  
-  // ✨ ADD: Play click sound
-  if (window.playClickSound) {
-    window.playClickSound();
-  }
-  
-  setSelectedAnswer(choice);
-};
+  const handleSelectAnswer = useCallback((choice) => {
+    if (feedback || isCurrentWordSolved) return;
+    if (window.playClickSound) window.playClickSound();
+    setSelectedAnswer(choice);
+  }, [feedback, isCurrentWordSolved]);
 
   // Handle submit answer
- const handleSubmitAnswer = async () => {
-  if (!selectedAnswer || !currentWord || isCurrentWordSolved) return;
+  const handleSubmitAnswer = useCallback(async () => {
+    if (!selectedAnswer || !currentWord || isCurrentWordSolved) return;
 
-  const correctAnswer = currentWord.answer;
-  const isCorrect = selectedAnswer.toUpperCase() === correctAnswer.toUpperCase();
-  
-  // ✨ ADD: Play correct or wrong sound
-  if (isCorrect) {
-    if (window.playCorrectSound) {
-      window.playCorrectSound();
-    }
-  } else {
-    if (window.playWrongSound) {
-      window.playWrongSound();
-    }
-  }
-  
-  setFeedback({ 
-    type: isCorrect ? 'success' : 'error',
-    message: isCorrect ? `Correct! "${correctAnswer}" is the right answer!` : 'Try again!'
-  });
+    const correctAnswer = currentWord.answer;
+    const isCorrect = selectedAnswer.toUpperCase() === correctAnswer.toUpperCase();
+    
+    if (isCorrect && window.playCorrectSound) window.playCorrectSound();
+    else if (!isCorrect && window.playWrongSound) window.playWrongSound();
+    
+    setFeedback({ 
+      type: isCorrect ? 'success' : 'error',
+      message: isCorrect ? `Correct! "${correctAnswer}" is the right answer!` : 'Try again!'
+    });
 
-  if (isCorrect) {
-    // Update solved clues
-    const newSolvedClues = { ...solvedClues };
-    newSolvedClues[correctAnswer] = true;
-    setSolvedClues(newSolvedClues);
-    
-    // Update grid
-    updateGridWithWord(currentWord);
-    
-    // Calculate time spent on this word
-    const wordTimeSpent = Math.floor((Date.now() - wordStartTime.current) / 1000);
-    
-    // Log analytics
-    try {
+    if (isCorrect) {
+      setSolvedClues(prev => ({ ...prev, [correctAnswer]: true }));
+      updateGridWithWord(currentWord);
+      
+      const wordTimeSpent = Math.floor((Date.now() - wordStartTime.current) / 1000);
+      
       if (sessionId) {
-        await crosswordAnalyticsService.logWordSolved(
-          sessionId,
-          {
+        try {
+          await crosswordAnalyticsService.logWordSolved(sessionId, {
             word: correctAnswer,
             clue: currentWord.clue,
             timeSpent: wordTimeSpent,
             hintsUsed: hintsUsedForCurrentWordRef.current
-          }
-        );
+          });
+        } catch (error) {
+          console.error('Analytics failed:', error);
+        }
       }
-    } catch (error) {
-      console.error('Failed to log word solved:', error);
-    }
-    
-    // Notify parent
-    onWordSolved(
-      correctAnswer,
-      currentWord.definition || '',
-      currentWord.example || '',
-      hintsUsedForCurrentWordRef.current
-    );
-    
-    // Show celebration
-    triggerCelebration();
-    
-    // Clear and move to next
-    setTimeout(() => {
-      setFeedback(null);
-      setSelectedAnswer(null);
-      moveToNextWord();
-    }, 1500);
-  } else {
-    // Wrong answer - clear feedback after delay
-    setTimeout(() => {
-      setFeedback(null);
-    }, 2000);
-  }
-};
-
-
-
-const moveToNextWord = () => {
-  console.log('➡️ Moving to next word...');
-  
-  // Find next unsolved word
-  let nextIndex = currentWordIndex + 1;
-  
-  // If we've reached the end, wrap around or stay
-  if (nextIndex >= puzzle.words.length) {
-    // Check if all words are solved
-    const allSolved = puzzle.words.every(word => solvedClues[word.answer]);
-    
-    if (allSolved) {
-      console.log('🎉 All words solved!');
-      // You might want to trigger a completion event here
-      return;
-    }
-    
-    // Otherwise, find the first unsolved word
-    nextIndex = puzzle.words.findIndex(word => !solvedClues[word.answer]);
-    
-    if (nextIndex === -1) {
-      // Fallback to first word
-      nextIndex = 0;
-    }
-  }
-  
-  // Update to next word
-  setCurrentWordIndex(nextIndex);
-  setSelectedClue(puzzle.words[nextIndex]);
-  
-  console.log(`✅ Moved to word ${nextIndex + 1}/${puzzle.words.length}`);
-};
-
-  // Handle mark as solved (teacher control)
-  const handleMarkSolved = async () => {
-  if (!currentWord || isCurrentWordSolved) return;
-
-  const word = currentWord.answer;
-  
-  // Mark as solved
-  setSolvedClues(prev => ({ ...prev, [word]: true }));
-  
-  // Reveal in grid
-  const wordIdx = puzzle.words.findIndex(w => w.answer === word);
-  setGridCells(prevCells => {
-    const newCells = [...prevCells];
-    newCells.forEach((cell, idx) => {
-      if (cell.wordIndex === wordIdx) {
-        newCells[idx] = {
-          ...cell,
-          value: cell.letter,
-          revealed: true
-        };
-      }
-    });
-    return newCells;
-  });
-  
-  // Log to analytics
-  if (sessionId) {
-    try {
-      const timeForWord = (Date.now() - wordStartTime.current) / 1000;
-      const hintsForThisWord = hintsUsedForCurrentWordRef.current;
       
-      console.log(`📊 Marking word "${word}" as solved: time=${timeForWord.toFixed(1)}s, hints=${hintsForThisWord}`);
+      onWordSolved(correctAnswer, currentWord.definition || '', currentWord.example || '', hintsUsedForCurrentWordRef.current);
+      triggerCelebration();
       
-      await crosswordAnalyticsService.logWordSolved(
-        sessionId,
-        {
-          word,
-          definition: currentWord.definition || '',
-          clue: currentWord.clue || '',
-          episodeNumber: storyContext?.episodeNumber || 1,
-          puzzleId: puzzle?.id || 'unknown'
-        },
-        timeForWord,
-        hintsForThisWord
-      );
-    } catch (error) {
-      console.log('Analytics failed:', error.message);
+      if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+      feedbackTimeoutRef.current = setTimeout(() => {
+        setFeedback(null);
+        setSelectedAnswer(null);
+        moveToNextWord();
+      }, 1500);
+    } else {
+      if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+      feedbackTimeoutRef.current = setTimeout(() => setFeedback(null), 2000);
     }
-  }
-
-  // ✨ PASS HINTS TO PARENT
-  if (onWordSolved) {
-    onWordSolved(
-      word, 
-      currentWord.definition || '', 
-      currentWord.example || '',
-      hintsUsedForCurrentWordRef.current // ✨ ADD THIS 4TH PARAMETER
-    );
-  }
-  
-  triggerCelebration();
-  
-  setTimeout(() => {
-    if (currentWordIndex < totalWords - 1) {
-      handleNext();
-    }
-  }, 2000);
-};
+  }, [selectedAnswer, currentWord, isCurrentWordSolved, sessionId, onWordSolved, triggerCelebration, moveToNextWord, updateGridWithWord]);
 
   // Navigation handlers
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (currentWordIndex < totalWords - 1) {
-      setCurrentWordIndex(currentWordIndex + 1);
+      setCurrentWordIndex(prev => prev + 1);
       setSelectedClue(puzzle.words[currentWordIndex + 1]);
       setFeedback(null);
       setSelectedAnswer(null);
-      hintsUsedForCurrentWordRef.current = 0; // ✅ Reset ref
+      hintsUsedForCurrentWordRef.current = 0;
       wordStartTime.current = Date.now();
-      console.log(`➡️ Moving to next word. Hints reset to 0 for new word.`);
     }
-  };
+  }, [currentWordIndex, totalWords, puzzle.words]);
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     if (currentWordIndex > 0) {
-      setCurrentWordIndex(currentWordIndex - 1);
+      setCurrentWordIndex(prev => prev - 1);
       setSelectedClue(puzzle.words[currentWordIndex - 1]);
       setFeedback(null);
       setSelectedAnswer(null);
-      hintsUsedForCurrentWordRef.current = 0; // ✅ Reset ref
+      hintsUsedForCurrentWordRef.current = 0;
       wordStartTime.current = Date.now();
-      console.log(`⬅️ Moving to previous word. Hints reset to 0 for new word.`);
     }
-  };
+  }, [currentWordIndex, puzzle.words]);
 
-  const handleSkip = () => {
-    handleNext();
-  };
+  const handleJumpToWord = useCallback((index) => {
+    if (window.playClickSound) window.playClickSound();
+    setCurrentWordIndex(index);
+    setSelectedClue(puzzle.words[index]);
+    setSelectedAnswer(null);
+    setFeedback(null);
+  }, [puzzle.words]);
 
-  const handleJumpToWord = (index) => {
-  // ✨ ADD: Play click sound
-  if (window.playClickSound) {
-    window.playClickSound();
-  }
-  
-  setCurrentWordIndex(index);
-  setSelectedClue(puzzle.words[index]);
-  setSelectedAnswer(null);
-  setFeedback(null);
-};
-
-  const handleUseHint = () => {
-  if (hintsRemaining > 0 && !isCurrentWordSolved) {
-    // ✨ ADD: Play click sound
-    if (window.playClickSound) {
-      window.playClickSound();
+  const handleUseHint = useCallback(() => {
+    if (hintsRemaining > 0 && !isCurrentWordSolved) {
+      if (window.playClickSound) window.playClickSound();
+      setHintsRemaining(prev => prev - 1);
+      hintsUsedForCurrentWordRef.current += 1;
+      setSelectedAnswer(currentWord.answer);
+      setShowHintTooltip(true);
+      setTimeout(() => setShowHintTooltip(false), 2000);
     }
-    
-    setHintsRemaining(hintsRemaining - 1);
-    hintsUsedForCurrentWordRef.current += 1;
-    console.log(`💡 Hint used! Total for game: ${3 - hintsRemaining + 1}, For current word: ${hintsUsedForCurrentWordRef.current}`);
-    setSelectedAnswer(currentWord.answer);
-    setShowHintTooltip(true);
-    setTimeout(() => setShowHintTooltip(false), 2000);
-  }
-};
+  }, [hintsRemaining, isCurrentWordSolved, currentWord]);
 
-  // Celebration effects
- const triggerCelebration = () => {
-  console.log('🎉 Triggering celebration...');
-  
-  setShowCelebration(true);
-  
-  // Create confetti pieces
-  const pieces = [];
-  for (let i = 0; i < 30; i++) {
-    pieces.push({
-      id: i,
-      left: Math.random() * 100,
-      delay: Math.random() * 0.3,
-      duration: 2 + Math.random() * 1,
-      emoji: ['🎉', '⭐', '✨', '🌟'][Math.floor(Math.random() * 4)]
-    });
-  }
-  setConfettiPieces(pieces);
-  
-  // ✅ FIXED: Auto-clear celebration after animation completes
-  const celebrationTimeout = setTimeout(() => {
-    console.log('🎉 Clearing celebration...');
-    setShowCelebration(false);
-    setConfettiPieces([]);
-  }, 2500);
-  
-  // Store timeout ID for cleanup
-  return celebrationTimeout;
-};
-
-// 4. ADD cleanup on component unmount - Add to your useEffect cleanup
-useEffect(() => {
-  // Your existing initialization code...
-  
-  return () => {
-    // ✅ ADDED: Cleanup celebration when component unmounts
-    setShowCelebration(false);
-    setConfettiPieces([]);
-    console.log('🧹 GameplayScreen cleanup completed');
-  };
-}, []);
-
-  // Get word status
-  const getWordStatus = (word) => {
+  // 🔥 OPTIMIZATION: Memoized word status
+  const getWordStatus = useCallback((word) => {
     if (solvedClues[word.answer]) return 'solved';
     if (currentWord.answer === word.answer) return 'current';
     return 'pending';
-  };
+  }, [solvedClues, currentWord]);
 
-  // Render grid
-  const renderGrid = () => {
-    if (gridCells.length === 0) {
-      return <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Loading puzzle...</div>;
-    }
-
+  // 🔥 OPTIMIZATION: Memoized grid rendering with reduced animations
+  const renderedGrid = useMemo(() => {
     return puzzle.words.map((word, idx) => {
       const status = getWordStatus(word);
       const isSolved = solvedClues[word.answer];
       
       return (
-        <motion.div
+        <div
           key={idx}
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: idx * 0.1 }}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -620,7 +374,7 @@ useEffect(() => {
             border: status === 'current' ? '3px solid #ffc107' : '2px solid transparent',
             boxShadow: status === 'current' ? '0 4px 15px rgba(255,193,7,0.3)' : '0 2px 5px rgba(0,0,0,0.1)',
             transform: status === 'current' ? 'scale(1.02)' : 'scale(1)',
-            transition: 'all 0.3s ease',
+            transition: 'all 0.2s ease',
             marginBottom: '8px'
           }}
         >
@@ -636,11 +390,8 @@ useEffect(() => {
           
           <div style={{ display: 'flex', gap: '5px', flex: 1 }}>
             {word.answer.split('').map((letter, i) => (
-              <motion.div
+              <div
                 key={i}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: idx * 0.1 + i * 0.05 }}
                 style={{
                   width: '45px',
                   height: '45px',
@@ -658,13 +409,13 @@ useEffect(() => {
                 }}
               >
                 {isSolved ? letter : ''}
-              </motion.div>
+              </div>
             ))}
           </div>
-        </motion.div>
+        </div>
       );
     });
-  };
+  }, [puzzle.words, solvedClues, currentWord, getWordStatus]);
 
   return (
     <div style={{
@@ -679,14 +430,12 @@ useEffect(() => {
       overflow: 'hidden',
       position: 'relative'
     }}>
-      {/* Home Button - POSITIONED ON LEFT SIDE */}
+      {/* Home Button */}
       <div style={{ position: 'absolute', top: '15px', left: '20px', zIndex: 100 }}>
-        <BackToHomeButton 
-          customMessage="Are you sure you want to quit? Your crossword progress will be lost!"
-        />
+        <BackToHomeButton customMessage="Are you sure you want to quit? Your crossword progress will be lost!" />
       </div>
 
-      {/* Top Stats Bar - CENTERED */}
+      {/* Top Stats Bar */}
       <div style={{
         display: 'flex',
         justifyContent: 'center',
@@ -700,21 +449,15 @@ useEffect(() => {
         <div style={{ display: 'flex', gap: '35px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '28px' }}>⏱️</span>
-            <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#5a3e7e' }}>
-              {timeFormatted}
-            </span>
+            <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#5a3e7e' }}>{timeFormatted}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '28px' }}>💡</span>
-            <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#5a3e7e' }}>
-              {hintsRemaining}
-            </span>
+            <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#5a3e7e' }}>{hintsRemaining}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '28px' }}>✅</span>
-            <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#5a3e7e' }}>
-              {solvedCount}/{totalWords}
-            </span>
+            <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#5a3e7e' }}>{solvedCount}/{totalWords}</span>
           </div>
         </div>
       </div>
@@ -727,7 +470,7 @@ useEffect(() => {
         overflow: 'hidden',
         minHeight: 0
       }}>
-        {/* LEFT SIDE - Grid (58%) */}
+        {/* LEFT SIDE - Grid */}
         <div style={{
           flex: '0 0 58%',
           background: 'white',
@@ -742,8 +485,7 @@ useEffect(() => {
             fontSize: '24px',
             color: '#5a3e7e',
             margin: '0 0 15px 0',
-            textAlign: 'center',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+            textAlign: 'center'
           }}>
             📖 {storyContext?.title || puzzle.title || "Crossword Puzzle"}
           </h2>
@@ -772,7 +514,7 @@ useEffect(() => {
                     background: status === 'solved' ? '#28a745' : status === 'current' ? '#fff3cd' : 'white',
                     color: status === 'solved' ? 'white' : '#5a3e7e',
                     cursor: 'pointer',
-                    transition: 'all 0.3s ease',
+                    transition: 'all 0.2s ease',
                     boxShadow: status === 'current' ? '0 3px 10px rgba(255,193,7,0.4)' : 'none'
                   }}
                 >
@@ -782,17 +524,17 @@ useEffect(() => {
             })}
           </div>
 
-          {/* Grid */}
+          {/* Grid - No animations, pure performance */}
           <div style={{
             flex: 1,
             overflowY: 'auto',
             padding: '8px'
           }}>
-            {renderGrid()}
+            {renderedGrid}
           </div>
         </div>
 
-        {/* RIGHT SIDE - Controls (42%) */}
+        {/* RIGHT SIDE - Controls */}
         <div style={{
           flex: '0 0 40%',
           display: 'flex',
@@ -847,7 +589,7 @@ useEffect(() => {
             </div>
           </div>
 
-          {/* Answer Choices or Solved Message */}
+          {/* Answer Choices */}
           <div style={{
             flex: 1,
             minHeight: 0,
@@ -884,11 +626,9 @@ useEffect(() => {
                   flexShrink: 0
                 }}>
                   {answerChoices.map((choice, index) => (
-                    <motion.button
+                    <button
                       key={index}
                       onClick={() => handleSelectAnswer(choice)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
                       disabled={feedback !== null}
                       style={{
                         padding: '15px',
@@ -899,23 +639,19 @@ useEffect(() => {
                         background: selectedAnswer === choice ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'white',
                         color: selectedAnswer === choice ? 'white' : '#5a3e7e',
                         cursor: feedback ? 'not-allowed' : 'pointer',
-                        transition: 'all 0.3s ease',
+                        transition: 'all 0.2s ease',
                         boxShadow: selectedAnswer === choice ? '0 5px 18px rgba(102,126,234,0.4)' : '0 2px 6px rgba(0,0,0,0.1)',
                         opacity: feedback ? 0.6 : 1
                       }}
                     >
                       {choice}
-                    </motion.button>
+                    </button>
                   ))}
                 </div>
 
                 {selectedAnswer && !feedback && (
-                  <motion.button
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
+                  <button
                     onClick={handleSubmitAnswer}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
                     style={{
                       padding: '15px',
                       fontSize: '20px',
@@ -926,11 +662,12 @@ useEffect(() => {
                       borderRadius: '12px',
                       cursor: 'pointer',
                       boxShadow: '0 5px 18px rgba(40,167,69,0.4)',
-                      flexShrink: 0
+                      flexShrink: 0,
+                      transition: 'transform 0.2s ease'
                     }}
                   >
                     ✨ Submit Answer
-                  </motion.button>
+                  </button>
                 )}
               </div>
             ) : (
@@ -957,14 +694,13 @@ useEffect(() => {
             )}
           </div>
 
-          {/* Teacher Controls - FIXED TO ALWAYS BE VISIBLE */}
+          {/* Teacher Controls */}
           <div style={{
             flexShrink: 0,
             display: 'flex',
             flexDirection: 'column',
             gap: '10px'
           }}>
-            {/* Navigation Row */}
             <div style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr 1fr',
@@ -989,7 +725,7 @@ useEffect(() => {
               </button>
               
               <button
-                onClick={handleSkip}
+                onClick={handleNext}
                 disabled={currentWordIndex === totalWords - 1}
                 style={{
                   padding: '14px',
@@ -1003,29 +739,10 @@ useEffect(() => {
                   opacity: currentWordIndex === totalWords - 1 ? 0.5 : 1
                 }}
               >
-                ⏭️ Skip
-              </button>
-              
-              <button
-                onClick={handleNext}
-                disabled={currentWordIndex === totalWords - 1}
-                style={{
-                  padding: '14px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  background: currentWordIndex === totalWords - 1 ? '#e0e0e0' : 'white',
-                  color: currentWordIndex === totalWords - 1 ? '#999' : '#667eea',
-                  border: '2px solid #667eea',
-                  borderRadius: '12px',
-                  cursor: currentWordIndex === totalWords - 1 ? 'not-allowed' : 'pointer',
-                  opacity: currentWordIndex === totalWords - 1 ? 0.5 : 1
-                }}
-              >
                 Next ➡️
               </button>
             </div>
 
-            {/* Hint and Mark Solved Row */}
             <div style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
@@ -1069,35 +786,36 @@ useEffect(() => {
               </button>
               
               <button
-                onClick={handleMarkSolved}
-                disabled={isCurrentWordSolved}
+                onClick={handleSubmitAnswer}
+                disabled={isCurrentWordSolved || !selectedAnswer}
                 style={{
                   padding: '14px',
                   fontSize: '16px',
                   fontWeight: 'bold',
-                  background: isCurrentWordSolved ? '#e0e0e0' : 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
-                  color: isCurrentWordSolved ? '#999' : 'white',
+                  background: isCurrentWordSolved || !selectedAnswer ? '#e0e0e0' : 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+                  color: isCurrentWordSolved || !selectedAnswer ? '#999' : 'white',
                   border: 'none',
                   borderRadius: '12px',
-                  cursor: isCurrentWordSolved ? 'not-allowed' : 'pointer',
-                  boxShadow: !isCurrentWordSolved ? '0 3px 12px rgba(40,167,69,0.4)' : 'none',
-                  opacity: isCurrentWordSolved ? 0.5 : 1
+                  cursor: isCurrentWordSolved || !selectedAnswer ? 'not-allowed' : 'pointer',
+                  boxShadow: !isCurrentWordSolved && selectedAnswer ? '0 3px 12px rgba(40,167,69,0.4)' : 'none',
+                  opacity: isCurrentWordSolved || !selectedAnswer ? 0.5 : 1
                 }}
               >
-                ✅ Mark Solved
+                ✅ Submit
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Feedback Overlay - Only show if celebration is not showing */}
+      {/* Feedback Overlay - Simplified */}
       <AnimatePresence>
         {feedback && !showCelebration && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
+            initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.5 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.2 }}
             style={{
               position: 'fixed',
               top: '50%',
@@ -1111,11 +829,7 @@ useEffect(() => {
               textAlign: 'center',
               boxShadow: '0 15px 40px rgba(0, 0, 0, 0.5)',
               zIndex: 1000,
-              border: '6px solid white',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center'
+              border: '6px solid white'
             }}
           >
             <div style={{ fontSize: '90px', marginBottom: '15px' }}>
@@ -1125,9 +839,7 @@ useEffect(() => {
               fontSize: '42px',
               fontWeight: 'bold',
               color: 'white',
-              textShadow: '3px 3px 6px rgba(0,0,0,0.3)',
-              textAlign: 'center',
-              width: '100%'
+              textShadow: '3px 3px 6px rgba(0,0,0,0.3)'
             }}>
               {feedback.type === 'success' ? 'CORRECT!' : 'Try Again!'}
             </div>
@@ -1135,13 +847,14 @@ useEffect(() => {
         )}
       </AnimatePresence>
 
-      {/* Celebration Overlay */}
+      {/* Celebration Overlay - Optimized */}
       <AnimatePresence>
         {showCelebration && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             style={{
               position: 'fixed',
               top: 0,
@@ -1156,20 +869,16 @@ useEffect(() => {
             }}
           >
             <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: "spring", duration: 0.6 }}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", duration: 0.4 }}
               style={{
                 background: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
                 borderRadius: '25px',
                 padding: '50px 70px',
                 textAlign: 'center',
                 boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                border: '6px solid white',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center'
+                border: '6px solid white'
               }}
             >
               <div style={{ fontSize: '100px', marginBottom: '20px' }}>🎉🌟✨</div>
@@ -1177,9 +886,7 @@ useEffect(() => {
                 fontSize: '42px',
                 fontWeight: 'bold',
                 color: 'white',
-                textShadow: '3px 3px 6px rgba(0,0,0,0.3)',
-                textAlign: 'center',
-                width: '100%'
+                textShadow: '3px 3px 6px rgba(0,0,0,0.3)'
               }}>
                 Amazing Work!
               </div>
@@ -1188,7 +895,7 @@ useEffect(() => {
         )}
       </AnimatePresence>
 
-      {/* Confetti */}
+      {/* Confetti - Reduced count */}
       <AnimatePresence>
         {confettiPieces.map(piece => (
           <motion.div
