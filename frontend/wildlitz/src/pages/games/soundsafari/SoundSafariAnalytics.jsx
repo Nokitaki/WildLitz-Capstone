@@ -26,6 +26,77 @@ const SoundSafariAnalytics = () => {
     loadAnalytics();
   }, []);
 
+  // Add after all your useState hooks and before loadAnalytics()
+
+  /**
+   * Get color based on success rate
+   */
+  const getSuccessColor = (rate) => {
+    if (rate >= 80) return '#4CAF50'; // Green
+    if (rate >= 60) return '#ff9800'; // Orange
+    return '#f44336'; // Red
+  };
+
+  /**
+   * Get environment badge with emoji and styling
+   */
+  const getEnvironmentBadge = (environment) => {
+    const badges = {
+      jungle: { emoji: '🌴', color: '#15803d', bg: '#dcfce7' },
+      savanna: { emoji: '🦁', color: '#a16207', bg: '#fef3c7' },
+      ocean: { emoji: '🌊', color: '#0369a1', bg: '#dbeafe' },
+      arctic: { emoji: '❄️', color: '#0891b2', bg: '#cffafe' }
+    };
+    
+    const badge = badges[environment] || badges.jungle;
+    
+    return (
+      <span style={{
+        background: badge.bg,
+        color: badge.color,
+        padding: '6px 14px',
+        borderRadius: '20px',
+        fontSize: '0.85rem',
+        fontWeight: '700',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        border: '2px solid rgba(93, 64, 55, 0.3)',
+        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
+        textShadow: '0 1px 2px rgba(255, 255, 255, 0.5)'
+      }}>
+        {badge.emoji} {environment}
+      </span>
+    );
+  };
+
+  /**
+   * Get position badge with icon and styling
+   */
+  const getPositionBadge = (position) => {
+    const positions = {
+      beginning: { icon: '▶️', color: '#059669' },
+      middle: { icon: '⏺️', color: '#d97706' },
+      ending: { icon: '⏹️', color: '#dc2626' },
+      anywhere: { icon: '🔄', color: '#7c3aed' }
+    };
+    
+    const pos = positions[position] || positions.anywhere;
+    
+    return (
+      <span style={{
+        color: pos.color,
+        fontWeight: '700',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        fontSize: '0.9rem'
+      }}>
+        {pos.icon} {position}
+      </span>
+    );
+  };
+
   const loadAnalytics = async () => {
     try {
       setLoading(true);
@@ -102,13 +173,6 @@ const SoundSafariAnalytics = () => {
       correct: sound.total_correct || 0
     }));
   }, [soundPerformance]);
-
-  // Color scale for success rates
-  const getSuccessColor = (rate) => {
-    if (rate >= 80) return '#4CAF50';
-    if (rate >= 60) return '#FFC107';
-    return '#F44336';
-  };
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -225,25 +289,44 @@ const SoundSafariAnalytics = () => {
           transition={{ delay: 0.5 }}
         >
           <h3>📈 Success Rate Over Time</h3>
-          <ResponsiveContainer width="100%" height={300}>
+<ResponsiveContainer width="100%" height={300}>
             <LineChart data={sessionChartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-              <XAxis dataKey="session" stroke="#fff" />
-              <YAxis stroke="#fff" domain={[0, 100]} />
+              <CartesianGrid strokeDasharray="5 5" stroke="rgba(93, 64, 55, 0.2)" />
+              <XAxis 
+                dataKey="session" 
+                stroke="#5D4037"
+                tick={{ fill: '#5D4037', fontWeight: 600 }}
+              />
+              <YAxis 
+                stroke="#5D4037" 
+                domain={[0, 100]}
+                tick={{ fill: '#5D4037', fontWeight: 600 }}
+              />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: '#5D4037', 
-                  border: '2px solid #FFD700',
-                  borderRadius: '10px'
+                  border: '3px solid #FFD700',
+                  borderRadius: '12px',
+                  color: '#f5deb3',
+                  fontWeight: '600',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
                 }}
               />
-              <Legend />
+              <Legend 
+                wrapperStyle={{ 
+                  color: '#5D4037',
+                  fontWeight: '700',
+                  fontSize: '1rem'
+                }}
+              />
               <Line 
                 type="monotone" 
                 dataKey="successRate" 
-                stroke="#FFD700" 
-                strokeWidth={3}
+                stroke="#ff8c42" 
+                strokeWidth={4}
                 name="Success Rate (%)"
+                dot={{ fill: '#FFD700', r: 6, strokeWidth: 2, stroke: '#5D4037' }}
+                activeDot={{ r: 8, fill: '#FFD700', stroke: '#5D4037', strokeWidth: 3 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -257,20 +340,50 @@ const SoundSafariAnalytics = () => {
           transition={{ delay: 0.6 }}
         >
           <h3>🔊 Performance by Sound</h3>
-          <ResponsiveContainer width="100%" height={300}>
+<ResponsiveContainer width="100%" height={300}>
             <BarChart data={soundPerformanceData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-              <XAxis dataKey="name" stroke="#fff" angle={-45} textAnchor="end" height={80} />
-              <YAxis stroke="#fff" domain={[0, 100]} />
+              <CartesianGrid strokeDasharray="5 5" stroke="rgba(93, 64, 55, 0.2)" />
+              <XAxis 
+                dataKey="name" 
+                stroke="#5D4037"
+                height={40}
+                tick={{ fill: '#5D4037', fontWeight: 600, fontSize: '0.85rem' }}
+                interval={0}
+                tickFormatter={(value) => {
+                  // Extract just the letter (e.g., "T (beginning)" -> "T")
+                  return value.split(' ')[0];
+                }}
+              />
+              <YAxis 
+                stroke="#5D4037" 
+                domain={[0, 100]}
+                tick={{ fill: '#5D4037', fontWeight: 600 }}
+              />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: '#5D4037', 
-                  border: '2px solid #FFD700',
-                  borderRadius: '10px'
+                  border: '3px solid #FFD700',
+                  borderRadius: '12px',
+                  color: '#f5deb3',
+                  fontWeight: '600',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
                 }}
               />
-              <Legend />
-              <Bar dataKey="Success Rate" fill="#4ECDC4" />
+              <Legend 
+                wrapperStyle={{ 
+                  color: '#5D4037',
+                  fontWeight: '700',
+                  fontSize: '1rem'
+                }}
+              />
+              <Bar 
+                dataKey="Success Rate" 
+                fill="#4a7c2d"
+                radius={[8, 8, 0, 0]}
+                style={{
+                  filter: 'drop-shadow(0 2px 4px rgba(93, 64, 55, 0.3))'
+                }}
+              />
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
@@ -307,10 +420,22 @@ const SoundSafariAnalytics = () => {
                   onClick={() => loadSessionRounds(session.session_id)}
                   className={styles.clickableRow}
                   style={{ cursor: 'pointer' }}
+                  title="Click to view round details 🔍"
                 >
                   <td>{formatDate(session.played_at)}</td>
                   <td>
-                    <span className={styles.difficultyBadge}>
+                    <span 
+                      className={styles.difficultyBadge}
+                      style={{
+                        background: session.difficulty === 'easy' ? '#dcfce7' :
+                                  session.difficulty === 'medium' ? '#fef3c7' : '#fee2e2',
+                        color: session.difficulty === 'easy' ? '#15803d' :
+                              session.difficulty === 'medium' ? '#a16207' : '#b91c1c'
+                      }}
+                    >
+                      {session.difficulty === 'easy' && '🟢 '}
+                      {session.difficulty === 'medium' && '🟡 '}
+                      {session.difficulty === 'hard' && '🔴 '}
                       {session.difficulty}
                     </span>
                   </td>
@@ -371,21 +496,29 @@ const SoundSafariAnalytics = () => {
                   {/* Session Summary */}
                   <div className={styles.sessionSummary}>
                     <div className={styles.summaryItem}>
-                      <span className={styles.label}>Date:</span>
+                      <span className={styles.label}>📅 Date</span>
                       <span className={styles.value}>
                         {selectedSession && formatDate(selectedSession.played_at)}
                       </span>
                     </div>
                     <div className={styles.summaryItem}>
-                      <span className={styles.label}>Difficulty:</span>
-                      <span className={styles.value}>{selectedSession?.difficulty}</span>
+                      <span className={styles.label}>⚡ Difficulty</span>
+                      <span className={styles.value} style={{
+                        textTransform: 'capitalize',
+                        color: selectedSession?.difficulty === 'easy' ? '#15803d' :
+                              selectedSession?.difficulty === 'medium' ? '#a16207' : '#b91c1c'
+                      }}>
+                        {selectedSession?.difficulty}
+                      </span>
                     </div>
                     <div className={styles.summaryItem}>
-                      <span className={styles.label}>Total Correct:</span>
-                      <span className={styles.value}>{selectedSession?.total_correct}</span>
+                      <span className={styles.label}>✅ Total Correct</span>
+                      <span className={styles.value} style={{ color: '#15803d' }}>
+                        {selectedSession?.total_correct}
+                      </span>
                     </div>
                     <div className={styles.summaryItem}>
-                      <span className={styles.label}>Success Rate:</span>
+                      <span className={styles.label}>📈 Success Rate</span>
                       <span 
                         className={styles.value}
                         style={{ color: getSuccessColor(selectedSession?.success_rate || 0) }}
@@ -393,50 +526,85 @@ const SoundSafariAnalytics = () => {
                         {selectedSession?.success_rate?.toFixed(1)}%
                       </span>
                     </div>
+                    <div className={styles.summaryItem}>
+                      <span className={styles.label}>⏱️ Time</span>
+                      <span className={styles.value} style={{ color: '#0891b2' }}>
+                        {selectedSession?.time_spent}s
+                      </span>
+                    </div>
                   </div>
-
                   {/* Rounds Table */}
                   <div className={styles.roundsTable}>
                     <h3>Round Breakdown</h3>
                     <table>
                       <thead>
                         <tr>
-                          <th>Round</th>
-                          <th>Sound</th>
-                          <th>Position</th>
-                          <th>Environment</th>
-                          <th>Correct</th>
-                          <th>Incorrect</th>
-                          <th>Total</th>
-                          <th>Rate</th>
+                          <th>🎯 Round</th>
+                          <th>🔊 Sound</th>
+                          <th>📍 Position</th>
+                          <th>🌍 Environment</th>
+                          <th>✅ Correct</th>
+                          <th>❌ Incorrect</th>
+                          <th>📊 Total</th>
+                          <th>📈 Rate</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {sessionRounds.map((round) => {
+                        {sessionRounds.map((round, index) => {
                           const roundSuccessRate = round.total > 0 
                             ? (round.correct / round.total * 100) 
                             : 0;
                           
                           return (
-                            <tr key={round.round_id}>
-                              <td>{round.round_number}</td>
-                              <td className={styles.soundCell}>
-                                {round.target_sound.toUpperCase()}
+                            <motion.tr 
+                              key={round.round_id}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.05 }}
+                            >
+                              <td>
+                                <span style={{
+                                  background: 'linear-gradient(135deg, #FFD700 0%, #ff8c42 100%)',
+                                  color: '#5D4037',
+                                  padding: '8px 16px',
+                                  borderRadius: '50%',
+                                  fontWeight: '700',
+                                  fontSize: '1.1rem',
+                                  display: 'inline-block',
+                                  minWidth: '40px',
+                                  textAlign: 'center',
+                                  boxShadow: '0 3px 8px rgba(255, 140, 66, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+                                  border: '2px solid #795548',
+                                  textShadow: '0 1px 2px rgba(255, 255, 255, 0.5)'
+                                }}>
+                                  {round.round_number}
+                                </span>
                               </td>
-                              <td>{round.sound_position}</td>
-                              <td>{round.environment}</td>
+                              <td>
+                                <span className={styles.soundCell}>
+                                  {round.target_sound.toUpperCase()}
+                                </span>
+                              </td>
+                              <td>{getPositionBadge(round.sound_position)}</td>
+                              <td>{getEnvironmentBadge(round.environment)}</td>
                               <td className={styles.correctCount}>{round.correct}</td>
                               <td className={styles.incorrectCount}>{round.incorrect}</td>
-                              <td>{round.total}</td>
+                              <td>
+                                <strong>{round.total}</strong>
+                              </td>
                               <td>
                                 <span 
                                   className={styles.roundRate}
-                                  style={{ color: getSuccessColor(roundSuccessRate) }}
+                                  style={{ 
+                                    color: getSuccessColor(roundSuccessRate),
+                                    background: `${getSuccessColor(roundSuccessRate)}15`,
+                                    border: `2px solid ${getSuccessColor(roundSuccessRate)}`
+                                  }}
                                 >
                                   {roundSuccessRate.toFixed(1)}%
                                 </span>
                               </td>
-                            </tr>
+                            </motion.tr>
                           );
                         })}
                       </tbody>

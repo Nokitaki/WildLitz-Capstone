@@ -1,208 +1,690 @@
-/* frontend/wildlitz/src/styles/games/safari/SoundSafariAnalytics.module.css */
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Bubblegum+Sans:wght@400&family=Nunito:wght@400;600;700;800&display=swap');
+/* ==========================================
+   SOUND SAFARI ANALYTICS - SAFARI THEME
+   Matching the original Sound Safari game design
+   ========================================== */
 
-.analyticsContainer {
-  width: 100%;
-  min-height: 100vh;
-  background: #4B352A;
-  padding: 20px;
-  font-family: 'Nunito', sans-serif;
-  color: white;
+/* 🌿 Safari Color Palette */
+:root {
+  --safari-green-dark: #2d5016;
+  --safari-green: #4a7c2d;
+  --safari-green-light: #6b9d47;
+  --safari-brown-dark: #5D4037;
+  --safari-brown: #795548;
+  --safari-tan: #d4a574;
+  --safari-sand: #f5deb3;
+  --safari-gold: #FFD700;
+  --safari-orange: #ff8c42;
+  --safari-success: #4caf50;
+  --safari-warning: #ff9800;
+  --safari-error: #f44336;
 }
 
+/* Main Container - Safari Background */
+.analyticsContainer {
+  min-height: 100vh;
+  background: linear-gradient(
+    to bottom,
+    #8db879 0%,
+    #6b9d47 30%,
+    #4a7c2d 100%
+  );
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(107, 157, 71, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(74, 124, 45, 0.3) 0%, transparent 50%),
+    linear-gradient(to bottom, #8db879 0%, #6b9d47 30%, #4a7c2d 100%);
+  padding: 40px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Safari decorative elements */
+.analyticsContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(
+    to bottom,
+    rgba(141, 184, 121, 0.5) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* Header - Safari Style */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
-  padding: 20px;
-  background: linear-gradient(135deg, rgba(93, 64, 55, 0.9) 0%, rgba(75, 53, 42, 0.9) 100%);
-  border-radius: 20px;
-  border: 2px solid rgba(255, 215, 0, 0.3);
+  max-width: 1400px;
+  margin: 0 auto 40px;
+  padding: 0 20px;
+  position: relative;
+  z-index: 2;
 }
 
 .header h2 {
-  font-family: 'Fredoka One', cursive;
-  font-size: 2rem;
+  font-size: 2.5rem;
+  color: var(--safari-sand);
+  font-weight: 700;
+  text-shadow: 3px 3px 6px rgba(45, 80, 22, 0.8),
+               0 0 20px rgba(255, 215, 0, 0.3);
   margin: 0;
-  background: linear-gradient(45deg, #FFD700, #FFA500);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: 1px;
 }
 
 .refreshButton {
+  background: var(--safari-brown);
+  border: 3px solid var(--safari-tan);
+  color: var(--safari-sand);
   padding: 12px 24px;
-  background: linear-gradient(45deg, #4ECDC4, #44A08D);
-  border: none;
-  border-radius: 20px;
-  color: white;
-  font-weight: bold;
-  font-family: 'Bubblegum Sans', cursive;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+  box-shadow: 0 4px 12px rgba(93, 64, 55, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .refreshButton:hover {
+  background: var(--safari-brown-dark);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(78, 205, 196, 0.5);
+  box-shadow: 0 6px 16px rgba(93, 64, 55, 0.5),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-/* Summary Cards Grid */
+.refreshButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(93, 64, 55, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Summary Grid - Safari Cards */
 .summaryGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto 40px;
+  padding: 0 20px;
 }
 
 .summaryCard {
-  background: linear-gradient(135deg, rgba(93, 64, 55, 0.9) 0%, rgba(75, 53, 42, 0.9) 100%);
+  background: linear-gradient(135deg, #f5deb3 0%, #d4a574 100%);
+  border: 4px solid var(--safari-brown);
   border-radius: 20px;
-  padding: 25px;
-  border: 2px solid rgba(255, 215, 0, 0.3);
+  padding: 28px;
   display: flex;
   align-items: center;
   gap: 20px;
+  box-shadow: 0 8px 24px rgba(93, 64, 55, 0.3),
+              inset 0 2px 0 rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.summaryCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
 }
 
 .summaryCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
-  border-color: rgba(255, 215, 0, 0.6);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(93, 64, 55, 0.4),
+              inset 0 2px 0 rgba(255, 255, 255, 0.3);
+  border-color: var(--safari-gold);
 }
 
 .cardIcon {
   font-size: 3rem;
-  flex-shrink: 0;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  position: relative;
+  z-index: 1;
+}
+
+.cardContent {
+  flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .cardContent h3 {
-  margin: 0 0 10px 0;
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--safari-brown-dark);
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
 }
 
-.statValue {
+.cardValue {
+  font-size: 2.2rem;
+  color: var(--safari-brown-dark);
+  font-weight: 700;
   margin: 0;
-  font-size: 2.5rem;
-  font-weight: bold;
-  font-family: 'Fredoka One', cursive;
-  color: #FFD700;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
 }
 
-/* Charts Grid */
+/* Charts Grid - Safari Theme */
 .chartsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto 40px;
+  padding: 0 20px;
 }
 
 .chartCard {
-  background: linear-gradient(135deg, rgba(93, 64, 55, 0.9) 0%, rgba(75, 53, 42, 0.9) 100%);
+  background: linear-gradient(135deg, #f5deb3 0%, #d4a574 100%);
+  border: 4px solid var(--safari-brown);
   border-radius: 20px;
-  padding: 25px;
-  border: 2px solid rgba(255, 215, 0, 0.3);
+  padding: 32px;
+  box-shadow: 0 8px 24px rgba(93, 64, 55, 0.3),
+              inset 0 2px 0 rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.chartCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
 }
 
 .chartCard h3 {
-  margin: 0 0 20px 0;
-  font-size: 1.3rem;
-  color: #FFD700;
-  font-family: 'Bubblegum Sans', cursive;
+  font-size: 1.4rem;
+  color: var(--safari-brown-dark);
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
+  position: relative;
+  z-index: 1;
 }
 
-/* Table Card */
-.tableCard {
-  background: linear-gradient(135deg, rgba(93, 64, 55, 0.9) 0%, rgba(75, 53, 42, 0.9) 100%);
-  border-radius: 20px;
-  padding: 25px;
-  border: 2px solid rgba(255, 215, 0, 0.3);
+/* Chart Text Styling - Improved Visibility */
+.chartCard :global(.recharts-text) {
+  fill: var(--safari-brown-dark);
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
-.tableCard h3 {
-  margin: 0 0 20px 0;
-  font-size: 1.3rem;
-  color: #FFD700;
-  font-family: 'Bubblegum Sans', cursive;
+.chartCard :global(.recharts-cartesian-axis-tick-value) {
+  fill: var(--safari-brown-dark);
+  font-weight: 600;
 }
 
-.tableWrapper {
-  overflow-x: auto;
+.chartCard :global(.recharts-legend-item-text) {
+  color: var(--safari-brown-dark) !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
 }
 
+.chartCard :global(.recharts-cartesian-grid-horizontal line),
+.chartCard :global(.recharts-cartesian-grid-vertical line) {
+  stroke: rgba(93, 64, 55, 0.2);
+  stroke-dasharray: 5 5;
+}
+
+/* Sessions Table - Safari Wood Theme */
 .sessionsTable {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.sessionsTable h3 {
+  font-size: 1.6rem;
+  color: var(--safari-sand);
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  text-shadow: 3px 3px 6px rgba(45, 80, 22, 0.8),
+               0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.tableContainer {
+  background: linear-gradient(135deg, #f5deb3 0%, #d4a574 100%);
+  border: 4px solid var(--safari-brown);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(93, 64, 55, 0.3),
+              inset 0 2px 0 rgba(255, 255, 255, 0.3);
+}
+
+.tableContainer table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.sessionsTable thead {
-  background: rgba(255, 215, 0, 0.1);
+.tableContainer thead {
+  background: linear-gradient(135deg, var(--safari-brown) 0%, var(--safari-brown-dark) 100%);
 }
 
-.sessionsTable th {
-  padding: 15px;
+.tableContainer thead th {
+  padding: 20px 16px;
   text-align: left;
-  font-weight: bold;
-  color: #FFD700;
-  border-bottom: 2px solid rgba(255, 215, 0, 0.3);
-}
-
-.sessionsTable td {
-  padding: 12px 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.sessionsTable tbody tr:hover {
-  background: rgba(255, 215, 0, 0.1);
-}
-
-.soundCell {
-  font-weight: bold;
-  color: #4ECDC4;
-  font-size: 1.1rem;
-}
-
-.badge {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: bold;
+  font-weight: 700;
+  color: var(--safari-sand);
+  font-size: 0.95rem;
   text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  border-right: 2px solid rgba(212, 165, 116, 0.3);
 }
 
-.badge.easy {
-  background: #4CAF50;
-  color: white;
+.tableContainer thead th:last-child {
+  border-right: none;
 }
 
-.badge.medium {
-  background: #FFC107;
-  color: #5D4037;
+.tableContainer tbody tr {
+  border-bottom: 2px solid rgba(121, 85, 72, 0.2);
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.3);
 }
 
-.badge.hard {
-  background: #F44336;
-  color: white;
+.tableContainer tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.5);
 }
 
-/* Loading State */
-.loadingContainer {
+.tableContainer tbody tr:hover {
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.3) 0%, rgba(255, 140, 66, 0.3) 100%);
+  transform: scale(1.01);
+  cursor: pointer;
+  box-shadow: inset 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+.tableContainer tbody tr:last-child {
+  border-bottom: none;
+}
+
+.tableContainer tbody td {
+  padding: 18px 16px;
+  font-size: 0.95rem;
+  color: var(--safari-brown-dark);
+  font-weight: 600;
+}
+
+.clickableRow {
+  cursor: pointer;
+}
+
+/* Safari-themed Badges */
+.difficultyBadge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  display: inline-block;
+  border: 2px solid rgba(93, 64, 55, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.completedBadge {
+  color: var(--safari-success);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-shadow: 0 1px 2px rgba(76, 175, 80, 0.3);
+}
+
+.incompleteBadge {
+  color: var(--safari-error);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-shadow: 0 1px 2px rgba(244, 67, 54, 0.3);
+}
+
+.correctCount {
+  color: var(--safari-success);
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-shadow: 0 1px 2px rgba(76, 175, 80, 0.2);
+}
+
+.incorrectCount {
+  color: var(--safari-error);
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-shadow: 0 1px 2px rgba(244, 67, 54, 0.2);
+}
+
+.successRate {
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================
+   MODAL STYLES - SAFARI THEME
+   ========================================== */
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(45, 80, 22, 0.85);
+  backdrop-filter: blur(8px);
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modalContent {
+  background: linear-gradient(135deg, #f5deb3 0%, #d4a574 100%);
+  border: 6px solid var(--safari-brown);
+  border-radius: 24px;
+  max-width: 1200px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+              inset 0 3px 0 rgba(255, 255, 255, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+  position: relative;
+}
+
+.modalContent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 50px,
+      rgba(93, 64, 55, 0.03) 50px,
+      rgba(93, 64, 55, 0.03) 51px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 50px,
+      rgba(93, 64, 55, 0.03) 50px,
+      rgba(93, 64, 55, 0.03) 51px
+    );
+  pointer-events: none;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modalHeader {
+  background: linear-gradient(135deg, var(--safari-brown) 0%, var(--safari-brown-dark) 100%);
+  padding: 28px 40px;
+  border-radius: 18px 18px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(93, 64, 55, 0.3);
+  border-bottom: 4px solid var(--safari-tan);
+}
+
+.modalHeader h2 {
+  color: var(--safari-sand);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.closeButton {
+  background: rgba(245, 222, 179, 0.2);
+  border: 3px solid var(--safari-sand);
+  color: var(--safari-sand);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
+  transition: all 0.2s ease;
+  padding: 0;
+  line-height: 1;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.closeButton:hover {
+  background: var(--safari-sand);
+  color: var(--safari-brown-dark);
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Modal Loading State - Safari Theme */
+.modalLoading {
+  padding: 80px 40px;
   text-align: center;
 }
 
 .spinner {
-  font-size: 5rem;
+  font-size: 3rem;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.modalLoading p {
+  font-size: 1.1rem;
+  color: var(--safari-brown-dark);
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Session Summary Cards - Safari Theme */
+.sessionSummary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 32px 40px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(212, 165, 116, 0.4) 100%);
+  border-bottom: 4px solid rgba(121, 85, 72, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(121, 85, 72, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(93, 64, 55, 0.1);
+}
+
+.summaryItem .label {
+  font-size: 0.85rem;
+  color: var(--safari-brown-dark);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.summaryItem .value {
+  font-size: 1.4rem;
+  color: var(--safari-brown-dark);
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
+}
+
+/* Rounds Table - Safari Wood Theme */
+.roundsTable {
+  padding: 40px;
+  position: relative;
+  z-index: 1;
+}
+
+.roundsTable h3 {
+  font-size: 1.5rem;
+  color: var(--safari-brown-dark);
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
+}
+
+.roundsTable h3::before {
+  content: '🎯';
+  font-size: 1.8rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.roundsTable table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(93, 64, 55, 0.2);
+  border: 3px solid var(--safari-brown);
+}
+
+.roundsTable thead {
+  background: linear-gradient(135deg, var(--safari-brown) 0%, var(--safari-brown-dark) 100%);
+}
+
+.roundsTable thead th {
+  padding: 18px 16px;
+  text-align: left;
+  font-weight: 700;
+  color: var(--safari-sand);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-right: 2px solid rgba(212, 165, 116, 0.3);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.roundsTable thead th:last-child {
+  border-right: none;
+}
+
+.roundsTable tbody tr {
+  background: rgba(255, 255, 255, 0.6);
+  border-bottom: 2px solid rgba(121, 85, 72, 0.2);
+  transition: all 0.2s ease;
+}
+
+.roundsTable tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.roundsTable tbody tr:hover {
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.3) 0%, rgba(255, 140, 66, 0.3) 100%);
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.roundsTable tbody tr:last-child {
+  border-bottom: none;
+}
+
+.roundsTable tbody td {
+  padding: 16px;
+  font-size: 0.95rem;
+  color: var(--safari-brown-dark);
+  font-weight: 600;
+}
+
+/* Sound Cell Styling - Safari Badge */
+.soundCell {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--safari-sand);
+  background: linear-gradient(135deg, var(--safari-brown) 0%, var(--safari-brown-dark) 100%);
+  padding: 8px 16px !important;
+  border-radius: 12px;
+  display: inline-block;
+  text-transform: uppercase;
+  box-shadow: 0 3px 8px rgba(93, 64, 55, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--safari-tan);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Round Rate Styling - Safari Theme */
+.roundRate {
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 6px 12px;
+  border-radius: 8px;
+  display: inline-block;
+  border: 2px solid;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+/* Loading States - Safari Theme */
+.loadingContainer {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+}
+
+.loadingContainer .spinner {
+  font-size: 4rem;
   animation: bounce 1s ease-in-out infinite;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
 }
 
 @keyframes bounce {
@@ -211,89 +693,174 @@
 }
 
 .loadingContainer p {
-  margin-top: 20px;
   font-size: 1.3rem;
-  color: #FFD700;
-  font-family: 'Bubblegum Sans', cursive;
+  color: var(--safari-sand);
+  font-weight: 700;
+  text-shadow: 3px 3px 6px rgba(45, 80, 22, 0.8);
 }
 
-/* Empty State */
+/* Empty State - Safari Theme */
 .emptyState {
+  min-height: 60vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  min-height: 60vh;
+  align-items: center;
   text-align: center;
+  gap: 20px;
   padding: 40px;
 }
 
 .emptyIcon {
-  font-size: 6rem;
-  margin-bottom: 20px;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
+  font-size: 5rem;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
 }
 
 .emptyState h3 {
-  font-family: 'Fredoka One', cursive;
   font-size: 2rem;
-  color: #FFD700;
-  margin: 0 0 15px 0;
+  color: var(--safari-sand);
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 3px 3px 6px rgba(45, 80, 22, 0.8);
 }
 
 .emptyState p {
   font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(245, 222, 179, 0.9);
   max-width: 500px;
+  line-height: 1.6;
+  text-shadow: 2px 2px 4px rgba(45, 80, 22, 0.6);
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
   .chartsGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .analyticsContainer {
+    padding: 20px 10px;
+  }
+
+  .header h2 {
+    font-size: 2rem;
   }
   
   .summaryGrid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
   
-  .header {
-    flex-direction: column;
-    gap: 15px;
+  .chartsGrid {
+    grid-template-columns: 1fr;
+    padding: 0 10px;
   }
   
-  .header h2 {
-    font-size: 1.5rem;
+  .chartCard {
+    padding: 20px;
   }
   
-  .tableWrapper {
-    overflow-x: scroll;
+  .tableContainer {
+    overflow-x: auto;
+  }
+  
+  .tableContainer table {
+    min-width: 800px;
+  }
+  
+  .modalContent {
+    max-width: 95%;
+    max-height: 95vh;
+    border-width: 4px;
+  }
+  
+  .modalHeader {
+    padding: 20px;
+  }
+  
+  .modalHeader h2 {
+    font-size: 1.4rem;
+  }
+  
+  .sessionSummary {
+    grid-template-columns: 1fr;
+    padding: 20px;
+    gap: 12px;
+  }
+  
+  .roundsTable {
+    padding: 20px;
+    overflow-x: auto;
+  }
+  
+  .roundsTable table {
+    min-width: 900px;
+  }
+
+  .summaryCard,
+  .chartCard {
+    padding: 20px;
   }
 }
 
-@media (max-width: 480px) {
-  .analyticsContainer {
-    padding: 10px;
+/* Scrollbar Styling - Safari Theme */
+.modalContent::-webkit-scrollbar,
+.roundsTable::-webkit-scrollbar,
+.tableContainer::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.modalContent::-webkit-scrollbar-track,
+.roundsTable::-webkit-scrollbar-track,
+.tableContainer::-webkit-scrollbar-track {
+  background: rgba(212, 165, 116, 0.3);
+  border-radius: 10px;
+}
+
+.modalContent::-webkit-scrollbar-thumb,
+.roundsTable::-webkit-scrollbar-thumb,
+.tableContainer::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--safari-brown) 0%, var(--safari-brown-dark) 100%);
+  border-radius: 10px;
+  border: 2px solid var(--safari-tan);
+}
+
+.modalContent::-webkit-scrollbar-thumb:hover,
+.roundsTable::-webkit-scrollbar-thumb:hover,
+.tableContainer::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--safari-brown-dark) 0%, var(--safari-brown) 100%);
+}
+
+/* Animations - Safari Theme */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  
-  .summaryCard {
-    padding: 15px;
-  }
-  
-  .cardIcon {
-    font-size: 2rem;
-  }
-  
-  .statValue {
-    font-size: 2rem;
-  }
-  
-  .chartCard, .tableCard {
-    padding: 15px;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
+
+.summaryCard,
+.chartCard,
+.sessionsTable {
+  animation: slideUp 0.5s ease-out backwards;
+}
+
+.summaryCard:nth-child(1) { animation-delay: 0.1s; }
+.summaryCard:nth-child(2) { animation-delay: 0.2s; }
+.summaryCard:nth-child(3) { animation-delay: 0.3s; }
+.summaryCard:nth-child(4) { animation-delay: 0.4s; }
+.chartCard:nth-child(1) { animation-delay: 0.5s; }
+.chartCard:nth-child(2) { animation-delay: 0.6s; }
+.sessionsTable { animation-delay: 0.7s; }

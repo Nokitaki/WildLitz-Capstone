@@ -1,27 +1,81 @@
 /* src/styles/games/safari/SoundSafariLoading.module.css */
-
-/* SoundSafariLoading.module.css */
+/* Jungle Safari Theme for Kids - 2025 */
 
 .loadingContainer {
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
+  padding: 15px;
+  background: linear-gradient(180deg, #8BC34A 0%, #689F38 40%, #558B2F 100%);
+  position: relative;
+  overflow: hidden;
   box-sizing: border-box;
 }
 
+/* Animated jungle leaves */
+.leavesBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  font-size: 4rem;
+  opacity: 0.15;
+  animation: leavesFloat 40s linear infinite;
+  letter-spacing: 80px;
+  line-height: 120px;
+  pointer-events: none;
+}
+
+@keyframes leavesFloat {
+  0% { transform: translateY(-100px) rotate(0deg); }
+  100% { transform: translateY(100vh) rotate(360deg); }
+}
+
 .loadingCard {
+  background: linear-gradient(145deg, #FFF9E6 0%, #FFEAA7 100%);
+  border-radius: 25px;
+  padding: 20px;
   width: 100%;
   max-width: 1600px;
-  background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 24px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.3),
+    0 0 0 6px #8D6E63,
+    0 0 0 12px #6D4C41;
+  border: 5px solid #5D4037;
+  position: relative;
+  z-index: 1;
+  animation: cardEntrance 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes cardEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(40px) rotate(-2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
+}
+
+/* Jungle vines decorations */
+.vineLeft {
+  position: absolute;
+  top: -5px;
+  left: 20px;
+  font-size: 2.5rem;
+  z-index: 2;
+}
+
+.vineRight {
+  position: absolute;
+  top: -5px;
+  right: 20px;
+  font-size: 2.5rem;
+  z-index: 2;
 }
 
 .loadingContent {
@@ -37,68 +91,112 @@
 
 /* Left Column - Target Sound */
 .targetSoundSection {
-  background-color: rgba(255, 255, 255, 0.7);
+  background: linear-gradient(135deg, rgba(255, 248, 225, 0.95) 0%, rgba(255, 235, 205, 0.95) 100%);
   border-radius: 16px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 3px solid #8D6E63;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.15),
+    inset 0 1px 3px rgba(255, 255, 255, 0.5);
   height: 100%;
+  transition: transform 0.3s ease;
+  position: relative;
 }
 
-.targetSoundSection h3 {
-  color: #333;
+.targetSoundSection::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 221, 87, 0.3) 50%, transparent 70%);
+  border-radius: 16px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.targetSoundSection:hover::before {
+  opacity: 1;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.targetSoundSection:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.2),
+    inset 0 1px 3px rgba(255, 255, 255, 0.5);
+}
+
+.sectionTitle {
+  color: #33691E;
   font-size: 1.2rem;
   margin: 0 0 15px 0;
   text-align: center;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(255, 221, 87, 0.5);
 }
 
 .targetSoundCircle {
-  width: 120px;
-  height: 120px;
-  background: linear-gradient(135deg, #81c9c0, #a0dad1);
+  width: 140px;
+  height: 140px;
+  background: linear-gradient(135deg, #689F38 0%, #558B2F 100%);
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   margin-bottom: 15px;
-  border: 2px dashed rgba(255, 255, 255, 0.7);
+  border: 4px solid #33691E;
+  box-shadow: 
+    0 6px 20px rgba(104, 159, 56, 0.4),
+    inset 0 -3px 10px rgba(0, 0, 0, 0.2);
 }
 
 .targetSoundDisplay {
-  font-size: 3rem;
+  font-size: 4rem;
   color: white;
   font-weight: bold;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
 }
 
-.targetSoundSection p {
+.targetDescription {
   text-align: center;
-  color: #555;
+  color: #5D4037;
   margin: 0 0 20px 0;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 1rem;
 }
 
 .examplesBox {
-  background-color: #f5f9f8;
+  background: #E8F5E9;
   border-radius: 12px;
   padding: 15px;
   width: 100%;
   margin-top: auto;
+  border: 2px solid #81C784;
 }
 
-.examplesBox h4 {
-  color: #296b63;
+.examplesTitle {
+  color: #2E7D32;
   margin: 0 0 8px 0;
   font-size: 1rem;
+  font-weight: 700;
 }
 
-.examplesBox p {
+.examplesText {
   margin: 0;
-  color: #333;
+  color: #33691E;
   text-align: left;
-  font-weight: normal;
+  font-weight: 500;
 }
 
 /* Center Column - Progress & Info */
@@ -110,32 +208,54 @@
 }
 
 .loadingTitle {
-  color: #296b63;
-  font-size: 1.4rem;
+  color: #33691E;
+  font-size: 1.6rem;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 8px;
+  font-weight: 800;
+  text-shadow: 
+    2px 2px 0 #FDD835,
+    4px 4px 8px rgba(0, 0, 0, 0.2);
+  animation: titleBounce 1s ease-in-out;
+}
+
+@keyframes titleBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .headerEmoji {
-  font-size: 1.4rem;
+  font-size: 1.6rem;
+  animation: emojiWiggle 2s ease-in-out infinite;
+}
+
+@keyframes emojiWiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-15deg); }
+  75% { transform: rotate(15deg); }
 }
 
 .roundInfo {
-  background-color: #81c9c0;
+  background: linear-gradient(135deg, #F57C00 0%, #E65100 100%);
   color: white;
   border-radius: 50px;
-  padding: 5px 15px;
+  padding: 8px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  border: 3px solid #FFCC80;
+  box-shadow: 
+    0 4px 12px rgba(245, 124, 0, 0.4),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .roundText {
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 1px;
+  font-weight: 600;
 }
 
 .roundNumbers {
@@ -145,11 +265,11 @@
 }
 
 .currentRound {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
 }
 
 .totalRounds {
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .progressSection {
@@ -157,31 +277,33 @@
 }
 
 .progressBarContainer {
-  height: 10px;
-  background-color: rgba(0, 0, 0, 0.1);
-  border-radius: 5px;
+  height: 14px;
+  background: rgba(93, 64, 55, 0.3);
+  border-radius: 7px;
   overflow: hidden;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+  border: 2px solid #8D6E63;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .progressBar {
   height: 100%;
-  background: linear-gradient(to right, #81c9c0, #a0dad1);
+  background: linear-gradient(to right, #689F38, #8BC34A, #AED581);
   border-radius: 5px;
+  box-shadow: 0 0 10px rgba(139, 195, 74, 0.6);
 }
 
 .progressLabel {
   text-align: center;
-  font-size: 0.9rem;
-  color: #333;
-  font-weight: 500;
+  font-size: 1rem;
+  color: #33691E;
+  font-weight: 700;
 }
 
 .infoGrid {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  margin-bottom: 20px;
 }
 
 .difficultyBadge {
@@ -189,162 +311,151 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background-color: #f5f9f8;
-  padding: 12px;
+  background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
+  padding: 14px;
   border-radius: 12px;
-  color: #333;
-  font-weight: 600;
-  font-size: 1rem;
+  color: #33691E;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: 3px solid #F9A825;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.difficultyBadge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(249, 168, 37, 0.3);
 }
 
 .difficultyIcon {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 .funFactBox {
-  background-color: #e3f2fd;
+  background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
   border-radius: 12px;
-  padding: 15px;
+  padding: 16px;
   min-height: 120px;
   display: flex;
   flex-direction: column;
-  border-left: 4px solid #a0d6e3;
+  border-left: 5px solid #2196F3;
+  border: 3px solid #64B5F6;
+  box-shadow: 0 3px 10px rgba(33, 150, 243, 0.2);
 }
 
 .factTitle {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #296b63;
-  font-weight: 600;
-  font-size: 1rem;
+  color: #1565C0;
+  font-weight: 700;
+  font-size: 1.1rem;
   margin-bottom: 10px;
 }
 
 .factEmoji {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
+  animation: emojiSpin 3s linear infinite;
 }
 
-.funFactBox p {
+@keyframes emojiSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.funFactText {
   margin: 0;
-  color: #333;
+  color: #01579B;
   font-size: 1rem;
-  line-height: 1.4;
-}
-
-.actionButtons {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: auto;
-}
-
-.skipButton {
-  background-color: #e0e0e0;
-  color: #333;
-  border: none;
-  border-radius: 50px;
-  padding: 10px 20px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.skipButton:hover {
-  background-color: #d5d5d5;
-  transform: translateY(-2px);
-}
-
-.startButton {
-  background-color: #81c9c0;
-  color: white;
-  border: none;
-  border-radius: 50px;
-  padding: 10px 20px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.startButton:hover {
-  background-color: #6dbdb3;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-.startButton:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+  line-height: 1.5;
+  font-weight: 500;
 }
 
 /* Right Column - Tips */
 .tipsSection {
-  background-color: rgba(255, 255, 255, 0.7);
+  background: linear-gradient(135deg, rgba(255, 248, 225, 0.95) 0%, rgba(255, 235, 205, 0.95) 100%);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 3px solid #8D6E63;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.15),
+    inset 0 1px 3px rgba(255, 255, 255, 0.5);
   display: flex;
   flex-direction: column;
   gap: 15px;
   height: 100%;
+  transition: transform 0.3s ease;
 }
 
-.tipsSection h3 {
-  color: #333;
-  font-size: 1.2rem;
-  margin: 0;
-  text-align: center;
-  margin-bottom: 5px;
+.tipsSection:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.2),
+    inset 0 1px 3px rgba(255, 255, 255, 0.5);
 }
 
 .tipBox {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  background-color: #f5f9f8;
-  padding: 12px;
+  gap: 12px;
+  background: #F5F9F8;
+  padding: 14px;
   border-radius: 12px;
+  border: 2px solid #AED581;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.tipBox:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  border-color: #689F38;
 }
 
 .tipIcon {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   flex-shrink: 0;
 }
 
-.tipBox p {
+.tipText {
   margin: 0;
-  color: #333;
-  font-size: 0.9rem;
-  line-height: 1.4;
+  color: #33691E;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-weight: 500;
 }
 
 .soundExamplesWrapper {
   margin-top: auto;
-  background-color: #e8f5e9;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
   border-radius: 12px;
-  padding: 15px;
+  padding: 16px;
+  border: 3px solid #81C784;
+  box-shadow: 0 3px 10px rgba(46, 125, 50, 0.2);
 }
 
 .soundExamplesHeader {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .soundExampleIcon {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
 }
 
-.soundExamplesHeader h4 {
-  color: #2e7d32;
+.soundExamplesTitle {
+  color: #2E7D32;
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .soundExamplesList {
@@ -354,12 +465,20 @@
 }
 
 .soundExample {
-  background-color: white;
-  padding: 5px 10px;
+  background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
+  padding: 6px 12px;
   border-radius: 20px;
   font-size: 0.9rem;
-  color: #2e7d32;
-  font-weight: 500;
+  color: #33691E;
+  font-weight: 600;
+  border: 2px solid #F9A825;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.soundExample:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 8px rgba(249, 168, 37, 0.3);
 }
 
 /* Media queries for responsive design */
@@ -369,24 +488,21 @@
   }
   
   .targetSoundCircle {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
   }
   
   .targetSoundDisplay {
-    font-size: 2.5rem;
+    font-size: 3.5rem;
   }
   
   .infoGrid {
     flex-direction: row;
+    gap: 12px;
   }
   
   .difficultyBadge, .funFactBox {
     flex: 1;
-  }
-  
-  .soundExamplesList {
-    justify-content: center;
   }
 }
 
@@ -400,16 +516,38 @@
     gap: 10px;
   }
   
+  .loadingTitle {
+    font-size: 1.3rem;
+  }
+  
+  .targetSoundCircle {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .targetSoundDisplay {
+    font-size: 3rem;
+  }
+  
   .infoGrid {
     flex-direction: column;
   }
   
-  .actionButtons {
-    flex-direction: column;
+  .tipBox {
+    padding: 10px;
   }
   
-  .skipButton, .startButton {
-    width: 100%;
+  .tipIcon {
+    font-size: 1.5rem;
+  }
+  
+  .tipText {
+    font-size: 0.85rem;
+  }
+  
+  .soundExample {
+    font-size: 0.8rem;
+    padding: 5px 10px;
   }
 }
 
@@ -420,24 +558,19 @@
   }
   
   .targetSoundCircle {
-    width: 150px;
-    height: 150px;
+    width: 160px;
+    height: 160px;
   }
   
   .targetSoundDisplay {
-    font-size: 4rem;
+    font-size: 4.5rem;
   }
   
   .loadingTitle {
     font-size: 1.8rem;
   }
   
-  .tipBox p, .funFactBox p {
-    font-size: 1.1rem;
-  }
-  
-  .skipButton, .startButton {
-    padding: 12px 25px;
+  .tipText, .funFactText {
     font-size: 1.1rem;
   }
 }

@@ -1,5 +1,5 @@
 // src/pages/games/soundsafari/ResultScreen.jsx
-// UPDATED VERSION - Position-aware scoring and validation
+// UPDATED: Score calculation matches analytics, but display shows correct animals only
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
@@ -31,22 +31,24 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
     !selectedAnimals.some(a => a.id === animal.id)
   );
   
-  // ✅ Calculate score with proper handling for edge cases
+  // ✅ FIXED: Calculate score EXACTLY like backend analytics
+  // Backend saves: correct, incorrect, total
+  // Backend calculates rate: (correct / total) * 100
   const calculateScore = () => {
-    // Special case: No correct animals exist
-    if (!correctAnimals || correctAnimals.length === 0) {
-      // If player also selected nothing, that's CORRECT! (100%)
-      if (!selectedAnimals || selectedAnimals.length === 0) {
-        return 100;
-      }
-      // If player selected something when nothing was correct, that's WRONG (0%)
-      return 0;
-    }
+    // What gets saved to database
+    const correctCount = correctSelected.length; // Animals correctly selected
+    const incorrectCount = incorrectSelected.length; // Animals incorrectly selected
     
-    // Normal case: Calculate based on correct selections
-    const rawScore = (correctSelected.length / correctAnimals.length) * 100;
-    if (isNaN(rawScore) || !isFinite(rawScore)) return 0;
-    return Math.round(rawScore);
+    // Backend total = correct + incorrect (NOT all animals shown)
+    const total = correctCount + incorrectCount;
+    
+    // Backend formula: (correct / total) * 100
+    const successRate = total > 0 
+      ? (correctCount / total) * 100 
+      : 100; // If total is 0 (player selected nothing), that's perfect if no correct animals exist
+    
+    // Round to 1 decimal place like backend
+    return Math.round(successRate * 10) / 10;
   };
   
   const score = calculateScore();
@@ -155,12 +157,12 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
   // Navigation handlers
   const handleNextRoundClick = () => {
     stopAllSpeech();
-    onNextRound(); // ✅ Call immediately - no delay
+    onNextRound();
   };
 
   const handleTryAgainClick = () => {
     stopAllSpeech();
-    onTryAgain(); // ✅ Call immediately - no delay
+    onTryAgain();
   };
   
   return (
@@ -214,18 +216,20 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
             <div className={styles.scoreIcon}>{getFeedbackIcon()}</div>
             <div className={styles.scoreContent}>
               <div className={styles.scoreLabel}>{getFeedbackMessage()}</div>
-              <div className={styles.scoreValue}>{score}%</div>
+              {/* ✅ Show percentage with 1 decimal to match analytics */}
+              <div className={styles.scoreValue}>{score.toFixed(1)}%</div>
             </div>
           </div>
           
           <div className={styles.scoreInfo}>
+            {/* ✅ KEEP ORIGINAL: Show correct out of correct animals (not total) */}
             <span className={styles.scoreText}>
               You found: <span>{correctSelected.length}/{correctAnimals.length || 0}</span>
             </span>
           </div>
         </div>
         
-        {/* ✅ Feedback Message - Special case for no correct animals */}
+        {/* ✅ Feedback Message */}
         {(!correctAnimals || correctAnimals.length === 0) && (
           <div className={styles.feedbackMessageBox}>
             <p className={styles.feedbackContent}>

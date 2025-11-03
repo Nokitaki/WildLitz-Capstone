@@ -1,11 +1,11 @@
-// src/pages/games/soundsafari/SoundSafariLoadingScreen.jsx <updated on 2025-04-25>
+// src/pages/games/soundsafari/SoundSafariLoadingScreen.jsx <updated on 2025-11-03>
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/safari/SoundSafariLoading.module.css';
 
 /**
  * Loading screen component for Sound Safari game
- * Redesigned with horizontal layout and no overflow/scroll
+ * Redesigned with jungle safari theme to match config screen
  */
 const SoundSafariLoadingScreen = ({ 
   targetSound, 
@@ -44,50 +44,47 @@ const SoundSafariLoadingScreen = ({
   };
 
   // Get examples for this sound, or show generic message
-  const examples = soundExamples[targetSound] || 
-    'words containing this sound';
+  const examples = soundExamples[targetSound] || 'words containing this sound';
     
   // Format difficulty for display
   const formatDifficulty = (diff) => {
     return diff.charAt(0).toUpperCase() + diff.slice(1);
   };
   
-  // Auto advance the progress bar
+  // Auto advance the progress bar and continue
   useEffect(() => {
     const progressInterval = setInterval(() => {
       setProgress(prevProgress => {
         const newProgress = prevProgress + 1;
         if (newProgress >= 100) {
           clearInterval(progressInterval);
-          // Wait a moment at 100% before continuing
-          setTimeout(() => {
-            if (onContinue) onContinue();
-          }, 500);
           return 100;
         }
         return newProgress;
       });
-    }, 20); // 20ms * 100 steps = ~2 seconds
+    }, 30); // 30ms * 100 steps = 3 seconds
     
-    // Clean up interval on unmount
+    // Auto-continue after 3 seconds
+    const autoTimer = setTimeout(() => {
+      console.log('⭐️ Auto-continuing from loading screen...');
+      onContinue();
+    }, 3000);
+    
+    // Cleanup
     return () => {
       clearInterval(progressInterval);
+      clearTimeout(autoTimer);
     };
   }, [onContinue]);
   
-  // Rotate through fun facts
+  // Rotate through fun facts every 4 seconds
   useEffect(() => {
-  // ✅ Auto-continue after 3 seconds of showing loading screen
-  const autoTimer = setTimeout(() => {
-    console.log('⏭️ Auto-continuing from loading screen...');
-    onContinue();
-  }, 3000); // 3 seconds - adjust as needed
-  
-  // Cleanup
-  return () => {
-    clearTimeout(autoTimer);
-  };
-}, [onContinue]);
+    const factInterval = setInterval(() => {
+      setFactsIndex(prev => (prev + 1) % funFacts.length);
+    }, 4000);
+    
+    return () => clearInterval(factInterval);
+  }, []);
   
   // Get difficulty icon
   const getDifficultyIcon = () => {
@@ -99,28 +96,77 @@ const SoundSafariLoadingScreen = ({
     }
   };
 
+  // Helper function to get time limit based on difficulty
+  const getDifficultyTime = (difficulty) => {
+    switch(difficulty) {
+      case 'easy': return '60';
+      case 'medium': return '45';
+      case 'hard': return '30';
+      default: return '60';
+    }
+  };
+
+  // Helper function to get a list of examples for a sound
+  const getExamplesList = (sound) => {
+    const examplesMap = {
+      's': ['snake', 'sun', 'seal', 'star', 'squid', 'sock'],
+      'm': ['monkey', 'mouse', 'moon', 'map', 'milk', 'mango'],
+      't': ['tiger', 'turtle', 'table', 'toy', 'toe', 'tree'],
+      'b': ['bear', 'ball', 'boat', 'bee', 'book', 'banana'],
+      'p': ['penguin', 'pig', 'pan', 'pizza', 'pen', 'puppy'],
+      'f': ['fox', 'fish', 'frog', 'foot', 'fan', 'food'],
+      'l': ['lion', 'leaf', 'lamp', 'leg', 'lemon', 'lip'],
+      'z': ['zebra', 'zoo', 'zero', 'zip', 'zigzag', 'zone']
+    };
+    
+    return examplesMap[sound] || ['cat', 'dog', 'fish', 'bird', 'elephant', 'giraffe'];
+  };
+
   return (
     <div className={styles.loadingContainer}>
+      {/* Falling leaves animation */}
+      <div className={styles.leavesBackground}>🍃</div>
+      
       <div className={styles.loadingCard}>
+        {/* Swinging vines decoration */}
+        <motion.div 
+          className={styles.vineLeft}
+          animate={{ rotate: [-20, -30, -20] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          🌿
+        </motion.div>
+        <motion.div 
+          className={styles.vineRight}
+          animate={{ rotate: [20, 30, 20] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+        >
+          🌿
+        </motion.div>
+        
         <div className={styles.loadingContent}>
           {/* Left Column - Target Sound */}
           <div className={styles.loadingColumn}>
             <div className={styles.targetSoundSection}>
-              <h3>Target Sound:</h3>
+              <h3 className={styles.sectionTitle}>Target Sound:</h3>
               <motion.div 
                 className={styles.targetSoundCircle}
                 animate={{ 
-                  boxShadow: ['0 0 0 rgba(129, 201, 192, 0.4)', '0 0 20px rgba(129, 201, 192, 0.8)', '0 0 0 rgba(129, 201, 192, 0.4)']
+                  boxShadow: [
+                    '0 0 0 rgba(104, 159, 56, 0.4)', 
+                    '0 0 30px rgba(104, 159, 56, 0.8)', 
+                    '0 0 0 rgba(104, 159, 56, 0.4)'
+                  ]
                 }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
                 <span className={styles.targetSoundDisplay}>{targetSound.toUpperCase()}</span>
               </motion.div>
-              <p>Listen for this sound in animal names!</p>
+              <p className={styles.targetDescription}>Listen for this sound in animal names!</p>
               
               <div className={styles.examplesBox}>
-                <h4>Examples:</h4>
-                <p>{examples}</p>
+                <h4 className={styles.examplesTitle}>Examples:</h4>
+                <p className={styles.examplesText}>{examples}</p>
               </div>
             </div>
           </div>
@@ -134,7 +180,7 @@ const SoundSafariLoadingScreen = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <span className={styles.headerEmoji}>🌍</span>
+                <span className={styles.headerEmoji}>🌴</span>
                 Safari Adventure Loading
               </motion.h2>
               
@@ -156,7 +202,7 @@ const SoundSafariLoadingScreen = ({
                 />
               </div>
               <div className={styles.progressLabel}>
-                {progress < 100 ? 'Preparing animals...' : 'Ready!'}
+                {progress < 100 ? 'Preparing animals...' : 'Ready! 🎉'}
               </div>
             </div>
             
@@ -176,7 +222,7 @@ const SoundSafariLoadingScreen = ({
                 <div className={styles.factTitle}>
                   <span className={styles.factEmoji}>🧠</span> Fun Fact:
                 </div>
-                <p>{funFacts[factsIndex]}</p>
+                <p className={styles.funFactText}>{funFacts[factsIndex]}</p>
               </motion.div>
             </div>
           </div>
@@ -184,33 +230,63 @@ const SoundSafariLoadingScreen = ({
           {/* Right Column - Game Tips */}
           <div className={styles.loadingColumn}>
             <div className={styles.tipsSection}>
-              <h3>Sound Safari Tips:</h3>
+              <h3 className={styles.sectionTitle}>Sound Safari Tips:</h3>
               
               <div className={styles.tipBox}>
-                <div className={styles.tipIcon}>🎯</div>
-                <p>Listen carefully for the target sound in animal names!</p>
+                <motion.div 
+                  className={styles.tipIcon}
+                  animate={{ rotate: [0, -15, 15, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  🎯
+                </motion.div>
+                <p className={styles.tipText}>Listen carefully for the target sound in animal names!</p>
               </div>
               
               <div className={styles.tipBox}>
-                <div className={styles.tipIcon}>👂</div>
-                <p>This round focuses on the <strong>"{targetSound}"</strong> sound. Click buttons to hear pronunciations.</p>
+                <motion.div 
+                  className={styles.tipIcon}
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  👂
+                </motion.div>
+                <p className={styles.tipText}>This round focuses on the <strong>"{targetSound}"</strong> sound. Click buttons to hear pronunciations.</p>
               </div>
               
               <div className={styles.tipBox}>
-                <div className={styles.tipIcon}>⏱️</div>
-                <p>You'll have {getDifficultyTime(difficulty)} seconds to find all matching animals.</p>
+                <motion.div 
+                  className={styles.tipIcon}
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  ⏱️
+                </motion.div>
+                <p className={styles.tipText}>You'll have {getDifficultyTime(difficulty)} seconds to find all matching animals.</p>
               </div>
               
               <div className={styles.soundExamplesWrapper}>
                 <div className={styles.soundExamplesHeader}>
-                  <span className={styles.soundExampleIcon}>🔊</span>
-                  <h4>Sound "{targetSound}" appears in:</h4>
+                  <motion.span 
+                    className={styles.soundExampleIcon}
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                  >
+                    📊
+                  </motion.span>
+                  <h4 className={styles.soundExamplesTitle}>Sound "{targetSound}" appears in:</h4>
                 </div>
                 <div className={styles.soundExamplesList}>
                   {getExamplesList(targetSound).map((word, index) => (
-                    <div key={index} className={styles.soundExample}>
+                    <motion.div 
+                      key={index} 
+                      className={styles.soundExample}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
                       {word}
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -220,32 +296,6 @@ const SoundSafariLoadingScreen = ({
       </div>
     </div>
   );
-};
-
-// Helper function to get time limit based on difficulty
-const getDifficultyTime = (difficulty) => {
-  switch(difficulty) {
-    case 'easy': return '60';
-    case 'medium': return '45';
-    case 'hard': return '30';
-    default: return '60';
-  }
-};
-
-// Helper function to get a list of examples for a sound
-const getExamplesList = (sound) => {
-  const examples = {
-    's': ['snake', 'sun', 'seal', 'star', 'squid', 'sock'],
-    'm': ['monkey', 'mouse', 'moon', 'map', 'milk', 'mango'],
-    't': ['tiger', 'turtle', 'table', 'toy', 'toe', 'tree'],
-    'b': ['bear', 'ball', 'boat', 'bee', 'book', 'banana'],
-    'p': ['penguin', 'pig', 'pan', 'pizza', 'pen', 'puppy'],
-    'f': ['fox', 'fish', 'frog', 'foot', 'fan', 'food'],
-    'l': ['lion', 'leaf', 'lamp', 'leg', 'lemon', 'lip'],
-    'z': ['zebra', 'zoo', 'zero', 'zip', 'zigzag', 'zone']
-  };
-  
-  return examples[sound] || ['cat', 'dog', 'fish', 'bird', 'elephant', 'giraffe'];
 };
 
 export default SoundSafariLoadingScreen;
