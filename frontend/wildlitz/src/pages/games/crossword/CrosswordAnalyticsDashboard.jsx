@@ -58,10 +58,12 @@ const CrosswordAnalyticsDashboard = () => {
     }
   };
 
-  // ✅ MUST CALL BOTH FUNCTIONS!
   fetchAnalytics();
   fetchWordPerformance();
-}, []);
+}, [user?.email]);
+
+
+
 
   const fetchWordPerformance = async () => {
   try {
@@ -82,22 +84,22 @@ const CrosswordAnalyticsDashboard = () => {
 };
 
   const fetchSessionActivities = async (sessionId) => {
-    try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/sentence_formation/story/session/${sessionId}/`
-      );
-      const data = await response.json();
-      
-      if (data.success) {
-        setSessionActivities(prev => ({
-          ...prev,
-          [sessionId]: data.word_stats || []
-        }));
-      }
-    } catch (err) {
-      console.error('Session activities fetch error:', err);
+  try {
+    const response = await fetch(
+      `${API_ENDPOINTS.SENTENCE_FORMATION}/story/session/${sessionId}/`
+    );
+    const data = await response.json();
+    
+    if (data.success) {
+      setSessionActivities(prev => ({
+        ...prev,
+        [sessionId]: data.word_stats || []
+      }));
     }
-  };
+  } catch (err) {
+    console.error('Session activities fetch error:', err);
+  }
+};
 
   const toggleSessionExpansion = (sessionId) => {
     if (expandedSession === sessionId) {
@@ -164,6 +166,8 @@ const CrosswordAnalyticsDashboard = () => {
       </div>
     );
   }
+
+  
 
   return (
     <div style={{
