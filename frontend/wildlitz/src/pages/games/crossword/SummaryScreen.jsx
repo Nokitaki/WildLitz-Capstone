@@ -275,26 +275,26 @@ const SummaryScreen = ({
 
         {/* ===== ACTION BUTTONS ===== */}
         <div className={styles.actionButtonsContainer}>
-          {hasNextEpisode && currentEpisode < totalEpisodes ? (
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={onPlayAgain}
-              className={styles.nextEpisodeButton}
-            >
-              ▶️ Continue to Episode {currentEpisode + 1}!
-            </motion.button>
-          ) : (
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={onReturnToMenu}
-              className={styles.nextEpisodeButton}
-            >
-              🎮 Create New Story
-            </motion.button>
-          )}
-          
+           {hasNextEpisode ? (
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={onPlayAgain}
+                className={styles.nextEpisodeButton}
+              >
+                ▶️ Continue to Episode {currentEpisode + 1}!
+              </motion.button>
+            ) : (
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={onReturnToMenu}
+                className={styles.nextEpisodeButton}
+              >
+                🎮 Create New Story
+              </motion.button>
+            )}
+                      
          <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}

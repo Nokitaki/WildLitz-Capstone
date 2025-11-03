@@ -207,7 +207,8 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
     
     try {
       const controller = new AbortController();
-      const fetchTimeout = setTimeout(() => controller.abort(), 60000);
+      const timeoutDuration = (episodeCount * 30000) + 30000;
+      const fetchTimeout = setTimeout(() => controller.abort(), timeoutDuration);
       
       const requestBody = {
         theme,

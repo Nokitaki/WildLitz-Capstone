@@ -99,7 +99,7 @@ def generate_story(request):
         story_id = f"{theme}_generated_{int(datetime.now().timestamp())}"
         
         # Calculate max_tokens dynamically
-        max_tokens = max(3000, episode_count * 1200 + 500)
+        max_tokens = min(4000, 1500 + (episode_count * 600))
         
         # Get vocabulary guidance for selected focus skills
         vocab_guidance = get_vocabulary_guidance(focus_skills)
@@ -294,8 +294,8 @@ def create_improved_fallback_story(theme, episode_count, grade_level, focus_skil
         # Create story text using the vocabulary words
         vocab_words = [v['word'].lower() for v in vocab_list]
         episode_text = f"""The kids {vocab_words[0]} to the {theme}. They {vocab_words[1]} and {vocab_words[2]} around. 
-They {vocab_words[3]} so many cool things! They {vocab_words[4]} each other all day. 
-It is fun to {vocab_words[5]} and {vocab_words[6]}!"""
+        They {vocab_words[3]} so many cool things! They {vocab_words[4]} each other all day. 
+        It is so much fun!"""
         
         fallback_story["story"]["episodes"].append({
             "id": episode_id,

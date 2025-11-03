@@ -276,35 +276,38 @@ const CrosswordGame = () => {
   };
   
   const handleNextEpisode = () => {
-    const adventure = gameStories[gameConfig.adventureId];
+  const adventure = gameStories[gameConfig.adventureId];
+  
+  if (!adventure || !adventure.episodes) {
+    setGameState('generate-story');
+    return;
+  }
+  
+  // ✅ CORRECT: currentEpisode is 1-indexed (1,2,3...), episodes array is 0-indexed (0,1,2...)
+  // After episode 1 completes, currentEpisode=1, so we want episodes[1] (episode 2)
+  const nextEpisodeIndex = currentEpisode;
+  
+  if (nextEpisodeIndex < adventure.episodes.length) {
+    const nextEpisode = adventure.episodes[nextEpisodeIndex];
+    setCurrentStorySegment(nextEpisode);
+    setCurrentEpisode(currentEpisode + 1);
     
-    if (!adventure || !adventure.episodes) {
-      setGameState('generate-story');
-      return;
+    const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
+    if (puzzleData) {
+      setCurrentPuzzle(puzzleData);
     }
     
-    const nextEpisodeIndex = currentEpisode;
+    setSolvedWords([]);
+    setTimeSpent(0);
+    setTotalHints(0);
+    setTimerActive(false);
     
-    if (nextEpisodeIndex < adventure.episodes.length) {
-      const nextEpisode = adventure.episodes[nextEpisodeIndex];
-      setCurrentStorySegment(nextEpisode);
-      setCurrentEpisode(currentEpisode + 1);
-      
-      const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
-      if (puzzleData) {
-        setCurrentPuzzle(puzzleData);
-      }
-      
-      setSolvedWords([]);
-      setTimeSpent(0);
-      setTotalHints(0);
-      setTimerActive(false);
-      
-      setGameState('story');
-    } else {
-      setGameState('generate-story');
-    }
-  };
+    setGameState('story');
+  } else {
+    // All episodes completed
+    setGameState('generate-story');
+  }
+};
   
   const handleReturnToMenu = () => {
     if (window.disableGameAudio) window.disableGameAudio();
