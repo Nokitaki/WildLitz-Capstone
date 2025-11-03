@@ -1454,3 +1454,246 @@ INFO 2025-11-02 18:02:44,183 views Explaining word 'pull' for grade 3
 INFO 2025-11-02 18:02:45,822 views GPT response for 'pull': {
   "definition": "To use force to bring something closer to you or to move something towards you.",...
 INFO 2025-11-02 18:02:45,822 views Successfully explained word 'pull'
+INFO 2025-11-03 22:05:30,377 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:05:31,439 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:05:31,446 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:05:31,730 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:05:33,596 views Fetching analytics - user_email: guest@wildlitz.com, days: 30
+INFO 2025-11-03 22:05:33,607 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:05:33,818 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:05:34,000 views Found 2 sessions for user_email: guest@wildlitz.com
+INFO 2025-11-03 22:05:34,008 views Fetching analytics - user_email: guest@wildlitz.com, days: 30
+INFO 2025-11-03 22:05:34,147 views Found 2 sessions for user_email: guest@wildlitz.com
+INFO 2025-11-03 22:05:46,970 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:05:47,232 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:05:47,242 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:05:47,425 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:05:51,958 views Fetching analytics - user_email: guest@wildlitz.com, days: 30
+INFO 2025-11-03 22:05:51,967 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:05:52,192 views Found 2 sessions for user_email: guest@wildlitz.com
+INFO 2025-11-03 22:05:52,199 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:05:52,204 views Fetching analytics - user_email: guest@wildlitz.com, days: 30
+INFO 2025-11-03 22:05:52,376 views Found 2 sessions for user_email: guest@wildlitz.com
+INFO 2025-11-03 22:07:06,133 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:07:06,742 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:07:29,814 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:07:30,578 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:07:30,588 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:07:30,719 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:07:39,803 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+ERROR 2025-11-03 22:07:39,986 views Error fetching word performance: [WinError 10035] A non-blocking socket operation could not be completed immediately
+ERROR 2025-11-03 22:07:39,986 views Error fetching story analytics: [WinError 10035] A non-blocking socket operation could not be completed immediately
+ERROR 2025-11-03 22:07:40,091 views Full traceback: Traceback (most recent call last):
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+        pool_request.request
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection.py", line 103, in handle_request
+    return self._connection.handle_request(request)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\http2.py", line 183, in handle_request
+    raise exc
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\http2.py", line 146, in handle_request
+    status, headers = self._receive_response(
+                      ~~~~~~~~~~~~~~~~~~~~~~^
+        request=request, stream_id=stream_id
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\http2.py", line 290, in _receive_response
+    event = self._receive_stream_event(request, stream_id)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\http2.py", line 329, in _receive_stream_event
+    self._receive_events(request, stream_id)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\http2.py", line 357, in _receive_events
+    events = self._read_incoming_data(request)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\http2.py", line 429, in _read_incoming_data
+    raise self._read_exception  # pragma: nocover
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+        pool_request.request
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\connection.py", line 103, in handle_request
+    return self._connection.handle_request(request)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\http2.py", line 183, in handle_request
+    raise exc
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\http2.py", line 146, in handle_request
+    status, headers = self._receive_response(
+                      ~~~~~~~~~~~~~~~~~~~~~~^
+        request=request, stream_id=stream_id
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\http2.py", line 290, in _receive_response
+    event = self._receive_stream_event(request, stream_id)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\http2.py", line 329, in _receive_stream_event
+    self._receive_events(request, stream_id)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\http2.py", line 357, in _receive_events
+    events = self._read_incoming_data(request)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\http2.py", line 446, in _read_incoming_data
+    raise exc
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_sync\http2.py", line 432, in _read_incoming_data
+    data = self._network_stream.read(self.READ_NUM_BYTES, timeout)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Program Files\Python313\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [WinError 10035] A non-blocking socket operation could not be completed immediately
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 977, in get_story_analytics
+    response = query.execute()
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\postgrest\_sync\request_builder.py", line 58, in execute
+    r = self.session.request(
+        self.http_method,
+    ...<3 lines>...
+        headers=self.headers,
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+        request,
+    ...<2 lines>...
+        history=[],
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+        request,
+        follow_redirects=follow_redirects,
+        history=history,
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\Python313\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [WinError 10035] A non-blocking socket operation could not be completed immediately
+
+INFO 2025-11-03 22:07:40,095 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:07:40,261 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:08:13,124 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:08:13,540 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:08:18,206 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:08:18,437 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:08:18,446 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:08:18,593 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:09:15,082 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:09:15,580 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:09:15,587 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:09:15,725 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:10:21,531 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:10:22,042 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:10:22,051 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:10:22,180 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:10:37,678 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:10:38,020 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:10:38,028 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:10:38,171 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:18:02,814 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:18:03,546 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:18:03,559 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:18:03,707 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:18:19,128 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:18:19,609 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:18:31,043 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:18:31,426 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:18:31,432 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:18:31,570 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:19:20,334 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:19:20,674 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:19:20,681 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:19:20,857 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:19:24,443 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:19:24,580 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:19:28,809 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:19:28,957 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:19:28,965 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:19:29,124 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:19:41,017 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:19:41,413 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:19:41,423 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:19:41,611 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:21:35,615 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:21:35,927 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:21:35,933 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:21:36,068 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:21:46,877 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:21:47,383 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:21:47,389 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:21:47,572 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:22:31,126 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:22:31,510 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:22:31,519 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:22:31,655 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:22:46,135 views Fetching analytics - user_email: guest@wildlitz.com, days: 30
+INFO 2025-11-03 22:22:46,147 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:22:46,399 views Found 2 sessions for user_email: guest@wildlitz.com
+INFO 2025-11-03 22:22:46,402 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:22:46,415 views Fetching analytics - user_email: guest@wildlitz.com, days: 30
+INFO 2025-11-03 22:22:46,527 views Found 2 sessions for user_email: guest@wildlitz.com
+INFO 2025-11-03 22:23:01,883 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:23:02,683 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:23:06,273 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:23:06,420 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:23:06,426 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:23:06,603 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:23:12,555 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:23:12,992 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:23:13,001 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:23:13,160 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:23:15,384 views Fetching analytics - user_email: guest@wildlitz.com, days: 30
+INFO 2025-11-03 22:23:15,396 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:23:15,538 views Found 2 sessions for user_email: guest@wildlitz.com
+INFO 2025-11-03 22:23:15,544 views Fetching analytics - user_email: guest@wildlitz.com, days: 30
+INFO 2025-11-03 22:23:15,615 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:23:15,681 views Found 2 sessions for user_email: guest@wildlitz.com
+INFO 2025-11-03 22:23:26,509 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:23:26,819 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:23:26,826 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 22:23:27,083 views Found 83 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 22:23:28,757 views Session details retrieved: 44b82067-8cca-4a61-b31b-2d0257898d64
+INFO 2025-11-03 23:40:58,771 views Story session created: 61989e54-61bc-4740-8bd4-9ec1eb7a957b
+INFO 2025-11-03 23:41:42,591 views Activity logged: word_solved
+INFO 2025-11-03 23:41:48,496 views Activity logged: word_solved
+INFO 2025-11-03 23:41:54,885 views Activity logged: word_solved
+INFO 2025-11-03 23:42:00,863 views Activity logged: word_solved
+INFO 2025-11-03 23:42:06,288 views Activity logged: word_solved
+INFO 2025-11-03 23:42:07,908 views Story session updated: 61989e54-61bc-4740-8bd4-9ec1eb7a957b
+INFO 2025-11-03 23:42:08,213 views Story session updated: 61989e54-61bc-4740-8bd4-9ec1eb7a957b
+INFO 2025-11-03 23:42:08,215 views Activity logged: game_completed
+INFO 2025-11-03 23:42:08,390 views Activity logged: game_completed
+INFO 2025-11-03 23:42:19,209 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 23:42:19,605 views Found 84 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 23:42:19,613 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 23:42:19,786 views Found 84 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 23:42:22,591 views Session details retrieved: 61989e54-61bc-4740-8bd4-9ec1eb7a957b

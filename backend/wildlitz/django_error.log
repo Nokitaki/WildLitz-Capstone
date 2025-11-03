@@ -823,3 +823,9 @@ ERROR 2025-10-31 23:23:15,592 views AI response content: ```json
     {
         "word": "The clown wore a big red nose.",
         "syllableBreakdown": "The clown wore a big ...
+ERROR 2025-11-03 22:07:39,986 log Internal Server Error: /api/sentence_formation/story/word-performance/
+ERROR 2025-11-03 22:07:39,987 basehttp "GET /api/sentence_formation/story/word-performance/?user_email=kenjiermita2020@gmail.com HTTP/1.1" 500 95
+ERROR 2025-11-03 22:07:39,987 basehttp "GET /api/sentence_formation/story/word-performance/?user_email=kenjiermita2020@gmail.com HTTP/1.1" 500 95
+ERROR 2025-11-03 22:07:40,093 log Internal Server Error: /api/sentence_formation/story/analytics/
+ERROR 2025-11-03 22:07:40,093 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020%40gmail.com&days=30 HTTP/1.1" 500 95
+ERROR 2025-11-03 22:07:40,093 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020%40gmail.com&days=30 HTTP/1.1" 500 95

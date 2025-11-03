@@ -382,53 +382,63 @@ const GameplayScreen = ({
   }, [feedback, isCurrentWordSolved, readChoice]);
 
   // Handle submit answer
-  const handleSubmitAnswer = useCallback(async () => {
-    if (!selectedAnswer || !currentWord || isCurrentWordSolved) return;
+  // frontend/wildlitz/src/pages/games/crossword/GameplayScreen.jsx
 
-    const correctAnswer = currentWord.answer;
-    const isCorrect = selectedAnswer.toUpperCase() === correctAnswer.toUpperCase();
-    
-    if (isCorrect && window.playCorrectSound) window.playCorrectSound();
-    else if (!isCorrect && window.playWrongSound) window.playWrongSound();
-    
-    setFeedback({ 
-      type: isCorrect ? 'success' : 'error',
-      message: isCorrect ? `Correct! "${correctAnswer}" is the right answer!` : 'Try again!'
-    });
+// REPLACE the handleSubmitAnswer function with this:
 
-    if (isCorrect) {
-      setSolvedClues(prev => ({ ...prev, [correctAnswer]: true }));
-      updateGridWithWord(currentWord);
-      
-      const wordTimeSpent = Math.floor((Date.now() - wordStartTime.current) / 1000);
-      
-      if (sessionId) {
-        try {
-          await crosswordAnalyticsService.logWordSolved(sessionId, {
+const handleSubmitAnswer = useCallback(async () => {
+  if (!selectedAnswer || !currentWord || isCurrentWordSolved) return;
+
+  const correctAnswer = currentWord.answer;
+  const isCorrect = selectedAnswer.toUpperCase() === correctAnswer.toUpperCase();
+  
+  if (isCorrect && window.playCorrectSound) window.playCorrectSound();
+  else if (!isCorrect && window.playWrongSound) window.playWrongSound();
+  
+  setFeedback({ 
+    type: isCorrect ? 'success' : 'error',
+    message: isCorrect ? `Correct! "${correctAnswer}" is the right answer!` : 'Try again!'
+  });
+
+  if (isCorrect) {
+    setSolvedClues(prev => ({ ...prev, [correctAnswer]: true }));
+    updateGridWithWord(currentWord);
+    
+    const wordTimeSpent = Math.floor((Date.now() - wordStartTime.current) / 1000);
+    
+    if (sessionId) {
+      try {
+        // ✅ FIXED: Pass timeSpent and hintsUsed as separate parameters
+        await crosswordAnalyticsService.logWordSolved(
+          sessionId,
+          {
             word: correctAnswer,
             clue: currentWord.clue,
-            timeSpent: wordTimeSpent,
-            hintsUsed: hintsUsedForCurrentWordRef.current
-          });
-        } catch (error) {
-          console.error('Analytics failed:', error);
-        }
+            episodeNumber: currentPuzzleIndex + 1 || 1
+          },
+          wordTimeSpent,  // Pass as 3rd parameter
+          hintsUsedForCurrentWordRef.current  // Pass as 4th parameter
+        );
+        console.log(`✅ Logged word "${correctAnswer}" - Hints used: ${hintsUsedForCurrentWordRef.current}`);
+      } catch (error) {
+        console.error('Analytics failed:', error);
       }
-      
-      onWordSolved(correctAnswer, currentWord.definition || '', currentWord.example || '', hintsUsedForCurrentWordRef.current);
-      triggerCelebration();
-      
-      if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
-      feedbackTimeoutRef.current = setTimeout(() => {
-        setFeedback(null);
-        setSelectedAnswer(null);
-        moveToNextWord();
-      }, 1500);
-    } else {
-      if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
-      feedbackTimeoutRef.current = setTimeout(() => setFeedback(null), 2000);
     }
-  }, [selectedAnswer, currentWord, isCurrentWordSolved, sessionId, onWordSolved, triggerCelebration, moveToNextWord, updateGridWithWord]);
+    
+    onWordSolved(correctAnswer, currentWord.definition || '', currentWord.example || '', hintsUsedForCurrentWordRef.current);
+    triggerCelebration();
+    
+    if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+    feedbackTimeoutRef.current = setTimeout(() => {
+      setFeedback(null);
+      setSelectedAnswer(null);
+      moveToNextWord();
+    }, 1500);
+  } else {
+    if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+    feedbackTimeoutRef.current = setTimeout(() => setFeedback(null), 2000);
+  }
+}, [selectedAnswer, currentWord, isCurrentWordSolved, sessionId, onWordSolved, triggerCelebration, moveToNextWord, updateGridWithWord, currentPuzzleIndex]);
 
   // Navigation handlers
   const handleNext = useCallback(() => {
