@@ -1697,3 +1697,593 @@ INFO 2025-11-03 23:42:19,605 views Found 84 sessions for user_email: kenjiermita
 INFO 2025-11-03 23:42:19,613 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
 INFO 2025-11-03 23:42:19,786 views Found 84 sessions for user_email: kenjiermita2020@gmail.com
 INFO 2025-11-03 23:42:22,591 views Session details retrieved: 61989e54-61bc-4740-8bd4-9ec1eb7a957b
+INFO 2025-11-03 23:46:23,759 views Session details retrieved: 295e5a82-1722-42c8-be72-2ad944b3978b
+INFO 2025-11-03 23:46:26,028 views Session details retrieved: 8415b22c-946a-4d85-85b9-8cec2468f800
+ERROR 2025-11-03 23:51:00,800 views OpenAI API error: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+ERROR 2025-11-03 23:51:00,886 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 194, in generate_story
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+    ...<11 lines>...
+        temperature=0.7
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<41 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ~~~~~~~~~~~~~^
+        cast_to=cast_to,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        retries_taken=retries_taken,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+
+ERROR 2025-11-03 23:51:00,887 views Error in generate_story: list index out of range
+ERROR 2025-11-03 23:51:00,889 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 194, in generate_story
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+    ...<11 lines>...
+        temperature=0.7
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<41 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ~~~~~~~~~~~~~^
+        cast_to=cast_to,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        retries_taken=retries_taken,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 243, in generate_story
+    return Response(create_improved_fallback_story(theme, episode_count, grade_level, focus_skills))
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 298, in create_improved_fallback_story
+    It is fun to {vocab_words[5]} and {vocab_words[6]}!"""
+                  ~~~~~~~~~~~^^^
+IndexError: list index out of range
+
+ERROR 2025-11-03 23:51:15,435 views OpenAI API error: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+ERROR 2025-11-03 23:51:15,437 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 194, in generate_story
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+    ...<11 lines>...
+        temperature=0.7
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<41 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ~~~~~~~~~~~~~^
+        cast_to=cast_to,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        retries_taken=retries_taken,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+
+INFO 2025-11-03 23:51:16,618 views Story session created: aeacd4d0-c5f5-41c7-ac5d-05042f791ab7
+INFO 2025-11-03 23:51:43,936 views Activity logged: word_solved
+ERROR 2025-11-03 23:52:31,880 views OpenAI API error: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+ERROR 2025-11-03 23:52:31,883 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 194, in generate_story
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+    ...<11 lines>...
+        temperature=0.7
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<41 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ~~~~~~~~~~~~~^
+        cast_to=cast_to,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        retries_taken=retries_taken,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+
+INFO 2025-11-03 23:52:32,959 views Story session created: f9191498-b285-432d-bc60-022952efeefe
+INFO 2025-11-03 23:53:12,775 views Activity logged: word_solved
+INFO 2025-11-03 23:53:18,525 views Activity logged: word_solved
+INFO 2025-11-03 23:53:22,377 views Activity logged: word_solved
+INFO 2025-11-03 23:53:28,611 views Activity logged: word_solved
+INFO 2025-11-03 23:53:33,835 views Activity logged: word_solved
+INFO 2025-11-03 23:53:37,226 views Activity logged: word_solved
+INFO 2025-11-03 23:53:41,006 views Activity logged: word_solved
+INFO 2025-11-03 23:53:42,713 views Story session updated: f9191498-b285-432d-bc60-022952efeefe
+INFO 2025-11-03 23:53:42,861 views Story session updated: f9191498-b285-432d-bc60-022952efeefe
+INFO 2025-11-03 23:53:43,003 views Activity logged: game_completed
+INFO 2025-11-03 23:53:43,005 views Activity logged: game_completed
+INFO 2025-11-03 23:54:19,237 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 23:54:19,525 views Found 86 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 23:54:19,535 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-03 23:54:19,693 views Found 86 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-03 23:54:23,773 views Session details retrieved: f9191498-b285-432d-bc60-022952efeefe
+ERROR 2025-11-03 23:54:52,070 views OpenAI API error: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+ERROR 2025-11-03 23:54:52,072 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 194, in generate_story
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+    ...<11 lines>...
+        temperature=0.7
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<41 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ~~~~~~~~~~~~~^
+        cast_to=cast_to,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        retries_taken=retries_taken,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+
+INFO 2025-11-03 23:54:52,785 views Story session created: 535fed75-c729-4e7c-a708-963d215bc246
+ERROR 2025-11-03 23:55:09,404 views OpenAI API error: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+ERROR 2025-11-03 23:55:09,406 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 194, in generate_story
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+    ...<11 lines>...
+        temperature=0.7
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<41 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ~~~~~~~~~~~~~^
+        cast_to=cast_to,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        retries_taken=retries_taken,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+
+ERROR 2025-11-03 23:55:09,406 views Error in generate_story: list index out of range
+ERROR 2025-11-03 23:55:09,408 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 194, in generate_story
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+    ...<11 lines>...
+        temperature=0.7
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<41 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ~~~~~~~~~~~~~^
+        cast_to=cast_to,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        retries_taken=retries_taken,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 243, in generate_story
+    return Response(create_improved_fallback_story(theme, episode_count, grade_level, focus_skills))
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 298, in create_improved_fallback_story
+    It is fun to {vocab_words[5]} and {vocab_words[6]}!"""
+                  ~~~~~~~~~~~^^^
+IndexError: list index out of range
+
+ERROR 2025-11-03 23:55:20,841 views OpenAI API error: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+ERROR 2025-11-03 23:55:20,843 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 194, in generate_story
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+    ...<11 lines>...
+        temperature=0.7
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<41 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ~~~~~~~~~~~~~^
+        cast_to=cast_to,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        retries_taken=retries_taken,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+
+ERROR 2025-11-03 23:55:20,843 views Error in generate_story: list index out of range
+ERROR 2025-11-03 23:55:20,845 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 194, in generate_story
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+    ...<11 lines>...
+        temperature=0.7
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<41 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ~~~~~~~~~~~~~^
+        cast_to=cast_to,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        retries_taken=retries_taken,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 243, in generate_story
+    return Response(create_improved_fallback_story(theme, episode_count, grade_level, focus_skills))
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 298, in create_improved_fallback_story
+    It is fun to {vocab_words[5]} and {vocab_words[6]}!"""
+                  ~~~~~~~~~~~^^^
+IndexError: list index out of range
+
+ERROR 2025-11-03 23:55:44,811 views OpenAI API error: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+ERROR 2025-11-03 23:55:44,813 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 194, in generate_story
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+    ...<11 lines>...
+        temperature=0.7
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<41 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ~~~~~~~~~~~~~^
+        cast_to=cast_to,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        retries_taken=retries_taken,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+
+ERROR 2025-11-03 23:55:44,813 views Error in generate_story: list index out of range
+ERROR 2025-11-03 23:55:44,815 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 194, in generate_story
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+    ...<11 lines>...
+        temperature=0.7
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<41 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ~~~~~~~~~~~~~^
+        cast_to=cast_to,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        retries_taken=retries_taken,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': 'max_tokens is too large: 4100. This model supports at most 4096 completion tokens, whereas you provided 4100.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 243, in generate_story
+    return Response(create_improved_fallback_story(theme, episode_count, grade_level, focus_skills))
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 298, in create_improved_fallback_story
+    It is fun to {vocab_words[5]} and {vocab_words[6]}!"""
+                  ~~~~~~~~~~~^^^
+IndexError: list index out of range
+
+INFO 2025-11-03 23:55:56,114 views Story session created: 787691c3-1b96-4dcf-abee-2313e0b5feb5
+ERROR 2025-11-03 23:57:07,220 views OpenAI API error: Error code: 400 - {'error': {'message': 'max_tokens is too large: 6500. This model supports at most 4096 completion tokens, whereas you provided 6500.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+ERROR 2025-11-03 23:57:07,221 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 194, in generate_story
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+    ...<11 lines>...
+        temperature=0.7
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<41 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ~~~~~~~~~~~~~^
+        cast_to=cast_to,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        retries_taken=retries_taken,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': 'max_tokens is too large: 6500. This model supports at most 4096 completion tokens, whereas you provided 6500.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+
+ERROR 2025-11-03 23:57:07,222 views Error in generate_story: list index out of range
+ERROR 2025-11-03 23:57:07,224 views Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 194, in generate_story
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+    ...<11 lines>...
+        temperature=0.7
+    )
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_utils\_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\resources\chat\completions\completions.py", line 914, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<41 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 919, in request
+    return self._request(
+           ~~~~~~~~~~~~~^
+        cast_to=cast_to,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        retries_taken=retries_taken,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Fayde\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1023, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': 'max_tokens is too large: 6500. This model supports at most 4096 completion tokens, whereas you provided 6500.', 'type': 'invalid_request_error', 'param': 'max_tokens', 'code': 'invalid_value'}}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 243, in generate_story
+    return Response(create_improved_fallback_story(theme, episode_count, grade_level, focus_skills))
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Fayde\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 298, in create_improved_fallback_story
+    It is fun to {vocab_words[5]} and {vocab_words[6]}!"""
+                  ~~~~~~~~~~~^^^
+IndexError: list index out of range
+
+INFO 2025-11-03 23:57:24,523 views Story session created: 31ce1e4a-ce25-46e7-a4ce-0b8404d6f723
+INFO 2025-11-04 00:00:55,618 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-04 00:00:56,444 views Found 89 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-04 00:00:56,455 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-04 00:00:56,569 views Found 89 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-04 00:00:58,586 views Session details retrieved: 31ce1e4a-ce25-46e7-a4ce-0b8404d6f723
+INFO 2025-11-04 00:01:08,249 views Session details retrieved: 787691c3-1b96-4dcf-abee-2313e0b5feb5
+INFO 2025-11-04 00:01:10,734 views Session details retrieved: 535fed75-c729-4e7c-a708-963d215bc246
+INFO 2025-11-04 00:01:13,138 views Session details retrieved: f9191498-b285-432d-bc60-022952efeefe
+INFO 2025-11-04 00:01:42,679 views Story session created: 3f964eb3-00e3-4ae5-a7e4-e4b875775056
+INFO 2025-11-04 00:01:51,652 views Activity logged: word_solved
+INFO 2025-11-04 00:01:53,283 views Story session updated: 3f964eb3-00e3-4ae5-a7e4-e4b875775056
+INFO 2025-11-04 00:01:53,283 views Story session updated: 3f964eb3-00e3-4ae5-a7e4-e4b875775056
+INFO 2025-11-04 00:01:53,572 views Activity logged: game_completed
+INFO 2025-11-04 00:01:53,574 views Activity logged: game_completed
+INFO 2025-11-04 00:02:04,951 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-04 00:02:05,282 views Found 90 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-04 00:02:05,290 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-04 00:02:05,414 views Found 90 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-04 00:02:09,794 views Session details retrieved: 3f964eb3-00e3-4ae5-a7e4-e4b875775056
+INFO 2025-11-04 00:05:50,080 views Story session created: e45820b6-086a-49e6-8f9c-abd7c6c1b7c8
+INFO 2025-11-04 00:05:55,088 views Activity logged: word_solved
+INFO 2025-11-04 00:05:56,673 views Story session updated: e45820b6-086a-49e6-8f9c-abd7c6c1b7c8
+INFO 2025-11-04 00:05:56,673 views Story session updated: e45820b6-086a-49e6-8f9c-abd7c6c1b7c8
+INFO 2025-11-04 00:05:56,855 views Activity logged: game_completed
+INFO 2025-11-04 00:05:56,856 views Activity logged: game_completed
+INFO 2025-11-04 00:06:07,136 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-04 00:06:07,533 views Found 91 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-04 00:06:07,542 views Fetching analytics - user_email: kenjiermita2020@gmail.com, days: 30
+INFO 2025-11-04 00:06:07,669 views Found 91 sessions for user_email: kenjiermita2020@gmail.com
+INFO 2025-11-04 00:06:10,803 views Session details retrieved: e45820b6-086a-49e6-8f9c-abd7c6c1b7c8

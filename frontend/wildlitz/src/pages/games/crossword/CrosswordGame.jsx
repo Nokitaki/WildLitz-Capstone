@@ -138,70 +138,75 @@ const CrosswordGame = () => {
   };
   
   const handleStoryGenerated = async (data) => {
-    console.log('Story generated with', data.story.episodes?.length, 'episodes');
-    
-    const newStory = {
-      ...data.story,
-      episodes: Array.isArray(data.story.episodes) ? data.story.episodes : []
-    };
-    
-    const newStories = {
-      ...gameStories,
-      [newStory.id]: newStory
-    };
-    
-    const newPuzzles = {
-      ...gamePuzzles,
-      ...data.puzzles
-    };
-    
-    setGameStories(newStories);
-    setGamePuzzles(newPuzzles);
-    
-    const config = {
-      storyMode: true,
-      adventureId: newStory.id
-    };
-    
-    setGameConfig(config);
-    
-    try {
-      const userEmail = (isAuthenticated && user?.email) 
-        ? user.email 
-        : 'guest@wildlitz.com';
-      
-      const sessionData = {
-        user_email: userEmail,
-        story_id: newStory.id,
-        story_title: newStory.title,
-        difficulty: newStory.gradeLevel || 'grade_3',
-        total_episodes: newStory.episodes.length
-      };
-      
-      const session = await crosswordAnalyticsService.createSession(sessionData);
-      setSessionId(session.session_id);
-    } catch (error) {
-      console.error('Failed to create session:', error);
-    }
-    
-    if (newStory.episodes && newStory.episodes.length > 0) {
-      const firstEpisode = newStory.episodes[0];
-      setCurrentStorySegment(firstEpisode);
-      setCurrentEpisode(1);
-      
-      const firstPuzzleId = firstEpisode.crosswordPuzzleId;
-      if (firstPuzzleId && newPuzzles[firstPuzzleId]) {
-        setCurrentPuzzle(newPuzzles[firstPuzzleId]);
-      }
-      
-      setGameState('story');
-    }
-    
-    setSolvedWords([]);
-    setTimeSpent(0);
-    setTotalHints(0);
-    setTimerActive(false);
+  const newStory = {
+    id: data.story.id,
+    title: data.story.title,
+    description: data.story.description,
+    theme: data.story.theme,
+    gradeLevel: data.story.gradeLevel,
+    episodes: data.story.episodes ? data.story.episodes : []
   };
+  
+  const newStories = {
+    ...gameStories,
+    [newStory.id]: newStory
+  };
+  
+  const newPuzzles = {
+    ...gamePuzzles,
+    ...data.puzzles
+  };
+  
+  setGameStories(newStories);
+  setGamePuzzles(newPuzzles);
+  
+  const config = {
+    storyMode: true,
+    adventureId: newStory.id
+  };
+  
+  setGameConfig(config);
+  
+  try {
+    const userEmail = (isAuthenticated && user?.email) 
+      ? user.email 
+      : 'guest@wildlitz.com';
+    
+    const sessionData = {
+      user_email: userEmail,
+      story_id: newStory.id,
+      story_title: newStory.title,
+      theme: data.story.theme || 'adventure',  // ✅ ADD THIS
+      focus_skills: data.story.focusSkills || [],  // ✅ ADD THIS
+      episode_count: newStory.episodes.length,  // ✅ ADD THIS
+      difficulty: newStory.gradeLevel || 'grade_3',
+      character_names: data.story.characterNames || ''  // ✅ ADD THIS
+    };
+    
+    const session = await crosswordAnalyticsService.createSession(sessionData);
+    setSessionId(session.session_id);
+  } catch (error) {
+    console.error('Failed to create session:', error);
+  }
+  
+  if (newStory.episodes && newStory.episodes.length > 0) {
+    const firstEpisode = newStory.episodes[0];
+    setCurrentStorySegment(firstEpisode);
+    setCurrentEpisode(1);
+    
+    const firstPuzzleId = firstEpisode.crosswordPuzzleId;
+    if (firstPuzzleId && newPuzzles[firstPuzzleId]) {
+      setCurrentPuzzle(newPuzzles[firstPuzzleId]);
+    }
+    
+    setGameState('story');
+  }
+  
+  setSolvedWords([]);
+  setTimeSpent(0);
+  setTotalHints(0);
+  setTimerActive(false);
+};
   
  const toggleReadingCoach = () => {
   console.log('🎯 toggleReadingCoach called! Current state:', showReadingCoach);

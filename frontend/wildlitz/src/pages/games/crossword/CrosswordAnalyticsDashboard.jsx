@@ -611,16 +611,16 @@ const CrosswordAnalyticsDashboard = () => {
                     }}>
                       {session.theme || 'adventure'}
                     </span>
-                    <span style={{
-                      background: '#f3e5f5',
-                      color: '#9c27b0',
-                      padding: '5px 12px',
-                      borderRadius: '20px',
-                      fontSize: '0.85rem',
-                      fontWeight: 600
-                    }}>
-                      {session.episodes_completed || 0}/{session.episode_count || 0} Episodes
-                    </span>
+                     <span style={{
+                        background: '#f3e5f5',
+                        color: '#9c27b0',
+                        padding: '5px 12px',
+                        borderRadius: '20px',
+                        fontSize: '0.85rem',
+                        fontWeight: 600
+                      }}>
+                        {session.episodes_completed || session.current_episode || 1}/{session.episode_count || 1} Episodes
+                      </span>
                     
                     {/* NEW: Display Focused Skills */}
                     {session.focus_skills && session.focus_skills.length > 0 && (

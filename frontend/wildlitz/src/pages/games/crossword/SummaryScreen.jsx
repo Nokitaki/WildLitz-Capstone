@@ -22,33 +22,38 @@ const SummaryScreen = ({
 }) => {
 
    useEffect(() => {
-    const logCompletion = async () => {
-      if (sessionId && solvedWords.length > 0) {
-        try {
-          const gameData = {
-            wordsLearned: solvedWords.length,
-            totalTime: timeSpent,
-            totalHints: totalHints,
-            episodesCompleted: currentEpisode,
-            accuracy: totalWords > 0 ? (solvedWords.length / totalWords) * 100 : 0,
-            isFullyCompleted: solvedWords.length === totalWords
-          };
+  const logCompletion = async () => {
+    if (sessionId && solvedWords.length > 0) {
+      try {
+        // ✅ FIXED: Calculate completion based on episodes, not words
+        const episodeCompletionPercentage = totalEpisodes > 0 
+          ? (currentEpisode / totalEpisodes) * 100 
+          : 100;
 
-          await crosswordAnalyticsService.logGameCompleted(
-            sessionId,
-            gameData,
-            solvedWords
-          );
-          
-          console.log('✅ Game completion logged!');
-        } catch (error) {
-          console.error('Analytics logging failed:', error);
-        }
+        const gameData = {
+          wordsLearned: solvedWords.length,
+          totalTime: timeSpent,
+          totalHints: totalHints,
+          episodesCompleted: currentEpisode,
+          accuracy: episodeCompletionPercentage,  // ✅ CHANGED: Use episode-based completion
+          isFullyCompleted: currentEpisode >= totalEpisodes  // ✅ CHANGED: Check if all episodes done
+        };
+
+        await crosswordAnalyticsService.logGameCompleted(
+          sessionId,
+          gameData,
+          solvedWords
+        );
+        
+        console.log('✅ Game completion logged!');
+      } catch (error) {
+        console.error('Analytics logging failed:', error);
       }
-    };
+    }
+  };
 
-    logCompletion();
-  }, [sessionId, solvedWords, timeSpent, totalWords, totalHints, currentEpisode]);
+  logCompletion();
+}, [sessionId, solvedWords, timeSpent, totalWords, totalHints, currentEpisode, totalEpisodes]);
 
   
   const [selectedWord, setSelectedWord] = useState(null);
