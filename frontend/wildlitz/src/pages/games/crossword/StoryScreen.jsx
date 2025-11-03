@@ -39,7 +39,7 @@ const StoryScreen = ({
         const voices = speechSynth.getVoices();
         if (voices.length > 0) {
           setVoicesLoaded(true);
-          console.log('Available voices:', voices.map(v => v.name));
+          
         }
       };
       
@@ -115,7 +115,7 @@ const StoryScreen = ({
               block: 'center',
               inline: 'nearest'
             });
-            console.log(`✅ Auto-scrolled to sentence ${currentSentenceIndex + 1}`);
+            
           } catch (error) {
             console.error('ScrollIntoView failed:', error);
           }
@@ -141,7 +141,7 @@ const StoryScreen = ({
                     top: Math.max(0, scrollOffset),
                     behavior: 'smooth'
                   });
-                  console.log(`🔄 Backup scroll to sentence ${currentSentenceIndex + 1}`);
+                  
                 }
               } catch (error) {
                 console.error('Backup scroll failed:', error);
@@ -235,7 +235,7 @@ const StoryScreen = ({
     );
     
     if (ukVoice) {
-      console.log('🇬🇧 Using UK British voice:', ukVoice.name);
+      
       return ukVoice;
     }
     
@@ -298,7 +298,7 @@ const StoryScreen = ({
         top: 0,
         behavior: 'smooth'
       });
-      console.log('📜 Scrolled to top');
+     
     }
     
     setIsReading(true);
@@ -337,11 +337,11 @@ const StoryScreen = ({
         const voice = getReadingVoice();
         if (voice) {
           utterance.voice = voice;
-          console.log(`🎙️ Using voice: ${voice.name}`);
+          
         }
         
         utterance.onend = () => {
-          console.log(`✓ Finished sentence ${currentIndex + 1}`);
+          
           currentIndex++;
           // Pause between sentences for better comprehension
           setTimeout(() => {
@@ -480,7 +480,7 @@ const StoryScreen = ({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log('🔥 Reading Helper clicked!');
+             
               onToggleReadingCoach();
             }}
             title="Get help with reading"

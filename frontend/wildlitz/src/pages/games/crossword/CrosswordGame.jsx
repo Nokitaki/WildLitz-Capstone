@@ -64,7 +64,7 @@ const CrosswordGame = () => {
   const [showReadingCoach, setShowReadingCoach] = useState(false);
   
   useEffect(() => {
-  console.log('🔄 showReadingCoach changed to:', showReadingCoach);
+  
 }, [showReadingCoach]);
 
   // Timer for tracking time spent
@@ -209,9 +209,9 @@ const CrosswordGame = () => {
 };
   
  const toggleReadingCoach = () => {
-  console.log('🎯 toggleReadingCoach called! Current state:', showReadingCoach);
+  
   setShowReadingCoach(!showReadingCoach);
-  console.log('📊 Setting showReadingCoach to:', !showReadingCoach);
+  
 };
   
   const getCurrentEpisodeVocabularyWords = () => {
@@ -407,7 +407,7 @@ const CrosswordGame = () => {
       
   {showReadingCoach && (
   <>
-    {console.log('🎨 Rendering AIReadingCoach modal')}
+    
     <AIReadingCoach
       isVisible={true}  // ✅ ADD THIS LINE - This is what was missing!
       vocabularyWords={getCurrentEpisodeVocabularyWords()}

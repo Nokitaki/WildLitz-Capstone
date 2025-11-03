@@ -225,7 +225,7 @@ const GlobalAudioSystem = ({ isEnabled, showControls = true }) => {
   // 🔥 FIX: Stop music when disabled or controls hidden
   useEffect(() => {
     if (!isEnabled || !showControls) {
-      console.log('🔇 Audio disabled or controls hidden - stopping music...');
+      
       
       // Stop the music immediately
       if (melodyPartRef.current) {

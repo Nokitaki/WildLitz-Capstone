@@ -24,12 +24,12 @@ export const AudioProvider = ({ children }) => {
   // Save to localStorage
   useEffect(() => {
     localStorage.setItem('wildlitz_audio_enabled', audioEnabled);
-    console.log('🎵 [AudioProvider] Audio enabled:', audioEnabled);
+    
   }, [audioEnabled]);
 
   // Register global functions
   useEffect(() => {
-    console.log('🎵 [AudioProvider] Registering global functions...');
+    
     
     // Enable audio and show controls (called from GameTipsModal)
     window.enableGameAudio = () => {
@@ -40,7 +40,7 @@ export const AudioProvider = ({ children }) => {
     
     // Disable audio
     window.disableGameAudio = () => {
-      console.log('🔇 [AudioProvider] Disabling audio');
+      
       setAudioEnabled(false);
       setShowAudioControls(false);
     };

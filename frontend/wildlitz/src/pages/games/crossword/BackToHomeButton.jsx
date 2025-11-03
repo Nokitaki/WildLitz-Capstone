@@ -17,7 +17,7 @@ const BackToHomeButton = ({
   };
 
  const handleConfirmExit = () => {
-  console.log('🚪 Exiting game confirmed');
+  
   
   // 🔥 ADD THIS LINE - Stop audio when exiting
   if (window.disableGameAudio) window.disableGameAudio();

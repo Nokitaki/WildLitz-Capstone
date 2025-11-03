@@ -74,7 +74,7 @@ const GameplayScreen = ({
       // Load voices - some browsers load them asynchronously
       const loadVoices = () => {
         const voices = speechSynthRef.current.getVoices();
-        console.log('Available voices:', voices.map(v => v.name + ' (' + v.lang + ')'));
+        
       };
       
       // Try loading voices immediately

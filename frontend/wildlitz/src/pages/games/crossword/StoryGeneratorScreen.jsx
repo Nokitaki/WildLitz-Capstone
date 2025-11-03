@@ -218,7 +218,7 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
         gradeLevel: 3,
       };
       
-      console.log("Sending request with data:", requestBody);
+      
       
       const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/generate-story/`, {
         method: 'POST',
@@ -236,7 +236,7 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
       }
     
       const responseText = await response.text();
-      console.log("Response text:", responseText.substring(0, 200) + "...");
+      
       
       const responseData = JSON.parse(responseText);
       

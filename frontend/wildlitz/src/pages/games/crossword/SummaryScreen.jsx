@@ -45,7 +45,7 @@ const SummaryScreen = ({
           solvedWords
         );
         
-        console.log('✅ Game completion logged!');
+       
       } catch (error) {
         console.error('Analytics logging failed:', error);
       }

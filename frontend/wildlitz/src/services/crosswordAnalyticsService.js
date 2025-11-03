@@ -58,7 +58,7 @@ class CrosswordAnalyticsService {
    */
   async updateSession(sessionId, updates) {
     try {
-      console.log('📤 Updating session:', sessionId, updates);
+     
       
       const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/story/session/${sessionId}/update/`, {
         method: 'PUT',
@@ -74,7 +74,7 @@ class CrosswordAnalyticsService {
         throw new Error(data.error || 'Failed to update session');
       }
       
-      console.log('✅ Session updated:', data);
+      
       return data;
     } catch (error) {
       console.error('❌ Error updating session:', error);
@@ -87,7 +87,7 @@ class CrosswordAnalyticsService {
    */
   async logActivity(activityData) {
     try {
-      console.log('📤 Logging activity:', activityData);
+      
       
       const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/story/activity/log/`, {
         method: 'POST',
@@ -103,7 +103,7 @@ class CrosswordAnalyticsService {
         throw new Error(data.error || 'Failed to log activity');
       }
       
-      console.log('✅ Activity logged:', data);
+      
       return data;
     } catch (error) {
       console.error('❌ Error logging activity:', error);
@@ -152,7 +152,7 @@ class CrosswordAnalyticsService {
       return { success: false, skipped: true };
     }
 
-    console.log('📤 Logging game completion for session:', sessionId);
+    
 
     // Extract vocabulary words from solvedWords array
     // FIX: Convert to a clean array to avoid mutation issues
@@ -164,7 +164,7 @@ class CrosswordAnalyticsService {
       }).filter(Boolean)  // Remove any null/undefined values
     );
 
-    console.log('📚 Vocabulary words to save:', vocabularyWords);
+    
 
     // Update the session with completion data INCLUDING vocabulary words
     const sessionUpdates = {
