@@ -166,7 +166,7 @@ const GlobalAudioSystem = ({ isEnabled = true, showControls = true }) => {
       if (volume > 0 && clickSynthRef.current) {
         try {
           clickSynthRef.current.triggerAttackRelease('C5', '0.1');
-          console.log('🔊 Click!');
+          
         } catch (e) {
           console.error('❌ Click error:', e);
         }

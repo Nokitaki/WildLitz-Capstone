@@ -1,6 +1,6 @@
-// SummaryScreen.jsx - Replace your existing file with this
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// SummaryScreen.jsx - Optimized & Performance-Enhanced Version
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import styles from '../../../styles/games/crossword/SummaryScreen.module.css';
 import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
 
@@ -14,310 +14,235 @@ const SummaryScreen = ({
   onPlayAgain,
   onReturnToMenu,
   theme = "adventure",
-  // ADD THESE MISSING PROPS:
-  sessionId,        // ✨ ADD THIS
-  timeSpent,        // ✨ ADD THIS
-  totalWords = 0,   // ✨ ADD THIS
-  totalHints = 0    // ✨ ADD THIS (you'll need to track this in CrosswordGame)
+  sessionId,
+  timeSpent = 0,
+  totalWords = 0,
+  totalHints = 0
 }) => {
 
-   useEffect(() => {
-  const logCompletion = async () => {
-    if (sessionId && solvedWords.length > 0) {
-      try {
-        // ✅ FIXED: Calculate completion based on episodes, not words
-        const episodeCompletionPercentage = totalEpisodes > 0 
-          ? (currentEpisode / totalEpisodes) * 100 
-          : 100;
-
-        const gameData = {
-          wordsLearned: solvedWords.length,
-          totalTime: timeSpent,
-          totalHints: totalHints,
-          episodesCompleted: currentEpisode,
-          accuracy: episodeCompletionPercentage,  // ✅ CHANGED: Use episode-based completion
-          isFullyCompleted: currentEpisode >= totalEpisodes  // ✅ CHANGED: Check if all episodes done
-        };
-
-        await crosswordAnalyticsService.logGameCompleted(
-          sessionId,
-          gameData,
-          solvedWords
-        );
-        
-       
-      } catch (error) {
-        console.error('Analytics logging failed:', error);
-      }
-    }
-  };
-
-  logCompletion();
-}, [sessionId, solvedWords, timeSpent, totalWords, totalHints, currentEpisode, totalEpisodes]);
-
-  
+  // State management
   const [selectedWord, setSelectedWord] = useState(null);
-  const [storyRating, setStoryRating] = useState(0);
-  const [wordRatings, setWordRatings] = useState({});
-  const [selectedActivity, setSelectedActivity] = useState(null);
+  const [showDetails, setShowDetails] = useState(false);
 
-  // Fun emojis for each word based on theme
+  // Calculate basic metrics only
+  const performanceMetrics = useMemo(() => {
+    const wordsCount = solvedWords.length;
+    const episodeProgress = Math.round((currentEpisode / totalEpisodes) * 100);
+    
+    return {
+      wordsCount,
+      episodeProgress
+    };
+  }, [solvedWords.length, currentEpisode, totalEpisodes]);
+
+  // Analytics logging
+  useEffect(() => {
+    const logCompletion = async () => {
+      if (sessionId && solvedWords.length > 0) {
+        try {
+          const episodeCompletionPercentage = totalEpisodes > 0 
+            ? (currentEpisode / totalEpisodes) * 100 
+            : 100;
+
+          const gameData = {
+            wordsLearned: solvedWords.length,
+            totalTime: timeSpent,
+            totalHints: totalHints,
+            episodesCompleted: currentEpisode,
+            accuracy: episodeCompletionPercentage,
+            isFullyCompleted: currentEpisode >= totalEpisodes
+          };
+
+          await crosswordAnalyticsService.logGameCompleted(
+            sessionId,
+            gameData,
+            solvedWords
+          );
+        } catch (error) {
+          console.error('Analytics logging failed:', error);
+        }
+      }
+    };
+
+    logCompletion();
+  }, [sessionId, solvedWords, timeSpent, totalWords, totalHints, currentEpisode, totalEpisodes]);
+
+  // Word emoji mapping
   const getWordEmoji = (word) => {
     const emojiMap = {
       'adventure': '🗺️', 'explore': '🔍', 'brave': '🦁', 'mystery': '🔮',
       'treasure': '💎', 'journey': '🚶', 'discover': '⭐', 'friend': '🤝',
       'help': '🤲', 'run': '🏃', 'jump': '🦘', 'find': '🔎',
-      'look': '👀', 'walk': '🚶', 'play': '🎮', 'learn': '📚'
+      'look': '👀', 'walk': '🚶', 'play': '🎮', 'learn': '📚',
+      'read': '📖', 'write': '✍️', 'think': '🧠', 'solve': '🧩'
     };
     return emojiMap[word.toLowerCase()] || '✨';
   };
 
-  const achievements = [
-    { icon: "🎯", title: "Word Master", description: `Solved ${solvedWords.length} words!` },
-    { icon: "⚡", title: "Speed Star", description: "Fast learner!" },
-    { icon: "🏆", title: "Champion", description: "Episode complete!" }
-  ];
+  // Format time display
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
-  const activities = [
+  // Simple achievement cards - fewer metrics
+  const achievements = [
     { 
-      icon: "🎨", 
-      title: "Draw Your Favorite Scene",
-      action: "draw",
-      gradient: "from-pink-400 to-purple-400"
+      icon: "📚", 
+      title: "Words Learned", 
+      value: performanceMetrics.wordsCount,
+      color: "#9333ea"
     },
     { 
-      icon: "🎭", 
-      title: "Act Out a Word",
-      action: "act",
-      gradient: "from-blue-400 to-cyan-400"
+      icon: "⏱️", 
+      title: "Time", 
+      value: formatTime(timeSpent),
+      color: "#2563eb"
     },
     { 
-      icon: "✍️", 
-      title: "Write Your Own Ending",
-      action: "write",
-      gradient: "from-green-400 to-emerald-400"
-    },
-    { 
-      icon: "🎵", 
-      title: "Make a Word Song",
-      action: "sing",
-      gradient: "from-orange-400 to-yellow-400"
+      icon: "💡", 
+      title: "Hints", 
+      value: totalHints,
+      color: "#f59e0b"
     }
   ];
 
-  const handleWordRating = (word, rating) => {
-    setWordRatings({ ...wordRatings, [word]: rating });
-  };
-
-  const handleActivityClick = (action) => {
-    setSelectedActivity(action);
-    // Here you could trigger different actions based on the activity
-    console.log(`Activity selected: ${action}`);
-  };
-
   return (
-    <div className={styles.summaryContainer} style={{ position: 'relative' }}>
-      <div className={styles.summaryCard}>
+    <div className={styles.summaryContainer}>
+      {/* ===== CELEBRATION HEADER ===== */}
+      <div className={styles.celebrationHeader}>
+        <div className={styles.trophyIcon}>🏆</div>
+        <h1 className={styles.celebrationTitle}>
+          {hasNextEpisode ? "Episode Complete!" : "Mission Accomplished!"}
+        </h1>
+        <p className={styles.celebrationSubtitle}>
+          Great job! Keep learning and growing! 🌟
+        </p>
         
-        {/* ===== CELEBRATION HEADER ===== */}
-        <motion.div 
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", duration: 0.8 }}
-          className={styles.celebrationHeader}
-        >
-          {/* Confetti Animation */}
-          <div className={styles.confettiContainer}>
-            {[...Array(20)].map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{ y: -100, opacity: 0 }}
-                animate={{ y: 500, opacity: [0, 1, 0] }}
-                transition={{ 
-                  delay: i * 0.2, 
-                  duration: 3, 
-                  repeat: Infinity,
-                  repeatDelay: 2 
-                }}
-                className={styles.confetti}
-                style={{ left: `${Math.random() * 100}%` }}
-              >
-                {['⭐', '🎉', '✨', '🌟'][Math.floor(Math.random() * 4)]}
-              </motion.div>
-            ))}
+        {/* Episode Progress Bar */}
+        <div className={styles.episodeProgressContainer}>
+          <div className={styles.episodeProgressLabel}>
+            <span>Story Progress</span>
+            <span className={styles.episodeCount}>
+              Episode {currentEpisode} of {totalEpisodes}
+            </span>
           </div>
-          
-          <motion.div
-            animate={{ rotate: [0, 10, -10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className={styles.trophyIcon}
-          >
-            🏆
-          </motion.div>
-          <h1 className={styles.celebrationTitle}>You're AMAZING!</h1>
-          <p className={styles.celebrationSubtitle}>
-            🎯 You learned {solvedWords.length} super words!
-          </p>
-        </motion.div>
+          <div className={styles.progressBarContainer}>
+            <div 
+              className={styles.progressBarFill}
+              style={{ width: `${performanceMetrics.episodeProgress}%` }}
+            >
+              <span className={styles.progressPercentage}>
+                {performanceMetrics.episodeProgress}%
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        {/* ===== ACHIEVEMENT BADGES ===== */}
+      {/* ===== PERFORMANCE DASHBOARD ===== */}
+      <div className={styles.performanceSection}>
+        <h2 className={styles.sectionTitle}>📊 Your Learning Stats</h2>
+        
         <div className={styles.achievementsGrid}>
           {achievements.map((achievement, index) => (
-            <motion.div
+            <div
               key={index}
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ delay: index * 0.2, type: "spring" }}
               className={styles.achievementBadge}
-              whileHover={{ scale: 1.1 }}
+              style={{ borderColor: achievement.color }}
             >
-              <div className={styles.achievementIcon}>{achievement.icon}</div>
-              <h3 className={styles.achievementTitle}>{achievement.title}</h3>
-              <p className={styles.achievementDesc}>{achievement.description}</p>
-            </motion.div>
+              <div className={styles.achievementIcon}>
+                {achievement.icon}
+              </div>
+              <div className={styles.achievementValue} style={{ color: achievement.color }}>
+                {achievement.value}
+              </div>
+              <div className={styles.achievementTitle}>{achievement.title}</div>
+            </div>
           ))}
         </div>
-
-        {/* ===== STORY RATING ===== */}
-        {isStoryMode && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={styles.storyRatingSection}
-          >
-            <h2 className={styles.ratingTitle}>
-              🌟 How was today's story? 🌟
-            </h2>
-            <div className={styles.starRating}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <motion.button
-                  key={star}
-                  whileHover={{ scale: 1.3 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setStoryRating(star)}
-                  className={styles.starButton}
-                >
-                  <span className={star <= storyRating ? styles.starFilled : styles.starEmpty}>
-                    ⭐
-                  </span>
-                </motion.button>
-              ))}
-            </div>
-            {storyRating > 0 && (
-              <motion.p 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className={styles.ratingFeedback}
-              >
-                {storyRating === 5 ? "🎉 WOW! You LOVED it!" : 
-                 storyRating === 4 ? "😊 That's great!" :
-                 storyRating === 3 ? "👍 Pretty good!" :
-                 "Thanks for sharing! 💜"}
-              </motion.p>
-            )}
-          </motion.div>
-        )}
-
-        {/* ===== SUPER WORDS SECTION ===== */}
-        <div className={styles.superWordsSection}>
-          <h2 className={styles.superWordsTitle}>
-            ✨ Your Super Words! ✨
-          </h2>
-          <div className={styles.wordsGrid}>
-            {solvedWords.map((wordData, index) => (
-              <motion.div
-                key={index}
-                initial={{ x: -100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: index * 0.15 }}
-                className={styles.wordCard}
-                onClick={() => setSelectedWord(selectedWord === wordData.word ? null : wordData.word)}
-                whileHover={{ scale: 1.03 }}
-              >
-                <div className={styles.wordCardContent}>
-                  <motion.div 
-                    className={styles.wordEmoji}
-                    animate={{ rotate: selectedWord === wordData.word ? 360 : 0 }}
-                  >
-                    {getWordEmoji(wordData.word)}
-                  </motion.div>
-                  <div className={styles.wordInfo}>
-                    <h3 className={styles.wordTitle}>{wordData.word}</h3>
-                    <p className={styles.wordDefinition}>
-                      {wordData.definition || "A super important word!"}
-                    </p>
-                  </div>
-                  
-                  {/* Heart rating for each word */}
-                  <div className={styles.wordHearts}>
-                    {[1, 2, 3].map((level) => (
-                      <button
-                        key={level}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleWordRating(wordData.word, level);
-                        }}
-                        className={styles.heartButton}
-                      >
-                        <span className={level <= (wordRatings[wordData.word] || 0) ? styles.heartFilled : styles.heartEmpty}>
-                          💜
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* Activities section removed per user request */}
-
-        {/* ===== ACTION BUTTONS ===== */}
-        <div className={styles.actionButtonsContainer}>
-           {hasNextEpisode ? (
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={onPlayAgain}
-                className={styles.nextEpisodeButton}
-              >
-                ▶️ Continue to Episode {currentEpisode + 1}!
-              </motion.button>
-            ) : (
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={onReturnToMenu}
-                className={styles.nextEpisodeButton}
-              >
-                🎮 Create New Story
-              </motion.button>
-            )}
-                      
-         <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => {
-              
-              if (window.disableGameAudio) window.disableGameAudio();
-              onReturnToMenu();
-            }}
-            className={styles.mainMenuButton}
-          >
-            🏠 Main Menu
-          </motion.button>
-        </div>
-
-        {/* ===== MOTIVATIONAL FOOTER ===== */}
-        <motion.div
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className={styles.motivationalFooter}
-        >
-          🌟 Keep being awesome! 🌟
-        </motion.div>
       </div>
+
+      {/* ===== VOCABULARY SHOWCASE ===== */}
+      <div className={styles.superWordsSection}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>
+            ✨ Your New Super Words!
+          </h2>
+          <button 
+            className={styles.toggleDetailsBtn}
+            onClick={() => setShowDetails(!showDetails)}
+          >
+            {showDetails ? '📝 Hide Details' : '📖 Show Definitions'}
+          </button>
+        </div>
+
+        <div className={styles.wordsGrid}>
+          {solvedWords.map((wordData, index) => {
+            const word = typeof wordData === 'string' ? wordData : wordData.word;
+            const definition = wordData.definition || "A valuable word you've learned!";
+            
+            return (
+              <div
+                key={index}
+                className={`${styles.wordCard} ${selectedWord === word ? styles.selectedCard : ''}`}
+                onClick={() => setSelectedWord(selectedWord === word ? null : word)}
+              >
+                <div className={styles.wordCardHeader}>
+                  <div className={styles.wordEmoji}>
+                    {getWordEmoji(word)}
+                  </div>
+                  <div className={styles.wordNumber}>#{index + 1}</div>
+                </div>
+
+                <div className={styles.wordInfo}>
+                  <h3 className={styles.wordTitle}>{word}</h3>
+                  
+                  {(showDetails || selectedWord === word) && (
+                    <div className={styles.wordDefinitionContainer}>
+                      <p className={styles.wordDefinition}>
+                        {definition}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ===== ACTION BUTTONS ===== */}
+      <div className={styles.actionButtonsContainer}>
+        {hasNextEpisode ? (
+          <button
+            onClick={onPlayAgain}
+            className={styles.nextEpisodeButton}
+          >
+            <span className={styles.buttonIcon}>▶️</span>
+            Continue to Episode {currentEpisode + 1}!
+          </button>
+        ) : (
+          <button
+            onClick={onPlayAgain}
+            className={styles.playAgainButton}
+          >
+            <span className={styles.buttonIcon}>🔄</span>
+            Play Another Adventure
+          </button>
+        )}
+        
+        <button
+          onClick={onReturnToMenu}
+          className={styles.mainMenuButton}
+        >
+          <span className={styles.buttonIcon}>🏠</span>
+          Return to Main Menu
+        </button>
+      </div>
+
+      
     </div>
   );
 };
