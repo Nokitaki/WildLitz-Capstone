@@ -2,7 +2,8 @@
 
 .completeContainer {
   width: 100%;
-  height: 100%;
+  height: 100vh; /* ← Use viewport height */
+  overflow: hidden; /* ← Prevent container scroll */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -12,7 +13,8 @@
 
 .completeCard {
   width: 100%;
-  max-height: 100%;  /* Changed from height: 100% */
+  height: 95vh; /* ← Fixed height for consistent scrolling */
+  max-height: 900px; /* ← Cap maximum height */  /* Changed from height: 100% */
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 20px;
   padding: 20px;
@@ -21,27 +23,36 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
   position: relative;
-  overflow-y: auto;  /* Changed from overflow: hidden */
+  overflow-y: scroll;  /* Changed from overflow: hidden */
   overflow-x: hidden;  /* Prevent horizontal scroll */
 }
 
 /* Optional: Style the scrollbar */
 .completeCard::-webkit-scrollbar {
-  width: 10px;
+  width: 14px;
 }
 
 .completeCard::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(102, 126, 234, 0.15);
   border-radius: 10px;
+  margin: 8px 0;
+  border: 1px solid rgba(102, 126, 234, 0.2);
 }
 
 .completeCard::-webkit-scrollbar-thumb {
-  background: #88b378;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
   border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
 }
 
 .completeCard::-webkit-scrollbar-thumb:hover {
-  background: #6a9461;
+  background: linear-gradient(180deg, #764ba2 0%, #667eea 100%);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+}
+.completeCard {
+  scrollbar-width: thin;
+  scrollbar-color: #667eea rgba(102, 126, 234, 0.15);
 }
 
 /* Confetti animation */

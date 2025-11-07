@@ -205,7 +205,7 @@
 .wordWrapper {
   display: inline-block;
   white-space: nowrap; /* ← Prevents word breaking */
-  margin: 0 0.2em; /* ← Space between words */
+  margin: 0 0.6em; /* ← Space between words */
 }
 
 .patternLetter {
