@@ -166,41 +166,46 @@
 
 .wordArea {
   background: rgba(255, 255, 255, 0.95);
-  padding: 40px 60px;
+  padding: 25px 35px; /* ← Less padding = more room */
   border-radius: 35px;
   box-shadow: 0 15px 45px rgba(0, 0, 0, 0.3);
   border: 6px solid #fff;
   margin-bottom: 25px;
-  min-height: 120px;
+  min-height: 180px; /* ← Much taller */
+  max-width: 95%; /* ← Don't get too wide */
+  width: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* 🚀 PERFORMANCE: GPU acceleration */
   transform: translateZ(0);
+  overflow: visible; /* ← Allow content to be visible */
 }
 
 .wordDisplay {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: center;
-  /* 🚀 PERFORMANCE: GPU acceleration */
+  display: block; /* ← Changed from flex to block */
+  text-align: center;
   transform: translateZ(0);
+  max-width: 100%;
+  line-height: 1.4;
+  word-spacing: 0.3em; /* ← Proper word spacing */
 }
 
 .letter {
   font-family: 'Fredoka One', 'Comic Sans MS', cursive;
-  font-size: 4rem;
+  font-size: 2.8rem; /* ← Much smaller from 4rem */
   color: #333;
   font-weight: 700;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  display: inline-block; /* ← Changed to inline-block */
+  margin: 0 3px; /* ← Small space between letters */
   transition: all 0.3s ease;
-  min-width: 50px;
-  text-align: center;
-  /* 🚀 PERFORMANCE: GPU acceleration */
   transform: translateZ(0);
-  backface-visibility: hidden;
+}
+/* Word wrapper - keeps letters of same word together */
+.wordWrapper {
+  display: inline-block;
+  white-space: nowrap; /* ← Prevents word breaking */
+  margin: 0 0.2em; /* ← Space between words */
 }
 
 .patternLetter {

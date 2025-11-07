@@ -88,22 +88,49 @@ const VanishingGame = () => {
    * 🎮 Start game configuration
    */
   const handleStartGame = async (config) => {
-    console.log('🚀 Starting game with config:', config);
+  console.log('🚀 Starting game with config:', config);
 
-    setCurrentRound(1);  // ⬅️ ADD THIS LINE!
-  setScore(0);         // ⬅️ ADD THIS LINE!
-  setCurrentWordIndex(0);  // ⬅️ ADD THIS LINE!
-    
-    setGameConfig({
-      ...config,
-      enableAudio: config.enableAudio !== undefined ? config.enableAudio : true,
-      voiceType: config.voiceType || 'happy'
-    });
-    setTotalRounds(config.numberOfQuestions || 10);
-    setLoadingWords(true);
-    setWordGenerationError(null);
+  // 🔧 FIX: Reset ALL game state FIRST (before anything else)
+  setCurrentRound(1);
+  setScore(0);
+  setCurrentWordIndex(0);
+  setUsedWords([]);
+  setLastResult(null);
+  setWordData([]); // ← Clear old words immediately
+  
+  // 🔧 FIX: Reset gameStats COMPLETELY
+  setGameStats({
+    wordsAttempted: 0,
+    wordsRecognized: 0,
+    wordsSkipped: 0,
+    wordsShown: 0,
+    averageResponseTime: 0,
+    timeSpent: 0,
+    streakCount: 0,
+    maxStreak: 0,
+    successRate: 0,
+    patternStats: {},
+    difficultyProgression: [],
+    totalWords: 0,
+    correctWords: 0
+  });
+  
+  // 🔧 FIX: Reset session timestamps
+  setSessionStartTime(Date.now());
+  setGameStartTime(Date.now());
+  
+  // NOW set the game configuration
+  setGameConfig({
+    ...config,
+    enableAudio: config.enableAudio !== undefined ? config.enableAudio : true,
+    voiceType: config.voiceType || 'happy'
+  });
+  setTotalRounds(config.numberOfQuestions || 10);
+  setLoadingWords(true);
+  setWordGenerationError(null);
 
-      if (config.teamPlay) {
+  // Reset team state if team play
+  if (config.teamPlay) {
     setTeamNames({
       teamA: config.teamAName || 'Team A',
       teamB: config.teamBName || 'Team B'
@@ -411,32 +438,45 @@ const VanishingGame = () => {
   /**
    * 🏠 Handle return to menu
    */
-  const handleReturnToMenu = () => {
-    console.log('🏠 Returning to menu');
-    
-    // Reset all game state
-    setGameState('config');
-    setCurrentRound(1);
-    setTotalRounds(10);
-    setScore(0);
-    setWordData([]);
-    setCurrentWordIndex(0);
-    setUsedWords([]);
-    setLastResult(null);
-    setGameStats({
-      wordsAttempted: 0,
-      wordsRecognized: 0,
-      wordsSkipped: 0,
-      wordsShown: 0,
-      averageResponseTime: 0,
-      timeSpent: 0,
-      streakCount: 0,
-      maxStreak: 0,
-      successRate: 0,
-      patternStats: {},
-      difficultyProgression: []
-    });
-  };
+const handleReturnToMenu = () => {
+  console.log('🏠 Returning to menu');
+  
+  // Reset all game state
+  setGameState('config');
+  setCurrentRound(1);
+  setTotalRounds(10);
+  setScore(0);
+  setWordData([]);
+  setCurrentWordIndex(0);
+  setUsedWords([]);
+  setLastResult(null);
+  setClassEnergy(100); // ← Add this
+  
+  // 🔧 FIX: Reset team state
+  setCurrentTeam('teamA');
+  setTeamScores({ teamA: 0, teamB: 0 });
+  
+  // 🔧 FIX: Reset timestamps
+  setSessionStartTime(Date.now());
+  setGameStartTime(Date.now());
+  
+  // 🔧 FIX: Complete stats reset
+  setGameStats({
+    wordsAttempted: 0,
+    wordsRecognized: 0,
+    wordsSkipped: 0,
+    wordsShown: 0,
+    averageResponseTime: 0,
+    timeSpent: 0,
+    streakCount: 0,
+    maxStreak: 0,
+    successRate: 0,
+    patternStats: {},
+    difficultyProgression: [],
+    totalWords: 0,      // ← Add this
+    correctWords: 0     // ← Add this
+  });
+};
 
   /**
    * 📊 Handle view analytics
@@ -457,8 +497,8 @@ const VanishingGame = () => {
   /**
    * 🔄 Handle play again
    */
-  const handlePlayAgain = () => {
-  // Reset all game state
+const handlePlayAgain = () => {
+  // 🔧 FIX: Reset all game state
   setGameState('config');
   setCurrentRound(1);
   setTotalRounds(10);
@@ -467,12 +507,17 @@ const VanishingGame = () => {
   setUsedWords([]);
   setLastResult(null);
   setClassEnergy(100);
+  setWordData([]); // ← Add this to clear old words
   
-  // ADD THESE LINES - Reset team state
+  // Reset team state
   setCurrentTeam('teamA');
   setTeamScores({ teamA: 0, teamB: 0 });
   
-  // Reset stats
+  // 🔧 FIX: Reset session timestamps
+  setSessionStartTime(Date.now());
+  setGameStartTime(Date.now());
+  
+  // Reset stats completely
   setGameStats({
     wordsAttempted: 0,
     wordsRecognized: 0,

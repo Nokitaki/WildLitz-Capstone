@@ -228,9 +228,10 @@ useEffect(() => {
   // Render word with vanishing effect
   // Render word with vanishing effect
 const renderWord = () => {
-  const letters = word.split('');
+  const text = word.trim();
+  const words = text.split(' '); // Split into words
   
-  // During preview and ready - show word clearly
+  // ===== PREVIEW & READY PHASE =====
   if (preVanishPhase === 'preview' || preVanishPhase === 'ready') {
     return (
       <motion.div
@@ -239,100 +240,117 @@ const renderWord = () => {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', bounce: 0.5 }}
       >
-        {letters.map((letter, index) => {
-          const isPattern = pattern && word.toLowerCase().indexOf(pattern.toLowerCase()) <= index && 
-                           index < word.toLowerCase().indexOf(pattern.toLowerCase()) + pattern.length;
-          
-          return (
-            <motion.span
-              key={index}
-              className={`${styles.letter} ${isPattern && config.highlightTarget ? styles.patternLetter : ''}`}
-              initial={{ y: -50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: index * 0.1, type: 'spring', bounce: 0.6 }}
-            >
-              {letter}
-            </motion.span>
-          );
-        })}
+        {words.map((singleWord, wordIndex) => (
+          <span key={wordIndex} className={styles.wordWrapper}>
+            {singleWord.split('').map((letter, letterIndex) => {
+              // Calculate global index for pattern highlighting
+              const globalIndex = text.indexOf(singleWord) + letterIndex;
+              const isPattern = pattern && 
+                              text.toLowerCase().indexOf(pattern.toLowerCase()) <= globalIndex && 
+                              globalIndex < text.toLowerCase().indexOf(pattern.toLowerCase()) + pattern.length;
+              
+              return (
+                <motion.span
+                  key={`${wordIndex}-${letterIndex}`}
+                  className={`${styles.letter} ${isPattern && config.highlightTarget ? styles.patternLetter : ''}`}
+                  initial={{ y: -50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: globalIndex * 0.05, type: 'spring', bounce: 0.6 }}
+                >
+                  {letter}
+                </motion.span>
+              );
+            })}
+          </span>
+        ))}
       </motion.div>
     );
   }
   
-  // During vanishing phase - gradually disappear
-  // During vanishing phase - gradually disappear
-if (preVanishPhase === 'vanishing') {
-  // Calculate opacity based on vanish state and speed
-  const getOpacityStyle = () => {
-    // Word is fully gone
-    if (vanishState === 'vanished') {
-      return { opacity: 0 };
-    }
-    // Word is currently vanishing
-    if (vanishState === 'vanishing') {
-      const durations = {
-        'slow': '3s',
-        'normal': '1.5s', 
-        'fast': '0.8s',
-        'instant': '0.3s'
-      };
-      return {
-        opacity: 0,
-        transition: `opacity ${durations[config.vanishSpeed] || '1.5s'} ease-out`
-      };
-    }
-    // Word is still visible (before vanishing starts)
-    return { opacity: 1 };
-  };
+  // ===== VANISHING PHASE =====
+  if (preVanishPhase === 'vanishing') {
+    const getOpacityStyle = () => {
+      if (vanishState === 'vanished') {
+        return { opacity: 0 };
+      }
+      if (vanishState === 'vanishing') {
+        const durations = {
+          'slow': '3s',
+          'normal': '1.5s', 
+          'fast': '0.8s',
+          'instant': '0.3s'
+        };
+        return {
+          opacity: 0,
+          transition: `opacity ${durations[config.vanishSpeed] || '1.5s'} ease-out`
+        };
+      }
+      return { opacity: 1 };
+    };
 
-  return (
-    <div className={styles.wordDisplay}>
-      {vanishingStyle === 'letterDrop' ? (
-        // Letter drop animation
-        letters.map((letter, index) => {
-          const isVanished = vanishingLetters.includes(index);
-          return (
-            <motion.span
-              key={index}
-              className={styles.letter}
-              animate={{
-                opacity: isVanished ? 0 : 1,
-                y: isVanished ? 50 : 0,
-                rotate: isVanished ? 180 : 0,
-              }}
-              transition={{ duration: 0.5 }}
-            >
-              {letter}
-            </motion.span>
-          );
-        })
-      ) : (
-        // Fade/blur animation for entire word - GHOST EFFECT!
-        <div style={getOpacityStyle()}>
-          {letters.map((letter, index) => {
-            const isPattern = pattern && word.toLowerCase().indexOf(pattern.toLowerCase()) <= index && 
-                             index < word.toLowerCase().indexOf(pattern.toLowerCase()) + pattern.length;
-            return (
-              <span 
-                key={index} 
-                className={`${styles.letter} ${isPattern && config.highlightTarget ? styles.patternLetter : ''}`}
-              >
-                {letter}
+    return (
+      <div className={styles.wordDisplay}>
+        {vanishingStyle === 'letterDrop' ? (
+          // Letter drop animation
+          words.map((singleWord, wordIndex) => (
+            <span key={wordIndex} className={styles.wordWrapper}>
+              {singleWord.split('').map((letter, letterIndex) => {
+                const globalIndex = text.indexOf(singleWord) + letterIndex;
+                const isVanished = vanishingLetters.includes(globalIndex);
+                return (
+                  <motion.span
+                    key={letterIndex}
+                    className={styles.letter}
+                    animate={{
+                      opacity: isVanished ? 0 : 1,
+                      y: isVanished ? 50 : 0,
+                      rotate: isVanished ? 180 : 0,
+                    }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    {letter}
+                  </motion.span>
+                );
+              })}
+            </span>
+          ))
+        ) : (
+          // Fade animation
+          <div style={getOpacityStyle()}>
+            {words.map((singleWord, wordIndex) => (
+              <span key={wordIndex} className={styles.wordWrapper}>
+                {singleWord.split('').map((letter, letterIndex) => {
+                  const globalIndex = text.indexOf(singleWord) + letterIndex;
+                  const isPattern = pattern && 
+                                  text.toLowerCase().indexOf(pattern.toLowerCase()) <= globalIndex && 
+                                  globalIndex < text.toLowerCase().indexOf(pattern.toLowerCase()) + pattern.length;
+                  return (
+                    <span 
+                      key={letterIndex} 
+                      className={`${styles.letter} ${isPattern && config.highlightTarget ? styles.patternLetter : ''}`}
+                    >
+                      {letter}
+                    </span>
+                  );
+                })}
               </span>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
   
-  // Fallback - show word (when button clicked)
+  // ===== FALLBACK =====
   return (
     <div className={styles.wordDisplay}>
-      {letters.map((letter, index) => (
-        <span key={index} className={styles.letter}>
-          {letter}
+      {words.map((singleWord, wordIndex) => (
+        <span key={wordIndex} className={styles.wordWrapper}>
+          {singleWord.split('').map((letter, letterIndex) => (
+            <span key={letterIndex} className={styles.letter}>
+              {letter}
+            </span>
+          ))}
         </span>
       ))}
     </div>
