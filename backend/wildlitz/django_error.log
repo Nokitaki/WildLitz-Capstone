@@ -834,3 +834,21 @@ ERROR 2025-11-07 12:24:53,648 views AI generation failed: AI response not in exp
 ERROR 2025-11-07 12:28:48,734 views AI generation failed: AI response not in expected JSON format
 ERROR 2025-11-07 12:46:04,163 views AI generation failed: AI response not in expected JSON format
 ERROR 2025-11-07 12:48:02,065 views JSON parsing error: Illegal trailing comma before end of object: line 9 column 78 (char 363)
+ERROR 2025-11-07 14:09:52,875 views AI generation failed: AI response not in expected JSON format
+ERROR 2025-11-07 14:12:23,460 views JSON parsing error: Illegal trailing comma before end of object: line 9 column 89 (char 346)
+ERROR 2025-11-07 14:12:23,461 views AI response content: ```json
+[
+    {
+        "word": "rainbow",
+        "syllableBreakdown": "rain-bow",
+        "targetLetter": "a",
+        "definition": "A beautiful arc of colors in the sky after the rain",
+        "pattern": "long_vowel_silent_e",
+        "patternPosition": "end",
+        "phonicsRule": "Silent 'e' at the end makes the 'a' say its name like in 'cake'",
+    },
+    {
+        "word": "starlight",
+        "syllableBreakdown": "star-light",
+        "targetLetter": "i",
+        "definition": "The fai...
