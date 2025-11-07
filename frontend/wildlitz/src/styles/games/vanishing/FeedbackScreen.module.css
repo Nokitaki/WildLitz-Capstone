@@ -20,13 +20,15 @@
 .feedbackContainer {
   width: 100%;
   min-height: 100vh;
+  max-height: 100vh;
   background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 30px 20px;
   box-sizing: border-box;
   /* 🚀 PERFORMANCE: GPU acceleration */
@@ -619,4 +621,11 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+  .wordDisplay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px 0;
+}
 }

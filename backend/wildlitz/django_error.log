@@ -829,3 +829,8 @@ ERROR 2025-11-03 22:07:39,987 basehttp "GET /api/sentence_formation/story/word-p
 ERROR 2025-11-03 22:07:40,093 log Internal Server Error: /api/sentence_formation/story/analytics/
 ERROR 2025-11-03 22:07:40,093 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020%40gmail.com&days=30 HTTP/1.1" 500 95
 ERROR 2025-11-03 22:07:40,093 basehttp "GET /api/sentence_formation/story/analytics/?user_email=kenjiermita2020%40gmail.com&days=30 HTTP/1.1" 500 95
+ERROR 2025-11-07 11:50:57,039 views AI generation failed: AI response not in expected JSON format
+ERROR 2025-11-07 12:24:53,648 views AI generation failed: AI response not in expected JSON format
+ERROR 2025-11-07 12:28:48,734 views AI generation failed: AI response not in expected JSON format
+ERROR 2025-11-07 12:46:04,163 views AI generation failed: AI response not in expected JSON format
+ERROR 2025-11-07 12:48:02,065 views JSON parsing error: Illegal trailing comma before end of object: line 9 column 78 (char 363)

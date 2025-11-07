@@ -2,10 +2,33 @@
 
 /* Main Container */
 .analyticsContainer {
+  width: 100%;
   min-height: 100vh;
+  max-height: 100vh;  /* ✅ ADD THIS */
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-sizing: border-box;
+  overflow-y: auto;  /* ✅ ADD THIS */
+  overflow-x: hidden;  /* ✅ ADD THIS */
+}
+
+/* Custom Scrollbar for Analytics */
+.analyticsContainer::-webkit-scrollbar {
+  width: 10px;
+}
+
+.analyticsContainer::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+.analyticsContainer::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+}
+
+.analyticsContainer::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.7);
 }
 
 /* Header Section */

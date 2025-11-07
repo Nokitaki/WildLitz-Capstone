@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/vanishing/FeedbackScreen.module.css';
+import SoundButton from './SoundButton';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../../../config/api';
 
@@ -156,8 +157,15 @@ const getStaticExamples = () => {
         </div>
         
         <div className={styles.wordDisplay}>
-          {renderWordWithHighlight()}
-        </div>
+  {renderWordWithHighlight()}
+  
+  {/* 🔊 Sound Button */}
+  <SoundButton 
+    text={word}
+    voiceType="friendly"
+    size="large"
+  />
+</div>
 
         {pattern && (
           <div className={styles.patternInfo}>
