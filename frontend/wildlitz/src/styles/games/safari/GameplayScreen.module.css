@@ -1,5 +1,5 @@
 /* GameplayScreen.module.css */
-/* Redesigned for horizontal layout with no overflow/scroll and center stage */
+/* Safari Theme - Matching SoundSafariConfigScreen design */
 
 .gameplayContainer {
   width: 100%;
@@ -10,7 +10,19 @@
   padding: 0.5rem;
   box-sizing: border-box;
   position: relative;
-  overflow: hidden; /* Prevent any overflow */
+  overflow: hidden;
+  background: linear-gradient(180deg, #8BC34A 0%, #689F38 40%, #558B2F 100%);
+}
+
+.gameplayContainer::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 150px;
+  background: linear-gradient(to top, rgba(46, 125, 50, 0.3), transparent);
+  pointer-events: none;
 }
 
 .gameplayCard {
@@ -31,33 +43,6 @@
   position: relative;
 }
 
-.gameplayCard::before {
-  content: '🌿';
-  position: absolute;
-  top: -5px;
-  left: 20px;
-  font-size: 2.5rem;
-  transform: rotate(-20deg);
-  animation: vineSwing 3s ease-in-out infinite;
-  z-index: 1;
-}
-
-.gameplayCard::after {
-  content: '🌿';
-  position: absolute;
-  top: -5px;
-  right: 20px;
-  font-size: 2.5rem;
-  transform: rotate(20deg);
-  animation: vineSwing 3s ease-in-out infinite reverse;
-  z-index: 1;
-}
-
-@keyframes vineSwing {
-  0%, 100% { transform: rotate(-20deg); }
-  50% { transform: rotate(-30deg); }
-}
-
 .gameHeader {
   display: flex;
   justify-content: space-between;
@@ -73,29 +58,42 @@
 .gameTitle {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #333;
+  color: #33691E;
   margin: 0 0 4px 0;
   display: flex;
   align-items: center;
   gap: 8px;
+  text-shadow: 
+    2px 2px 0 #FDD835,
+    3px 3px 6px rgba(0, 0, 0, 0.2);
 }
 
 .titleEmoji {
   font-size: 1.5rem;
+  animation: emojiWiggle 2s ease-in-out infinite;
+}
+
+@keyframes emojiWiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
 }
 
 .gameSubtitle {
   font-size: 0.9rem;
-  color: #666;
+  color: #5D4037;
   margin: 0;
+  font-weight: 600;
 }
 
 .targetSoundText {
-  background-color: #81c9c0;
+  background: linear-gradient(135deg, #81D4FA 0%, #4FC3F7 100%);
   color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .gameControls {
@@ -104,62 +102,96 @@
 }
 
 .selectionCount {
-  background-color: #e8f4f1;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
   border-radius: 20px;
-  padding: 6px 12px;
+  padding: 8px 14px;
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 0.85rem;
-  color: #296b63;
+  color: #2E7D32;
+  font-weight: 600;
+  border: 2px solid #81C784;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .countLabel {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .countNumber {
   font-weight: 700;
   font-size: 1rem;
+  color: #1B5E20;
 }
 
 .hintButton {
-  background-color: #fff8e1;
-  color: #f57c00;
-  border: none;
+  background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
+  color: #F57C00;
+  border: 3px solid #F9A825;
   border-radius: 20px;
-  padding: 6px 12px;
+  padding: 8px 14px;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .hintButton:hover {
-  background-color: #ffecb3;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #FFF59D 0%, #FFF176 100%);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.25);
+  border-color: #F57C00;
+}
+
+.hintButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .hintIcon {
   font-size: 1rem;
+  animation: hintGlow 2s ease-in-out infinite;
+}
+
+@keyframes hintGlow {
+  0%, 100% { 
+    filter: drop-shadow(0 0 2px rgba(245, 124, 0, 0.5));
+  }
+  50% { 
+    filter: drop-shadow(0 0 8px rgba(245, 124, 0, 0.8));
+  }
 }
 
 /* Hint display */
 .hintDisplay {
-  background-color: #fff8e1;
-  border-radius: 10px;
-  padding: 10px 14px;
+  background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+  border: 3px solid #FFB300;
+  border-radius: 12px;
+  padding: 12px 16px;
   text-align: center;
   margin-bottom: 10px;
   font-size: 0.9rem;
-  color: #f57c00;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-  font-weight: 500;
+  color: #E65100;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  font-weight: 600;
+  animation: hintSlideIn 0.3s ease-out;
+}
+
+@keyframes hintSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .gameContent {
@@ -198,35 +230,44 @@
 
 .timerContainer {
   margin-bottom: 5px;
+  background: linear-gradient(135deg, rgba(255, 248, 225, 0.95) 0%, rgba(255, 235, 205, 0.95) 100%);
+  border-radius: 12px;
+  padding: 12px;
+  border: 3px solid #8D6E63;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
 }
 
 .timerLabel {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 5px;
-  font-weight: 600;
-  color: #333;
-  font-size: 0.9rem;
+  margin-bottom: 8px;
+  font-weight: 700;
+  color: #33691E;
+  font-size: 0.95rem;
 }
 
 .timerWarning {
-  color: #f44336;
+  color: #D32F2F;
   animation: pulse 1s infinite;
+  text-shadow: 0 0 10px rgba(211, 47, 47, 0.5);
 }
 
 .timerBarContainer {
   width: 100%;
-  height: 6px;
-  background-color: #e0e0e0;
-  border-radius: 3px;
+  height: 8px;
+  background-color: #BCAAA4;
+  border-radius: 4px;
   overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .timerBar {
   height: 100%;
-  background-color: #4caf50;
-  border-radius: 3px;
+  background: linear-gradient(90deg, #66BB6A 0%, #4CAF50 100%);
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+  transition: all 0.5s ease;
 }
 
 .instructionsSection {
@@ -239,18 +280,34 @@
 }
 
 .instructionCard {
-  background-color: #f5f9f8;
-  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(255, 249, 196, 0.9) 0%, rgba(255, 245, 157, 0.9) 100%);
+  border-radius: 12px;
   padding: 12px;
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  border: 2px solid #8D6E63;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.instructionCard:hover {
+  transform: translateX(5px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+  border-color: #F9A825;
 }
 
 .cardIcon {
   font-size: 1.6rem;
   flex-shrink: 0;
-  color: #296b63;
+  color: #F57C00;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  animation: iconBounce 2s ease-in-out infinite;
+}
+
+@keyframes iconBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }
 
 .cardContent {
@@ -260,14 +317,17 @@
 .cardContent h3 {
   margin: 0 0 4px 0;
   font-size: 0.95rem;
-  color: #296b63;
+  color: #33691E;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(253, 216, 53, 0.3);
 }
 
 .cardContent p {
   margin: 0;
   font-size: 0.85rem;
-  color: #333;
+  color: #5D4037;
   line-height: 1.3;
+  font-weight: 500;
 }
 
 .animalsGrid {
@@ -282,38 +342,96 @@
 }
 
 .animalCard {
-  background-color: white;
-  height: 160px; /* Fixed height for consistency */
-  border-radius: 10px;
+  background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
+  height: 160px;
+  border-radius: 12px;
   padding: 12px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* This ensures proper spacing */
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  justify-content: flex-start;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   position: relative;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 3px solid #F9A825;
+  overflow: hidden;
+  animation: cardBounce 4s ease-in-out infinite;
+}
+
+.animalCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+.animalCard:hover::before {
+  left: 100%;
+}
+
+.animalCard:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  border-color: #F57C00;
+  animation: none; /* Stop bounce on hover */
 }
 
 .animalCard.selected {
-  border: 2px solid #81c9c0;
-  background-color: #e8f4f1;
+  border: 4px solid #33691E;
+  background: linear-gradient(135deg, #689F38 0%, #558B2F 100%);
+  color: white;
+  box-shadow: 
+    0 6px 20px rgba(104, 159, 56, 0.5),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.3);
+  animation: buttonPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), cardBounce 4s ease-in-out infinite 0.4s;  /* ✅ ADD THIS LINE */
+}
+
+.animalCard.selected .animalName {
+  color: white;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.animalCard.selected .soundButton {
+  color: white;
+  opacity: 0.9;
 }
 
 .animalCard.highlighted {
-  border: 3px solid #ffb74d;
-  background-color: #fff8e1;
-  box-shadow: 0 6px 12px rgba(255, 183, 77, 0.3);
+  border: 4px solid #FFB300;
+  background: linear-gradient(135deg, #FFD54F 0%, #FFB300 100%);
+  box-shadow: 
+    0 8px 25px rgba(255, 179, 0, 0.6),
+    0 0 40px rgba(255, 193, 7, 0.4);
+  animation: highlightPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes highlightPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 
+      0 8px 25px rgba(255, 179, 0, 0.6),
+      0 0 40px rgba(255, 193, 7, 0.4);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 
+      0 10px 30px rgba(255, 179, 0, 0.7),
+      0 0 50px rgba(255, 193, 7, 0.5);
+  }
 }
 
 .animalImage {
   font-size: 2.2rem;
   margin-bottom: 4px;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
-  flex-shrink: 0; /* Prevent shrinking */
-  height: 60px; /* Fixed height for consistency */
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.25));
+  flex-shrink: 0;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -329,39 +447,41 @@
 .animalInfo {
   width: 100%;
   text-align: center;
-  margin-top: 30px; /* adjusted it [dont change!!]*/
-  flex-shrink: 0; /* Prevent shrinking */
+  margin-top: 30px;
+  flex-shrink: 0;
 }
 
 .animalName {
   font-size: 0.85rem;
-  color: #333;
-  font-weight: 500;
+  color: #5D4037;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  min-height: 20px; /* Ensure consistent height */
+  min-height: 20px;
   line-height: 1.2;
 }
 
 .soundButton {
   background: none;
   border: none;
-  color: #81c9c0;
+  color: #F57C00;
   font-size: 0.9rem;
   cursor: pointer;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.7;
+  opacity: 0.8;
   transition: all 0.2s ease;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
 .soundButton:hover {
   opacity: 1;
-  transform: scale(1.1);
+  transform: scale(1.15);
+  color: #FF6F00;
 }
 
 .soundButton:disabled {
@@ -371,19 +491,36 @@
 
 .checkmark {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 18px;
-  height: 18px;
-  background-color: #81c9c0;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #FDD835 0%, #FBC02D 100%);
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: white;
+  color: #33691E;
   font-weight: bold;
-  font-size: 0.7rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 0.85rem;
+  box-shadow: 
+    0 3px 8px rgba(0, 0, 0, 0.3),
+    0 0 15px rgba(253, 216, 53, 0.6);
+  border: 2px solid white;
+  animation: checkmarkGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes checkmarkGlow {
+  0%, 100% {
+    box-shadow: 
+      0 3px 8px rgba(0, 0, 0, 0.3),
+      0 0 15px rgba(253, 216, 53, 0.6);
+  }
+  50% {
+    box-shadow: 
+      0 3px 8px rgba(0, 0, 0, 0.3),
+      0 0 25px rgba(253, 216, 53, 0.8);
+  }
 }
 
 .actionButtons {
@@ -393,12 +530,12 @@
 }
 
 .clearButton {
-  background-color: #eeeeee;
+  background: linear-gradient(135deg, #EEEEEE 0%, #E0E0E0 100%);
   color: #616161;
-  border: none;
+  border: 3px solid #BDBDBD;
   padding: 10px 16px;
   border-radius: 50px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
   flex: 1;
@@ -406,12 +543,16 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
 }
 
 .clearButton:hover:not(:disabled) {
-  background-color: #e0e0e0;
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #E0E0E0 0%, #D6D6D6 100%);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+  border-color: #9E9E9E;
 }
 
 .clearButton:disabled {
@@ -420,12 +561,12 @@
 }
 
 .submitButton {
-  background-color: #81c9c0;
+  background: linear-gradient(135deg, #81C9C0 0%, #6DBDB3 100%);
   color: white;
-  border: none;
+  border: 3px solid #4DB6AC;
   padding: 10px 16px;
   border-radius: 50px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
   flex: 2;
@@ -433,14 +574,42 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 8px rgba(129, 201, 192, 0.3);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 
+    0 4px 12px rgba(129, 201, 192, 0.4),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  animation: submitGlow 2s ease-in-out infinite;
 }
 
-.submitButton:hover {
-  background-color: #6dbdb3;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(129, 201, 192, 0.4);
+@keyframes submitGlow {
+  0%, 100% {
+    box-shadow: 
+      0 4px 12px rgba(129, 201, 192, 0.4),
+      inset 0 -2px 6px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 6px 16px rgba(129, 201, 192, 0.6),
+      0 0 30px rgba(129, 201, 192, 0.3),
+      inset 0 -2px 6px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.submitButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6DBDB3 0%, #5AAFA5 100%);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 
+    0 6px 16px rgba(129, 201, 192, 0.5),
+    0 0 35px rgba(129, 201, 192, 0.4),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.2);
+  border-color: #26A69A;
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  animation: none;
 }
 
 .buttonIcon {
@@ -463,16 +632,19 @@
 }
 
 .centerAnimalCard {
-  background-color: white;
+  background: linear-gradient(145deg, #FFF9E6 0%, #FFEAA7 100%);
   border-radius: 25px;
   padding: 40px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  box-shadow: 
+    0 20px 50px rgba(0, 0, 0, 0.4),
+    0 0 0 6px #FFB300,
+    0 0 0 12px #FF8F00;
   text-align: center;
   position: relative;
   max-width: 400px;
   width: 90%;
-  border: 4px solid #ffb74d;
-  will-change: transform; /* Optimize for animations */
+  border: 5px solid #F57C00;
+  will-change: transform;
 }
 
 .centerAnimalImage {
@@ -480,7 +652,7 @@
   margin-bottom: 25px;
   filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
   animation: breathe 2s ease-in-out infinite;
-  will-change: transform; /* Optimize for animations */
+  will-change: transform;
 }
 
 .centerAnimalImage img {
@@ -490,31 +662,33 @@
   border-radius: 20px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease;
+  border: 4px solid #FFB300;
 }
 
 .centerAnimalName {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #333;
+  color: #33691E;
   margin-bottom: 25px;
-  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  text-shadow: 
+    2px 2px 0 #FDD835,
+    4px 4px 8px rgba(0, 0, 0, 0.2);
   animation: nameGlow 2s ease-in-out infinite;
-  will-change: text-shadow; /* Optimize for animations */
+  will-change: text-shadow;
 }
 
 .centerGlow {
   position: absolute;
-  /* Adjust these values to make the glow bigger or smaller */
-  top: -20px;    /* Increase for bigger glow, decrease for smaller */
-  left: -20px;   /* Increase for bigger glow, decrease for smaller */
-  right: -20px;  /* Increase for bigger glow, decrease for smaller */
-  bottom: -20px; /* Increase for bigger glow, decrease for smaller */
-  background: linear-gradient(45deg, #ffb74d, #ffc107, #ff9800, #ffb74d);
-  border-radius: 35px; /* Adjust border-radius accordingly */
+  top: -20px;
+  left: -20px;
+  right: -20px;
+  bottom: -20px;
+  background: linear-gradient(45deg, #FFB300, #FFC107, #FF9800, #FFB300);
+  border-radius: 35px;
   z-index: -1;
   opacity: 0.7;
   animation: centerPulse 2s ease-in-out infinite;
-  will-change: transform, opacity; /* Optimize for animations */
+  will-change: transform, opacity;
 }
 
 @keyframes centerPulse {
@@ -539,10 +713,15 @@
 
 @keyframes nameGlow {
   0%, 100% { 
-    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    text-shadow: 
+      2px 2px 0 #FDD835,
+      4px 4px 8px rgba(0, 0, 0, 0.2);
   }
   50% { 
-    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.1), 0 0 20px rgba(255, 183, 77, 0.5);
+    text-shadow: 
+      2px 2px 0 #FDD835,
+      4px 4px 8px rgba(0, 0, 0, 0.2),
+      0 0 20px rgba(255, 183, 77, 0.5);
   }
 }
 
@@ -568,223 +747,65 @@
   100% { opacity: 1; }
 }
 
-/* Media queries for responsive design */
-@media (max-width: 1024px) {
-  .gameContent {
-    gap: 10px;
+@keyframes buttonPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes cardBounce {
+  0%, 100% { 
+    transform: translateY(0);
   }
-  
-  .gameHeader {
-    margin-bottom: 8px;
-  }
-  
-  .gameTitle {
-    font-size: 1.3rem;
-  }
-  
-  .titleEmoji {
-    font-size: 1.3rem;
-  }
-  
-  .gameSubtitle {
-    font-size: 0.8rem;
-  }
-  
-  .hintDisplay {
-    font-size: 0.8rem;
-    padding: 8px 12px;
-  }
-  
-  .instructionCard {
-    padding: 10px;
-  }
-  
-  .cardIcon {
-    font-size: 1.4rem;
-  }
-  
-  .cardContent h3 {
-    font-size: 0.85rem;
-  }
-  
-  .cardContent p {
-    font-size: 0.75rem;
-  }
-  
-  .animalsGrid {
-    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
-    gap: 10px;
-  }
-  
-  .animalCard {
-    padding: 10px 6px;
-    height: 140px; /* Slightly smaller for smaller screens */
-  }
-  
-  .animalImage {
-    font-size: 2rem;
-    height: 50px;
-  }
-  
-  .animalImage img {
-    width: 50px;
-    height: 50px;
-  }
-  
-  .animalName {
-    font-size: 0.75rem;
-  }
-  
-  .centerAnimalImage {
-    font-size: 8rem;
-  }
-  
-  .centerAnimalImage img {
-    width: 170px;
-    height: 170px;
-  }
-  
-  .centerAnimalName {
-    font-size: 2.2rem;
-  }
-  
-  .centerAnimalCard {
-    max-width: 350px;
-    padding: 35px;
+  50% { 
+    transform: translateY(-3px);
   }
 }
 
-@media (max-width: 768px) {
-  .gameContent {
-    flex-direction: column;
-  }
-  
-  .gameColumn:first-child,
-  .animalsColumn {
-    width: 100%;
-  }
-  
-  .gameHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  
-  .gameControls {
-    width: 100%;
-    justify-content: space-between;
-  }
-  
-  .instructionsSection {
-    flex-direction: row;
-    gap: 8px;
-    overflow-x: auto;
-    margin-bottom: 10px;
-  }
-  
-  .instructionCard {
-    min-width: 150px;
-    flex-shrink: 0;
-  }
-  
-  .animalsGrid {
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-    gap: 8px;
-    overflow-y: visible;
-    max-height: none;
-  }
-  
-  .animalCard {
-    height: 120px; /* Even smaller for mobile */
-  }
-  
-  .animalImage {
-    font-size: 1.8rem;
-    height: 45px;
-  }
-  
-  .animalImage img {
-    width: 45px;
-    height: 45px;
-  }
-  
-  .actionButtons {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .clearButton, .submitButton {
-    width: 100%;
-    padding: 8px 12px;
-  }
-  
-  .centerAnimalCard {
-    padding: 25px;
-    max-width: 300px;
-  }
-  
-  .centerAnimalImage {
-    font-size: 6rem;
-  }
-  
-  .centerAnimalImage img {
-    width: 140px;
-    height: 140px;
-  }
-  
-  .centerAnimalName {
-    font-size: 1.8rem;
-  }
+/* Skip Button for Individual Animal - Bottom Right Outside Card */
+.skipAnimalButton {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8787 100%);
+  border: 3px solid white;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 
+    0 6px 20px rgba(255, 107, 107, 0.5),
+    0 0 0 3px #FF5252;
+  transition: all 0.3s ease;
+  z-index: 1001;
 }
 
-/* For large displays */
-@media (min-width: 1440px) {
-  .gameplayCard {
-    max-width: 1400px;
-    padding: 20px;
-  }
-  
-  .gameTitle {
-    font-size: 1.8rem;
-  }
-  
-  .titleEmoji {
-    font-size: 1.8rem;
-  }
-  
-  .gameSubtitle {
-    font-size: 1rem;
-  }
-  
-  .hintDisplay {
-    font-size: 1rem;
-    padding: 12px 16px;
-    margin-bottom: 12px;
-  }
-  
-  .centerAnimalImage {
-    font-size: 12rem;
-  }
-  
-  .centerAnimalImage img {
-    width: 240px;
-    height: 240px;
-  }
-  
-  .centerAnimalName {
-    font-size: 3rem;
-  }
-  
-  .centerAnimalCard {
-    max-width: 450px;
-    padding: 50px;
-  }
+.skipAnimalButton:hover {
+  background: linear-gradient(135deg, #FF5252 0%, #FF6B6B 100%);
+  box-shadow: 
+    0 8px 25px rgba(255, 107, 107, 0.6),
+    0 0 0 4px #F44336;
+  transform: translateY(-3px) scale(1.05);
 }
 
-/* For extra wide displays */
-@media (min-width: 1800px) {
-  .gameplayCard {
-    max-width: 1600px;
+.skipAnimalButton:active {
+  transform: translateY(-1px) scale(0.95);
+}
+
+.skipArrow {
+  font-size: 2rem;
+  animation: bounceRight 1s ease-in-out infinite;
+}
+
+@keyframes bounceRight {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(5px);
   }
 }
 
@@ -811,37 +832,21 @@
   position: relative;
 }
 
-.startContent::before {
-  content: '🌿';
-  position: absolute;
-  top: -5px;
-  left: 20px;
-  font-size: 2.5rem;
-  transform: rotate(-20deg);
-  animation: vineSwing 3s ease-in-out infinite;
-}
-
-.startContent::after {
-  content: '🌿';
-  position: absolute;
-  top: -5px;
-  right: 20px;
-  font-size: 2.5rem;
-  transform: rotate(20deg);
-  animation: vineSwing 3s ease-in-out infinite reverse;
-}
-
 .startTitle {
   font-size: 2.5rem;
-  font-weight: bold;
-  color: #2c5f2d;
+  font-weight: 800;
+  color: #33691E;
   margin-bottom: 15px;
+  text-shadow: 
+    2px 2px 0 #FDD835,
+    4px 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .startSubtitle {
   font-size: 1.2rem;
-  color: #5a6c57;
+  color: #5D4037;
   margin-bottom: 30px;
+  font-weight: 600;
 }
 
 .startInstructions {
@@ -857,138 +862,359 @@
   align-items: center;
   gap: 15px;
   padding: 15px;
-  background: #f0f7f0;
+  background: linear-gradient(135deg, rgba(255, 249, 196, 0.9) 0%, rgba(255, 245, 157, 0.9) 100%);
   border-radius: 12px;
   transition: transform 0.2s;
+  border: 2px solid #F9A825;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
 .startInstruction:hover {
   transform: translateX(5px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+  border-color: #F57C00;
 }
 
 .startIcon {
   font-size: 2rem;
   min-width: 50px;
   text-align: center;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .startInstruction p {
   margin: 0;
-  color: #2c5f2d;
-  font-size: 1rem;
-  line-height: 1.5;
+  color: #5D4037;
+font-size: 1rem;
+line-height: 1.5;
+font-weight: 600;
 }
-
 .startButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  padding: 18px 40px;
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: white;
-  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-  transition: all 0.3s ease;
-  margin-top: 20px;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 10px;
+width: 100%;
+padding: 18px 40px;
+font-size: 1.3rem;
+font-weight: 700;
+color: white;
+background: linear-gradient(135deg, #689F38 0%, #558B2F 100%);
+border: 4px solid #81C784;
+border-radius: 50px;
+cursor: pointer;
+box-shadow:
+0 6px 20px rgba(104, 159, 56, 0.4),
+inset 0 -3px 10px rgba(0, 0, 0, 0.2);
+transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+margin-top: 20px;
+text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+animation: startButtonGlow 2s ease-in-out infinite;
 }
-
+@keyframes startButtonGlow {
+0%, 100% {
+box-shadow:
+0 6px 20px rgba(104, 159, 56, 0.4),
+inset 0 -3px 10px rgba(0, 0, 0, 0.2);
+}
+50% {
+box-shadow:
+0 8px 25px rgba(104, 159, 56, 0.6),
+0 0 40px rgba(129, 199, 132, 0.3),
+inset 0 -3px 10px rgba(0, 0, 0, 0.2);
+}
+}
 .startButton:hover {
-  background: linear-gradient(135deg, #66bb6a 0%, #388e3c 100%);
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+background: linear-gradient(135deg, #7CB342 0%, #689F38 100%);
+box-shadow:
+0 8px 25px rgba(104, 159, 56, 0.5),
+0 0 50px rgba(129, 199, 132, 0.4),
+inset 0 -3px 10px rgba(0, 0, 0, 0.2);
+transform: translateY(-3px) scale(1.05);
+border-color: #66BB6A;
 }
-
 .startButton:active {
-  transform: scale(0.98);
+transform: translateY(-1px) scale(0.98);
 }
-
 .startButtonIcon {
-  font-size: 1.5rem;
+font-size: 1.5rem;
+animation: rocketShake 0.5s ease-in-out infinite;
 }
-
-/* Responsive design for start screen */
+@keyframes rocketShake {
+0%, 100% { transform: translateX(0) rotate(-5deg); }
+25% { transform: translateX(-2px) rotate(-10deg); }
+75% { transform: translateX(2px) rotate(0deg); }
+}
+/* Media queries for responsive design */
+@media (max-width: 1024px) {
+.gameContent {
+gap: 10px;
+}
+.gameHeader {
+margin-bottom: 8px;
+}
+.gameTitle {
+font-size: 1.3rem;
+}
+.titleEmoji {
+font-size: 1.3rem;
+}
+.gameSubtitle {
+font-size: 0.8rem;
+}
+.selectionCount {
+padding: 6px 12px;
+font-size: 0.8rem;
+}
+.hintButton {
+padding: 6px 12px;
+font-size: 0.8rem;
+}
+.hintDisplay {
+font-size: 0.8rem;
+padding: 8px 12px;
+}
+.instructionCard {
+padding: 10px;
+}
+.cardIcon {
+font-size: 1.4rem;
+}
+.cardContent h3 {
+font-size: 0.85rem;
+}
+.cardContent p {
+font-size: 0.75rem;
+}
+.animalsGrid {
+grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+gap: 10px;
+}
+.animalCard {
+padding: 10px 6px;
+height: 140px;
+border: 3px solid #F9A825;
+}
+.animalImage {
+font-size: 2rem;
+height: 50px;
+}
+.animalImage img {
+width: 50px;
+height: 50px;
+}
+.animalName {
+font-size: 0.75rem;
+}
+.checkmark {
+width: 20px;
+height: 20px;
+font-size: 0.75rem;
+}
+.centerAnimalImage {
+font-size: 8rem;
+}
+.centerAnimalImage img {
+width: 170px;
+height: 170px;
+}
+.centerAnimalName {
+font-size: 2.2rem;
+}
+.centerAnimalCard {
+max-width: 350px;
+padding: 35px;
+}
+.actionButtons {
+gap: 10px;
+}
+.clearButton,
+.submitButton {
+padding: 8px 14px;
+font-size: 0.8rem;
+}
+}
 @media (max-width: 768px) {
-  .startContent {
-    padding: 30px 20px;
-  }
-  
-  .startTitle {
-    font-size: 2rem;
-  }
-  
-  .startSubtitle {
-    font-size: 1rem;
-  }
-  
-  .startInstruction {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .startButton {
-    font-size: 1.1rem;
-    padding: 15px 30px;
-  }
+.gameContent {
+flex-direction: column;
 }
-
-/* Skip Button for Individual Animal - Bottom Right Outside Card */
+.gameColumn:first-child,
+.animalsColumn {
+width: 100%;
+}
+.gameHeader {
+flex-direction: column;
+align-items: flex-start;
+gap: 8px;
+}
+.gameTitle {
+font-size: 1.2rem;
+}
+.titleEmoji {
+font-size: 1.2rem;
+}
+.gameSubtitle {
+font-size: 0.75rem;
+}
+.gameControls {
+width: 100%;
+justify-content: space-between;
+}
+.selectionCount {
+padding: 6px 10px;
+font-size: 0.75rem;
+}
+.hintButton {
+padding: 6px 10px;
+font-size: 0.75rem;
+}
+.instructionsSection {
+flex-direction: row;
+gap: 8px;
+overflow-x: auto;
+margin-bottom: 10px;
+}
+.instructionCard {
+min-width: 150px;
+flex-shrink: 0;
+}
+.animalsGrid {
+grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+gap: 8px;
+overflow-y: visible;
+max-height: none;
+}
+.animalCard {
+height: 120px;
+border: 3px solid #F9A825;
+padding: 8px 6px;
+}
+.animalImage {
+font-size: 1.8rem;
+height: 45px;
+}
+.animalImage img {
+width: 45px;
+height: 45px;
+}
+.animalName {
+font-size: 0.7rem;
+}
+.checkmark {
+width: 18px;
+height: 18px;
+font-size: 0.7rem;
+top: 5px;
+right: 5px;
+}
+.actionButtons {
+flex-direction: column;
+gap: 8px;
+}
+.clearButton, .submitButton {
+width: 100%;
+padding: 8px 12px;
+font-size: 0.8rem;
+}
+.centerAnimalCard {
+padding: 25px;
+max-width: 300px;
+}
+.centerAnimalImage {
+font-size: 6rem;
+}
+.centerAnimalImage img {
+width: 140px;
+height: 140px;
+}
+.centerAnimalName {
+font-size: 1.8rem;
+}
 .skipAnimalButton {
-  position: fixed; /* ✅ Changed from absolute to fixed */
-  bottom: 30px;
-  right: 30px;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
-  border: 3px solid white;
-  border-radius: 50%;
-  width: 70px; /* ✅ Made slightly bigger for better visibility */
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
-  transition: all 0.3s ease;
-  z-index: 1001; /* ✅ Higher z-index to appear above everything */
+width: 60px;
+height: 60px;
+bottom: 20px;
+right: 20px;
 }
-
-.skipAnimalButton:hover {
-  background: linear-gradient(135deg, #ff5252 0%, #ff6b6b 100%);
-  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
-  transform: translateY(-3px);
-}
-
-.skipAnimalButton:active {
-  transform: translateY(-1px) scale(0.95);
-}
-
 .skipArrow {
-  font-size: 2rem; /* ✅ Made slightly bigger */
-  animation: bounceRight 1s ease-in-out infinite;
+font-size: 1.6rem;
 }
-
-@keyframes bounceRight {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(5px);
-  }
+.startContent {
+padding: 30px 20px;
 }
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .skipAnimalButton {
-    width: 60px;
-    height: 60px;
-    bottom: 20px;
-    right: 20px;
-  }
-  
-  .skipArrow {
-    font-size: 1.6rem;
-  }
+.startTitle {
+font-size: 2rem;
+}
+.startSubtitle {
+font-size: 1rem;
+}
+.startInstruction {
+flex-direction: column;
+text-align: center;
+}
+.startButton {
+font-size: 1.1rem;
+padding: 15px 30px;
+}
+.startButtonIcon {
+font-size: 1.3rem;
+}
+}
+/* For large displays */
+@media (min-width: 1440px) {
+.gameplayCard {
+max-width: 1400px;
+padding: 20px;
+}
+.gameTitle {
+font-size: 1.8rem;
+}
+.titleEmoji {
+font-size: 1.8rem;
+}
+.gameSubtitle {
+font-size: 1rem;
+}
+.selectionCount {
+padding: 10px 16px;
+font-size: 0.9rem;
+}
+.hintButton {
+padding: 10px 16px;
+font-size: 0.9rem;
+}
+.hintDisplay {
+font-size: 1rem;
+padding: 12px 16px;
+margin-bottom: 12px;
+}
+.centerAnimalImage {
+font-size: 12rem;
+}
+.centerAnimalImage img {
+width: 240px;
+height: 240px;
+}
+.centerAnimalName {
+font-size: 3rem;
+}
+.centerAnimalCard {
+max-width: 450px;
+padding: 50px;
+}
+.skipAnimalButton {
+width: 80px;
+height: 80px;
+bottom: 40px;
+right: 40px;
+}
+.skipArrow {
+font-size: 2.2rem;
+}
+}
+/* For extra wide displays */
+@media (min-width: 1800px) {
+.gameplayCard {
+max-width: 1600px;
+}
 }

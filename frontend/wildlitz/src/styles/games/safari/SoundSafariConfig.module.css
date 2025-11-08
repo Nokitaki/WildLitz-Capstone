@@ -13,22 +13,6 @@
   overflow: hidden;
 }
 
-/* Animated jungle leaves */
-.configContainer::before {
-  content: '🍃';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  font-size: 4rem;
-  opacity: 0.15;
-  animation: leavesFloat 40s linear infinite;
-  letter-spacing: 80px;
-  line-height: 120px;
-  pointer-events: none;
-}
-
 .configContainer::after {
   content: '';
   position: absolute;
@@ -38,11 +22,6 @@
   height: 150px;
   background: linear-gradient(to top, rgba(46, 125, 50, 0.3), transparent);
   pointer-events: none;
-}
-
-@keyframes leavesFloat {
-  0% { transform: translateY(-100px) rotate(0deg); }
-  100% { transform: translateY(100vh) rotate(360deg); }
 }
 
 .configCardWrapper {
@@ -72,32 +51,6 @@
     opacity: 1;
     transform: scale(1) translateY(0) rotate(0deg);
   }
-}
-
-/* Jungle vines decorations */
-.configCardWrapper::before {
-  content: '🌿';
-  position: absolute;
-  top: -5px;
-  left: 20px;
-  font-size: 2.5rem;
-  transform: rotate(-20deg);
-  animation: vineSwing 3s ease-in-out infinite;
-}
-
-.configCardWrapper::after {
-  content: '🌿';
-  position: absolute;
-  top: -5px;
-  right: 20px;
-  font-size: 2.5rem;
-  transform: rotate(20deg);
-  animation: vineSwing 3s ease-in-out infinite reverse;
-}
-
-@keyframes vineSwing {
-  0%, 100% { transform: rotate(-20deg); }
-  50% { transform: rotate(-30deg); }
 }
 
 /* ===== BACK BUTTON STYLES ===== */
@@ -152,6 +105,9 @@
   text-align: center;
   margin-bottom: 8px;
   margin-top: 30px;
+  position: relative;
+  display: inline-block;
+  width: 100%;
 }
 
 .configTitle {
@@ -164,6 +120,47 @@
     4px 4px 8px rgba(0, 0, 0, 0.2);
   animation: titleBounce 1s ease-in-out;
   letter-spacing: 2px;
+  position: relative;
+  display: inline-block;
+  padding: 0 70px;
+}
+
+.configTitle::before {
+  content: '🦁';
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 2.5rem;
+  animation: animalBounceLeft 2s ease-in-out infinite;
+}
+
+.configTitle::after {
+  content: '🐘';
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 2.5rem;
+  animation: animalBounceRight 2s ease-in-out infinite;
+}
+
+@keyframes animalBounceLeft {
+  0%, 100% { 
+    transform: translateY(-50%) translateX(0) rotate(-5deg) scale(1);
+  }
+  50% { 
+    transform: translateY(-50%) translateX(-8px) rotate(-15deg) scale(1.15);
+  }
+}
+
+@keyframes animalBounceRight {
+  0%, 100% { 
+    transform: translateY(-50%) translateX(0) rotate(5deg) scale(1);
+  }
+  50% { 
+    transform: translateY(-50%) translateX(8px) rotate(15deg) scale(1.15);
+  }
 }
 
 @keyframes titleBounce {
@@ -666,6 +663,16 @@
     padding: 6px 12px;
     font-size: 0.85rem;
   }
+  
+  .configTitle::before {
+    left: 8px;
+    font-size: 2rem;
+  }
+  
+  .configTitle::after {
+    right: 8px;
+    font-size: 2rem;
+  }
 }
 
 @media (max-width: 768px) {
@@ -684,6 +691,17 @@
   
   .configTitle {
     font-size: 1.5rem;
+    padding: 0 50px;
+  }
+  
+  .configTitle::before {
+    left: 5px;
+    font-size: 1.8rem;
+  }
+  
+  .configTitle::after {
+    right: 5px;
+    font-size: 1.8rem;
   }
   
   .configSubtitle {
@@ -725,6 +743,18 @@
   
   .backArrow {
     font-size: 1rem;
+  }
+}
+
+/* Hide animals on very small screens */
+@media (max-width: 600px) {
+  .configTitle::before,
+  .configTitle::after {
+    display: none;
+  }
+  
+  .configTitle {
+    padding: 0 10px;
   }
 }
 
