@@ -598,10 +598,10 @@ def get_safari_animals_by_sound(request):
         elif strategy_used.startswith('11_'):
             incorrect_query = incorrect_query.eq('environment', 'arctic')
         
-        # Exclude the correct animals we already have
+        # Exclude the correct animals we already have (by NAME to avoid duplicates)
         if animals_found:
-            correct_animal_ids = [animal['id'] for animal in animals_found]
-            incorrect_query = incorrect_query.not_.in_('id', correct_animal_ids)
+            correct_animal_names = [animal['name'] for animal in animals_found]
+            incorrect_query = incorrect_query.not_.in_('name', correct_animal_names)
         
         if exclude_ids and not strategy_used.startswith('19_'):
             incorrect_query = incorrect_query.not_.in_('id', exclude_ids)
@@ -624,21 +624,37 @@ def get_safari_animals_by_sound(request):
         # ✅ FINAL: Combine and return animals with guarantee verification
         # ============================================================
         all_animals = animals_found + incorrect_animals
-        
+
+        # ✅ DEDUPLICATION: Remove any duplicate names (keep first occurrence)
+        seen_names = set()
+        deduplicated_animals = []
+        for animal in all_animals:
+            if animal['name'] not in seen_names:
+                deduplicated_animals.append(animal)
+                seen_names.add(animal['name'])
+
+        # Use deduplicated list
+        all_animals = deduplicated_animals
+
+        logger.info(f"🔍 Deduplication: {len(all_animals)} unique animals after removing name duplicates")
+
         # Shuffle to mix correct and incorrect
         import random
         random.shuffle(all_animals)
         
-        # Final verification log
-        logger.info(f"✅ GUARANTEED: Returning {len(animals_found)} correct (minimum {min_correct}) + {len(incorrect_animals)} incorrect = {len(all_animals)} total animals")
+        # Calculate actual counts after deduplication
+        actual_incorrect_count = len(all_animals) - len(animals_found)
+
+        logger.info(
+            f"✅ GUARANTEED: Returning {len(animals_found)} correct (minimum {min_correct}) + {actual_incorrect_count} incorrect = {len(all_animals)} total animals")
         logger.info(f"📊 Strategy used: {strategy_used}")
         logger.info(f"🎯 Minimum requirement satisfied: {len(animals_found) >= min_correct}")
-        
+
         return Response({
             'success': True,
             'animals': all_animals,
             'correct_count': len(animals_found),
-            'incorrect_count': len(incorrect_animals),
+            'incorrect_count': actual_incorrect_count,
             'total_count': len(all_animals),
             'min_correct_guaranteed': min_correct,
             'requirement_met': len(animals_found) >= min_correct,

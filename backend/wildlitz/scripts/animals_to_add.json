@@ -33,5 +33,19 @@
     "sound_position": "beginning",
     "environment": "savanna",
     "difficulty_level": "medium"
+  },
+  {
+    "name": "Hedgehog",
+    "target_sound": "h",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Elk",
+    "target_sound": "l",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "medium"
   }
 ]
