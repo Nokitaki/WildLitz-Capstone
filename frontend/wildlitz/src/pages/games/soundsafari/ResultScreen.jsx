@@ -31,21 +31,23 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
     !selectedAnimals.some(a => a.id === animal.id)
   );
   
-  // ✅ FIXED: Calculate score EXACTLY like backend analytics
-  // Backend saves: correct, incorrect, total
-  // Backend calculates rate: (correct / total) * 100
+  // ✅ UPDATED: Calculate score with missed correct animals counted as penalties
+  // Missed correct animals are treated as incorrect selections (same penalty)
   const calculateScore = () => {
-    // What gets saved to database
     const correctCount = correctSelected.length; // Animals correctly selected
-    const incorrectCount = incorrectSelected.length; // Animals incorrectly selected
+    const actualIncorrect = incorrectSelected.length; // Animals incorrectly selected
+    const missedCount = missedCorrect.length; // Correct animals that were missed
     
-    // Backend total = correct + incorrect (NOT all animals shown)
-    const total = correctCount + incorrectCount;
+    // Total incorrect = wrong selections + missed correct animals
+    const totalIncorrect = actualIncorrect + missedCount;
     
-    // Backend formula: (correct / total) * 100
+    // Total = correct + all penalties
+    const total = correctCount + totalIncorrect;
+    
+    // Calculate success rate
     const successRate = total > 0 
       ? (correctCount / total) * 100 
-      : 100; // If total is 0 (player selected nothing), that's perfect if no correct animals exist
+      : (correctAnimals.length === 0 ? 100 : 0); // 100% if no correct animals exist, 0% if they missed all
     
     // Round to 1 decimal place like backend
     return Math.round(successRate * 10) / 10;

@@ -105,10 +105,11 @@ const SoundSafariGame = () => {
     }, 2000);
   };
   
-    /**
+  /**
    * UPDATED: Save round data after each round completion
+   * Now includes missedCorrect count
    */
-  const saveRoundData = (correctSelections, incorrectSelections) => {
+  const saveRoundData = (correctSelections, incorrectSelections, missedCorrect) => {
     const roundTime = Math.floor((Date.now() - roundStartTime) / 1000);
     
     const roundData = soundSafariAnalyticsService.formatRoundData(
@@ -117,6 +118,7 @@ const SoundSafariGame = () => {
       {
         correctSelections,
         incorrectSelections,
+        missedCorrect,  // NEW: Pass missed count
         timeSpent: roundTime
       }
     );
@@ -346,8 +348,11 @@ const SoundSafariGame = () => {
     
     setScore(prevScore => prevScore + roundScore);
     
-    // UPDATED: Save round data immediately
-    saveRoundData(correctSelections, incorrectSelections);
+    // Calculate missed correct animals
+    const missedCorrect = correctAnimals.length - correctSelections;
+
+    // UPDATED: Save round data immediately with missed count
+    saveRoundData(correctSelections, incorrectSelections, missedCorrect);
     
     setGameState('results');
   };

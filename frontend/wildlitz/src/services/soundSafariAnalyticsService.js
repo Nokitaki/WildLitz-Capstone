@@ -196,12 +196,16 @@ export const soundSafariAnalyticsService = {
 
   /**
    * Format round data from game state
-   * NEW: Creates round object for the rounds array
+   * UPDATED: Missed correct animals are counted as incorrect (penalties)
    */
   formatRoundData(roundNumber, gameConfig, roundResults) {
     const correctCount = roundResults.correctSelections || 0;
-    const incorrectCount = roundResults.incorrectSelections || 0;
-    const totalCount = correctCount + incorrectCount;
+    const actualIncorrect = roundResults.incorrectSelections || 0;
+    const missedCount = roundResults.missedCorrect || 0;
+    
+    // Total incorrect includes both wrong selections AND missed correct animals
+    const totalIncorrect = actualIncorrect + missedCount;
+    const totalCount = correctCount + totalIncorrect;
     
     return {
       round_number: roundNumber,
@@ -209,7 +213,7 @@ export const soundSafariAnalyticsService = {
       sound_position: gameConfig.soundPosition,
       environment: gameConfig.environment,
       correct: correctCount,
-      incorrect: incorrectCount,
+      incorrect: totalIncorrect, // Now includes missed correct animals
       total: totalCount,
       // These are for GameCompleteScreen compatibility
       correctCount: correctCount,
