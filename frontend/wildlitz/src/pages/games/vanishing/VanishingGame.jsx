@@ -357,10 +357,14 @@ const VanishingGame = () => {
   /**
    * 📝 Handle next word
    */
-  const handleNextWord = (countRound = true) => {
-  console.log('➡️ Moving to next word', { countRound });
+const handleNextWord = (countRound = true) => {
+  console.log('➡️ Moving to next word', { countRound, currentRound, totalRounds });
   
-  if (currentRound >= totalRounds) {
+  // Calculate what the next round would be if we increment
+  const nextRound = countRound ? currentRound + 1 : currentRound;
+  
+  // Check if game should be complete based on the next round
+  if (nextRound > totalRounds) {
     // Game complete!
     console.log('🎉 Game complete!');
     handleGameComplete();
