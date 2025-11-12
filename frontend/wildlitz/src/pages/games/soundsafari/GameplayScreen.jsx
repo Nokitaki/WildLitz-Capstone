@@ -37,8 +37,10 @@ const GameplayScreen = ({
   const readCountRef = useRef(0);
   const introPlayedRef = useRef(false);
   const introSpeechInProgressRef = useRef(false);
-  const skipAnimalRef = useRef(false); // ✅ ADD THIS LINE
-  const currentSpeechResolveRef = useRef(null); // ✅ ADD THIS LINE
+  const skipAnimalRef = useRef(false);
+  const currentSpeechResolveRef = useRef(null);
+  const selectedAnimalsRef = useRef([]); // Track current selections for timer callback
+  const hasSubmittedRef = useRef(false);
   
   // ============ HELPER FUNCTIONS ============
   
@@ -246,10 +248,10 @@ const GameplayScreen = ({
     }, 100);
   };
   
-  // ============ LIFECYCLE - CRITICAL CLEANUP ============
-  
   useEffect(() => {
     console.log('🚀 GameplayScreen mounted');
+    selectedAnimalsRef.current = [];
+    hasSubmittedRef.current = false; // ✅ Reset submission flag on mount
     
     return () => {
       console.log('🛑 GameplayScreen unmounting - stopping all speech');
@@ -270,14 +272,27 @@ const GameplayScreen = ({
   const startTimer = () => {
     console.log('⏱️ Starting timer with timeLimit:', timeLimit);
     
-    if (timeLimit > 0 && !timerRef.current) {
+    // ✅ ADDED: Clear any existing timer first (prevent multiple timers)
+    if (timerRef.current) {
+      console.log('⚠️ Clearing existing timer before starting new one');
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    
+    if (timeLimit > 0) {
       timerRef.current = setInterval(() => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
             console.log('⏰ Time expired!');
             clearInterval(timerRef.current);
             timerRef.current = null;
-            handleSubmit();
+            
+            // ✅ FIX: Defer submit to next tick to avoid render-phase state update
+            // This also prevents duplicate saves caused by React error recovery
+            setTimeout(() => {
+              handleSubmit();
+            }, 0);
+            
             return 0;
           }
           return prev - 1;
@@ -296,10 +311,14 @@ const GameplayScreen = ({
     }
     
     setSelectedAnimals(prev => {
-      if (prev.some(a => a.id === animal.id)) {
-        return prev.filter(a => a.id !== animal.id);
-      } 
-      return [...prev, animal];
+      const newSelections = prev.some(a => a.id === animal.id)
+        ? prev.filter(a => a.id !== animal.id)
+        : [...prev, animal];
+      
+      // ✅ NEW: Update ref with current selections
+      selectedAnimalsRef.current = newSelections;
+      
+      return newSelections;
     });
   };
   
@@ -320,7 +339,20 @@ const GameplayScreen = ({
   };
   
   const handleSubmit = () => {
+    // ✅ GUARD: Prevent double submission
+    if (hasSubmittedRef.current) {
+      console.log('⚠️ Already submitted this round, ignoring duplicate call');
+      return;
+    }
+    
+    hasSubmittedRef.current = true; // Mark as submitted
+    
+    // ✅ UPDATED: Use ref to get current selections (fixes stale closure issue)
+    const currentSelections = selectedAnimalsRef.current;
+    
     console.log('📤 Round ending - stopping all speech');
+    console.log(`📊 Submitting with ${currentSelections.length} selected animals`);
+    
     stopAllSpeech();
     
     if (timerRef.current) {
@@ -328,12 +360,13 @@ const GameplayScreen = ({
       timerRef.current = null;
     }
     
-    onSubmit(selectedAnimals);
+    onSubmit(currentSelections);
   };
   
   const handleClearSelection = () => {
     if (isIntroducingRef.current) return;
     setSelectedAnimals([]);
+    selectedAnimalsRef.current = []; // ✅ NEW: Also clear the ref
   };
   
   const isAnimalHighlighted = (animal) => {
