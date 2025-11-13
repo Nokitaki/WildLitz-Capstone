@@ -96,7 +96,6 @@ const SoundSafariAnalytics = () => {
       </span>
     );
   };
-  
   /**
    * Format time in seconds to readable format
    * Under 60s: "45s"
@@ -289,7 +288,7 @@ const SoundSafariAnalytics = () => {
           <div className={styles.cardContent}>
             <h3>Avg Time</h3>
             <p className={styles.cardValue}>
-              {aggregateStats?.average_time_per_game?.toFixed(0) || 0}s
+              {formatTimeDisplay(Math.round(aggregateStats?.average_time_per_game || 0))}
             </p>
           </div>
         </motion.div>
@@ -545,7 +544,7 @@ const SoundSafariAnalytics = () => {
                     <div className={styles.summaryItem}>
                       <span className={styles.label}>⏱️ Time</span>
                       <span className={styles.value} style={{ color: '#0891b2' }}>
-                        {selectedSession?.time_spent}s
+                        {formatTimeDisplay(selectedSession?.time_spent || 0)}
                       </span>
                     </div>
                   </div>
