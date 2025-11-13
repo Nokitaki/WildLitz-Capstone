@@ -2327,3 +2327,88 @@ INFO 2025-11-05 02:25:24,446 views Explaining word 'TEACH' for grade 3
 INFO 2025-11-05 02:25:26,172 views GPT response for 'TEACH': {
   "definition": "To help someone learn new things by giving them information or showing them how t...
 INFO 2025-11-05 02:25:26,172 views Successfully explained word 'TEACH'
+ERROR 2025-11-13 10:58:17,282 views OpenAI API error: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+ERROR 2025-11-13 10:58:17,290 views Traceback (most recent call last):
+  File "C:\Users\Acer\Documents\GitHub\WildLitz-Capstone\backend\wildlitz\sentence_formation\views.py", line 194, in generate_story
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+    ...<11 lines>...
+        temperature=0.7
+    )
+  File "C:\Users\Acer\AppData\Roaming\Python\Python313\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\Acer\AppData\Roaming\Python\Python313\site-packages\openai\resources\chat\completions\completions.py", line 1147, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<46 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Acer\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Acer\AppData\Roaming\Python\Python313\site-packages\openai\_base_client.py", line 1047, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+
+INFO 2025-11-13 10:58:19,206 views Story session created: 165585ca-8295-4764-a700-693a8f8c0ab0
+INFO 2025-11-13 10:59:22,576 views Activity logged: word_solved
+INFO 2025-11-13 10:59:45,622 views Activity logged: word_solved
+INFO 2025-11-13 11:04:52,013 views Activity logged: word_solved
+INFO 2025-11-13 11:05:01,310 views Activity logged: word_solved
+INFO 2025-11-13 11:05:10,621 views Activity logged: word_solved
+INFO 2025-11-13 11:05:12,597 views Story session updated: 165585ca-8295-4764-a700-693a8f8c0ab0
+INFO 2025-11-13 11:05:12,598 views Story session updated: 165585ca-8295-4764-a700-693a8f8c0ab0
+INFO 2025-11-13 11:05:12,926 views Activity logged: game_completed
+INFO 2025-11-13 11:05:12,929 views Activity logged: game_completed
+INFO 2025-11-13 11:35:43,011 views Story session created: 46ca545f-0d20-4141-979c-f8d20317fd6b
+INFO 2025-11-13 11:41:17,095 views Explaining word 'SHARP' for grade 3
+INFO 2025-11-13 11:41:20,003 views GPT response for 'SHARP': {
+  "definition": "Sharp means having a pointy or thin edge that can cut or hurt. It can also mean b...
+INFO 2025-11-13 11:41:20,005 views Successfully explained word 'SHARP'
+INFO 2025-11-13 11:42:07,717 views Activity logged: word_solved
+INFO 2025-11-13 11:42:20,586 views Activity logged: word_solved
+INFO 2025-11-13 11:42:30,645 views Activity logged: word_solved
+INFO 2025-11-13 11:42:39,278 views Activity logged: word_solved
+INFO 2025-11-13 11:42:47,818 views Activity logged: word_solved
+INFO 2025-11-13 11:42:49,472 views Story session updated: 46ca545f-0d20-4141-979c-f8d20317fd6b
+INFO 2025-11-13 11:42:49,605 views Story session updated: 46ca545f-0d20-4141-979c-f8d20317fd6b
+INFO 2025-11-13 11:42:49,748 views Activity logged: game_completed
+INFO 2025-11-13 11:42:49,749 views Activity logged: game_completed
+INFO 2025-11-13 11:47:35,488 views Story session created: 9d6af4d5-99ab-42c0-b134-34ec391bad35
+INFO 2025-11-13 11:50:06,437 views Activity logged: word_solved
+INFO 2025-11-13 11:50:26,746 views Activity logged: word_solved
+INFO 2025-11-13 11:50:30,578 views Activity logged: word_solved
+INFO 2025-11-13 11:50:34,793 views Activity logged: word_solved
+INFO 2025-11-13 11:50:38,676 views Activity logged: word_solved
+INFO 2025-11-13 11:50:40,510 views Story session updated: 9d6af4d5-99ab-42c0-b134-34ec391bad35
+INFO 2025-11-13 11:50:40,956 views Activity logged: game_completed
+INFO 2025-11-13 11:50:40,956 views Story session updated: 9d6af4d5-99ab-42c0-b134-34ec391bad35
+INFO 2025-11-13 11:50:41,178 views Activity logged: game_completed
+INFO 2025-11-13 11:53:23,667 views Story session created: e4ef64ed-df77-40bb-b43f-1646b980192e
+INFO 2025-11-13 12:23:25,071 views Fetching analytics - user_email: kaelexx12@gmail.com, days: 30
+INFO 2025-11-13 12:23:25,795 views Found 4 sessions for user_email: kaelexx12@gmail.com
+INFO 2025-11-13 12:23:25,826 views Fetching analytics - user_email: kaelexx12@gmail.com, days: 30
+INFO 2025-11-13 12:23:25,993 views Found 4 sessions for user_email: kaelexx12@gmail.com
+INFO 2025-11-13 12:38:18,181 views Story session created: d14632a0-e49e-4291-8fb7-3ab474ff6c5f
+INFO 2025-11-13 12:38:50,051 views Activity logged: word_solved
+INFO 2025-11-13 12:42:12,149 views Story session created: 4aa1da21-9788-42c9-9725-885e68c639cb
+INFO 2025-11-13 12:45:52,516 views Story session created: daeb0dda-cee0-4575-9665-2fb6091d59a6
+INFO 2025-11-13 12:46:14,464 views Activity logged: word_solved
+INFO 2025-11-13 12:46:16,075 views Story session updated: daeb0dda-cee0-4575-9665-2fb6091d59a6
+INFO 2025-11-13 12:46:16,283 views Story session updated: daeb0dda-cee0-4575-9665-2fb6091d59a6
+INFO 2025-11-13 12:46:16,438 views Activity logged: game_completed
+INFO 2025-11-13 12:46:16,443 views Activity logged: game_completed
+INFO 2025-11-13 12:46:28,853 views Activity logged: word_solved
+INFO 2025-11-13 12:46:30,527 views Story session updated: daeb0dda-cee0-4575-9665-2fb6091d59a6
+INFO 2025-11-13 12:46:30,533 views Story session updated: daeb0dda-cee0-4575-9665-2fb6091d59a6
+INFO 2025-11-13 12:46:30,714 views Activity logged: game_completed
+INFO 2025-11-13 12:46:30,717 views Activity logged: game_completed
+INFO 2025-11-13 12:47:21,063 views Story session created: 506cf317-3174-4f53-990e-51ba9c4f6ceb
+INFO 2025-11-13 12:48:26,427 views Story session created: e399579e-ab61-41dd-8a70-9f0d19bb3ca8
+INFO 2025-11-13 12:48:39,523 views Story session created: d47da79e-b661-4b3e-a122-0c3f03b5b8a3
+INFO 2025-11-13 12:48:58,851 views Activity logged: word_solved
+INFO 2025-11-13 12:58:16,586 views Story session created: 343e789b-ced9-4189-aa87-f771f8c5d3cc

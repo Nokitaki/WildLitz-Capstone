@@ -335,8 +335,14 @@
   font-family: inherit;
   transition: all 0.2s ease;
   background: white;
+  color: #333;
+  font-weight: 500;
 }
 
+.textInput::placeholder {
+  color: #9e9e9e;
+  font-weight: 400;
+}
 .textInput:focus {
   outline: none;
   border-color: #9c27b0;
@@ -588,4 +594,37 @@
 
 .generatorCard::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
+}
+
+
+.validationError {
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  border: 3px solid #ef5350;
+  border-radius: 15px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 15px rgba(239, 83, 80, 0.3);
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+.validationError .errorIcon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.validationError .errorText {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #c62828;
+  margin: 0;
+  line-height: 1.4;
 }

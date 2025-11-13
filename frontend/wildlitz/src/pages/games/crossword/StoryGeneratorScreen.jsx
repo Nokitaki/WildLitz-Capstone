@@ -175,20 +175,29 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   
   // Generate story with AI
   const generateStory = useCallback(async (e) => {
-    if (e && e.preventDefault) {
-      e.preventDefault();
-    }
-    
-    // Validate that at least one skill is selected
-    if (focusSkills.length === 0) {
-      setError('Please select at least one focus skill');
-      return;
-    }
-    
-    setIsGenerating(true);
-    setGenerationProgress(0);
+  if (e && e.preventDefault) {
+    e.preventDefault();
+  }
+  
+  // Validate that at least one skill is selected
+  if (focusSkills.length === 0) {
+  setError('⚠️ Please select at least one focus skill before creating your story!');
+  
+  // Scroll to top to show error
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  // Clear error after 5 seconds
+  setTimeout(() => {
     setError(null);
-    setTimeoutWarning(false);
+  }, 5000);
+  
+  return;
+}
+  
+  setIsGenerating(true);
+  setGenerationProgress(0);
+  setError(null); // Clear any previous errors
+  setTimeoutWarning(false);
     
     // Set a timeout warning after 30 seconds
     timeoutRef.current = setTimeout(() => {
@@ -349,6 +358,14 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
           </div>
         ) : (
           <form className={styles.generatorForm} onSubmit={generateStory}>
+
+            {/* Validation Error */}
+  {error && !isGenerating && (
+    <div className={styles.validationError}>
+      <span className="errorIcon">⚠️</span>
+      <p className="errorText">{error}</p>
+    </div>
+  )}
             {/* Theme Selection */}
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Story Theme:</label>
@@ -441,21 +458,28 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
             </div>
             
             {/* Action Buttons */}
-            <div className={styles.actionButtons}>
-              <button 
-                type="button"
-                className={styles.cancelButton}
-                onClick={handleCancel}
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit"
-                className={styles.generateButton}
-              >
-                Create Story
-              </button>
-            </div>
+
+            {error && !isGenerating && (
+  <div className={styles.validationError}>
+    <span className={styles.errorIcon}>⚠️</span>
+    <p className={styles.errorText}>{error}</p>
+  </div>
+)}
+           <div className={styles.actionButtons}>
+  <button 
+    type="button"
+    className={styles.cancelButton}
+    onClick={handleCancel}
+  >
+    Cancel
+  </button>
+  <button 
+    type="submit"
+    className={styles.generateButton}
+  >
+    Create Story
+  </button>
+</div>
           </form>
         )}
       </div>

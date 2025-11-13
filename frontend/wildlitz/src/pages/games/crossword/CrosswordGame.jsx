@@ -1,5 +1,5 @@
 // src/pages/games/crossword/CrosswordGame.jsx
-// REPLACE with this SIMPLIFIED version (no local audio, uses global)
+// COMPLETE VERSION WITH CROSSWORD GUIDE MODAL INTEGRATION
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,6 +13,9 @@ import GameplayScreen from './GameplayScreen';
 import SummaryScreen from './SummaryScreen';
 import SentenceBuilderScreen from './SentenceBuilderScreen';
 import StoryGeneratorScreen from './StoryGeneratorScreen';
+
+// ✅ NEW: Import the CrosswordGuideModal
+import CrosswordGuideModal from '../crossword/CrosswordGuideModal';
 
 // Import AI components
 import AIReadingCoach from '../../../components/crossword/AIReadingCoach';
@@ -62,6 +65,9 @@ const CrosswordGame = () => {
   
   // Reading coach
   const [showReadingCoach, setShowReadingCoach] = useState(false);
+  
+  // ✅ NEW: Add state for guide modal
+  const [showGuide, setShowGuide] = useState(true);
   
   useEffect(() => {
   
@@ -138,81 +144,79 @@ const CrosswordGame = () => {
   };
   
   const handleStoryGenerated = async (data) => {
-  const newStory = {
-    id: data.story.id,
-    title: data.story.title,
-    description: data.story.description,
-    theme: data.story.theme,
-    gradeLevel: data.story.gradeLevel,
-    episodes: data.story.episodes ? data.story.episodes : []
-  };
-  
-  const newStories = {
-    ...gameStories,
-    [newStory.id]: newStory
-  };
-  
-  const newPuzzles = {
-    ...gamePuzzles,
-    ...data.puzzles
-  };
-  
-  setGameStories(newStories);
-  setGamePuzzles(newPuzzles);
-  
-  const config = {
-    storyMode: true,
-    adventureId: newStory.id
-  };
-  
-  setGameConfig(config);
-  
-  try {
-    const userEmail = (isAuthenticated && user?.email) 
-      ? user.email 
-      : 'guest@wildlitz.com';
-    
-    const sessionData = {
-      user_email: userEmail,
-      story_id: newStory.id,
-      story_title: newStory.title,
-      theme: data.story.theme || 'adventure',  // ✅ ADD THIS
-      focus_skills: data.story.focusSkills || [],  // ✅ ADD THIS
-      episode_count: newStory.episodes.length,  // ✅ ADD THIS
-      difficulty: newStory.gradeLevel || 'grade_3',
-      character_names: data.story.characterNames || ''  // ✅ ADD THIS
+    const newStory = {
+      id: data.story.id,
+      title: data.story.title,
+      description: data.story.description,
+      theme: data.story.theme,
+      gradeLevel: data.story.gradeLevel,
+      episodes: data.story.episodes ? data.story.episodes : []
     };
     
-    const session = await crosswordAnalyticsService.createSession(sessionData);
-    setSessionId(session.session_id);
-  } catch (error) {
-    console.error('Failed to create session:', error);
-  }
-  
-  if (newStory.episodes && newStory.episodes.length > 0) {
-    const firstEpisode = newStory.episodes[0];
-    setCurrentStorySegment(firstEpisode);
-    setCurrentEpisode(1);
+    const newStories = {
+      ...gameStories,
+      [newStory.id]: newStory
+    };
     
-    const firstPuzzleId = firstEpisode.crosswordPuzzleId;
-    if (firstPuzzleId && newPuzzles[firstPuzzleId]) {
-      setCurrentPuzzle(newPuzzles[firstPuzzleId]);
+    const newPuzzles = {
+      ...gamePuzzles,
+      ...data.puzzles
+    };
+    
+    setGameStories(newStories);
+    setGamePuzzles(newPuzzles);
+    
+    const config = {
+      storyMode: true,
+      adventureId: newStory.id
+    };
+    
+    setGameConfig(config);
+    
+    try {
+      const userEmail = (isAuthenticated && user?.email) 
+        ? user.email 
+        : 'guest@wildlitz.com';
+      
+      const sessionData = {
+        user_email: userEmail,
+        story_id: newStory.id,
+        story_title: newStory.title,
+        theme: data.story.theme || 'adventure',
+        focus_skills: data.story.focusSkills || [],
+        episode_count: newStory.episodes.length,
+        difficulty: newStory.gradeLevel || 'grade_3',
+        character_names: data.story.characterNames || ''
+      };
+      
+      const session = await crosswordAnalyticsService.createSession(sessionData);
+      setSessionId(session.session_id);
+    } catch (error) {
+      console.error('Failed to create session:', error);
     }
     
-    setGameState('story');
-  }
+    if (newStory.episodes && newStory.episodes.length > 0) {
+      const firstEpisode = newStory.episodes[0];
+      setCurrentStorySegment(firstEpisode);
+      setCurrentEpisode(1);
+      
+      const firstPuzzleId = firstEpisode.crosswordPuzzleId;
+      if (firstPuzzleId && newPuzzles[firstPuzzleId]) {
+        setCurrentPuzzle(newPuzzles[firstPuzzleId]);
+      }
+      
+      setGameState('story');
+    }
+    
+    setSolvedWords([]);
+    setTimeSpent(0);
+    setTotalHints(0);
+    setTimerActive(false);
+  };
   
-  setSolvedWords([]);
-  setTimeSpent(0);
-  setTotalHints(0);
-  setTimerActive(false);
-};
-  
- const toggleReadingCoach = () => {
-  
-  setShowReadingCoach(!showReadingCoach);
-  
-};
+  const toggleReadingCoach = () => {
+    setShowReadingCoach(!showReadingCoach);
+  };
   
   const getCurrentEpisodeVocabularyWords = () => {
     const adventure = gameStories[gameConfig.adventureId];
@@ -240,8 +244,23 @@ const CrosswordGame = () => {
     return allWords;
   };
   
+  // ✅ UPDATED: Modified to show guide when transitioning to gameplay
   const handleContinueToPuzzle = () => {
+    setShowGuide(true);  // Show guide for each new puzzle
     setGameState('gameplay');
+  };
+  
+  // ✅ NEW: Handler for starting game from guide
+  const handleStartFromGuide = () => {
+    if (window.playClickSound) window.playClickSound();
+    setShowGuide(false);
+    setTimerActive(true);
+  };
+
+  // ✅ NEW: Handler for skipping guide
+  const handleSkipGuide = () => {
+    if (window.playClickSound) window.playClickSound();
+    setShowGuide(false);
     setTimerActive(true);
   };
   
@@ -276,38 +295,35 @@ const CrosswordGame = () => {
   };
   
   const handleNextEpisode = () => {
-  const adventure = gameStories[gameConfig.adventureId];
-  
-  if (!adventure || !adventure.episodes) {
-    setGameState('generate-story');
-    return;
-  }
-  
-  // ✅ CORRECT: currentEpisode is 1-indexed (1,2,3...), episodes array is 0-indexed (0,1,2...)
-  // After episode 1 completes, currentEpisode=1, so we want episodes[1] (episode 2)
-  const nextEpisodeIndex = currentEpisode;
-  
-  if (nextEpisodeIndex < adventure.episodes.length) {
-    const nextEpisode = adventure.episodes[nextEpisodeIndex];
-    setCurrentStorySegment(nextEpisode);
-    setCurrentEpisode(currentEpisode + 1);
+    const adventure = gameStories[gameConfig.adventureId];
     
-    const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
-    if (puzzleData) {
-      setCurrentPuzzle(puzzleData);
+    if (!adventure || !adventure.episodes) {
+      setGameState('generate-story');
+      return;
     }
     
-    setSolvedWords([]);
-    setTimeSpent(0);
-    setTotalHints(0);
-    setTimerActive(false);
+    const nextEpisodeIndex = currentEpisode;
     
-    setGameState('story');
-  } else {
-    // All episodes completed
-    setGameState('generate-story');
-  }
-};
+    if (nextEpisodeIndex < adventure.episodes.length) {
+      const nextEpisode = adventure.episodes[nextEpisodeIndex];
+      setCurrentStorySegment(nextEpisode);
+      setCurrentEpisode(currentEpisode + 1);
+      
+      const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
+      if (puzzleData) {
+        setCurrentPuzzle(puzzleData);
+      }
+      
+      setSolvedWords([]);
+      setTimeSpent(0);
+      setTotalHints(0);
+      setTimerActive(false);
+      
+      setGameState('story');
+    } else {
+      setGameState('generate-story');
+    }
+  };
   
   const handleReturnToMenu = () => {
     if (window.disableGameAudio) window.disableGameAudio();
@@ -356,11 +372,21 @@ const CrosswordGame = () => {
           </motion.div>
         )}
         
-        {gameState === 'gameplay' && currentPuzzle && (
+        {/* ✅ NEW: Game Guide Modal - Shows between story and gameplay */}
+        {gameState === 'gameplay' && showGuide && (
+          <CrosswordGuideModal
+            onStart={handleStartFromGuide}
+            onSkip={handleSkipGuide}
+            storyContext={currentStorySegment}
+          />
+        )}
+        
+        {/* ✅ UPDATED: Gameplay Screen - Only shows when guide is dismissed */}
+        {gameState === 'gameplay' && !showGuide && currentPuzzle && (
           <motion.div
             key="gameplay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
           >
             <GameplayScreen
@@ -405,17 +431,16 @@ const CrosswordGame = () => {
         )}
       </AnimatePresence>
       
-  {showReadingCoach && (
-  <>
-    
-    <AIReadingCoach
-      isVisible={true}  // ✅ ADD THIS LINE - This is what was missing!
-      vocabularyWords={getCurrentEpisodeVocabularyWords()}
-      solvedWords={solvedWords}
-      onClose={toggleReadingCoach}
-    />
-  </>
-)}
+      {showReadingCoach && (
+        <>
+          <AIReadingCoach
+            isVisible={true}
+            vocabularyWords={getCurrentEpisodeVocabularyWords()}
+            solvedWords={solvedWords}
+            onClose={toggleReadingCoach}
+          />
+        </>
+      )}
     </div>
   );
 };
