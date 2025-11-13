@@ -18,7 +18,7 @@ const useClapDetection = (isEnabled = false, onClapDetected) => {
 
   // Configuration constants
   const CLAP_THRESHOLD = 0.4; // Volume threshold (0-1) for clap detection
-  const DEBOUNCE_TIME = 300; // Minimum milliseconds between claps
+  const DEBOUNCE_TIME = 200; // Minimum milliseconds between claps
   const FFT_SIZE = 2048; // Frequency analysis resolution
   const SMOOTHING = 0.8; // Audio smoothing (0-1)
 
@@ -120,12 +120,15 @@ const useClapDetection = (isEnabled = false, onClapDetected) => {
       const isClapLike = validateClapFrequency(dataArrayRef.current);
 
       if (isClapLike) {
+        console.log("✅ CLAP DETECTED! Triggering callback...");
         lastClapTimeRef.current = now;
 
         // Trigger the clap callback
         if (onClapDetected) {
           onClapDetected();
         }
+      } else {
+        console.log("❌ Failed frequency validation - not a clap");
       }
     }
 
@@ -159,7 +162,18 @@ const useClapDetection = (isEnabled = false, onClapDetected) => {
     const otherBandAvg =
       otherBandEnergy / (dataArray.length - (highFreqBin - lowFreqBin));
 
-    return clapBandAvg > otherBandAvg * 1.5; // Clap band should be 1.5x louder
+    const ratio = clapBandAvg / otherBandAvg;
+    const isValid = ratio > 1.2; // Lowered from 1.5 to 1.2 to be less strict
+
+    console.log("🎵 Frequency validation:", {
+      clapBandAvg: clapBandAvg.toFixed(2),
+      otherBandAvg: otherBandAvg.toFixed(2),
+      ratio: ratio.toFixed(2),
+      passed: isValid,
+      requiredRatio: "> 1.2",
+    });
+
+    return isValid;
   };
 
   // Stop listening and cleanup
