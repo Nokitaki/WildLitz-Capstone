@@ -96,6 +96,22 @@ const SoundSafariAnalytics = () => {
       </span>
     );
   };
+  
+  /**
+   * Format time in seconds to readable format
+   * Under 60s: "45s"
+   * 60s or more: "6m 11s"
+   */
+  const formatTimeDisplay = (seconds) => {
+    if (seconds < 60) {
+      return `${seconds}s`;
+    }
+    
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    
+    return `${minutes}m ${remainingSeconds}s`;
+  };
 
   const loadAnalytics = async () => {
     try {
@@ -449,7 +465,7 @@ const SoundSafariAnalytics = () => {
                       {session.success_rate?.toFixed(1)}%
                     </span>
                   </td>
-                  <td>{session.time_spent}s</td>
+                  <td>{formatTimeDisplay(session.time_spent)}</td>
                   <td>
                     {session.completed ? (
                       <span className={styles.completedBadge}>✓ Complete</span>
