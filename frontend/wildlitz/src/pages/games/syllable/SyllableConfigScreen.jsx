@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import styles from "../../../styles/games/syllable/SyllableConfigScreen.module.css";
@@ -11,15 +11,15 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   const [difficulty, setDifficulty] = useState("easy");
   const [questionCount, setQuestionCount] = useState(10);
   const [selectedCategories, setSelectedCategories] = useState({
-    animals: true,
-    fruits: false,
-    food: true,
-    toys: true,
-    clothes: false,
-    schoolSupplies: true,
-    nature: true,
-    everydayWords: true,
-    everydayObjects: false, // ✅ ADD THIS LINE
+    Animals: true,
+    Fruits: false,
+    Food: true,
+    Toys: true,
+    Clothes: false,
+    "School Supplies": true,
+    Nature: true,
+    "Everyday Words": true,
+    "Everyday Objects": false,
   });
 
   // AI Syllable Suggestion state
@@ -142,24 +142,41 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     setSearchCurrentPage(page);
 
     try {
-      // Build query parameters
       const params = new URLSearchParams({
         q: searchTerm,
         page: page,
         has_audio: searchFilters.has_audio,
+        ordering: "word",
       });
+
       searchFilters.categories.forEach((cat) =>
         params.append("categories[]", cat)
       );
 
+      console.log("🔍 Search Parameters:", {
+        searchTerm,
+        page,
+        categories: searchFilters.categories,
+        has_audio: searchFilters.has_audio,
+      });
+
       const response = await axios.get(
-        `${API_ENDPOINTS.SYLLABIFICATION}/search-words/?...`
+        `${API_ENDPOINTS.SYLLABIFICATION}/search-words/?${params.toString()}`
       );
 
-      setSearchResults(response.data.results || []);
+      console.log("📦 API Response:", {
+        resultsCount: response.data.results?.length || 0,
+        totalPages: response.data.totalPages || 0,
+      });
+
+      const sortedResults = (response.data.results || []).sort((a, b) =>
+        a.word.toLowerCase().localeCompare(b.word.toLowerCase())
+      );
+
+      setSearchResults(sortedResults);
       setSearchTotalPages(response.data.totalPages || 0);
     } catch (error) {
-      console.error("Error searching words:", error);
+      console.error("❌ Error searching words:", error);
       setSearchError("Failed to fetch words. Please try again.");
     } finally {
       setSearchIsLoading(false);
@@ -279,16 +296,17 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     }
   };
 
+  // ✅ CORRECT - matches database exactly
   const categories = [
-    { id: "animals", name: "Animals", icon: "🦁" },
-    { id: "fruits", name: "Fruits", icon: "🍎" },
-    { id: "food", name: "Food", icon: "🍕" },
-    { id: "toys", name: "Toys", icon: "🧸" },
-    { id: "clothes", name: "Clothes", icon: "👕" },
-    { id: "schoolSupplies", name: "School Supplies", icon: "✏️" },
-    { id: "nature", name: "Nature", icon: "🌿" },
-    { id: "everydayWords", name: "Everyday Words", icon: "🗣️" },
-    { id: "everydayObjects", name: "Everyday Objects", icon: "🔧" },
+    { id: "Animals", name: "Animals", icon: "🦁" },
+    { id: "Fruits", name: "Fruits", icon: "🍎" },
+    { id: "Food", name: "Food", icon: "🍕" },
+    { id: "Toys", name: "Toys", icon: "🧸" },
+    { id: "Clothes", name: "Clothes", icon: "👕" },
+    { id: "School Supplies", name: "School Supplies", icon: "✏️" },
+    { id: "Nature", name: "Nature", icon: "🌿" },
+    { id: "Everyday Words", name: "Everyday Words", icon: "🗣️" },
+    { id: "Everyday Objects", name: "Everyday Objects", icon: "🔧" },
   ];
 
   const difficultyInfo = {
@@ -326,12 +344,22 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   };
 
   // We need to trigger a search when filters change. Modify this useEffect.
+
+  // Create stable filter key to avoid infinite loops
+  const filterKey = useMemo(() => {
+    return JSON.stringify({
+      categories: [...searchFilters.categories].sort(),
+      has_audio: searchFilters.has_audio,
+    });
+  }, [searchFilters.categories, searchFilters.has_audio]);
+
+  // Trigger search when filters change
   useEffect(() => {
-    // This effect now runs when the modal opens OR when filters change
     if (showSearchModal) {
-      handleSearch(1); // Reset to page 1 on filter change
+      console.log("🔄 Filter changed, triggering search");
+      handleSearch(1);
     }
-  }, [showSearchModal, searchFilters]); // Add searchFilters to dependency array
+  }, [showSearchModal, filterKey]);
 
   const selectRandomCategories = () => {
     const newCategories = {};

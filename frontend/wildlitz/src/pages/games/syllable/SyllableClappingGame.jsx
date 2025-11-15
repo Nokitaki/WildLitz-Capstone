@@ -115,15 +115,25 @@ const SyllableClappingGame = () => {
   };
 
   const handleQuit = () => {
-    // Show a confirmation if needed
-    if (
-      window.confirm(
-        "Are you sure you want to quit? Your progress will be lost."
-      )
-    ) {
-      navigate("/home"); // Navigate to home page
-    }
-  };
+  if (
+    window.confirm(
+      "Are you sure you want to quit? Your progress will be lost."
+    )
+  ) {
+    // Reset all game state and go back to config screen
+    setGamePhase("config");
+    setClapCount(0);
+    setCurrentIndex(1);
+    setCorrectAnswers(0);
+    setStartTime(null);
+    setMicEnabled(false); // Turn off microphone
+    setIsFlipped(false);
+    setShowBubble(false);
+    setLearningFeedback("");
+    setGameWords([]);
+    setWordIndex(0);
+  }
+};
 
   // NEW: Handle syllable pronunciation with robust loading and NO TTS
   const handleSyllablePronunciation = (syllable, syllableIndex) => {
