@@ -11,7 +11,7 @@ import Character from "../../../assets/img/wildlitz-idle.png";
 import WordTransitionScreen from "./WordTransitionScreen";
 import soundManager from "../../../utils/soundManager";
 import { API_ENDPOINTS } from "../../../config/api";
-import useClapDetection from "./useClapDetection"; // ← ADD THIS LINE
+import useClapDetection from "./useClapDetection"; // â† ADD THIS LINE
 
 const SyllableClappingGame = () => {
   const navigate = useNavigate();
@@ -60,22 +60,27 @@ const SyllableClappingGame = () => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isFlipping, setIsFlipping] = useState(false);
 
-  // Microphone clap detection state                        // ← ADD THESE
-  const [micEnabled, setMicEnabled] = useState(false); // ← ADD THESE
+  // Microphone clap detection state                        // â† ADD THESE
+  const [micEnabled, setMicEnabled] = useState(false); // â† ADD THESE
 
   const { isListening, micPermission, errorMessage } = useClapDetection(
     micEnabled && gamePhase === "playing", // Only enable during playing phase
-    () => setClapCount((prev) => prev + 1) // ✅ Inline function works!
+    () => setClapCount((prev) => prev + 1) // âœ… Inline function works!
   );
 
-  // Disable mic when leaving playing phase
+  // Auto-enable microphone when entering playing phase
   useEffect(() => {
-    if ((gamePhase === "complete" || gamePhase === "config") && micEnabled) {
+    if (gamePhase === "playing" && !micEnabled) {
+      setMicEnabled(true); // ✅ Automatically turn ON mic when game starts
+    }
+    
+    // Disable mic when game ends
+    if (gamePhase === "complete" || gamePhase === "config") {
       setMicEnabled(false);
     }
-  }, [gamePhase, micEnabled]);
+  }, [gamePhase]);
 
-  // 🔊 Load sound effects when component mounts
+  // ðŸ”Š Load sound effects when component mounts
   useEffect(() => {
     soundManager.loadSounds();
 
@@ -149,7 +154,7 @@ const SyllableClappingGame = () => {
         `No audio available for syllable "${syllable}" at index ${syllableIndex}`
       );
       setSpeakingSyllable(null);
-      alert("⚠️ No audio available for this syllable");
+      alert("âš ï¸ No audio available for this syllable");
       return;
     }
 
@@ -170,7 +175,7 @@ const SyllableClappingGame = () => {
         console.error("Failed to play syllable audio:", error);
         setSpeakingSyllable(null);
         audioRef.current = null;
-        alert("⚠️ Could not play syllable audio.");
+        alert("âš ï¸ Could not play syllable audio.");
       });
     };
 
@@ -192,7 +197,7 @@ const SyllableClappingGame = () => {
       console.error("Error loading syllable audio:", error);
       setSpeakingSyllable(null);
       audioRef.current = null;
-      alert("⚠️ Syllable audio file not available.");
+      alert("âš ï¸ Syllable audio file not available.");
     };
 
     // Safety timeout
@@ -339,7 +344,7 @@ const SyllableClappingGame = () => {
     // Disable the check button to prevent multiple clicks
     setCheckButtonDisabled(true);
 
-    // ✅ ADD THIS CONFIG OBJECT
+    // âœ… ADD THIS CONFIG OBJECT
     const config = {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -356,7 +361,7 @@ const SyllableClappingGame = () => {
           correctCount: currentWord.count,
           difficulty: gameConfig?.difficulty || "medium",
         },
-        config // ✅ PASS THE CONFIG OBJECT AS THE THIRD ARGUMENT
+        config // âœ… PASS THE CONFIG OBJECT AS THE THIRD ARGUMENT
       );
 
       setAiResponse(response.data);
@@ -374,7 +379,7 @@ const SyllableClappingGame = () => {
         setCorrectAnswers((prev) => prev + 1);
       }
 
-      // 🔥 NEW: Log this question activity
+      // ðŸ”¥ NEW: Log this question activity
       await logQuestionActivity(
         currentWord,
         clapCount,
@@ -382,7 +387,7 @@ const SyllableClappingGame = () => {
         10 // We'll add proper timing later
       );
 
-      // 🔊 NEW: Play sound based on whether answer is correct
+      // ðŸ”Š NEW: Play sound based on whether answer is correct
       if (response.data.is_correct) {
         soundManager.playCorrectSound(); // Plays correct_soundEffect + yehey
       } else {
@@ -416,7 +421,7 @@ const SyllableClappingGame = () => {
         );
       }
 
-      // 🔊 NEW: Play sound for fallback (in error handler)
+      // ðŸ”Š NEW: Play sound for fallback (in error handler)
       if (isCorrect) {
         soundManager.playCorrectSound(); // Plays correct_soundEffect + yehey
       } else {
@@ -427,7 +432,7 @@ const SyllableClappingGame = () => {
         setCorrectAnswers((prev) => prev + 1);
       }
 
-      // 🔥 NEW: Log this question activity (fallback case)
+      // ðŸ”¥ NEW: Log this question activity (fallback case)
       await logQuestionActivity(
         currentWord,
         clapCount,
@@ -566,7 +571,7 @@ const SyllableClappingGame = () => {
     if (words && words.length > 0) {
       // Use the words array directly instead of relying on gameWords state
 
-      // ✅ ADD DEBUGGING
+      // âœ… ADD DEBUGGING
       console.log("=== WORD DATA FROM API ===");
       console.log("First word object:", words[0]);
       console.log("Has phonetic_guide?", words[0].phonetic_guide);
@@ -586,7 +591,7 @@ const SyllableClappingGame = () => {
         image_url: firstWord.image_url || null,
         full_word_audio_url: firstWord.full_word_audio_url || null,
         syllable_audio_urls: firstWord.syllable_audio_urls || [],
-        phonetic_guide: firstWord.phonetic_guide || null, // ✅ ADDED
+        phonetic_guide: firstWord.phonetic_guide || null, // âœ… ADDED
         fun_fact: firstWord.fun_fact || `Fun fact about ${firstWord.word}!`,
         intro_message:
           firstWord.intro_message || `Let's listen and count the syllables!`,
@@ -686,7 +691,7 @@ const SyllableClappingGame = () => {
         console.error("Failed to play audio:", error);
         setIsPlaying(false);
         audioRef.current = null;
-        alert("⚠️ Could not play audio. Please try again.");
+        alert("âš ï¸ Could not play audio. Please try again.");
       });
     };
 
@@ -710,7 +715,7 @@ const SyllableClappingGame = () => {
       console.error("Error loading/playing audio:", error);
       setIsPlaying(false);
       audioRef.current = null;
-      alert("⚠️ Audio file not available.");
+      alert("âš ï¸ Audio file not available.");
     };
 
     // Safety timeout - if nothing plays after 3 seconds, give up
@@ -871,9 +876,9 @@ const SyllableClappingGame = () => {
         }
       );
 
-      console.log("✅ Question activity logged successfully");
+      console.log("âœ… Question activity logged successfully");
     } catch (error) {
-      console.error("❌ Failed to log activity:", error);
+      console.error("âŒ Failed to log activity:", error);
       console.error("Error details:", error.response?.data);
     }
   };
@@ -931,7 +936,7 @@ const SyllableClappingGame = () => {
     // Disable the next button to prevent multiple clicks
     setNextButtonDisabled(true);
 
-    // 🔧 FIX: Stop any existing audio before transitioning
+    // ðŸ”§ FIX: Stop any existing audio before transitioning
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
@@ -1019,7 +1024,7 @@ const SyllableClappingGame = () => {
         setShowBubble(false);
       }, 6000);
 
-      // ✅ FIX: Removed the nested setTimeout that was calling handlePlaySound()
+      // âœ… FIX: Removed the nested setTimeout that was calling handlePlaySound()
       // The useEffect hook will handle playing audio automatically when
       // gamePhase changes to "playing" and currentWord is updated
     }, 1500);
@@ -1160,7 +1165,7 @@ const SyllableClappingGame = () => {
     if (gamePhase === "playing" || gamePhase === "feedback") {
       return (
         <button className={styles.quitButton} onClick={handleQuit}>
-          <span>←</span>
+          <span>â†</span>
           Quit Game
         </button>
       );
@@ -1237,7 +1242,7 @@ const SyllableClappingGame = () => {
                     />
                   ) : (
                     <div className={styles.placeholderImage}>
-                      <span>🖼️</span>
+                      <span>ðŸ–¼ï¸</span>
                     </div>
                   )}
                 </div>
@@ -1255,7 +1260,7 @@ const SyllableClappingGame = () => {
                   }}
                   disabled={isPlaying}
                 >
-                  <span className={styles.soundIcon}>🔊</span>
+                  <span className={styles.soundIcon}>ðŸ”Š</span>
                   <span>{isPlaying ? "Playing..." : "Listen Again"}</span>
                 </button>
               </div>
@@ -1281,7 +1286,7 @@ const SyllableClappingGame = () => {
                 )}
               </div>
               <div className={styles.funFactContainer}>
-                <span className={styles.funFactIcon}>💡</span>
+                <span className={styles.funFactIcon}>ðŸ’¡</span>
                 <div className={styles.funFact}>{currentWord.fun_fact}</div>
               </div>
               <div className={styles.flipInstruction}>Click to see word</div>
@@ -1292,7 +1297,7 @@ const SyllableClappingGame = () => {
           <div className={styles.clapSection}>
             <p className={styles.instructions}>
               {micEnabled && isListening
-                ? "👏 Clap out loud "
+                ? "ðŸ‘ Clap out loud "
                 : "Clap for each syllable!"}
             </p>
 
@@ -1305,7 +1310,7 @@ const SyllableClappingGame = () => {
                 onClick={() => setMicEnabled(!micEnabled)}
                 title={micEnabled ? "Disable microphone" : "Enable microphone"}
               >
-                <span className={styles.micIcon}>🎤</span>
+                <span className={styles.micIcon}>ðŸŽ¤</span>
                 <span className={styles.micLabel}>
                   {isListening
                     ? "Listening..."
@@ -1316,7 +1321,7 @@ const SyllableClappingGame = () => {
                 {/* Active indicator inside button */}
                 {isListening && (
                   <>
-                    <span className={styles.pulseIcon}>🔴</span>
+                    <span className={styles.pulseIcon}>ðŸ”´</span>
                     <span className={styles.activeLabel}>Active</span>
                   </>
                 )}
@@ -1325,7 +1330,7 @@ const SyllableClappingGame = () => {
               {/* Show error messages */}
               {micEnabled && errorMessage && (
                 <div className={styles.micError}>
-                  <span className={styles.errorIcon}>⚠️</span>
+                  <span className={styles.errorIcon}>âš ï¸</span>
                   <span className={styles.errorText}>{errorMessage}</span>
                 </div>
               )}
@@ -1333,7 +1338,7 @@ const SyllableClappingGame = () => {
               {/* Permission denied message */}
               {micEnabled && micPermission === "denied" && (
                 <div className={styles.micError}>
-                  <span className={styles.errorIcon}>⚠️</span>
+                  <span className={styles.errorIcon}>âš ï¸</span>
                   <span className={styles.errorText}>Mic access denied</span>
                 </div>
               )}
@@ -1341,7 +1346,7 @@ const SyllableClappingGame = () => {
 
             {/* Manual Clap Button */}
             <button className={styles.clapButton} onClick={handleClap}>
-              <span className={styles.clapIcon}>👏</span>
+              <span className={styles.clapIcon}>ðŸ‘</span>
             </button>
 
             <div className={styles.clapCountDisplay}>
@@ -1354,7 +1359,7 @@ const SyllableClappingGame = () => {
                 onClick={() => setClapCount(0)}
                 title="Reset claps"
               >
-                <span className={styles.resetIcon}>🔄</span>
+                <span className={styles.resetIcon}>ðŸ”„</span>
               </button>
             </div>
 
@@ -1464,7 +1469,7 @@ const SyllableClappingGame = () => {
                     />
                   ) : (
                     <div className={styles.placeholderImage}>
-                      <span>🖼️</span>
+                      <span>ðŸ–¼ï¸</span>
                     </div>
                   )}
                 </div>
@@ -1474,10 +1479,10 @@ const SyllableClappingGame = () => {
                 <h2>{currentWord.word}</h2>
                 <div className={styles.resultDisplay}>
                   {clapCount === currentWord.count ? (
-                    <span className={styles.correctResult}>✅ Correct!</span>
+                    <span className={styles.correctResult}>âœ… Correct!</span>
                   ) : (
                     <span className={styles.incorrectResult}>
-                      ⚠️ {currentWord.word} has {currentWord.count} syllables
+                      âš ï¸ {currentWord.word} has {currentWord.count} syllables
                     </span>
                   )}
                 </div>
@@ -1504,7 +1509,7 @@ const SyllableClappingGame = () => {
                 )}
               </div>
               <div className={styles.funFactContainer}>
-                <span className={styles.funFactIcon}>💡</span>
+                <span className={styles.funFactIcon}>ðŸ’¡</span>
                 <div className={styles.funFact}>{currentWord.fun_fact}</div>
               </div>
               <div className={styles.flipInstruction}>Click to see word</div>
@@ -1527,17 +1532,17 @@ const SyllableClappingGame = () => {
                     className={`${styles.syllableButton} ${
                       speakingSyllable === syllable ? styles.speaking : ""
                     }`}
-                    onClick={() => handleSyllablePronunciation(syllable, index)} // ✅ Fixed: Pass index
+                    onClick={() => handleSyllablePronunciation(syllable, index)} // âœ… Fixed: Pass index
                     disabled={speakingSyllable !== null}
                     title={
                       hasAudio
                         ? `Click to hear "${syllable}"`
                         : "No audio available"
-                    } // ✅ Kept tooltip
+                    } // âœ… Kept tooltip
                   >
                     {syllable}
                     {!hasAudio && (
-                      <span className={styles.noAudioIndicator}> ⚠️</span> // ✅ Visual warning if no audio
+                      <span className={styles.noAudioIndicator}> âš ï¸</span> // âœ… Visual warning if no audio
                     )}
                   </button>
                 );
@@ -1547,14 +1552,14 @@ const SyllableClappingGame = () => {
             {/* AI Feedback Section */}
             <div className={styles.aiFeedbackSection}>
               <div className={styles.aiFeedbackTitle}>
-                <span>🤖</span> AI Learning Assistant
+                <span>ðŸ¤–</span> AI Learning Assistant
               </div>
               <div className={styles.aiFeedbackContent}>
                 <div
                   style={{
                     /* This controls the line height *within* each paragraph */
                     lineHeight: "1.2",
-                    /* ✅ ADD THIS LINE */
+                    /* âœ… ADD THIS LINE */
                     fontSize:
                       "0.9rem" /* Adjust this value (e.g., '14px', '0.85em') */,
                   }}
