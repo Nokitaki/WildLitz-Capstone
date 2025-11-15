@@ -68,12 +68,17 @@ const SyllableClappingGame = () => {
     () => setClapCount((prev) => prev + 1) // ✅ Inline function works!
   );
 
-  // Disable mic when leaving playing phase
+  // Auto-enable microphone when entering playing phase
   useEffect(() => {
-    if ((gamePhase === "complete" || gamePhase === "config") && micEnabled) {
+    if (gamePhase === "playing" && !micEnabled) {
+      setMicEnabled(true); // ✅ Automatically turn ON mic when game starts
+    }
+    
+    // Disable mic when game ends
+    if (gamePhase === "complete" || gamePhase === "config") {
       setMicEnabled(false);
     }
-  }, [gamePhase, micEnabled]);
+  }, [gamePhase]);
 
   // 🔊 Load sound effects when component mounts
   useEffect(() => {
