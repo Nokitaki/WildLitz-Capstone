@@ -1,6 +1,6 @@
-// src/components/common/LoadingStates.jsx
-import React from 'react';
-import { motion } from 'framer-motion';
+// src/components/common/LoadingStates.jsx - FULL SCREEN IMMERSIVE VERSION
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/components/LoadingStates.module.css';
 
 // Generic loading spinner
@@ -25,33 +25,116 @@ export const LoadingSpinner = ({ size = 'medium', message = 'Loading...' }) => {
   );
 };
 
-// Story generation loading with progress - IMPROVED VERSION
+// ⭐ FULL SCREEN IMMERSIVE Story Loading Screen with REALISTIC Progress
 export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adventure...', showWarning = false }) => {
+  // ✅ LOCAL STATE for smooth realistic progress animation
+  const [displayProgress, setDisplayProgress] = useState(0);
+  
+  // ✅ Animate progress smoothly when prop changes
+  useEffect(() => {
+    const animationDuration = 800; // 800ms for smooth transition
+    const steps = 60; // 60 frames
+    const stepDuration = animationDuration / steps;
+    const progressDiff = progress - displayProgress;
+    const progressStep = progressDiff / steps;
+    
+    let currentStep = 0;
+    const interval = setInterval(() => {
+      currentStep++;
+      setDisplayProgress(prev => {
+        const newProgress = prev + progressStep;
+        if (currentStep >= steps) {
+          clearInterval(interval);
+          return progress; // Ensure we end exactly at target
+        }
+        return newProgress;
+      });
+    }, stepDuration);
+    
+    return () => clearInterval(interval);
+  }, [progress]);
+  
   const progressMessages = [
-    "🌟 Choosing the perfect adventure theme...",
-    "📝 Writing an engaging story just for you...",
-    "🧩 Creating fun crossword puzzles...",
-    "🎨 Adding colorful details and characters...",
-    "✨ Adding final magical touches...",
-    "🎉 Almost ready for your reading adventure!"
+    { emoji: "🌟", text: "Choosing the perfect adventure theme..." },
+    { emoji: "✍️", text: "Writing an engaging story just for you..." },
+    { emoji: "🧩", text: "Creating fun crossword puzzles..." },
+    { emoji: "🎨", text: "Adding colorful details and characters..." },
+    { emoji: "✨", text: "Adding final magical touches..." },
+    { emoji: "🎉", text: "Almost ready for your reading adventure!" }
   ];
 
-  const currentMessage = progressMessages[Math.min(Math.floor(progress / 20), progressMessages.length - 1)];
+  const currentMessageIndex = Math.min(Math.floor(displayProgress / 20), progressMessages.length - 1);
+  const currentMessage = progressMessages[currentMessageIndex];
 
   return (
-    <div className={styles.storyLoadingContainer}>
+    <div className={styles.fullscreenLoadingContainer}>
+      {/* Animated gradient background */}
       <motion.div 
-        className={styles.storyLoadingContent}
+        className={styles.gradientBackground}
+        animate={{
+          background: [
+            'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            'linear-gradient(135deg, #764ba2 0%, #f093fb 100%)',
+            'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+          ]
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
+      
+      {/* Floating particles background */}
+      <div className={styles.particlesContainer}>
+        {[...Array(12)].map((_, i) => (
+          <motion.div
+            key={i}
+            className={styles.particle}
+            initial={{ 
+              x: Math.random() * window.innerWidth,
+              y: Math.random() * window.innerHeight,
+              opacity: 0,
+              scale: Math.random() * 0.5 + 0.5
+            }}
+            animate={{ 
+              x: [
+                Math.random() * window.innerWidth,
+                Math.random() * window.innerWidth
+              ],
+              y: [
+                Math.random() * window.innerHeight,
+                Math.random() * window.innerHeight
+              ],
+              opacity: [0.2, 0.8, 0.2],
+              scale: [1, 1.3, 1],
+              rotate: [0, 360]
+            }}
+            transition={{ 
+              duration: 4 + Math.random() * 3,
+              repeat: Infinity,
+              delay: i * 0.2,
+              ease: "easeInOut"
+            }}
+          >
+            {['✨', '📚', '🌟', '⭐', '💫', '📖'][i % 6]}
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Main content */}
+      <motion.div 
+        className={styles.fullscreenContent}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        {/* Animated book icon */}
+        {/* Animated sword icon */}
         <motion.div 
-          className={styles.bookIcon}
+          className={styles.heroIcon}
           animate={{ 
-            rotateY: [0, 180, 360],
-            scale: [1, 1.1, 1]
+            y: [0, -20, 0],
+            rotate: [0, 5, 0, -5, 0]
           }}
           transition={{ 
             duration: 3,
@@ -59,69 +142,128 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
             ease: "easeInOut"
           }}
         >
-          📖
+          🗡️
         </motion.div>
 
-        {/* Title */}
-        <h2 className={styles.loadingTitle}>Creating Your Adventure</h2>
-
-        {/* Progress bar */}
-        <div className={styles.progressContainer}>
-          <div className={styles.progressBar}>
-            <motion.div 
-              className={styles.progressFill}
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            >
-              {/* Shimmer effect */}
-              <motion.div
-                className={styles.progressShimmer}
-                animate={{ x: ['-100%', '200%'] }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              />
-            </motion.div>
-          </div>
-          <p className={styles.progressText}>{Math.round(progress)}%</p>
+        {/* Title with shimmer effect */}
+        <div className={styles.heroTitleWrapper}>
+          <h1 className={styles.heroTitle}>
+            <span className={styles.heroTitleText}>Creating Your Adventure</span>
+            <motion.div
+              className={styles.heroTitleShimmer}
+              animate={{ x: ['-100%', '200%'] }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+            />
+          </h1>
         </div>
 
-        {/* Dynamic message */}
-        <motion.div
-          key={currentMessage}
-          className={styles.messageContainer}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.4 }}
-        >
-          <p className={styles.progressMessage}>{currentMessage}</p>
-        </motion.div>
+        {/* Beautiful progress section */}
+        <div className={styles.heroProgressSection}>
+          {/* Progress bar */}
+          <div className={styles.heroProgressWrapper}>
+            <div className={styles.heroProgressBar}>
+              <motion.div 
+                className={styles.heroProgressFill}
+                style={{ width: `${displayProgress}%` }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                {/* Animated shine effect */}
+                <motion.div
+                  className={styles.heroProgressShine}
+                  animate={{ x: ['-100%', '300%'] }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+                
+                {/* Progress sparkles */}
+                {displayProgress > 5 && (
+                  <>
+                    {[...Array(4)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        className={styles.heroProgressSparkle}
+                        initial={{ x: 0, y: 0, opacity: 0 }}
+                        animate={{ 
+                          x: [0, Math.random() * 30 - 15],
+                          y: [-20, -50],
+                          opacity: [0, 1, 0],
+                          scale: [0.5, 1, 0.5]
+                        }}
+                        transition={{
+                          duration: 1.2,
+                          repeat: Infinity,
+                          delay: i * 0.25
+                        }}
+                      >
+                        ✨
+                      </motion.div>
+                    ))}
+                  </>
+                )}
+              </motion.div>
+              
+              {/* Progress glow effect */}
+              <motion.div
+                className={styles.heroProgressGlow}
+                style={{ width: `${displayProgress}%` }}
+                animate={{ opacity: [0.4, 0.8, 0.4] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+            </div>
+            
+            {/* Percentage badge - Large and prominent */}
+            <motion.div 
+              className={styles.heroProgressBadge}
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <span className={styles.heroProgressNumber}>{Math.round(displayProgress)}</span>
+              <span className={styles.heroProgressSymbol}>%</span>
+            </motion.div>
+          </div>
+        </div>
 
-        {/* Warning for slow connection */}
-        {showWarning && (
-          <motion.div 
-            className={styles.warningMessage}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            transition={{ duration: 0.3 }}
+        {/* Dynamic message with icon and animation */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentMessage.text}
+            className={styles.heroMessageContainer}
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.5 }}
           >
-            <div className={styles.warningIcon}>⏰</div>
-            <p>This is taking longer than expected. We're working hard to create something amazing for you!</p>
+            <motion.span 
+              className={styles.heroMessageEmoji}
+              animate={{ 
+                rotate: [0, 10, -10, 0],
+                scale: [1, 1.1, 1]
+              }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              {currentMessage.emoji}
+            </motion.span>
+            <p className={styles.heroMessageText}>{currentMessage.text}</p>
           </motion.div>
-        )}
+        </AnimatePresence>
 
-        {/* Loading dots animation */}
-        <div className={styles.loadingDots}>
-          {[0, 0.2, 0.4].map((delay, i) => (
+        {/* Animated loading dots */}
+        <div className={styles.heroLoadingDots}>
+          {[0, 0.15, 0.3].map((delay, i) => (
             <motion.span 
               key={i}
+              className={styles.heroDot}
               animate={{ 
                 opacity: [0.3, 1, 0.3],
-                y: [0, -8, 0]
+                y: [0, -12, 0],
+                scale: [1, 1.3, 1]
               }}
               transition={{ 
                 duration: 1.2,
@@ -134,6 +276,28 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
             </motion.span>
           ))}
         </div>
+
+        {/* Warning for slow connection */}
+        {showWarning && displayProgress < 95 && (
+          <motion.div 
+            className={styles.heroWarningMessage}
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.4 }}
+          >
+            <motion.div 
+              className={styles.heroWarningIcon}
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 0.6, repeat: Infinity }}
+            >
+              ⏰
+            </motion.div>
+            <div className={styles.heroWarningContent}>
+              <p className={styles.heroWarningTitle}>Taking longer than expected...</p>
+              <p className={styles.heroWarningText}>Creating something amazing for you! Please wait...</p>
+            </div>
+          </motion.div>
+        )}
       </motion.div>
     </div>
   );
@@ -194,7 +358,7 @@ export const WordLoadingAnimation = ({ word = 'LOADING' }) => {
           className={styles.loadingLetter}
           animate={{ 
             y: [0, -20, 0],
-            color: ['#333', '#007bff', '#333']
+            color: ['#333', '#667eea', '#333']
           }}
           transition={{
             duration: 0.6,
