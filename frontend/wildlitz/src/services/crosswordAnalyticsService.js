@@ -141,10 +141,7 @@ class CrosswordAnalyticsService {
     }
   }
 
-  /**
-   * Log when a game is completed (used by SummaryScreen)
-   */
-  async logGameCompleted(sessionId, gameData, solvedWords = []) {
+  async logGameCompleted(sessionId, gameData, solvedWords = [], totalHintsOverride = null) {
   try {
     // Skip logging if no valid session ID
     if (!sessionId || sessionId === 'undefined' || sessionId === 'null') {
@@ -152,58 +149,67 @@ class CrosswordAnalyticsService {
       return { success: false, skipped: true };
     }
 
-    
-
     // Extract vocabulary words from solvedWords array
-    // FIX: Convert to a clean array to avoid mutation issues
     const vocabularyWords = Array.from(
       solvedWords.map(sw => {
         if (typeof sw === 'string') return sw;
         if (sw && sw.word) return sw.word;
         return null;
-      }).filter(Boolean)  // Remove any null/undefined values
+      }).filter(Boolean)
     );
 
+    // ✅ FIX: Properly extract hints with multiple fallbacks
+    const hintsUsed = totalHintsOverride !== null 
+      ? totalHintsOverride 
+      : (gameData?.totalHints || gameData?.total_hints_used || 0);
     
+    console.log('📊 Logging game completion:');
+    console.log('  - Session ID:', sessionId);
+    console.log('  - Total Hints:', hintsUsed);
+    console.log('  - From gameData.totalHints:', gameData?.totalHints);
+    console.log('  - From totalHintsOverride:', totalHintsOverride);
+    console.log('  - Words solved:', solvedWords.length);
 
-    // Update the session with completion data INCLUDING vocabulary words
     const sessionUpdates = {
-      total_words_solved: gameData?.wordsLearned || 0,
+      total_words_solved: gameData?.wordsLearned || solvedWords.length || 0,
       total_duration_seconds: gameData?.totalTime || 0,
-      total_hints_used: gameData?.totalHints || 0,
+      total_hints_used: hintsUsed,  // ✅ USE THE FIXED VALUE
       episodes_completed: gameData?.episodesCompleted || 1,
       completion_percentage: gameData?.accuracy || 0,
       is_completed: gameData?.isFullyCompleted || false,
-      vocabulary_words_learned: vocabularyWords  // Clean array
+      vocabulary_words_learned: vocabularyWords
     };
+
+    console.log('📊 Session updates being sent:', JSON.stringify(sessionUpdates, null, 2));
 
     await this.updateSession(sessionId, sessionUpdates);
 
-    // Also log as an activity - FIX: Create a plain object to avoid mutation
+    // Also log as an activity
     const activityData = {
       session_id: sessionId,
       activity_type: 'game_completed',
       word_data: {
-        wordsLearned: gameData?.wordsLearned || 0,
+        wordsLearned: gameData?.wordsLearned || solvedWords.length || 0,
         totalTime: gameData?.totalTime || 0,
-        totalHints: gameData?.totalHints || 0,
+        totalHints: hintsUsed,  // ✅ USE THE FIXED VALUE
         episodesCompleted: gameData?.episodesCompleted || 1,
         accuracy: gameData?.accuracy || 0,
-        vocabulary_words: vocabularyWords.slice()  // Create a copy
+        vocabulary_words: vocabularyWords.slice()
       },
       is_correct: true,
       time_spent_seconds: gameData?.totalTime || 0,
-      hint_count: gameData?.totalHints || 0,
+      hint_count: hintsUsed,  // ✅ USE THE FIXED VALUE
       user_email: this.getUserEmail()
     };
     
+    console.log('📊 Activity data being sent:', JSON.stringify(activityData, null, 2));
+    
     await this.logActivity(activityData);
     
-    console.log('✅ Game completion logged successfully');
+    console.log('✅ Game completion logged successfully with hints:', hintsUsed);
     return { success: true };
   } catch (error) {
     console.error('❌ Game completion logging failed:', error);
-    console.log('⚠️ Analytics logging skipped:', error.message);
     return { success: false, error: error.message };
   }
 }

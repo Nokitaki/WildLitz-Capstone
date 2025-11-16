@@ -37,35 +37,46 @@ const SummaryScreen = ({
 
   // Analytics logging
   useEffect(() => {
-    const logCompletion = async () => {
-      if (sessionId && solvedWords.length > 0) {
-        try {
-          const episodeCompletionPercentage = totalEpisodes > 0 
-            ? (currentEpisode / totalEpisodes) * 100 
-            : 100;
+  const logAnalytics = async () => {
+    if (!sessionId) {
+      console.log('⚠️ No session ID available for analytics logging');
+      return;
+    }
 
-          const gameData = {
-            wordsLearned: solvedWords.length,
-            totalTime: timeSpent,
-            totalHints: totalHints,
-            episodesCompleted: currentEpisode,
-            accuracy: episodeCompletionPercentage,
-            isFullyCompleted: currentEpisode >= totalEpisodes
-          };
+    try {
+      console.log('📊 SummaryScreen - Logging analytics');
+      console.log('  - Session ID:', sessionId);
+      console.log('  - Total Hints:', totalHints);
+      console.log('  - Words solved:', solvedWords.length);
+      console.log('  - Time spent:', timeSpent);
 
-          await crosswordAnalyticsService.logGameCompleted(
-            sessionId,
-            gameData,
-            solvedWords
-          );
-        } catch (error) {
-          console.error('Analytics logging failed:', error);
-        }
-      }
-    };
+      const gameData = {
+        wordsLearned: solvedWords.length,
+        totalTime: timeSpent,
+        totalHints: totalHints,  // ✅ CRITICAL: Make sure this matches the prop name
+        episodesCompleted: currentEpisode,
+        accuracy: Math.round((solvedWords.length / totalWords) * 100),
+        isFullyCompleted: !hasNextEpisode
+      };
 
-    logCompletion();
-  }, [sessionId, solvedWords, timeSpent, totalWords, totalHints, currentEpisode, totalEpisodes]);
+      console.log('📊 Game data object:', JSON.stringify(gameData, null, 2));
+
+      // ✅ Pass totalHints as both part of gameData AND as separate parameter
+      await crosswordAnalyticsService.logGameCompleted(
+        sessionId,
+        gameData,
+        solvedWords,
+        totalHints  // ✅ PASS AS SEPARATE PARAMETER TOO
+      );
+
+      console.log('✅ Analytics logged successfully');
+    } catch (error) {
+      console.error('❌ Failed to log analytics:', error);
+    }
+  };
+
+  logAnalytics();
+}, [sessionId, solvedWords.length, totalHints, timeSpent]); // ✅ Include totalHints in dependencies
 
   // Word emoji mapping
   const getWordEmoji = (word) => {
