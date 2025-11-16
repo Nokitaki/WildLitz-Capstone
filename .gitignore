@@ -1,5 +1,17 @@
+# Environment variables
 backend/wildlitz/.env
+
+# Python bytecode - catches ALL .pyc files everywhere
 *.pyc
-backend/wildlitz/sentence_formation/migrations/*.pyc
-backend/wildlitz/django_error.log
-backend/wildlitz/django_error.log
+*.pyo
+__pycache__/
+
+# Django logs - catches ALL .log files
+*.log
+
+# Database
+*.sqlite3
+db.sqlite3
+
+# Migrations cache (optional - usually you want to track migrations)
+# backend/wildlitz/*/migrations/*.pyc
