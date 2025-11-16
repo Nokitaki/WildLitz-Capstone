@@ -1,304 +1,317 @@
-/* ClapRhythmTimer.module.css */
-/* Traffic light + clapping hands rhythm timer */
+/* ClapRhythmTimer.module.css - UPDATED WITH FIXED TIMING */
 
-.rhythmContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 25px;
-  padding: 25px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20px;
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-  margin: 20px 0;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Traffic Light */
-.trafficLight {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.lightBox {
-  background: #2c2c2c;
-  padding: 15px;
-  border-radius: 15px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4),
-              inset 0 2px 8px rgba(255, 255, 255, 0.1);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.light {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
+/* Inactive State */
+.timerInactive {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  margin: 10px 0;
+}
+
+.inactiveIcon {
+  font-size: 20px;
+}
+
+.inactiveText {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Main Timer Container */
+.rhythmTimer {
+  background: white;
+  border-radius: 16px;
+  padding: 12px 16px;
+  margin: 10px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Horizontal Traffic Lights */
+.trafficLights {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 4px;
+  background: #2c2c2c;
+  border-radius: 20px;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.miniLight {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   position: relative;
-  border: 3px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Red Light */
-.redLight {
-  background: radial-gradient(circle, #4a1515 0%, #2a0a0a 100%);
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+/* Light Colors - Off State */
+.miniLight.red {
+  background: radial-gradient(circle, #3d1515 0%, #1f0a0a 100%);
 }
 
-.redLight.active {
-  background: radial-gradient(circle, #ff4444 0%, #cc0000 100%);
-  box-shadow: 0 0 20px rgba(255, 68, 68, 0.8),
-              0 0 40px rgba(255, 68, 68, 0.5),
-              inset 0 0 20px rgba(255, 255, 255, 0.2);
+.miniLight.yellow {
+  background: radial-gradient(circle, #3d3d15 0%, #1f1f0a 100%);
+}
+
+.miniLight.green {
+  background: radial-gradient(circle, #153d15 0%, #0a1f0a 100%);
+}
+
+/* Light Colors - Active State */
+.miniLight.red.active {
+  background: radial-gradient(circle, #ff4444 0%, #dd0000 100%);
+  box-shadow: 0 0 12px rgba(255, 68, 68, 0.8),
+              0 0 20px rgba(255, 68, 68, 0.5);
+  border-color: #ff6666;
   animation: redPulse 1s ease-in-out infinite;
 }
 
-@keyframes redPulse {
-  0%, 100% { box-shadow: 0 0 20px rgba(255, 68, 68, 0.8); }
-  50% { box-shadow: 0 0 30px rgba(255, 68, 68, 1); }
-}
-
-/* Yellow Light */
-.yellowLight {
-  background: radial-gradient(circle, #4a4a15 0%, #2a2a0a 100%);
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-.yellowLight.active {
+.miniLight.yellow.active {
   background: radial-gradient(circle, #ffeb3b 0%, #fbc02d 100%);
-  box-shadow: 0 0 20px rgba(255, 235, 59, 0.8),
-              0 0 40px rgba(255, 235, 59, 0.5),
-              inset 0 0 20px rgba(255, 255, 255, 0.2);
-  animation: yellowBlink 0.5s ease-in-out;
+  box-shadow: 0 0 12px rgba(255, 235, 59, 0.8),
+              0 0 20px rgba(255, 235, 59, 0.5);
+  border-color: #fff176;
+  animation: yellowFlash 0.6s ease-in-out;
 }
 
-@keyframes yellowBlink {
+.miniLight.green.active {
+  background: radial-gradient(circle, #4caf50 0%, #2e7d32 100%);
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.9),
+              0 0 25px rgba(76, 175, 80, 0.6);
+  border-color: #66bb6a;
+  animation: greenGlow 2s ease-in-out infinite;
+}
+
+@keyframes redPulse {
+  0%, 100% { 
+    box-shadow: 0 0 12px rgba(255, 68, 68, 0.8); 
+  }
+  50% { 
+    box-shadow: 0 0 20px rgba(255, 68, 68, 1); 
+  }
+}
+
+@keyframes yellowFlash {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
 }
 
-/* Green Light */
-.greenLight {
-  background: radial-gradient(circle, #154a15 0%, #0a2a0a 100%);
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-.greenLight.active {
-  background: radial-gradient(circle, #4caf50 0%, #2e7d32 100%);
-  box-shadow: 0 0 25px rgba(76, 175, 80, 0.9),
-              0 0 50px rgba(76, 175, 80, 0.6),
-              inset 0 0 20px rgba(255, 255, 255, 0.2);
-  animation: greenFlash 0.3s ease-out;
-}
-
-@keyframes greenFlash {
-  0% {
+@keyframes greenGlow {
+  0%, 100% { 
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.9);
     transform: scale(1);
-    box-shadow: 0 0 25px rgba(76, 175, 80, 0.9);
   }
-  50% {
-    transform: scale(1.1);
-    box-shadow: 0 0 40px rgba(76, 175, 80, 1);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 25px rgba(76, 175, 80, 0.9);
+  50% { 
+    box-shadow: 0 0 25px rgba(76, 175, 80, 1);
+    transform: scale(1.05);
   }
 }
 
-/* Light Labels */
-.lightLabel {
-  font-size: 14px;
+/* Main Display Area */
+.mainDisplay {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Phase Labels */
+.phaseLabel {
+  flex: 1;
+  text-align: left;
+  font-size: 16px;
   font-weight: 700;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  animation: labelFadeIn 0.3s ease-out;
+  letter-spacing: 0.5px;
 }
 
-@keyframes labelFadeIn {
+.labelRed {
+  color: #ff4444;
+  animation: fadeIn 0.3s ease;
+}
+
+.labelYellow {
+  color: #fbc02d;
+  animation: fadeIn 0.3s ease;
+}
+
+.labelGreen {
+  color: #4caf50;
+  animation: bounceIn 0.3s ease;
+  font-size: 17px;
+}
+
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: scale(0.8);
+    transform: translateX(-10px);
   }
   to {
     opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
     transform: scale(1);
   }
 }
 
-/* Clapping Hands */
-.handsContainer {
+/* Hands Display */
+.handsDisplay {
+  font-size: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+}
+
+.handsWaiting {
+  display: inline-block;
+  animation: handsFloat 2s ease-in-out infinite;
+}
+
+.handsClapping {
+  display: inline-block;
+  animation: clapBounce 0.5s ease-out infinite;
+}
+
+@keyframes handsFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes clapBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* Progress Bar */
+.progressBar {
+  width: 100%;
+  height: 6px;
+  background: #f0f0f0;
+  border-radius: 3px;
+  overflow: hidden;
   position: relative;
-  width: 200px;
-  height: 120px;
+}
+
+.progressFill {
+  height: 100%;
+  transition: width 0.1s linear;
+  border-radius: 3px;
+}
+
+.progressFill.red {
+  background: linear-gradient(90deg, #ff4444 0%, #ff6666 100%);
+}
+
+.progressFill.yellow {
+  background: linear-gradient(90deg, #ffeb3b 0%, #ffd54f 100%);
+}
+
+.progressFill.green {
+  background: linear-gradient(90deg, #4caf50 0%, #66bb6a 100%);
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+}
+
+/* Timing Info */
+.timingInfo {
+  min-height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.hands {
-  display: flex;
-  gap: 80px;
-  transition: gap 0.3s ease;
-}
-
-.hands.clapping {
-  gap: 20px;
-  animation: clapAction 0.3s ease-out;
-}
-
-@keyframes clapAction {
-  0% {
-    gap: 80px;
-  }
-  50% {
-    gap: 10px;
-  }
-  100% {
-    gap: 20px;
-  }
-}
-
-.leftHand,
-.rightHand {
-  font-size: 60px;
-  transition: transform 0.3s ease;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-}
-
-.leftHand {
-  transform: scaleX(-1);
-}
-
-.hands.clapping .leftHand {
-  animation: leftHandClap 0.3s ease-out;
-}
-
-.hands.clapping .rightHand {
-  animation: rightHandClap 0.3s ease-out;
-}
-
-@keyframes leftHandClap {
-  0% {
-    transform: scaleX(-1) translateX(0) rotate(0deg);
-  }
-  50% {
-    transform: scaleX(-1) translateX(15px) rotate(-10deg);
-  }
-  100% {
-    transform: scaleX(-1) translateX(0) rotate(0deg);
-  }
-}
-
-@keyframes rightHandClap {
-  0% {
-    transform: translateX(0) rotate(0deg);
-  }
-  50% {
-    transform: translateX(-15px) rotate(10deg);
-  }
-  100% {
-    transform: translateX(0) rotate(0deg);
-  }
-}
-
-/* Clap Effect */
-.clapEffect {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  animation: clapBurst 0.5s ease-out;
-}
-
-.clapBurst {
-  font-size: 50px;
-  display: inline-block;
-  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
-}
-
-@keyframes clapBurst {
-  0% {
-    transform: scale(0);
-    opacity: 0;
-  }
-  30% {
-    transform: scale(1.3);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-/* Instructions */
-.instructions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 16px;
+.pauseIndicator {
+  font-size: 11px;
   font-weight: 600;
-  color: white;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 12px 24px;
-  border-radius: 25px;
-  backdrop-filter: blur(10px);
-  text-align: center;
-}
-
-.emoji {
-  font-size: 22px;
+  color: #4caf50;
+  background: rgba(76, 175, 80, 0.1);
+  padding: 3px 10px;
+  border-radius: 10px;
+  animation: fadeIn 0.3s ease;
 }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-  .rhythmContainer {
-    padding: 20px;
-    gap: 20px;
+  .rhythmTimer {
+    padding: 10px 12px;
   }
 
-  .light {
-    width: 65px;
-    height: 65px;
+  .miniLight {
+    width: 28px;
+    height: 28px;
   }
 
-  .lightLabel {
-    font-size: 12px;
-  }
-
-  .handsContainer {
-    width: 160px;
-    height: 100px;
-  }
-
-  .hands {
-    gap: 60px;
-  }
-
-  .hands.clapping {
-    gap: 15px;
-  }
-
-  .leftHand,
-  .rightHand {
-    font-size: 48px;
-  }
-
-  .clapBurst {
-    font-size: 40px;
-  }
-
-  .instructions {
+  .phaseLabel {
     font-size: 14px;
-    padding: 10px 18px;
+  }
+
+  .labelGreen {
+    font-size: 15px;
+  }
+
+  .handsDisplay {
+    font-size: 32px;
+    min-width: 45px;
+  }
+
+  .progressBar {
+    height: 5px;
+  }
+
+  .pauseIndicator {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+}
+
+/* Extra compact for very narrow screens */
+@media (max-width: 400px) {
+  .trafficLights {
+    gap: 6px;
+  }
+
+  .miniLight {
+    width: 24px;
+    height: 24px;
+  }
+
+  .phaseLabel {
+    font-size: 13px;
+  }
+
+  .labelGreen {
+    font-size: 14px;
+  }
+
+  .handsDisplay {
+    font-size: 28px;
+    min-width: 40px;
   }
 }

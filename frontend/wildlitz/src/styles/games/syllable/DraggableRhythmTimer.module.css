@@ -1,0 +1,313 @@
+/* DraggableRhythmTimer.module.css */
+/* Floating, draggable rhythm timer widget */
+
+.floatingTimer {
+  position: fixed;
+  z-index: 9999;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2),
+              0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: move;
+  user-select: none;
+  transition: box-shadow 0.2s ease;
+  width: 180px;
+}
+
+.floatingTimer.dragging {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3),
+              0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: grabbing;
+}
+
+.floatingTimer.minimized {
+  width: auto;
+}
+
+/* Drag Handle */
+.dragHandle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+  border-radius: 16px 16px 0 0;
+  cursor: grab;
+  color: white;
+}
+
+.floatingTimer.dragging .dragHandle {
+  cursor: grabbing;
+}
+
+.floatingTimer.minimized .dragHandle {
+  border-radius: 16px;
+}
+
+.dragIcon {
+  font-size: 14px;
+  font-weight: 700;
+  opacity: 0.7;
+  letter-spacing: -2px;
+}
+
+.timerTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex: 1;
+  text-align: center;
+}
+
+.minimizeBtn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  transition: background 0.2s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.minimizeBtn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.minimizeBtn:active {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Timer Content */
+.timerContent {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Traffic Lights */
+.trafficLights {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  padding: 6px;
+  background: #2c2c2c;
+  border-radius: 12px;
+}
+
+.light {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Light Colors - Off */
+.light.red {
+  background: radial-gradient(circle, #3d1515 0%, #1f0a0a 100%);
+}
+
+.light.yellow {
+  background: radial-gradient(circle, #3d3d15 0%, #1f1f0a 100%);
+}
+
+.light.green {
+  background: radial-gradient(circle, #153d15 0%, #0a1f0a 100%);
+}
+
+/* Light Colors - Active */
+.light.red.active {
+  background: radial-gradient(circle, #ff4444 0%, #dd0000 100%);
+  box-shadow: 0 0 10px rgba(255, 68, 68, 0.8);
+  border-color: #ff6666;
+  animation: redPulse 1s ease-in-out infinite;
+}
+
+.light.yellow.active {
+  background: radial-gradient(circle, #ffeb3b 0%, #fbc02d 100%);
+  box-shadow: 0 0 10px rgba(255, 235, 59, 0.8);
+  border-color: #fff176;
+  animation: yellowFlash 0.6s ease-in-out;
+}
+
+.light.green.active {
+  background: radial-gradient(circle, #4caf50 0%, #2e7d32 100%);
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.9);
+  border-color: #66bb6a;
+  animation: greenGlow 2s ease-in-out infinite;
+}
+
+@keyframes redPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes yellowFlash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes greenGlow {
+  0%, 100% { 
+    box-shadow: 0 0 12px rgba(76, 175, 80, 0.9);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 18px rgba(76, 175, 80, 1);
+    transform: scale(1.05);
+  }
+}
+
+/* Phase Display */
+.phaseDisplay {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  min-height: 20px;
+}
+
+.phaseRed {
+  color: #ff4444;
+  animation: fadeIn 0.3s ease;
+}
+
+.phaseYellow {
+  color: #fbc02d;
+  animation: fadeIn 0.3s ease;
+}
+
+.phaseGreen {
+  color: #4caf50;
+  animation: bounceIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Hands */
+.hands {
+  text-align: center;
+  font-size: 32px;
+  line-height: 1;
+  min-height: 32px;
+}
+
+/* Progress Bar */
+.progressBar {
+  width: 100%;
+  height: 4px;
+  background: #f0f0f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  transition: width 0.1s linear;
+  border-radius: 2px;
+}
+
+.progressFill.red {
+  background: linear-gradient(90deg, #ff4444 0%, #ff6666 100%);
+}
+
+.progressFill.yellow {
+  background: linear-gradient(90deg, #ffeb3b 0%, #ffd54f 100%);
+}
+
+.progressFill.green {
+  background: linear-gradient(90deg, #4caf50 0%, #66bb6a 100%);
+}
+
+/* Compact Mobile Styles */
+@media (max-width: 768px) {
+  .floatingTimer {
+    width: 150px;
+  }
+
+  .dragHandle {
+    padding: 6px 10px;
+  }
+
+  .timerTitle {
+    font-size: 10px;
+  }
+
+  .timerContent {
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .light {
+    width: 20px;
+    height: 20px;
+  }
+
+  .phaseDisplay {
+    font-size: 12px;
+  }
+
+  .hands {
+    font-size: 28px;
+    min-height: 28px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 400px) {
+  .floatingTimer {
+    width: 130px;
+  }
+
+  .timerContent {
+    padding: 8px;
+  }
+
+  .light {
+    width: 18px;
+    height: 18px;
+  }
+
+  .hands {
+    font-size: 24px;
+    min-height: 24px;
+  }
+}
+
+/* Prevent text selection while dragging */
+.floatingTimer.dragging * {
+  user-select: none;
+  -webkit-user-select: none;
+}
