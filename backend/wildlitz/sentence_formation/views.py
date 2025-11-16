@@ -181,11 +181,22 @@ def generate_story(request):
                 examples = ', '.join(FOCUS_SKILL_VOCABULARY[skill]['examples'][:5])
                 skill_requirements.append(f"   - {skill}: Include at least {words_per_skill} words like: {examples}")
         
-        # Adjust prompt based on number of skills
+        # Adjust prompt based on number of skills - MAKE IT SUPER EXPLICIT
         if len(focus_skills) == 1:
             mixing_instruction = f"Focus on the {focus_skills[0]} skill. Each episode should have 5-7 words from this skill."
+            validation_rule = f"VALIDATION: Each episode MUST have at least 5 words from {focus_skills[0]}"
         else:
-            mixing_instruction = f"Mix words from BOTH skills ({' and '.join(focus_skills)}) in EACH episode. Each episode must have at least 2 words from EACH skill."
+            skill1, skill2 = focus_skills[0], focus_skills[1]
+            mixing_instruction = f"""
+CRITICAL MIXING RULE - THIS IS MANDATORY FOR EVERY SINGLE EPISODE:
+- Skill 1 ({skill1}): MUST have at least 2 words. Examples: {', '.join(FOCUS_SKILL_VOCABULARY[skill1]['examples'][:5])}
+- Skill 2 ({skill2}): MUST have at least 2 words. Examples: {', '.join(FOCUS_SKILL_VOCABULARY[skill2]['examples'][:5])}
+
+EVERY EPISODE needs words from BOTH skills. 
+DO NOT make Episode 1 only {skill1}, Episode 2 only {skill2}.
+ALL episodes MUST be a MIX of BOTH {skill1} AND {skill2}.
+"""
+            validation_rule = f"VALIDATION: Every episode needs {skill1}+{skill2}. Episode 1: {skill1}+{skill2}, Episode 2: {skill1}+{skill2}, Episode 3: {skill1}+{skill2}"
         
         prompt = f"""
         Create EXACTLY {episode_count} complete episodes for an educational story for grade {grade_level} students with a {theme} theme.
@@ -195,11 +206,29 @@ def generate_story(request):
         CRITICAL: You MUST create all {episode_count} episodes. Do not create fewer episodes than requested!
         
         ================================
-        FOCUS SKILLS (MAXIMUM 2):
+        MANDATORY VOCABULARY MIXING (READ THIS CAREFULLY):
         ================================
-        The user selected {len(focus_skills)} focus skill(s): {', '.join(focus_skills)}
+        Selected skills: {', '.join(focus_skills)}
         
         {mixing_instruction}
+        
+        {validation_rule}
+        
+        EXAMPLE VOCABULARY MIX (if skills are phonics-ch and action-verbs):
+        Episode 1 vocabularyFocus: ["chat", "chip", "run", "jump", "help"]
+        - 2 CH words (chat, chip) ✅
+        - 3 action verbs (run, jump, help) ✅
+        
+        Episode 2 vocabularyFocus: ["lunch", "beach", "walk", "swim", "find"]
+        - 2 CH words (lunch, beach) ✅
+        - 3 action verbs (walk, swim, find) ✅
+        
+        Episode 3 vocabularyFocus: ["much", "reach", "climb", "play", "catch"]
+        - 2 CH words (much, reach) ✅
+        - 3 action verbs (climb, play, catch) ✅
+        
+        DO NOT CREATE (WRONG):
+        Episode 3 vocabularyFocus: ["walk", "oink", "roll", "trot", "find"] ❌ REJECTED - Missing CH words!
         
         REQUIREMENTS FOR EACH EPISODE:
 {chr(10).join(skill_requirements)}
@@ -215,8 +244,9 @@ def generate_story(request):
         3. ONLY use words that actually match the focus skills
         4. Words must be 3-8 letters long (grade 3 appropriate)
         5. Each vocabulary word MUST appear naturally in the story text
+        6. Words should be simple enough for 8-9 year olds to understand
         
-        EXAMPLE VOCABULARY WORDS (USE THESE):
+        USE THESE VOCABULARY WORDS (DO NOT USE OTHER WORDS):
         {', '.join(vocab_guidance['example_words'][:30])}
         
         ================================
@@ -232,7 +262,7 @@ def generate_story(request):
         For EACH episode:
         - 150-200 words total
         - Engaging narrative with vocabulary words used naturally
-        - {"Focus on " + focus_skills[0] + " words" if len(focus_skills) == 1 else "Mix words from BOTH " + " and ".join(focus_skills) + " skills"}
+        - {"Focus on " + focus_skills[0] + " words" if len(focus_skills) == 1 else "Mix words from BOTH " + " and ".join(focus_skills) + " skills in EVERY episode"}
         
         For EACH of the {episode_count} episodes, provide:
         1. Episode number and title
@@ -322,11 +352,11 @@ def generate_story(request):
         
         Do NOT wrap in markdown blocks. Return ONLY the JSON object.
         
-        FINAL REMINDER: {"Each episode needs 5-7 words from " + focus_skills[0] if len(focus_skills) == 1 else "Each episode needs at least 2 words from EACH skill: " + " and ".join(focus_skills)}
+        FINAL REMINDER: {"Each episode needs 5-7 words from " + focus_skills[0] if len(focus_skills) == 1 else "Each episode needs at least 2 words from " + focus_skills[0] + " AND at least 2 words from " + focus_skills[1]}
         """
         
-        # TRY UP TO 2 TIMES
-        max_attempts = 2
+        # TRY UP TO 3 TIMES
+        max_attempts = 3
         
         for attempt in range(max_attempts):
             logger.info(f"🔄 Generation attempt {attempt + 1}/{max_attempts}")
@@ -353,6 +383,12 @@ def generate_story(request):
                     puzzle = story_data.get('puzzles', {}).get(puzzle_id, {})
                     word_count = len(puzzle.get('words', []))
                     
+                    # Add debug logging
+                    logger.info(f"📊 Episode {episode.get('episodeNumber')} validation:")
+                    logger.info(f"   Vocab words: {vocab_focus}")
+                    logger.info(f"   Vocab count: {vocab_count}")
+                    logger.info(f"   Puzzle words count: {word_count}")
+                    
                     # Check word counts
                     if word_count < 5:
                         logger.warning(f"⚠️ Episode {episode.get('episodeNumber')} puzzle has only {word_count} words")
@@ -363,6 +399,8 @@ def generate_story(request):
                     
                     # Check if vocabulary matches selected skills
                     is_valid, message, skill_matches = validate_vocabulary_matches_skills(vocab_focus, focus_skills)
+                    logger.info(f"   Skill matches: {skill_matches}")
+                    
                     if not is_valid:
                         logger.warning(f"⚠️ Episode {episode.get('episodeNumber')}: {message}")
                         logger.warning(f"   Vocabulary: {', '.join(vocab_focus)}")
@@ -375,11 +413,34 @@ def generate_story(request):
                 else:
                     logger.warning(f"⚠️ Validation failed on attempt {attempt + 1}")
                     if attempt < max_attempts - 1:
-                        logger.info("🔄 Retrying with stronger emphasis...")
-                        prompt += f"\n\nATTEMPT {attempt + 2}: CRITICAL - Your previous story was REJECTED. Each episode MUST have words from ALL skills: {', '.join(focus_skills)}. Use ONLY words from the example list!"
+                        logger.info("🔄 Retrying with STRONGER emphasis...")
+                        
+                        # Make retry prompt SUPER explicit
+                        if len(focus_skills) == 2:
+                            skill1_examples = ', '.join(FOCUS_SKILL_VOCABULARY[focus_skills[0]]['examples'][:3])
+                            skill2_examples = ', '.join(FOCUS_SKILL_VOCABULARY[focus_skills[1]]['examples'][:3])
+                            
+                            prompt += f"""
+
+🚨🚨🚨 ATTEMPT {attempt + 2} - YOUR PREVIOUS ATTEMPT WAS REJECTED! 🚨🚨🚨
+
+PROBLEM: One or more episodes were missing words from {focus_skills[0]} or {focus_skills[1]}.
+
+SOLUTION: EVERY SINGLE EPISODE must include:
+- At least 2 words from {focus_skills[0]}: Use {skill1_examples}
+- At least 2 words from {focus_skills[1]}: Use {skill2_examples}
+
+CORRECT EXAMPLE:
+Episode 1: ["{FOCUS_SKILL_VOCABULARY[focus_skills[0]]['examples'][0]}", "{FOCUS_SKILL_VOCABULARY[focus_skills[0]]['examples'][1]}", "{FOCUS_SKILL_VOCABULARY[focus_skills[1]]['examples'][0]}", "{FOCUS_SKILL_VOCABULARY[focus_skills[1]]['examples'][1]}", "{FOCUS_SKILL_VOCABULARY[focus_skills[1]]['examples'][2]}"]
+
+DO THIS FOR ALL {episode_count} EPISODES!
+"""
+                        else:
+                            prompt += f"\n\nATTEMPT {attempt + 2}: Your previous story was REJECTED. Make sure EVERY episode has at least 5 words from {focus_skills[0]}!"
                     
             except json.JSONDecodeError as json_error:
                 logger.error(f"JSON parsing error: {json_error}")
+                logger.error(f"Failed content (first 500 chars): {cleaned_content[:500]}")
                 if attempt < max_attempts - 1:
                     continue
         
