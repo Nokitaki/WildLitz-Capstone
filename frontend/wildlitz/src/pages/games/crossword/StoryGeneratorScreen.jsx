@@ -1,5 +1,11 @@
 // src/pages/games/crossword/StoryGeneratorScreen.jsx
-// OPTIMIZED VERSION - No default selection, removed sight-words, added audio
+// OPTIMIZED VERSION - Progressive Episode Generation (FIXED)
+// 
+// KEY CHANGES:
+// 1. generateStoryProgressively now ONLY generates the FIRST episode
+// 2. Stores totalEpisodes and generatedEpisodes in story metadata
+// 3. Subsequent episodes are generated on-demand when user clicks "Continue to Next Episode"
+
 import React, { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -31,7 +37,7 @@ ThemeOption.displayName = 'ThemeOption';
 // Memoized Skill Option Component with Audio
 const SkillOption = memo(({ skill, isSelected, onToggle, onPlayAudio, disabled }) => {
   const handleAudioClick = (e) => {
-    e.stopPropagation(); // Prevent triggering the skill selection
+    e.stopPropagation();
     onPlayAudio(skill.name);
   };
 
@@ -61,9 +67,9 @@ SkillOption.displayName = 'SkillOption';
 const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   const navigate = useNavigate();
   
-  // Form state - START WITH EMPTY ARRAY (NO DEFAULT SELECTION)
+  // Form state
   const [theme, setTheme] = useState('jungle');
-  const [focusSkills, setFocusSkills] = useState([]); // Changed from ['sight-words'] to []
+  const [focusSkills, setFocusSkills] = useState([]);
   const [characterNames, setCharacterNames] = useState('');
   const [episodeCount, setEpisodeCount] = useState(3);
   
@@ -88,7 +94,7 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
     }
   }, []);
   
-  // Memoized static data - REMOVED 'sight-words' option
+  // Memoized static data
   const availableThemes = useMemo(() => [
     { id: 'jungle', name: 'Jungle Adventure', icon: '🌴', description: 'Explore lush rainforests filled with wildlife and mystery.' },
     { id: 'ocean', name: 'Ocean Discovery', icon: '🌊', description: 'Dive into underwater worlds and discover marine life.' },
@@ -98,28 +104,24 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
     { id: 'fairytale', name: 'Fairy Tale Kingdom', icon: '🏰', description: 'Discover magical castles and meet enchanted creatures.' }
   ], []);
   
-  // REMOVED 'sight-words' from available skills
- const availableSkills = useMemo(() => [
-  { id: 'phonics-sh', name: 'Phonics: SH Sound', icon: '📊' },
-  { id: 'phonics-ch', name: 'Phonics: CH Sound', icon: '🎵' },
-  { id: 'phonics-th', name: 'Phonics: TH Sound', icon: '🔤' },
-  { id: 'phonics-wh', name: 'Phonics: WH Sound', icon: '❓' },
-  { id: 'action-verbs', name: 'Action Verbs', icon: '🏃‍♂️' }
-], []);
+  const availableSkills = useMemo(() => [
+    { id: 'phonics-sh', name: 'Phonics: SH Sound', icon: '🔊' },
+    { id: 'phonics-ch', name: 'Phonics: CH Sound', icon: '🎵' },
+    { id: 'phonics-th', name: 'Phonics: TH Sound', icon: '🔤' },
+    { id: 'phonics-wh', name: 'Phonics: WH Sound', icon: '❓' },
+    { id: 'action-verbs', name: 'Action Verbs', icon: '🏃‍♂️' }
+  ], []);
   
   // Audio playback function
   const playSkillAudio = useCallback((skillName) => {
     if (speechSynthRef.current) {
-      // Cancel any ongoing speech
       speechSynthRef.current.cancel();
       
-      // Create utterance
       const utterance = new SpeechSynthesisUtterance(skillName);
-      utterance.rate = 0.9; // Slightly slower for clarity
-      utterance.pitch = 1.1; // Slightly higher pitch for children
+      utterance.rate = 0.9;
+      utterance.pitch = 1.1;
       utterance.volume = 1.0;
       
-      // Try to use a child-friendly voice if available
       const voices = speechSynthRef.current.getVoices();
       const preferredVoice = voices.find(voice => 
         voice.name.includes('Google') && voice.name.includes('US English')
@@ -129,186 +131,139 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
         utterance.voice = preferredVoice;
       }
       
-      // Speak
       speechSynthRef.current.speak(utterance);
     }
   }, []);
-  
-  // Memoized handlers
-  const handleSkillToggle = useCallback((skillId) => {
-  setFocusSkills(prev => {
-    if (prev.includes(skillId)) {
-      // Remove skill if already selected
-      return prev.filter(id => id !== skillId);
-    } else {
-      // Only allow max 2 skills
-      if (prev.length >= 2) {
-        // Show a message or just prevent adding more
-        return prev; // Don't add more than 2
-      }
-      return [...prev, skillId];
-    }
-  });
-}, []);
 
-  const handleThemeSelect = useCallback((themeId) => {
-    setTheme(themeId);
-  }, []);
-
-  const handleEpisodeIncrement = useCallback(() => {
-    setEpisodeCount(prev => Math.min(5, prev + 1));
-  }, []);
-
-  const handleEpisodeDecrement = useCallback(() => {
-    setEpisodeCount(prev => Math.max(1, prev - 1));
-  }, []);
-
-  const handleEpisodeChange = useCallback((e) => {
-    setEpisodeCount(parseInt(e.target.value));
-  }, []);
-
-  // Clear timeout when component unmounts
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current);
-      }
-      // Stop any ongoing speech
-      if (speechSynthRef.current) {
-        speechSynthRef.current.cancel();
-      }
-    };
-  }, []);
-  
-  // Generate story with AI
-  const generateStory = useCallback(async (e) => {
-  if (e && e.preventDefault) {
-    e.preventDefault();
-  }
-  
-  // Validate that at least one skill is selected
-  if (focusSkills.length === 0) {
-  setError('⚠️ Please select at least one focus skill before creating your story!');
-  
-  // Scroll to top to show error
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-  
-  // Clear error after 5 seconds
-  setTimeout(() => {
+  // ⭐ FIXED: Generate ONLY the first episode, not all episodes
+  const generateStoryProgressively = useCallback(async () => {
+    setIsGenerating(true);
+    setGenerationProgress(0);
     setError(null);
-  }, 5000);
-  
-  return;
-}
-  
-  setIsGenerating(true);
-  setGenerationProgress(0);
-  setError(null); // Clear any previous errors
-  setTimeoutWarning(false);
-    
-    // Set a timeout warning after 30 seconds
-    timeoutRef.current = setTimeout(() => {
-      setTimeoutWarning(true);
-    }, 30000);
-    
-    // Simulated progress updates (optimized with ref)
-    progressIntervalRef.current = setInterval(() => {
-      setGenerationProgress(prev => {
-        if (prev >= 90) {
-          return 90;
-        }
-        return prev + (prev < 50 ? 4 : (prev < 80 ? 2 : 1));
-      });
-    }, 1000);
     
     try {
-      const controller = new AbortController();
-      const timeoutDuration = (episodeCount * 30000) + 30000;
-      const fetchTimeout = setTimeout(() => controller.abort(), timeoutDuration);
-      
-      const requestBody = {
-        theme,
-        focusSkills: focusSkills.slice(0, 3),
-        characterNames: characterNames || undefined,
-        episodeCount: Math.min(episodeCount, 5),
-        gradeLevel: 3,
-      };
-      
-      
+      // Generate ONLY the FIRST episode
+      setGenerationProgress(50);
       
       const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/generate-story/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          theme,
+          focusSkills: focusSkills.slice(0, 3),
+          characterNames: characterNames || undefined,
+          episodeCount: 1, // ⭐ Only generate first episode
+          episodeNumber: 1, // This is episode 1
+          gradeLevel: 3,
+          totalEpisodes: episodeCount // ⭐ Store total requested for later
+        }),
+        signal: AbortSignal.timeout(25000)
       });
       
-      clearTimeout(fetchTimeout);
-      
       if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-      }
-    
-      const responseText = await response.text();
-      
-      
-      const responseData = JSON.parse(responseText);
-      
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current);
-      }
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+        throw new Error('Failed to generate first episode');
       }
       
-      if (!responseData || !responseData.story || !responseData.puzzles) {
-        throw new Error("Response does not contain expected story data");
-      }
+      const data = await response.json();
       
       setGenerationProgress(100);
       
+      // ⭐ Create story with ONLY the first episode
+      const storyData = {
+        story: {
+          id: `story_${Date.now()}`,
+          title: `${theme.charAt(0).toUpperCase() + theme.slice(1)} Adventure`,
+          description: `An exciting ${theme} adventure story!`,
+          theme,
+          focusSkills,
+          characterNames: characterNames || '',
+          gradeLevel: 3,
+          episodes: data.story?.episodes || [],
+          totalEpisodes: episodeCount, // ⭐ Total episodes user requested
+          generatedEpisodes: 1 // ⭐ Only 1 episode generated so far
+        },
+        puzzles: data.puzzles || {}
+      };
+      
       setTimeout(() => {
         if (onStoryGenerated) {
-          onStoryGenerated(responseData);
+          onStoryGenerated(storyData);
         }
         setIsGenerating(false);
       }, 500);
       
     } catch (err) {
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current);
-      }
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      
-      if (err.name === 'AbortError') {
-        setError('Request timed out. The server is taking too long to respond. Try with fewer episodes or a simpler theme.');
-      } else {
-        setError(err.message || 'An error occurred while generating the story');
-      }
+      setError(err.message || 'Failed to generate story');
       setIsGenerating(false);
-      console.error('Error generating story:', err);
+      console.error('Error:', err);
     }
   }, [theme, focusSkills, characterNames, episodeCount, onStoryGenerated]);
-  
+
   const handleRetry = useCallback(() => {
     setError(null);
     setIsGenerating(false);
     setGenerationProgress(0);
+    setTimeoutWarning(false);
   }, []);
-  
+
   const handleCancel = useCallback(() => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    setIsGenerating(false);
+    setError(null);
     if (onCancel) {
       onCancel();
     }
   }, [onCancel]);
-  
+
+  const handleThemeSelect = useCallback((themeId) => {
+    setTheme(themeId);
+  }, []);
+
+  const handleSkillToggle = useCallback((skillId) => {
+    setFocusSkills(prev => {
+      if (prev.includes(skillId)) {
+        return prev.filter(id => id !== skillId);
+      } else if (prev.length < 2) {
+        return [...prev, skillId];
+      }
+      return prev;
+    });
+  }, []);
+
+  const handleEpisodeIncrement = useCallback(() => {
+    setEpisodeCount(prev => Math.min(prev + 1, 5));
+  }, []);
+
+  const handleEpisodeDecrement = useCallback(() => {
+    setEpisodeCount(prev => Math.max(prev - 1, 1));
+  }, []);
+
+  const handleEpisodeChange = useCallback((e) => {
+    setEpisodeCount(parseInt(e.target.value, 10));
+  }, []);
+
+  const generateStory = useCallback(async (e) => {
+    e.preventDefault();
+    
+    if (focusSkills.length === 0) {
+      setError('Please select at least 1 focus skill');
+      return;
+    }
+    
+    if (focusSkills.length > 2) {
+      setError('Please select no more than 2 focus skills');
+      return;
+    }
+    
+    setError(null);
+    await generateStoryProgressively();
+  }, [focusSkills, generateStoryProgressively]);
+
   return (
     <div className={styles.generatorContainer}>
       <BackToHomeButton position="top-left" />
@@ -324,7 +279,7 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
           <div className={styles.generatingContent}>
             <StoryLoadingScreen 
               progress={generationProgress}
-              message="Creating your adventure..."
+              message="Creating your first episode..."
               showWarning={timeoutWarning && generationProgress < 100}
             />
             
@@ -342,7 +297,7 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
                     className={styles.retryButton}
                     onClick={handleRetry}
                   >
-                    Try with Simpler Settings
+                    Try Again
                   </button>
                   <button 
                     className={styles.cancelButton}
@@ -368,14 +323,13 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
           </div>
         ) : (
           <form className={styles.generatorForm} onSubmit={generateStory}>
-
-            {/* Validation Error */}
-  {error && !isGenerating && (
-    <div className={styles.validationError}>
-      <span className="errorIcon">⚠️</span>
-      <p className="errorText">{error}</p>
-    </div>
-  )}
+            {error && !isGenerating && (
+              <div className={styles.validationError}>
+                <span className="errorIcon">⚠️</span>
+                <p className="errorText">{error}</p>
+              </div>
+            )}
+            
             {/* Theme Selection */}
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Story Theme:</label>
@@ -393,35 +347,35 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
               </div>
             </div>
             
-                            {/* Skills Selection */}
-                          <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Focus Skills:
-                    <span className={styles.skillCount}>
-                      {focusSkills.length}/2 selected
-                    </span>
-                  </label>
-                  {focusSkills.length >= 2 && (
-                    <p className={styles.maxSkillsWarning}>
-                      ⚠️ Maximum 2 skills selected. Deselect one to choose a different skill.
-                    </p>
-                  )}
-                  <div className={styles.skillOptions}>
-                    {availableSkills.map(skill => (
-                      <SkillOption
-                        key={skill.id}
-                        skill={skill}
-                        isSelected={focusSkills.includes(skill.id)}
-                        onToggle={handleSkillToggle}
-                        onPlayAudio={playSkillAudio}
-                        disabled={!focusSkills.includes(skill.id) && focusSkills.length >= 2}
-                      />
-                    ))}
-                  </div>
-                  <p className={styles.skillHint}>
-                    💡 Select 1-2 skills for the best results. Click 🔊 to hear each skill!
-                  </p>
-                </div>
+            {/* Skills Selection */}
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>
+                Focus Skills:
+                <span className={styles.skillCount}>
+                  {focusSkills.length}/2 selected
+                </span>
+              </label>
+              {focusSkills.length >= 2 && (
+                <p className={styles.maxSkillsWarning}>
+                  ⚠️ Maximum 2 skills selected. Deselect one to choose a different skill.
+                </p>
+              )}
+              <div className={styles.skillOptions}>
+                {availableSkills.map(skill => (
+                  <SkillOption
+                    key={skill.id}
+                    skill={skill}
+                    isSelected={focusSkills.includes(skill.id)}
+                    onToggle={handleSkillToggle}
+                    onPlayAudio={playSkillAudio}
+                    disabled={!focusSkills.includes(skill.id) && focusSkills.length >= 2}
+                  />
+                ))}
+              </div>
+              <p className={styles.skillHint}>
+                💡 Select 1-2 skills for the best results. Click 🔊 to hear each skill!
+              </p>
+            </div>
             
             {/* Character Names */}
             <div className={styles.formGroup}>
@@ -440,7 +394,10 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
             
             {/* Episode Count */}
             <div className={styles.formGroup}>
-              <label className={styles.formLabel}>Number of Episodes:</label>
+              <label className={styles.formLabel}>
+                Number of Episodes:
+                <span className={styles.episodeHint}> (First episode generated now, rest generated as you play!)</span>
+              </label>
               <div className={styles.episodeCountControls}>
                 <button 
                   type="button"
@@ -474,28 +431,27 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
             </div>
             
             {/* Action Buttons */}
-
             {error && !isGenerating && (
-  <div className={styles.validationError}>
-    <span className={styles.errorIcon}>⚠️</span>
-    <p className={styles.errorText}>{error}</p>
-  </div>
-)}
-           <div className={styles.actionButtons}>
-  <button 
-    type="button"
-    className={styles.cancelButton}
-    onClick={handleCancel}
-  >
-    Cancel
-  </button>
-  <button 
-    type="submit"
-    className={styles.generateButton}
-  >
-    Create Story
-  </button>
-</div>
+              <div className={styles.validationError}>
+                <span className={styles.errorIcon}>⚠️</span>
+                <p className={styles.errorText}>{error}</p>
+              </div>
+            )}
+            <div className={styles.actionButtons}>
+              <button 
+                type="button"
+                className={styles.cancelButton}
+                onClick={handleCancel}
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit"
+                className={styles.generateButton}
+              >
+                Create Story
+              </button>
+            </div>
           </form>
         )}
       </div>

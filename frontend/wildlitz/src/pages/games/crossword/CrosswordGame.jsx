@@ -24,7 +24,7 @@ import { useAuth } from '../../../context/AuthContext';
 
 // Import mock data
 import { STORY_ADVENTURES, STORY_PUZZLES } from '../../../mock/storyData';
-
+import { API_ENDPOINTS } from '../../../config/api';
 /**
  * Main Crossword Puzzle Game component that manages game state and flow
  */
@@ -52,6 +52,11 @@ const CrosswordGame = () => {
   const [currentStorySegment, setCurrentStorySegment] = useState(null);
   const [currentPuzzle, setCurrentPuzzle] = useState(null);
   
+
+  // Add new state for progressive generation
+  const [isGeneratingNextEpisode, setIsGeneratingNextEpisode] = useState(false);
+  const [generationError, setGenerationError] = useState(null);
+
   // Game progress
   const [solvedWords, setSolvedWords] = useState([]);
   const [timeSpent, setTimeSpent] = useState(0);
@@ -150,7 +155,11 @@ const CrosswordGame = () => {
       description: data.story.description,
       theme: data.story.theme,
       gradeLevel: data.story.gradeLevel,
-      episodes: data.story.episodes ? data.story.episodes : []
+      episodes: data.story.episodes ? data.story.episodes : [],
+      totalEpisodes: data.story.totalEpisodes || 1,        // ⭐ ADD
+      generatedEpisodes: data.story.generatedEpisodes || 1, // ⭐ ADD
+      focusSkills: data.story.focusSkills || [],           // ⭐ ADD
+      characterNames: data.story.characterNames || ''       // ⭐ ADD
     };
     
     const newStories = {
@@ -294,36 +303,137 @@ const CrosswordGame = () => {
     setTimerActive(false);
   };
   
-  const handleNextEpisode = () => {
-    const adventure = gameStories[gameConfig.adventureId];
+  const handleNextEpisode = async () => {
+  const adventure = gameStories[gameConfig.adventureId];
+  
+  if (!adventure || !adventure.episodes) {
+    setGameState('generate-story');
+    return;
+  }
+  
+  const nextEpisodeIndex = currentEpisode; // Next episode (currentEpisode is 0-indexed for array)
+  
+  // Check if we've already generated this episode
+  if (nextEpisodeIndex < adventure.episodes.length) {
+    // Episode already exists, just load it
+    const nextEpisode = adventure.episodes[nextEpisodeIndex];
+    setCurrentStorySegment(nextEpisode);
+    setCurrentEpisode(currentEpisode + 1);
     
-    if (!adventure || !adventure.episodes) {
-      setGameState('generate-story');
-      return;
+    const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
+    if (puzzleData) {
+      setCurrentPuzzle(puzzleData);
     }
     
-    const nextEpisodeIndex = currentEpisode;
+    setSolvedWords([]);
+    setTimeSpent(0);
+    setTotalHints(0);
+    setTimerActive(false);
     
-    if (nextEpisodeIndex < adventure.episodes.length) {
-      const nextEpisode = adventure.episodes[nextEpisodeIndex];
-      setCurrentStorySegment(nextEpisode);
-      setCurrentEpisode(currentEpisode + 1);
-      
-      const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
-      if (puzzleData) {
-        setCurrentPuzzle(puzzleData);
+    setGameState('story');
+  } 
+  // Check if we need to generate the next episode
+  else if (adventure.generatedEpisodes < adventure.totalEpisodes) {
+    // ⭐ GENERATE NEXT EPISODE ON-DEMAND
+    await generateNextEpisodeOnDemand();
+  } 
+  else {
+    // All episodes completed
+    setGameState('generate-story');
+  }
+};
+
+// ⭐ NEW FUNCTION: Generate next episode on demand
+const generateNextEpisodeOnDemand = async () => {
+  const adventure = gameStories[gameConfig.adventureId];
+  const nextEpisodeNumber = adventure.generatedEpisodes + 1;
+  
+  setIsGeneratingNextEpisode(true);
+  setGenerationError(null);
+  
+  try {
+    // Gather previous episodes for context
+    const previousEpisodes = adventure.episodes.map(ep => ({
+      title: ep.title,
+      text: ep.text,
+      vocabularyWords: gamePuzzles[ep.crosswordPuzzleId]?.words?.map(w => ({
+        word: w.answer.toLowerCase(),
+        definition: w.definition
+      })) || []
+    }));
+    
+    const requestBody = {
+      storyId: adventure.id,
+      episodeNumber: nextEpisodeNumber,
+      theme: adventure.theme,
+      focusSkills: adventure.focusSkills,
+      characterNames: adventure.characterNames || '',
+      gradeLevel: 3,
+      previousEpisodes: previousEpisodes
+    };
+    
+    const response = await fetch(
+      `${API_ENDPOINTS.SENTENCE_FORMATION}/generate-next-episode/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody),
+        signal: AbortSignal.timeout(28000) // 28-second timeout
       }
-      
-      setSolvedWords([]);
-      setTimeSpent(0);
-      setTotalHints(0);
-      setTimerActive(false);
-      
-      setGameState('story');
-    } else {
-      setGameState('generate-story');
+    );
+    
+    if (!response.ok) {
+      throw new Error(`Failed to generate episode ${nextEpisodeNumber}`);
     }
-  };
+    
+    const data = await response.json();
+    
+    if (!data.success || !data.episode || !data.puzzle) {
+      throw new Error('Invalid response from server');
+    }
+    
+    // Add new episode to story
+    const updatedStory = {
+      ...adventure,
+      episodes: [...adventure.episodes, data.episode],
+      generatedEpisodes: nextEpisodeNumber
+    };
+    
+    // Add new puzzle
+    const updatedPuzzles = {
+      ...gamePuzzles,
+      ...data.puzzle
+    };
+    
+    // Update state
+    setGameStories({
+      ...gameStories,
+      [gameConfig.adventureId]: updatedStory
+    });
+    setGamePuzzles(updatedPuzzles);
+    
+    // Set new episode as current
+    setCurrentStorySegment(data.episode);
+    setCurrentEpisode(currentEpisode + 1);
+    setCurrentPuzzle(data.puzzle[data.episode.crosswordPuzzleId]);
+    
+    // Reset game state
+    setSolvedWords([]);
+    setTimeSpent(0);
+    setTotalHints(0);
+    setTimerActive(false);
+    
+    setIsGeneratingNextEpisode(false);
+    setGameState('story');
+    
+  } catch (error) {
+    console.error('Error generating next episode:', error);
+    setGenerationError(error.message || 'Failed to generate next episode');
+    setIsGeneratingNextEpisode(false);
+  }
+};
   
   const handleReturnToMenu = () => {
     if (window.disableGameAudio) window.disableGameAudio();
@@ -403,6 +513,65 @@ const CrosswordGame = () => {
             />
           </motion.div>
         )}
+
+        {isGeneratingNextEpisode && (
+  <motion.div
+    key="generating-next"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0, 0, 0, 0.8)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 9999
+    }}
+  >
+    <div style={{
+      background: 'white',
+      padding: '40px',
+      borderRadius: '20px',
+      textAlign: 'center',
+      maxWidth: '400px'
+    }}>
+      <div style={{ fontSize: '48px', marginBottom: '20px' }}>📚</div>
+      <h2 style={{ marginBottom: '10px' }}>Creating Next Episode...</h2>
+      <p style={{ color: '#666' }}>Please wait while we generate your next adventure!</p>
+      <div style={{
+        marginTop: '20px',
+        width: '100%',
+        height: '6px',
+        background: '#e0e0e0',
+        borderRadius: '3px',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          width: '100%',
+          height: '100%',
+          background: 'linear-gradient(90deg, #9c27b0, #673ab7)',
+          animation: 'loading 2s linear infinite'
+        }} />
+      </div>
+      {generationError && (
+        <div style={{
+          marginTop: '20px',
+          padding: '15px',
+          background: '#fee',
+          borderRadius: '10px',
+          color: '#c00'
+        }}>
+          {generationError}
+        </div>
+      )}
+    </div>
+  </motion.div>
+)}
         
         {gameState === 'summary' && (
           <motion.div
@@ -423,8 +592,8 @@ const CrosswordGame = () => {
               isStoryMode={gameConfig.storyMode}
               storySegment={currentStorySegment}
               currentEpisode={currentEpisode}
-              totalEpisodes={gameStories[gameConfig.adventureId]?.episodes.length || 1}
-              hasNextEpisode={currentEpisode < (gameStories[gameConfig.adventureId]?.episodes.length || 0)}
+              totalEpisodes={gameStories[gameConfig.adventureId]?.totalEpisodes || 1}
+              hasNextEpisode={currentEpisode < (gameStories[gameConfig.adventureId]?.totalEpisodes || 0)}
               sessionId={sessionId}
             />
           </motion.div>

@@ -66,7 +66,7 @@ def log_sentence_formation_activity(user, activity_type, question_data, user_ans
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def test_endpoint(request):
+def Trailtest_endpoint(request):
     """Simple test endpoint to verify API connectivity"""
     return JsonResponse({"status": "success", "message": "API is working"})
 
@@ -145,20 +145,28 @@ def call_openai_for_story(prompt, max_tokens):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def generate_story(request):
+    """
+    MODIFIED: Now only generates the FIRST episode
+    Additional episodes are generated on-demand via generate_next_episode endpoint
+    """
     try:
         data = request.data
         theme = data.get('theme', 'jungle')
         focus_skills = data.get('focusSkills', ['action-verbs'])
         character_names = data.get('characterNames', '')
-        episode_count = min(int(data.get('episodeCount', 3)), 5)
+        total_episodes = min(int(data.get('totalEpisodes', 3)), 5)  # Store total requested
         grade_level = data.get('gradeLevel', 3)
+        
+        # ⭐ ALWAYS generate only 1 episode initially
+        episode_count = 1
         
         # LIMIT TO MAX 2 SKILLS
         if len(focus_skills) > 2:
             focus_skills = focus_skills[:2]
             logger.warning(f"⚠️ Too many skills selected, limiting to first 2: {focus_skills}")
         
-        logger.info(f"📚 Story generation request: theme={theme}, skills={focus_skills}, episodes={episode_count}")
+        logger.info(f"📚 Initial story generation: theme={theme}, skills={focus_skills}, total_episodes={total_episodes}")
+        logger.info(f"⭐ Generating ONLY episode 1, remaining episodes will be generated on-demand")
         
         if not settings.OPENAI_API_KEY:
             logger.error("OpenAI API key is missing")
@@ -167,292 +175,453 @@ def generate_story(request):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
         story_id = f"{theme}_generated_{int(datetime.now().timestamp())}"
-        max_tokens = min(4000, 1500 + (episode_count * 600))
+        max_tokens = 1800  # ⭐ Reduced since we're only generating 1 episode
         vocab_guidance = get_vocabulary_guidance(focus_skills)
         
         logger.info(f"📝 Generating with focus skills: {focus_skills}")
         
-        # Create explicit requirement for each skill - optimized for 1-2 skills
+        # Create skill requirements
         skill_requirements = []
-        words_per_skill = 3 if len(focus_skills) == 1 else 2  # More words if only 1 skill
+        words_per_skill = 3 if len(focus_skills) == 1 else 2
         
         for skill in focus_skills:
             if skill in FOCUS_SKILL_VOCABULARY:
                 examples = ', '.join(FOCUS_SKILL_VOCABULARY[skill]['examples'][:5])
                 skill_requirements.append(f"   - {skill}: Include at least {words_per_skill} words like: {examples}")
         
-        # Adjust prompt based on number of skills - MAKE IT SUPER EXPLICIT
+        # ⭐ BUILD EMPHATIC MIXING INSTRUCTION (matching your current code)
         if len(focus_skills) == 1:
-            mixing_instruction = f"Focus on the {focus_skills[0]} skill. Each episode should have 5-7 words from this skill."
-            validation_rule = f"VALIDATION: Each episode MUST have at least 5 words from {focus_skills[0]}"
+            mixing_instruction = f"""Focus on the {focus_skills[0]} skill.
+This episode should have 5-7 words from this skill."""
+            validation_rule = f"VALIDATION: Episode MUST have at least 5 words from {focus_skills[0]}"
         else:
             skill1, skill2 = focus_skills[0], focus_skills[1]
             mixing_instruction = f"""
-CRITICAL MIXING RULE - THIS IS MANDATORY FOR EVERY SINGLE EPISODE:
+CRITICAL MIXING RULE - THIS IS MANDATORY FOR THIS EPISODE:
 - Skill 1 ({skill1}): MUST have at least 2 words. Examples: {', '.join(FOCUS_SKILL_VOCABULARY[skill1]['examples'][:5])}
 - Skill 2 ({skill2}): MUST have at least 2 words. Examples: {', '.join(FOCUS_SKILL_VOCABULARY[skill2]['examples'][:5])}
 
-EVERY EPISODE needs words from BOTH skills. 
-DO NOT make Episode 1 only {skill1}, Episode 2 only {skill2}.
-ALL episodes MUST be a MIX of BOTH {skill1} AND {skill2}.
+This episode needs words from BOTH skills.
+The episode MUST be a MIX of BOTH {skill1} AND {skill2}.
 """
-            validation_rule = f"VALIDATION: Every episode needs {skill1}+{skill2}. Episode 1: {skill1}+{skill2}, Episode 2: {skill1}+{skill2}, Episode 3: {skill1}+{skill2}"
+            validation_rule = f"VALIDATION: Episode 1 needs {skill1}+{skill2}"
         
-        prompt = f"""
-        Create EXACTLY {episode_count} complete episodes for an educational story for grade {grade_level} students with a {theme} theme.
+        # Build character context
+        character_context = ""
+        if character_names:
+            character_context = f"\nUse these character names: {character_names}"
         
-        {character_names and f"Use these character names: {character_names}" or ""}
-        
-        CRITICAL: You MUST create all {episode_count} episodes. Do not create fewer episodes than requested!
-        
-        ================================
-        MANDATORY VOCABULARY MIXING (READ THIS CAREFULLY):
-        ================================
-        Selected skills: {', '.join(focus_skills)}
-        
-        {mixing_instruction}
-        
-        {validation_rule}
-        
-        EXAMPLE VOCABULARY MIX (if skills are phonics-ch and action-verbs):
-        Episode 1 vocabularyFocus: ["chat", "chip", "run", "jump", "help"]
-        - 2 CH words (chat, chip) ✅
-        - 3 action verbs (run, jump, help) ✅
-        
-        Episode 2 vocabularyFocus: ["lunch", "beach", "walk", "swim", "find"]
-        - 2 CH words (lunch, beach) ✅
-        - 3 action verbs (walk, swim, find) ✅
-        
-        Episode 3 vocabularyFocus: ["much", "reach", "climb", "play", "catch"]
-        - 2 CH words (much, reach) ✅
-        - 3 action verbs (climb, play, catch) ✅
-        
-        DO NOT CREATE (WRONG):
-        Episode 3 vocabularyFocus: ["walk", "oink", "roll", "trot", "find"] ❌ REJECTED - Missing CH words!
-        
-        REQUIREMENTS FOR EACH EPISODE:
+        # ⭐ CREATE THE AI PROMPT WITH CRITICAL MIXING RULES
+        prompt = f"""Create Episode 1 for a new story about {theme} theme for grade {grade_level} students.
+{character_context}
+
+This will be a {total_episodes}-episode story, but you're creating ONLY Episode 1 now.
+Make it engaging and leave room for continuation in future episodes.
+
+================================
+MANDATORY VOCABULARY MIXING (READ THIS CAREFULLY):
+================================
+Selected skills: {', '.join(focus_skills)}
+
+{mixing_instruction}
+
+{validation_rule}
+
+EXAMPLE VOCABULARY MIX (if skills are phonics-ch and action-verbs):
+Episode 1 vocabularyFocus: ["chat", "chip", "run", "jump", "help"]
+- 2 CH words (chat, chip) ✅
+- 3 action verbs (run, jump, help) ✅
+
+DO NOT CREATE (WRONG):
+Episode 1 vocabularyFocus: ["walk", "oink", "roll", "trot", "find"] ❌ REJECTED - Missing CH words!
+
+================================
+REQUIREMENTS FOR THIS EPISODE:
+================================
 {chr(10).join(skill_requirements)}
+
+================================
+FOCUS SKILLS VOCABULARY REQUIREMENTS:
+================================
+{vocab_guidance.get('detailed_guidance', '')}
+
+VOCABULARY SELECTION RULES:
+1. Episode must have AT LEAST {words_per_skill} words from EACH selected skill
+2. Select MINIMUM 5 vocabulary words (you can use up to 8)
+3. ONLY use words that actually match the focus skills
+4. Words must be 3-8 letters long (grade 3 appropriate)
+5. Each vocabulary word MUST appear naturally in the story text
+6. Words should be simple enough for 8-9 year olds to understand
+
+USE THESE VOCABULARY WORDS (DO NOT USE OTHER WORDS):
+{', '.join(vocab_guidance.get('example_words', [])[:30])}
+
+================================
+CROSSWORD PUZZLE REQUIREMENTS:
+================================
+Episode MUST have a crossword puzzle with AT LEAST 5 WORDS.
+- All vocabulary words from vocabularyFocus MUST appear in the puzzle
+- Each word needs: direction, number, clue, answer, definition, example
+
+================================
+STORY REQUIREMENTS:
+================================
+- 150-200 words total
+- Engaging narrative with vocabulary words used naturally
+- {"Focus on " + focus_skills[0] + " words" if len(focus_skills) == 1 else "Mix words from BOTH " + " and ".join(focus_skills) + " skills"}
+
+Return ONLY valid JSON (NO markdown) in this exact format:
+{{
+  "story": {{
+    "title": "Story Title",
+    "description": "Brief description",
+    "episodes": [
+      {{
+        "episodeNumber": 1,
+        "title": "Episode 1 Title",
+        "text": "Episode text with 2-3 paragraphs using vocabulary words naturally...",
+        "recap": "Brief 1-sentence summary",
+        "discussionQuestions": ["Question 1?", "Question 2?", "Question 3?"],
+        "vocabularyWords": [
+          {{"word": "word1", "clue": "crossword clue", "definition": "kid-friendly definition"}},
+          {{"word": "word2", "clue": "crossword clue", "definition": "kid-friendly definition"}},
+          {{"word": "word3", "clue": "crossword clue", "definition": "kid-friendly definition"}},
+          {{"word": "word4", "clue": "crossword clue", "definition": "kid-friendly definition"}},
+          {{"word": "word5", "clue": "crossword clue", "definition": "kid-friendly definition"}}
+        ],
+        "vocabularyFocus": ["word1", "word2", "word3", "word4", "word5"]
+      }}
+    ]
+  }}
+}}"""
+
+        # Generate with OpenAI
+        cleaned_content = call_openai_for_story(prompt, max_tokens)
         
-        ================================
-        FOCUS SKILLS VOCABULARY REQUIREMENTS:
-        ================================
-        {vocab_guidance['detailed_guidance']}
+        if not cleaned_content:
+            logger.error(f"❌ OpenAI returned nothing")
+            return Response(create_improved_fallback_story(theme, 1, grade_level, focus_skills))
         
-        VOCABULARY SELECTION RULES:
-        1. Each episode must have AT LEAST {words_per_skill} words from EACH selected skill
-        2. Select MINIMUM 5 vocabulary words PER EPISODE total (you can use up to 8)
-        3. ONLY use words that actually match the focus skills
-        4. Words must be 3-8 letters long (grade 3 appropriate)
-        5. Each vocabulary word MUST appear naturally in the story text
-        6. Words should be simple enough for 8-9 year olds to understand
+        logger.info(f"✅ Received response (length: {len(cleaned_content)})")
         
-        USE THESE VOCABULARY WORDS (DO NOT USE OTHER WORDS):
-        {', '.join(vocab_guidance['example_words'][:30])}
-        
-        ================================
-        CROSSWORD PUZZLE REQUIREMENTS:
-        ================================
-        Each episode MUST have a crossword puzzle with AT LEAST 5 WORDS.
-        - All vocabulary words from vocabularyFocus MUST appear in the puzzle
-        - Each word needs: direction, number, clue, answer, definition, example, cells
-        
-        ================================
-        STORY REQUIREMENTS:
-        ================================
-        For EACH episode:
-        - 150-200 words total
-        - Engaging narrative with vocabulary words used naturally
-        - {"Focus on " + focus_skills[0] + " words" if len(focus_skills) == 1 else "Mix words from BOTH " + " and ".join(focus_skills) + " skills in EVERY episode"}
-        
-        For EACH of the {episode_count} episodes, provide:
-        1. Episode number and title
-        2. Story text (150-200 words)
-        3. Brief recap
-        4. 2-3 discussion questions
-        5. vocabularyFocus array with 5-8 words from the selected skill(s)
-        6. Complete crossword puzzle with AT LEAST 5 word entries
-        
-        Return ONLY valid JSON in this exact format:
-        {{
-          "story": {{
-            "id": "{story_id}",
-            "title": "Story Title",
-            "theme": "{theme}",
-            "gradeLevel": {grade_level},
-            "totalEpisodes": {episode_count},
-            "focusSkills": {json.dumps(focus_skills)},
-            "episodes": [
-              {{
-                "id": "episode_1",
-                "episodeNumber": 1,
-                "title": "Episode Title",
-                "text": "Story text using vocabulary words...",
-                "recap": "Brief summary",
-                "discussionQuestions": ["Question 1?", "Question 2?"],
-                "crosswordPuzzleId": "puzzle_1",
-                "vocabularyFocus": ["word1", "word2", "word3", "word4", "word5"]
-              }}
-            ]
-          }},
-          "puzzles": {{
-            "puzzle_1": {{
-              "id": "puzzle_1",
-              "title": "Episode 1 Crossword",
-              "size": {{"width": 10, "height": 10}},
-              "words": [
-                {{
-                  "direction": "across",
-                  "number": 1,
-                  "clue": "Grade 3 clue",
-                  "answer": "WORD1",
-                  "definition": "Kid-friendly definition",
-                  "example": "Example sentence",
-                  "cells": [{{"row": 0, "col": 0}}]
-                }},
-                {{
-                  "direction": "down",
-                  "number": 2,
-                  "clue": "Grade 3 clue",
-                  "answer": "WORD2",
-                  "definition": "Kid-friendly definition",
-                  "example": "Example sentence",
-                  "cells": [{{"row": 0, "col": 1}}]
-                }},
-                {{
-                  "direction": "across",
-                  "number": 3,
-                  "clue": "Grade 3 clue",
-                  "answer": "WORD3",
-                  "definition": "Kid-friendly definition",
-                  "example": "Example sentence",
-                  "cells": [{{"row": 1, "col": 0}}]
-                }},
-                {{
-                  "direction": "down",
-                  "number": 4,
-                  "clue": "Grade 3 clue",
-                  "answer": "WORD4",
-                  "definition": "Kid-friendly definition",
-                  "example": "Example sentence",
-                  "cells": [{{"row": 1, "col": 2}}]
-                }},
-                {{
-                  "direction": "across",
-                  "number": 5,
-                  "clue": "Grade 3 clue",
-                  "answer": "WORD5",
-                  "definition": "Kid-friendly definition",
-                  "example": "Example sentence",
-                  "cells": [{{"row": 2, "col": 0}}]
-                }}
-              ]
-            }}
-          }}
-        }}
-        
-        Do NOT wrap in markdown blocks. Return ONLY the JSON object.
-        
-        FINAL REMINDER: {"Each episode needs 5-7 words from " + focus_skills[0] if len(focus_skills) == 1 else "Each episode needs at least 2 words from " + focus_skills[0] + " AND at least 2 words from " + focus_skills[1]}
-        """
-        
-        # TRY UP TO 3 TIMES
-        max_attempts = 3
-        
-        for attempt in range(max_attempts):
-            logger.info(f"🔄 Generation attempt {attempt + 1}/{max_attempts}")
+        try:
+            story_data = json.loads(cleaned_content)
             
-            cleaned_content = call_openai_for_story(prompt, max_tokens)
+            # Validate the story
+            episodes = story_data.get('story', {}).get('episodes', [])
             
-            if not cleaned_content:
-                logger.error(f"❌ OpenAI returned nothing - likely API quota/payment issue")
-                continue
+            if not episodes or len(episodes) == 0:
+                raise ValueError("No episodes generated")
             
-            logger.info(f"✅ Received response (length: {len(cleaned_content)})")
+            episode = episodes[0]
             
-            try:
-                story_data = json.loads(cleaned_content)
-                
-                # Validate the story
-                episodes = story_data.get('story', {}).get('episodes', [])
-                validation_passed = True
-                
-                for episode in episodes:
-                    vocab_focus = episode.get('vocabularyFocus', [])
-                    vocab_count = len(vocab_focus)
-                    puzzle_id = episode.get('crosswordPuzzleId')
-                    puzzle = story_data.get('puzzles', {}).get(puzzle_id, {})
-                    word_count = len(puzzle.get('words', []))
-                    
-                    # Add debug logging
-                    logger.info(f"📊 Episode {episode.get('episodeNumber')} validation:")
-                    logger.info(f"   Vocab words: {vocab_focus}")
-                    logger.info(f"   Vocab count: {vocab_count}")
-                    logger.info(f"   Puzzle words count: {word_count}")
-                    
-                    # Check word counts
-                    if word_count < 5:
-                        logger.warning(f"⚠️ Episode {episode.get('episodeNumber')} puzzle has only {word_count} words")
-                        validation_passed = False
-                    if vocab_count < 5:
-                        logger.warning(f"⚠️ Episode {episode.get('episodeNumber')} has only {vocab_count} vocabulary words")
-                        validation_passed = False
-                    
-                    # Check if vocabulary matches selected skills
-                    is_valid, message, skill_matches = validate_vocabulary_matches_skills(vocab_focus, focus_skills)
-                    logger.info(f"   Skill matches: {skill_matches}")
-                    
-                    if not is_valid:
-                        logger.warning(f"⚠️ Episode {episode.get('episodeNumber')}: {message}")
-                        logger.warning(f"   Vocabulary: {', '.join(vocab_focus)}")
-                        logger.warning(f"   Skill distribution: {skill_matches}")
-                        validation_passed = False
-                
-                if validation_passed:
-                    logger.info("✅ Story validation passed!")
-                    return Response(story_data)
-                else:
-                    logger.warning(f"⚠️ Validation failed on attempt {attempt + 1}")
-                    if attempt < max_attempts - 1:
-                        logger.info("🔄 Retrying with STRONGER emphasis...")
-                        
-                        # Make retry prompt SUPER explicit
-                        if len(focus_skills) == 2:
-                            skill1_examples = ', '.join(FOCUS_SKILL_VOCABULARY[focus_skills[0]]['examples'][:3])
-                            skill2_examples = ', '.join(FOCUS_SKILL_VOCABULARY[focus_skills[1]]['examples'][:3])
-                            
-                            prompt += f"""
-
-🚨🚨🚨 ATTEMPT {attempt + 2} - YOUR PREVIOUS ATTEMPT WAS REJECTED! 🚨🚨🚨
-
-PROBLEM: One or more episodes were missing words from {focus_skills[0]} or {focus_skills[1]}.
-
-SOLUTION: EVERY SINGLE EPISODE must include:
-- At least 2 words from {focus_skills[0]}: Use {skill1_examples}
-- At least 2 words from {focus_skills[1]}: Use {skill2_examples}
-
-CORRECT EXAMPLE:
-Episode 1: ["{FOCUS_SKILL_VOCABULARY[focus_skills[0]]['examples'][0]}", "{FOCUS_SKILL_VOCABULARY[focus_skills[0]]['examples'][1]}", "{FOCUS_SKILL_VOCABULARY[focus_skills[1]]['examples'][0]}", "{FOCUS_SKILL_VOCABULARY[focus_skills[1]]['examples'][1]}", "{FOCUS_SKILL_VOCABULARY[focus_skills[1]]['examples'][2]}"]
-
-DO THIS FOR ALL {episode_count} EPISODES!
-"""
-                        else:
-                            prompt += f"\n\nATTEMPT {attempt + 2}: Your previous story was REJECTED. Make sure EVERY episode has at least 5 words from {focus_skills[0]}!"
-                    
-            except json.JSONDecodeError as json_error:
-                logger.error(f"JSON parsing error: {json_error}")
-                logger.error(f"Failed content (first 500 chars): {cleaned_content[:500]}")
-                if attempt < max_attempts - 1:
-                    continue
-        
-        logger.info("❌ All attempts failed, using fallback story")
-        return Response(create_improved_fallback_story(theme, episode_count, grade_level, focus_skills))
-    
+            # ⭐ VALIDATE VOCABULARY MATCHES SKILLS
+            vocab_focus = episode.get('vocabularyFocus', [])
+            is_valid, message, skill_matches = validate_vocabulary_matches_skills(vocab_focus, focus_skills)
+            
+            if not is_valid:
+                logger.warning(f"⚠️ Episode 1 validation failed: {message}")
+                logger.warning(f"   Vocabulary: {', '.join(vocab_focus)}")
+                logger.warning(f"   Skill distribution: {skill_matches}")
+                # Continue anyway, but log the issue
+            
+            # Format the response
+            story_id = f"{theme}_generated_{int(datetime.now().timestamp())}"
+            
+            formatted_story = {
+                "id": story_id,
+                "title": story_data['story']['title'],
+                "description": story_data['story'].get('description', f"An adventure about {theme}"),
+                "theme": theme,
+                "gradeLevel": f"Grade {grade_level}",
+                "totalEpisodes": total_episodes,  # ⭐ Store total episodes requested
+                "generatedEpisodes": 1,  # ⭐ Track how many episodes we've generated
+                "focusSkills": focus_skills,  # ⭐ Store for future episode generation
+                "characterNames": character_names,  # ⭐ Store for future episode generation
+                "episodes": []
+            }
+            
+            # Create puzzles dictionary
+            puzzles = {}
+            
+            # Process the single episode
+            episode_id = f"{story_id}_ep1"
+            puzzle_id = f"{episode_id}_puzzle"
+            
+            # Validate vocabulary words
+            if not episode.get('vocabularyWords') or len(episode['vocabularyWords']) < 5:
+                logger.warning(f"⚠️ Episode 1 has insufficient vocabulary words, using defaults")
+                episode['vocabularyWords'] = [
+                    {"word": "adventure", "clue": "An exciting journey", "definition": "An exciting or unusual experience"},
+                    {"word": "explore", "clue": "To discover new places", "definition": "To travel through an area to learn about it"},
+                    {"word": "journey", "clue": "A long trip", "definition": "Traveling from one place to another"},
+                    {"word": "discover", "clue": "To find something new", "definition": "To find or learn something for the first time"},
+                    {"word": "brave", "clue": "Showing courage", "definition": "Ready to face danger or difficulties"}
+                ]
+            
+            # Generate puzzle
+            puzzles[puzzle_id] = create_crossword_from_vocabulary(
+                episode['vocabularyWords'],
+                f"Episode 1 Vocabulary"
+            )
+            
+            # Add formatted episode
+            formatted_story['episodes'].append({
+                'id': episode_id,
+                'episodeNumber': 1,
+                'title': episode['title'],
+                'text': episode['text'],
+                'recap': episode.get('recap', ''),
+                'discussionQuestions': episode.get('discussionQuestions', [
+                    "What happened in this episode?",
+                    "How do you think the characters felt?",
+                    "What do you think will happen next?"
+                ]),
+                'crosswordPuzzleId': puzzle_id,
+                'vocabularyFocus': episode.get('vocabularyFocus', [])
+            })
+            
+            logger.info(f"✅ Successfully generated Episode 1 for story: {formatted_story['title']}")
+            
+            return Response({
+                'success': True,
+                'story': formatted_story,
+                'puzzles': puzzles
+            }, status=status.HTTP_200_OK)
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON parsing error: {e}")
+            logger.error(f"Failed content (first 500 chars): {cleaned_content[:500]}")
+            return Response(create_improved_fallback_story(theme, 1, grade_level, focus_skills))
+            
     except Exception as e:
         logger.error(f"Error in generate_story: {str(e)}")
         logger.error(traceback.format_exc())
         return Response({
             'error': str(e)
-        }, status=status.HTTP_400_BAD_REQUEST)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ⭐ HELPER FUNCTION - Add this if it doesn't exist
+def create_crossword_from_vocabulary(vocab_words, title="Vocabulary Puzzle"):
+    """Helper function to create a crossword puzzle from vocabulary words"""
+    puzzle_words = []
+    
+    for i, word_data in enumerate(vocab_words):
+        puzzle_words.append({
+            "direction": "across" if i % 2 == 0 else "down",
+            "number": i + 1,
+            "clue": word_data.get('clue', f"Clue for {word_data['word']}"),
+            "answer": word_data['word'].upper(),
+            "definition": word_data.get('definition', ''),
+            "example": f"Example sentence using {word_data['word']}."
+        })
+    
+    return {
+        "title": title,
+        "size": {"width": 10, "height": 10},
+        "grid": [],
+        "words": puzzle_words
+    }
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def generate_next_episode(request):
+    """
+    Generate the next episode on-demand when user clicks 'Continue'
+    Includes the same CRITICAL MIXING RULES as the initial generation
+    """
+    try:
+        data = request.data
+        story_id = data.get('storyId')
+        episode_number = int(data.get('episodeNumber', 1))
+        theme = data.get('theme', 'adventure')
+        focus_skills = data.get('focusSkills', ['action-verbs'])
+        character_names = data.get('characterNames', '')
+        grade_level = data.get('gradeLevel', 3)
+        previous_episodes = data.get('previousEpisodes', [])
+        
+        # LIMIT TO MAX 2 SKILLS
+        if len(focus_skills) > 2:
+            focus_skills = focus_skills[:2]
+        
+        logger.info(f"📚 Generating episode {episode_number} for {story_id}")
+        
+        if not settings.OPENAI_API_KEY:
+            return Response({'error': 'API key not configured'}, 
+                          status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        vocab_guidance = get_vocabulary_guidance(focus_skills)
+        
+        # Create context from previous episodes
+        previous_context = ""
+        if previous_episodes:
+            previous_context = "\n\nPREVIOUS EPISODES FOR CONTEXT:\n"
+            for i, ep in enumerate(previous_episodes, 1):
+                previous_context += f"\nEpisode {i}: {ep.get('title', '')}\n"
+                previous_context += f"{ep.get('text', '')[:200]}...\n"
+        
+        # Build character context
+        character_context = ""
+        if character_names:
+            character_context = f"\nContinue using these character names: {character_names}"
+        
+        # Create skill requirements
+        skill_requirements = []
+        words_per_skill = 3 if len(focus_skills) == 1 else 2
+        
+        for skill in focus_skills:
+            if skill in FOCUS_SKILL_VOCABULARY:
+                examples = ', '.join(FOCUS_SKILL_VOCABULARY[skill]['examples'][:5])
+                skill_requirements.append(f"   - {skill}: At least {words_per_skill} words like: {examples}")
+        
+        # ⭐ BUILD EMPHATIC MIXING INSTRUCTION (same as generate_story)
+        if len(focus_skills) == 1:
+            mixing_instruction = f"""Focus on the {focus_skills[0]} skill.
+This episode should have 5-7 words from this skill."""
+            validation_rule = f"VALIDATION: Episode {episode_number} MUST have at least 5 words from {focus_skills[0]}"
+        else:
+            skill1, skill2 = focus_skills[0], focus_skills[1]
+            mixing_instruction = f"""
+CRITICAL MIXING RULE - THIS IS MANDATORY FOR EPISODE {episode_number}:
+- Skill 1 ({skill1}): MUST have at least 2 words. Examples: {', '.join(FOCUS_SKILL_VOCABULARY[skill1]['examples'][:5])}
+- Skill 2 ({skill2}): MUST have at least 2 words. Examples: {', '.join(FOCUS_SKILL_VOCABULARY[skill2]['examples'][:5])}
+
+Episode {episode_number} needs words from BOTH skills.
+Episode {episode_number} MUST be a MIX of BOTH {skill1} AND {skill2}.
+
+DO NOT make Episode {episode_number} only {skill1} or only {skill2}.
+"""
+            validation_rule = f"VALIDATION: Episode {episode_number} needs {skill1}+{skill2}"
+        
+        # ⭐ CREATE PROMPT WITH CRITICAL MIXING RULES
+        prompt = f"""Create Episode {episode_number} continuing the {theme} story for grade {grade_level}.
+{character_context}
+{previous_context}
+
+================================
+MANDATORY VOCABULARY MIXING (READ THIS CAREFULLY):
+================================
+Selected skills: {', '.join(focus_skills)}
+
+{mixing_instruction}
+
+{validation_rule}
+
+EXAMPLE VOCABULARY MIX (if skills are phonics-ch and action-verbs):
+Episode {episode_number} vocabularyFocus: ["lunch", "beach", "walk", "swim", "find"]
+- 2 CH words (lunch, beach) ✅
+- 3 action verbs (walk, swim, find) ✅
+
+DO NOT CREATE (WRONG):
+Episode {episode_number} vocabularyFocus: ["walk", "oink", "roll", "trot", "find"] ❌ REJECTED - Missing CH words!
+
+================================
+REQUIREMENTS FOR THIS EPISODE:
+================================
+1. Continue naturally from previous episodes
+2. Include words from the skills:
+{chr(10).join(skill_requirements)}
+3. Words MUST appear in the text
+4. Create EXACTLY 5 crossword entries
+
+================================
+FOCUS SKILLS VOCABULARY REQUIREMENTS:
+================================
+{vocab_guidance.get('detailed_guidance', '')}
+
+VOCABULARY SELECTION RULES:
+1. Episode must have AT LEAST {words_per_skill} words from EACH selected skill
+2. Select MINIMUM 5 vocabulary words (you can use up to 8)
+3. ONLY use words that actually match the focus skills
+4. Words must be 3-8 letters long (grade 3 appropriate)
+5. Each vocabulary word MUST appear naturally in the story text
+
+USE THESE VOCABULARY WORDS (DO NOT USE OTHER WORDS):
+{', '.join(vocab_guidance.get('example_words', [])[:30])}
+
+================================
+STORY REQUIREMENTS:
+================================
+- 150-200 words total
+- Continue the story naturally from previous episodes
+- Engaging narrative with vocabulary words used naturally
+- {"Focus on " + focus_skills[0] + " words" if len(focus_skills) == 1 else "Mix words from BOTH " + " and ".join(focus_skills) + " skills"}
+
+Return ONLY JSON (NO markdown):
+{{
+  "episode": {{
+    "episodeNumber": {episode_number},
+    "title": "Episode {episode_number} Title",
+    "text": "Episode text (2-3 paragraphs)...",
+    "recap": "Summary",
+    "discussionQuestions": ["Q1?", "Q2?", "Q3?"],
+    "vocabularyWords": [
+      {{"word": "word1", "clue": "clue", "definition": "definition"}},
+      {{"word": "word2", "clue": "clue", "definition": "definition"}},
+      {{"word": "word3", "clue": "clue", "definition": "definition"}},
+      {{"word": "word4", "clue": "clue", "definition": "definition"}},
+      {{"word": "word5", "clue": "clue", "definition": "definition"}}
+    ],
+    "vocabularyFocus": ["word1", "word2", "word3", "word4", "word5"]
+  }}
+}}"""
+
+        max_tokens = 1800
+        cleaned_content = call_openai_for_story(prompt, max_tokens)
+        
+        if not cleaned_content:
+            return Response({'error': 'Failed to generate'}, 
+                          status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        episode_data = json.loads(cleaned_content)
+        episode = episode_data.get('episode', {})
+        
+        # ⭐ VALIDATE VOCABULARY MATCHES SKILLS
+        vocab_focus = episode.get('vocabularyFocus', [])
+        is_valid, message, skill_matches = validate_vocabulary_matches_skills(vocab_focus, focus_skills)
+        
+        if not is_valid:
+            logger.warning(f"⚠️ Episode {episode_number} validation failed: {message}")
+            logger.warning(f"   Vocabulary: {', '.join(vocab_focus)}")
+            logger.warning(f"   Skill distribution: {skill_matches}")
+            # Continue anyway, but log the issue
+        
+        if not episode.get('vocabularyWords') or len(episode['vocabularyWords']) < 5:
+            logger.warning(f"Insufficient vocab in episode {episode_number}")
+        
+        episode_id = f"{story_id}_ep{episode_number}"
+        puzzle_id = f"{episode_id}_puzzle"
+        
+        puzzle = create_crossword_from_vocabulary(
+            episode['vocabularyWords'],
+            f"Episode {episode_number} Vocabulary"
+        )
+        
+        response_data = {
+            'success': True,
+            'episode': {
+                'id': episode_id,
+                'episodeNumber': episode_number,
+                'title': episode['title'],
+                'text': episode['text'],
+                'recap': episode.get('recap', ''),
+                'discussionQuestions': episode.get('discussionQuestions', []),
+                'crosswordPuzzleId': puzzle_id,
+                'vocabularyFocus': episode.get('vocabularyFocus', [])
+            },
+            'puzzle': {puzzle_id: puzzle}
+        }
+        
+        logger.info(f"✅ Generated episode {episode_number}")
+        return Response(response_data, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Error: {str(e)}")
+        logger.error(traceback.format_exc())
+        return Response({'error': str(e)}, 
+                      status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def create_improved_fallback_story(theme, episode_count, grade_level, focus_skills):

@@ -6,9 +6,11 @@ urlpatterns = [
     # ==================== EXISTING ROUTES ====================
     # Main story generation endpoint
     path('generate-story/', views.generate_story, name='generate_story'),
+
+    # ✅ NEW: Progressive episode generation endpoint
+    path('generate-next-episode/', views.generate_next_episode, name='generate_next_episode'),
     
-    # Add a simple test endpoint to verify the API is working
-    path('test/', views.test_endpoint, name='test_endpoint'),
+ 
 
     # Crossword puzzle generation endpoints - FIXED FUNCTION NAMES
     path('generate-clues/', views.generate_crossword_clues, name='generate_crossword_clues'),  # ✅ CORRECTED

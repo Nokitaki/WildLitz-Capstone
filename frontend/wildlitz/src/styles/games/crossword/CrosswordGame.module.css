@@ -81,3 +81,16 @@
 .coachEmoji {
   font-size: 1.5rem;
 }
+.container {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden; /* Prevent double scrollbars */
+  position: relative;
+}
+
+/* Ensure game screens can scroll */
+.container > div {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
