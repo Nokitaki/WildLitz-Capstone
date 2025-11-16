@@ -29,7 +29,7 @@ const ThemeOption = memo(({ themeOption, isSelected, onSelect }) => {
 ThemeOption.displayName = 'ThemeOption';
 
 // Memoized Skill Option Component with Audio
-const SkillOption = memo(({ skill, isSelected, onToggle, onPlayAudio }) => {
+const SkillOption = memo(({ skill, isSelected, onToggle, onPlayAudio, disabled }) => {
   const handleAudioClick = (e) => {
     e.stopPropagation(); // Prevent triggering the skill selection
     onPlayAudio(skill.name);
@@ -37,8 +37,9 @@ const SkillOption = memo(({ skill, isSelected, onToggle, onPlayAudio }) => {
 
   return (
     <div 
-      className={`${styles.skillOption} ${isSelected ? styles.selected : ''}`}
-      onClick={() => onToggle(skill.id)}
+      className={`${styles.skillOption} ${isSelected ? styles.selected : ''} ${disabled ? styles.disabled : ''}`}
+      onClick={() => !disabled && onToggle(skill.id)}
+      style={{ cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 }}
     >
       <span className={styles.skillIcon}>{skill.icon}</span>
       <span className={styles.skillName}>{skill.name}</span>
@@ -47,6 +48,7 @@ const SkillOption = memo(({ skill, isSelected, onToggle, onPlayAudio }) => {
         onClick={handleAudioClick}
         type="button"
         aria-label={`Play audio for ${skill.name}`}
+        disabled={disabled}
       >
         <Volume2 size={18} />
       </button>
@@ -97,13 +99,13 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   ], []);
   
   // REMOVED 'sight-words' from available skills
-  const availableSkills = useMemo(() => [
-    { id: 'phonics-sh', name: 'Phonics: SH Sound', icon: '📊' },
-    { id: 'phonics-ch', name: 'Phonics: CH Sound', icon: '🎵' },
-    { id: 'long-vowels', name: 'Long Vowel Sounds', icon: '🔤' },
-    { id: 'compound-words', name: 'Compound Words', icon: '🔗' },
-    { id: 'action-verbs', name: 'Action Verbs', icon: '🏃‍♂️' }
-  ], []);
+ const availableSkills = useMemo(() => [
+  { id: 'phonics-sh', name: 'Phonics: SH Sound', icon: '📊' },
+  { id: 'phonics-ch', name: 'Phonics: CH Sound', icon: '🎵' },
+  { id: 'phonics-th', name: 'Phonics: TH Sound', icon: '🔤' },
+  { id: 'phonics-wh', name: 'Phonics: WH Sound', icon: '❓' },
+  { id: 'action-verbs', name: 'Action Verbs', icon: '🏃‍♂️' }
+], []);
   
   // Audio playback function
   const playSkillAudio = useCallback((skillName) => {
@@ -134,12 +136,20 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   
   // Memoized handlers
   const handleSkillToggle = useCallback((skillId) => {
-    setFocusSkills(prev => 
-      prev.includes(skillId) 
-        ? prev.filter(id => id !== skillId)
-        : [...prev, skillId]
-    );
-  }, []);
+  setFocusSkills(prev => {
+    if (prev.includes(skillId)) {
+      // Remove skill if already selected
+      return prev.filter(id => id !== skillId);
+    } else {
+      // Only allow max 2 skills
+      if (prev.length >= 2) {
+        // Show a message or just prevent adding more
+        return prev; // Don't add more than 2
+      }
+      return [...prev, skillId];
+    }
+  });
+}, []);
 
   const handleThemeSelect = useCallback((themeId) => {
     setTheme(themeId);
@@ -383,29 +393,35 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
               </div>
             </div>
             
-            {/* Skills Selection */}
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>
-                Focus Skills:
-                <span className={styles.skillCount}>
-                  {focusSkills.length} selected
-                </span>
-              </label>
-              <div className={styles.skillOptions}>
-                {availableSkills.map(skill => (
-                  <SkillOption
-                    key={skill.id}
-                    skill={skill}
-                    isSelected={focusSkills.includes(skill.id)}
-                    onToggle={handleSkillToggle}
-                    onPlayAudio={playSkillAudio}
-                  />
-                ))}
-              </div>
-              <p className={styles.skillHint}>
-                💡 Select 1-3 skills for the best results. Click 🔊 to hear each skill!
-              </p>
-            </div>
+                            {/* Skills Selection */}
+                          <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>
+                    Focus Skills:
+                    <span className={styles.skillCount}>
+                      {focusSkills.length}/2 selected
+                    </span>
+                  </label>
+                  {focusSkills.length >= 2 && (
+                    <p className={styles.maxSkillsWarning}>
+                      ⚠️ Maximum 2 skills selected. Deselect one to choose a different skill.
+                    </p>
+                  )}
+                  <div className={styles.skillOptions}>
+                    {availableSkills.map(skill => (
+                      <SkillOption
+                        key={skill.id}
+                        skill={skill}
+                        isSelected={focusSkills.includes(skill.id)}
+                        onToggle={handleSkillToggle}
+                        onPlayAudio={playSkillAudio}
+                        disabled={!focusSkills.includes(skill.id) && focusSkills.length >= 2}
+                      />
+                    ))}
+                  </div>
+                  <p className={styles.skillHint}>
+                    💡 Select 1-2 skills for the best results. Click 🔊 to hear each skill!
+                  </p>
+                </div>
             
             {/* Character Names */}
             <div className={styles.formGroup}>

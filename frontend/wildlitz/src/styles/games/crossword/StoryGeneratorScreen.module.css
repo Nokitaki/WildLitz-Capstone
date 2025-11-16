@@ -628,3 +628,26 @@
   margin: 0;
   line-height: 1.4;
 }
+
+.maxSkillsWarning {
+  color: #f39c12;
+  font-size: 14px;
+  margin: 8px 0;
+  font-weight: 500;
+}
+
+.skillOption.disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+}
+
+.skillOption.disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.skillCount {
+  margin-left: 8px;
+  font-size: 14px;
+  color: #666;
+}

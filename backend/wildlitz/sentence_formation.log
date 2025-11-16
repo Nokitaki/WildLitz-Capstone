@@ -2412,3 +2412,6 @@ INFO 2025-11-13 12:48:26,427 views Story session created: e399579e-ab61-41dd-8a7
 INFO 2025-11-13 12:48:39,523 views Story session created: d47da79e-b661-4b3e-a122-0c3f03b5b8a3
 INFO 2025-11-13 12:48:58,851 views Activity logged: word_solved
 INFO 2025-11-13 12:58:16,586 views Story session created: 343e789b-ced9-4189-aa87-f771f8c5d3cc
+WARNING 2025-11-16 12:27:22,923 views    Vocabulary: ship, shop, wish, alien, smile, follow, curiosity, technology
+WARNING 2025-11-16 12:27:22,923 views    Skill distribution: {'phonics-wh': 0, 'phonics-sh': 3}
+INFO 2025-11-16 12:27:40,313 views Story session created: 5d511141-d456-455a-bdcf-c23cf13a7c35
