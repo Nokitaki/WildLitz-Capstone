@@ -1,293 +1,471 @@
-/* src/components/crossword/CrosswordGuideModal.module.css */
+/* src/styles/games/crossword/CrosswordGuideModal.module.css */
+/* BEAUTIFUL OVERLAY VERSION - Shows on top of gameplay */
 
-.overlay {
+/* ============================================ */
+/* Modal Overlay - Blurred Background */
+/* ============================================ */
+.modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 99999;
   padding: 20px;
+  animation: fadeIn 0.4s ease;
 }
 
-.modal {
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
-  border-radius: 24px;
-  max-width: 900px;
-  width: 100%;
-  max-height: 90vh;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* ============================================ */
+/* Modal Container - Beautiful Glassmorphism */
+/* ============================================ */
+.modalContainer {
+  background: linear-gradient(145deg, 
+    rgba(255, 255, 255, 0.95) 0%, 
+    rgba(248, 249, 255, 0.98) 100%
+  );
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  max-width: 380px;
+  width: 88%;
+  padding: 24px 22px;
+  box-shadow: 
+    0 30px 90px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset,
+    0 10px 40px rgba(102, 126, 234, 0.2);
+  position: relative;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  padding: 40px;
 }
 
-.header {
-  text-align: center;
-  margin-bottom: 35px;
+/* Animated gradient overlay */
+.modalContainer::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.1) 0%,
+    rgba(118, 75, 162, 0.1) 25%,
+    transparent 50%,
+    rgba(255, 107, 107, 0.1) 75%,
+    rgba(78, 205, 196, 0.1) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+  animation: rotateGradient 15s linear infinite;
 }
 
-.iconContainer {
-  margin-bottom: 15px;
-}
-
-.mainIcon {
-  font-size: 64px;
-  display: inline-block;
-  animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
+@keyframes rotateGradient {
+  0% {
+    transform: rotate(0deg);
   }
-  50% {
-    transform: translateY(-10px);
+  100% {
+    transform: rotate(360deg);
   }
 }
 
-.title {
-  font-size: 36px;
-  font-weight: 800;
+/* All content above overlay */
+.modalContainer > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================ */
+/* Close Button - Beautiful & Accessible */
+/* ============================================ */
+.closeButton {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.95);
   color: #667eea;
-  margin: 0 0 10px 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
 }
 
-.subtitle {
-  font-size: 18px;
+.closeButton:hover {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  transform: rotate(90deg) scale(1.15);
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+}
+
+.closeButton:active {
+  transform: rotate(90deg) scale(1.05);
+}
+
+/* ============================================ */
+/* Header - Eye-catching */
+/* ============================================ */
+.modalHeader {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.modalIcon {
+  font-size: 38px;
+  margin-bottom: 8px;
+  display: inline-block;
+  filter: drop-shadow(0 5px 15px rgba(102, 126, 234, 0.4));
+}
+
+.modalTitle {
+  font-size: 24px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 10px rgba(102, 126, 234, 0.2);
+}
+
+.modalSubtitle {
+  font-size: 13px;
   color: #666;
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* ============================================ */
+/* Instructions Grid - 2x2 Beautiful Layout */
+/* ============================================ */
+.instructionsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* ============================================ */
+/* Instruction Cards - Glassmorphism Style */
+/* ============================================ */
+.instructionCard {
+  background: linear-gradient(145deg, 
+    rgba(255, 255, 255, 0.9) 0%, 
+    rgba(248, 249, 255, 0.95) 100%
+  );
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
+  padding: 14px 12px;
+  position: relative;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(102, 126, 234, 0.1) inset;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  overflow: hidden;
+}
+
+.instructionCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.instructionCard:hover::before {
+  opacity: 1;
+}
+
+.instructionCard:hover {
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 
+    0 12px 40px rgba(102, 126, 234, 0.25),
+    0 0 0 2px rgba(102, 126, 234, 0.3) inset;
+  border-color: rgba(102, 126, 234, 0.4);
+}
+
+/* Card Number Badge - Colorful */
+.cardNumber {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 12px;
+  box-shadow: 0 3px 12px rgba(102, 126, 234, 0.5);
+  border: 2px solid white;
+}
+
+/* Card Icon - Bigger & Better */
+.cardIcon {
+  font-size: 32px;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.1));
+  transform: scale(1);
+  transition: transform 0.3s ease;
+}
+
+.instructionCard:hover .cardIcon {
+  transform: scale(1.15);
+}
+
+/* Card Title - Bold */
+.cardTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: #2d3748;
+  margin: 0 0 5px 0;
+  line-height: 1.2;
+}
+
+/* Card Description - Clear */
+.cardDescription {
+  font-size: 10.5px;
+  color: #718096;
+  line-height: 1.4;
   margin: 0;
   font-weight: 500;
 }
 
-.instructionsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 35px;
-}
-
-.instructionCard {
-  background: white;
-  border-radius: 16px;
-  padding: 25px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  position: relative;
-  border: 2px solid #f0f0f0;
-  transition: all 0.3s ease;
-}
-
-.instructionCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
-  border-color: #667eea;
-}
-
-.stepNumber {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.instructionIcon {
-  font-size: 40px;
-  margin-bottom: 12px;
-}
-
-.instructionTitle {
-  font-size: 18px;
-  font-weight: 700;
-  color: #333;
-  margin: 0 0 8px 0;
-}
-
-.instructionDesc {
-  font-size: 14px;
-  color: #666;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.tipsSection {
-  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-  border-radius: 16px;
-  padding: 25px;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 15px rgba(253, 203, 110, 0.3);
-}
-
-.tipsTitle {
-  font-size: 22px;
-  font-weight: 700;
-  color: #333;
-  margin: 0 0 15px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tipsList {
-  margin: 0;
-  padding-left: 25px;
-  list-style: none;
-}
-
-.tipsList li {
-  font-size: 16px;
-  color: #333;
-  margin-bottom: 10px;
-  position: relative;
-  line-height: 1.5;
-}
-
-.tipsList li::before {
-  content: '✨';
-  position: absolute;
-  left: -25px;
-}
-
-.buttonContainer {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.skipButton,
-.startButton {
-  padding: 16px 40px;
-  font-size: 18px;
-  font-weight: 700;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.skipButton {
-  background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
-}
-
-.skipButton:hover {
-  background: #f8f9ff;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.2);
-}
-
-.startButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  min-width: 200px;
-}
-
-.startButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .modal {
-    padding: 25px;
-    max-height: 95vh;
-  }
-
-  .title {
-    font-size: 28px;
-  }
-
-  .subtitle {
-    font-size: 16px;
-  }
-
-  .instructionsGrid {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-
-  .instructionCard {
-    padding: 20px;
-  }
-
-  .tipsSection {
-    padding: 20px;
-  }
-
-  .buttonContainer {
-    flex-direction: column;
-  }
-
-  .skipButton,
-  .startButton {
-    width: 100%;
-  }
-}
-
-/* Scrollbar Styling */
-.modal::-webkit-scrollbar {
-  width: 8px;
-}
-
-.modal::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.modal::-webkit-scrollbar-thumb {
-  background: #667eea;
-  border-radius: 10px;
-}
-
-.modal::-webkit-scrollbar-thumb:hover {
-  background: #764ba2;
-}
-
-/* Checkbox Container */
-.checkboxContainer {
+/* ============================================ */
+/* Checkbox Section - Elegant */
+/* ============================================ */
+.checkboxSection {
   display: flex;
   justify-content: center;
-  margin-bottom: 25px;
+  margin-bottom: 14px;
 }
 
 .checkboxLabel {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 16px;
-  color: #666;
+  font-size: 12px;
+  color: #4a5568;
   cursor: pointer;
   user-select: none;
-}
-
-.checkbox {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  accent-color: #667eea;
+  padding: 8px 14px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  background: rgba(102, 126, 234, 0.05);
 }
 
 .checkboxLabel:hover {
-  color: #333;
+  background: rgba(102, 126, 234, 0.12);
+  color: #2d3748;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #667eea;
+  border-radius: 5px;
 }
 
 .checkboxLabel span {
-  font-weight: 500;
+  font-weight: 700;
+}
+
+/* ============================================ */
+/* Start Button - Eye-catching CTA */
+/* ============================================ */
+.startButton {
+  width: 100%;
+  padding: 13px 32px;
+  font-size: 16px;
+  font-weight: 900;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background-size: 200% 200%;
+  color: white;
+  box-shadow: 
+    0 8px 30px rgba(102, 126, 234, 0.5),
+    0 0 0 2px rgba(255, 255, 255, 0.3) inset;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.startButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 15px 45px rgba(102, 126, 234, 0.6),
+    0 0 0 3px rgba(255, 255, 255, 0.4) inset;
+}
+
+.startButton:active {
+  transform: translateY(-1px);
+}
+
+/* ============================================ */
+/* Responsive Design */
+/* ============================================ */
+@media (max-width: 768px) {
+  .modalContainer {
+    padding: 35px 28px;
+    max-width: 95%;
+    border-radius: 25px;
+  }
+
+  .modalTitle {
+    font-size: 28px;
+  }
+
+  .modalSubtitle {
+    font-size: 15px;
+  }
+
+  .modalIcon {
+    font-size: 50px;
+  }
+
+  .instructionsGrid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .instructionCard {
+    padding: 22px 18px;
+    min-height: auto;
+  }
+
+  .cardIcon {
+    font-size: 38px;
+  }
+
+  .cardTitle {
+    font-size: 15px;
+  }
+
+  .cardDescription {
+    font-size: 12px;
+  }
+
+  .startButton {
+    padding: 16px 36px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalContainer {
+    padding: 30px 24px;
+    border-radius: 22px;
+  }
+
+  .modalHeader {
+    margin-bottom: 25px;
+  }
+
+  .modalTitle {
+    font-size: 24px;
+  }
+
+  .modalIcon {
+    font-size: 46px;
+  }
+
+  .instructionCard {
+    padding: 20px 16px;
+  }
+
+  .cardNumber {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+
+  .startButton {
+    font-size: 17px;
+    padding: 15px 32px;
+  }
+
+  .checkboxLabel {
+    font-size: 13px;
+    padding: 8px 14px;
+  }
+
+  .checkbox {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* ============================================ */
+/* Accessibility & Focus States */
+/* ============================================ */
+.closeButton:focus,
+.startButton:focus,
+.checkbox:focus {
+  outline: 3px solid rgba(102, 126, 234, 0.6);
+  outline-offset: 3px;
+}
+
+.checkboxLabel:focus-within {
+  background: rgba(102, 126, 234, 0.15);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+/* ============================================ */
+/* Print-friendly */
+/* ============================================ */
+@media print {
+  .modalOverlay {
+    display: none;
+  }
 }

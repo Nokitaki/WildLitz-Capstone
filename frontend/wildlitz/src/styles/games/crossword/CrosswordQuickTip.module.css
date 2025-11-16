@@ -1,0 +1,152 @@
+/* CrosswordQuickTip.module.css */
+/* Compact, non-intrusive tip styling */
+
+.tipContainer {
+  position: fixed;
+  top: 100px;
+  right: 30px;
+  width: 320px;
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3),
+              0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  border: 3px solid #667eea;
+}
+
+.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: #667eea;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  background: #f0f4ff;
+  transform: rotate(90deg);
+}
+
+.tipHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.tipIcon {
+  color: #ffc107;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.tipTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: bold;
+  color: #5a3e7e;
+}
+
+.tipContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.tipItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tipNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.tipText {
+  font-size: 15px;
+  color: #2d3748;
+  line-height: 1.4;
+}
+
+.gotItButton {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.gotItButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.gotItButton:active {
+  transform: translateY(0);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .tipContainer {
+    top: auto;
+    bottom: 20px;
+    right: 20px;
+    left: 20px;
+    width: auto;
+    max-width: 350px;
+    margin: 0 auto;
+  }
+}
+
+/* Animation for mobile */
+@media (max-width: 768px) {
+  .tipContainer {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}

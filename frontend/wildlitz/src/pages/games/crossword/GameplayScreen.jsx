@@ -3,7 +3,8 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import BackToHomeButton from '../crossword/BackToHomeButton';
 import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
-
+import CrosswordQuickTip from './CrosswordQuickTip';
+import CrosswordGuideModal from './CrosswordGuideModalEnhanced';
 const GameplayScreen = ({ 
   puzzle, 
   theme, 
@@ -42,6 +43,7 @@ const GameplayScreen = ({
 
   const INITIAL_HINTS = 3;
 
+  const [showGuide, setShowGuide] = useState(true);
   // Validation
   if (!puzzle || !puzzle.words || !Array.isArray(puzzle.words)) {
     return (
@@ -65,6 +67,25 @@ const GameplayScreen = ({
   const totalWords = puzzle.words.length;
   const solvedCount = Object.keys(solvedClues).length;
   const isCurrentWordSolved = solvedClues[currentWord?.answer];
+
+  useEffect(() => {
+  const hasSeenGuide = localStorage.getItem('wildlitz_crossword_guide_seen');
+  if (hasSeenGuide === 'true') {
+    setShowGuide(false);
+    setTimerActive(true);
+  }
+}, []);
+
+// Add these handlers
+const handleStartFromGuide = () => {
+  setShowGuide(false);
+  setTimerActive(true);
+};
+
+const handleSkipGuide = () => {
+  setShowGuide(false);
+  setTimerActive(true);
+};
 
   // Initialize speech synthesis and load voices
   useEffect(() => {
@@ -1095,6 +1116,15 @@ const handleSubmitAnswer = useCallback(async () => {
           </>
         )}
       </AnimatePresence>
+        <CrosswordQuickTip />
+        {/* Guide Modal Overlay */}
+{showGuide && (
+  <CrosswordGuideModal
+    isVisible={showGuide}
+    onStart={handleStartFromGuide}
+    onSkip={handleSkipGuide}
+  />
+)}
     </div>
   );
 };

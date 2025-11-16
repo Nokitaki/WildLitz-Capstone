@@ -15,7 +15,7 @@ import SentenceBuilderScreen from './SentenceBuilderScreen';
 import StoryGeneratorScreen from './StoryGeneratorScreen';
 
 // ✅ NEW: Import the CrosswordGuideModal
-import CrosswordGuideModal from '../crossword/CrosswordGuideModal';
+import CrosswordGuideModal from '../crossword/CrosswordGuideModalEnhanced';
 
 // Import AI components
 import AIReadingCoach from '../../../components/crossword/AIReadingCoach';
@@ -71,8 +71,7 @@ const CrosswordGame = () => {
   // Reading coach
   const [showReadingCoach, setShowReadingCoach] = useState(false);
   
-  // ✅ NEW: Add state for guide modal
-  const [showGuide, setShowGuide] = useState(true);
+ 
   
   useEffect(() => {
   
@@ -253,25 +252,11 @@ const CrosswordGame = () => {
     return allWords;
   };
   
-  // ✅ UPDATED: Modified to show guide when transitioning to gameplay
-  const handleContinueToPuzzle = () => {
-    setShowGuide(true);  // Show guide for each new puzzle
-    setGameState('gameplay');
-  };
+ const handleContinueToPuzzle = () => {
+  setGameState('gameplay');
+};
   
-  // ✅ NEW: Handler for starting game from guide
-  const handleStartFromGuide = () => {
-    if (window.playClickSound) window.playClickSound();
-    setShowGuide(false);
-    setTimerActive(true);
-  };
-
-  // ✅ NEW: Handler for skipping guide
-  const handleSkipGuide = () => {
-    if (window.playClickSound) window.playClickSound();
-    setShowGuide(false);
-    setTimerActive(true);
-  };
+  
   
   const handleWordSolved = (word, definition, example, hintsUsedForWord = 0) => {
   console.log('🎯 Word solved:', word);
@@ -604,24 +589,9 @@ const generateNextEpisodeOnDemand = async () => {
       );
     }
     
-    if (gameState === 'gameplay' && showGuide) {
-      return (
-        <motion.div
-          key="guide"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <CrosswordGuideModal
-            onStart={handleStartFromGuide}
-            onSkip={handleSkipGuide}
-            storyContext={currentStorySegment}
-          />
-        </motion.div>
-      );
-    }
+   
     
-    if (gameState === 'gameplay' && !showGuide && currentPuzzle) {
+    if (gameState === 'gameplay' && currentPuzzle) {
       return (
         <motion.div
           key="gameplay"
