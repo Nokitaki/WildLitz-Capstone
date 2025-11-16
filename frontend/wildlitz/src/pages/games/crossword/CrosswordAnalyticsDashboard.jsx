@@ -258,35 +258,44 @@ const CrosswordAnalyticsDashboard = () => {
 
         {/* Words Solved */}
         <motion.div whileHover={{ scale: 1.05 }} style={{
-          background: 'white',
-          borderRadius: '15px',
-          padding: '25px',
-          boxShadow: '0 5px 15px rgba(0,0,0,0.1)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '20px'
-        }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #f093fb, #f5576c)',
-            width: '60px',
-            height: '60px',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1.8rem'
-          }}>
-            📝
-          </div>
-          <div>
-            <h3 style={{ fontSize: '2rem', fontWeight: 700, margin: '0 0 5px 0', color: '#333' }}>
-              {analytics?.total_words_solved || 0}
-            </h3>
-            <p style={{ fontSize: '0.9rem', color: '#666', margin: 0, textTransform: 'uppercase', fontWeight: 500 }}>
-              Words Solved
-            </p>
-          </div>
-        </motion.div>
+  background: 'white',
+  borderRadius: '15px',
+  padding: '25px',
+  boxShadow: '0 5px 15px rgba(0,0,0,0.1)',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '20px'
+}}>
+  <div style={{
+    background: 'linear-gradient(135deg, #f093fb, #f5576c)',
+    width: '60px',
+    height: '60px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1.8rem'
+  }}>
+    📚
+  </div>
+  <div>
+    <h3 style={{ fontSize: '2rem', fontWeight: 700, margin: '0 0 5px 0', color: '#333' }}>
+      {/* ✅ FIX: Ensure we show the correct total */}
+      {(() => {
+        const total = analytics?.total_episodes_completed || 0;
+        // Validate the number makes sense
+        if (typeof total !== 'number' || total < 0) {
+          console.warn('Invalid total_episodes_completed:', total);
+          return 0;
+        }
+        return Math.floor(total); // Ensure it's an integer
+      })()}
+    </h3>
+    <p style={{ fontSize: '0.9rem', color: '#666', margin: 0, textTransform: 'uppercase', fontWeight: 500 }}>
+      Episodes Completed
+    </p>
+  </div>
+</motion.div>
 
         {/* Episodes Completed */}
         <motion.div whileHover={{ scale: 1.05 }} style={{
@@ -611,16 +620,33 @@ const CrosswordAnalyticsDashboard = () => {
                     }}>
                       {session.theme || 'adventure'}
                     </span>
-                     <span style={{
-                        background: '#f3e5f5',
-                        color: '#9c27b0',
-                        padding: '5px 12px',
-                        borderRadius: '20px',
-                        fontSize: '0.85rem',
-                        fontWeight: 600
-                      }}>
-                        {session.episodes_completed || session.current_episode || 1}/{session.episode_count || 1} Episodes
-                      </span>
+                    {(() => {
+  const completed = session.episodes_completed || 0;
+  const total = session.episode_count || 1;
+  const current = session.current_episode || 1;
+  
+  // If game is in progress, show current episode out of total
+  // If game is complete, show total/total
+  // Make sure we never show more completed than total
+  const displayCompleted = session.is_completed 
+    ? Math.min(total, completed || total)  // If completed, show total
+    : Math.min(current, total);  // If in progress, show current
+  
+ 
+  
+  return (
+    <span style={{
+      background: '#f3e5f5',
+      color: '#9c27b0',
+      padding: '5px 12px',
+      borderRadius: '20px',
+      fontSize: '0.85rem',
+      fontWeight: 600
+    }}>
+      {displayCompleted}/{total} Episodes
+    </span>
+  );
+})()}
                     
                     {/* NEW: Display Focused Skills */}
                     {session.focus_skills && session.focus_skills.length > 0 && (

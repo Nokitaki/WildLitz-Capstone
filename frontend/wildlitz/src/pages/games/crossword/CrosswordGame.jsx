@@ -24,7 +24,7 @@ import { useAuth } from '../../../context/AuthContext';
 
 // Import mock data
 import { STORY_ADVENTURES, STORY_PUZZLES } from '../../../mock/storyData';
-
+import { API_ENDPOINTS } from '../../../config/api';
 /**
  * Main Crossword Puzzle Game component that manages game state and flow
  */
@@ -52,6 +52,11 @@ const CrosswordGame = () => {
   const [currentStorySegment, setCurrentStorySegment] = useState(null);
   const [currentPuzzle, setCurrentPuzzle] = useState(null);
   
+
+  // Add new state for progressive generation
+  const [isGeneratingNextEpisode, setIsGeneratingNextEpisode] = useState(false);
+  const [generationError, setGenerationError] = useState(null);
+
   // Game progress
   const [solvedWords, setSolvedWords] = useState([]);
   const [timeSpent, setTimeSpent] = useState(0);
@@ -150,7 +155,11 @@ const CrosswordGame = () => {
       description: data.story.description,
       theme: data.story.theme,
       gradeLevel: data.story.gradeLevel,
-      episodes: data.story.episodes ? data.story.episodes : []
+      episodes: data.story.episodes ? data.story.episodes : [],
+      totalEpisodes: data.story.totalEpisodes || 1,        // ⭐ ADD
+      generatedEpisodes: data.story.generatedEpisodes || 1, // ⭐ ADD
+      focusSkills: data.story.focusSkills || [],           // ⭐ ADD
+      characterNames: data.story.characterNames || ''       // ⭐ ADD
     };
     
     const newStories = {
@@ -178,16 +187,16 @@ const CrosswordGame = () => {
         ? user.email 
         : 'guest@wildlitz.com';
       
-      const sessionData = {
-        user_email: userEmail,
-        story_id: newStory.id,
-        story_title: newStory.title,
-        theme: data.story.theme || 'adventure',
-        focus_skills: data.story.focusSkills || [],
-        episode_count: newStory.episodes.length,
-        difficulty: newStory.gradeLevel || 'grade_3',
-        character_names: data.story.characterNames || ''
-      };
+     const sessionData = {
+  user_email: userEmail,
+  story_id: newStory.id,
+  story_title: newStory.title,
+  theme: data.story.theme || 'adventure',
+  focus_skills: data.story.focusSkills || [],
+  episode_count: newStory.totalEpisodes || newStory.episodes.length,  // ✅ USE totalEpisodes!
+  difficulty: newStory.gradeLevel || 'grade_3',
+  character_names: data.story.characterNames || ''
+};
       
       const session = await crosswordAnalyticsService.createSession(sessionData);
       setSessionId(session.session_id);
@@ -265,65 +274,179 @@ const CrosswordGame = () => {
   };
   
   const handleWordSolved = (word, definition, example, hintsUsedForWord = 0) => {
-    if (!solvedWords.some(solved => solved.word === word)) {
-      setSolvedWords(prev => [
-        ...prev, 
-        {
-          word,
-          definition,
-          example,
-          timestamp: new Date()
-        }
-      ]);
-      
-      if (hintsUsedForWord > 0) {
-        setTotalHints(prev => prev + hintsUsedForWord);
+  console.log('🎯 Word solved:', word);
+  console.log('  - Hints used for this word:', hintsUsedForWord);
+  console.log('  - Current total hints:', totalHints);
+  
+  if (!solvedWords.some(solved => solved.word === word)) {
+    setSolvedWords(prev => [
+      ...prev, 
+      {
+        word,
+        definition,
+        example,
+        timestamp: new Date(),
+        hintsUsed: hintsUsedForWord  // ✅ STORE hints with the word
       }
-    }
+    ]);
     
-    if (currentPuzzle && solvedWords.length + 1 >= currentPuzzle.words.length) {
-      setTimerActive(false);
-      setTimeout(() => {
-        setGameState('summary');
-      }, 1000);
+    // ✅ FIX: Make sure hints are accumulated correctly
+    if (hintsUsedForWord > 0) {
+      setTotalHints(prev => {
+        const newTotal = prev + hintsUsedForWord;
+        console.log(`📊 Updating hints: ${prev} + ${hintsUsedForWord} = ${newTotal}`);
+        return newTotal;
+      });
     }
-  };
+  } else {
+    console.log('⚠️ Word already solved, not adding hints');
+  }
+  
+  if (currentPuzzle && solvedWords.length + 1 >= currentPuzzle.words.length) {
+    setTimerActive(false);
+    setTimeout(() => {
+      console.log('🎉 All words solved! Total hints used:', totalHints + hintsUsedForWord);
+      setGameState('summary');
+    }, 1000);
+  }
+};
   
   const handlePuzzleComplete = () => {
     setGameState('summary');
     setTimerActive(false);
   };
   
-  const handleNextEpisode = () => {
-    const adventure = gameStories[gameConfig.adventureId];
+  const handleNextEpisode = async () => {
+  const adventure = gameStories[gameConfig.adventureId];
+  
+  if (!adventure || !adventure.episodes) {
+    setGameState('generate-story');
+    return;
+  }
+  
+  const nextEpisodeIndex = currentEpisode; // Next episode (currentEpisode is 0-indexed for array)
+  
+  // Check if we've already generated this episode
+  if (nextEpisodeIndex < adventure.episodes.length) {
+    // Episode already exists, just load it
+    const nextEpisode = adventure.episodes[nextEpisodeIndex];
+    setCurrentStorySegment(nextEpisode);
+    setCurrentEpisode(currentEpisode + 1);
     
-    if (!adventure || !adventure.episodes) {
-      setGameState('generate-story');
-      return;
+    const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
+    if (puzzleData) {
+      setCurrentPuzzle(puzzleData);
     }
     
-    const nextEpisodeIndex = currentEpisode;
+    setSolvedWords([]);
+    setTimeSpent(0);
+    setTotalHints(0);
+    setTimerActive(false);
     
-    if (nextEpisodeIndex < adventure.episodes.length) {
-      const nextEpisode = adventure.episodes[nextEpisodeIndex];
-      setCurrentStorySegment(nextEpisode);
-      setCurrentEpisode(currentEpisode + 1);
-      
-      const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
-      if (puzzleData) {
-        setCurrentPuzzle(puzzleData);
+    setGameState('story');
+  } 
+  // Check if we need to generate the next episode
+  else if (adventure.generatedEpisodes < adventure.totalEpisodes) {
+    // ⭐ GENERATE NEXT EPISODE ON-DEMAND
+    await generateNextEpisodeOnDemand();
+  } 
+  else {
+    // All episodes completed
+    setGameState('generate-story');
+  }
+};
+
+// ⭐ NEW FUNCTION: Generate next episode on demand
+const generateNextEpisodeOnDemand = async () => {
+  const adventure = gameStories[gameConfig.adventureId];
+  const nextEpisodeNumber = adventure.generatedEpisodes + 1;
+  
+  setIsGeneratingNextEpisode(true);
+  setGenerationError(null);
+  
+  try {
+    // Gather previous episodes for context
+    const previousEpisodes = adventure.episodes.map(ep => ({
+      title: ep.title,
+      text: ep.text,
+      vocabularyWords: gamePuzzles[ep.crosswordPuzzleId]?.words?.map(w => ({
+        word: w.answer.toLowerCase(),
+        definition: w.definition
+      })) || []
+    }));
+    
+    const requestBody = {
+      storyId: adventure.id,
+      episodeNumber: nextEpisodeNumber,
+      theme: adventure.theme,
+      focusSkills: adventure.focusSkills,
+      characterNames: adventure.characterNames || '',
+      gradeLevel: 3,
+      previousEpisodes: previousEpisodes
+    };
+    
+    const response = await fetch(
+      `${API_ENDPOINTS.SENTENCE_FORMATION}/generate-next-episode/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody),
+        signal: AbortSignal.timeout(28000) // 28-second timeout
       }
-      
-      setSolvedWords([]);
-      setTimeSpent(0);
-      setTotalHints(0);
-      setTimerActive(false);
-      
-      setGameState('story');
-    } else {
-      setGameState('generate-story');
+    );
+    
+    if (!response.ok) {
+      throw new Error(`Failed to generate episode ${nextEpisodeNumber}`);
     }
-  };
+    
+    const data = await response.json();
+    
+    if (!data.success || !data.episode || !data.puzzle) {
+      throw new Error('Invalid response from server');
+    }
+    
+    // Add new episode to story
+    const updatedStory = {
+      ...adventure,
+      episodes: [...adventure.episodes, data.episode],
+      generatedEpisodes: nextEpisodeNumber
+    };
+    
+    // Add new puzzle
+    const updatedPuzzles = {
+      ...gamePuzzles,
+      ...data.puzzle
+    };
+    
+    // Update state
+    setGameStories({
+      ...gameStories,
+      [gameConfig.adventureId]: updatedStory
+    });
+    setGamePuzzles(updatedPuzzles);
+    
+    // Set new episode as current
+    setCurrentStorySegment(data.episode);
+    setCurrentEpisode(currentEpisode + 1);
+    setCurrentPuzzle(data.puzzle[data.episode.crosswordPuzzleId]);
+    
+    // Reset game state
+    setSolvedWords([]);
+    setTimeSpent(0);
+    setTotalHints(0);
+    setTimerActive(false);
+    
+    setIsGeneratingNextEpisode(false);
+    setGameState('story');
+    
+  } catch (error) {
+    console.error('Error generating next episode:', error);
+    setGenerationError(error.message || 'Failed to generate next episode');
+    setIsGeneratingNextEpisode(false);
+  }
+};
   
   const handleReturnToMenu = () => {
     if (window.disableGameAudio) window.disableGameAudio();
@@ -340,96 +463,219 @@ const CrosswordGame = () => {
 
   return (
     <div className={styles.container}>
-      <AnimatePresence mode="wait">
-        {gameState === 'generate-story' && (
-          <motion.div
-            key="generate"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <StoryGeneratorScreen
-              onStoryGenerated={handleStoryGenerated}
-              existingStories={gameStories}
-            />
-          </motion.div>
-        )}
-        
-        {gameState === 'story' && currentStorySegment && (
-          <motion.div
-            key="story"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-          >
-            <StoryScreen
-              storySegment={currentStorySegment}
-              currentEpisode={currentEpisode}
-              vocabularyWords={getCurrentEpisodeVocabularyWords()}
-              onContinue={handleContinueToPuzzle}
-              onToggleReadingCoach={toggleReadingCoach}
-            />
-          </motion.div>
-        )}
-        
-        {/* ✅ NEW: Game Guide Modal - Shows between story and gameplay */}
-        {gameState === 'gameplay' && showGuide && (
+   <AnimatePresence mode="wait">
+  {(() => {
+    // ✅ ONLY RENDER ONE CHILD AT A TIME
+    if (isGeneratingNextEpisode) {
+      return (
+        <motion.div
+          key="generating"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          style={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+          }}
+        >
+          <div style={{
+            background: 'white',
+            padding: '60px 40px',
+            borderRadius: '30px',
+            textAlign: 'center',
+            maxWidth: '500px',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+          }}>
+            {!generationError ? (
+              <>
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                  style={{ fontSize: '72px', marginBottom: '30px' }}
+                >
+                  📚
+                </motion.div>
+                <h2 style={{ fontSize: '2rem', marginBottom: '15px', color: '#333' }}>
+                  Creating Next Episode...
+                </h2>
+                <p style={{ color: '#666', fontSize: '1.1rem', marginBottom: '30px' }}>
+                  Generating a brand new adventure just for you!
+                </p>
+                <div style={{
+                  width: '100%',
+                  height: '8px',
+                  background: '#e0e0e0',
+                  borderRadius: '10px',
+                  overflow: 'hidden'
+                }}>
+                  <motion.div
+                    animate={{ x: ['-100%', '200%'] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{
+                      height: '100%',
+                      width: '50%',
+                      background: 'linear-gradient(90deg, #9c27b0, #673ab7)',
+                      borderRadius: '10px'
+                    }}
+                  />
+                </div>
+              </>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div style={{ fontSize: '72px', marginBottom: '30px' }}>❌</div>
+                <h2 style={{ fontSize: '2rem', marginBottom: '15px', color: '#333' }}>
+                  Generation Failed
+                </h2>
+                <div style={{
+                  padding: '20px',
+                  background: '#fee',
+                  borderRadius: '15px',
+                  color: '#c00',
+                  marginBottom: '25px'
+                }}>
+                  <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>
+                    {generationError}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsGeneratingNextEpisode(false);
+                    setGenerationError(null);
+                    setGameState('generate-story');
+                  }}
+                  style={{
+                    padding: '12px 30px',
+                    background: '#9c27b0',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '25px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '1rem',
+                  }}
+                >
+                  Return Home
+                </button>
+              </motion.div>
+            )}
+          </div>
+        </motion.div>
+      );
+    }
+    
+    if (gameState === 'generate-story') {
+      return (
+        <motion.div
+          key="generate"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <StoryGeneratorScreen
+            onStoryGenerated={handleStoryGenerated}
+            existingStories={gameStories}
+          />
+        </motion.div>
+      );
+    }
+    
+    if (gameState === 'story' && currentStorySegment) {
+      return (
+        <motion.div
+          key="story"
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -50 }}
+        >
+          <StoryScreen
+            storySegment={currentStorySegment}
+            currentEpisode={currentEpisode}
+            vocabularyWords={getCurrentEpisodeVocabularyWords()}
+            onContinue={handleContinueToPuzzle}
+            onToggleReadingCoach={toggleReadingCoach}
+          />
+        </motion.div>
+      );
+    }
+    
+    if (gameState === 'gameplay' && showGuide) {
+      return (
+        <motion.div
+          key="guide"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
           <CrosswordGuideModal
             onStart={handleStartFromGuide}
             onSkip={handleSkipGuide}
             storyContext={currentStorySegment}
           />
-        )}
-        
-        {/* ✅ UPDATED: Gameplay Screen - Only shows when guide is dismissed */}
-        {gameState === 'gameplay' && !showGuide && currentPuzzle && (
-          <motion.div
-            key="gameplay"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <GameplayScreen
-              puzzle={currentPuzzle}
-              theme="story"
-              onWordSolved={(word, def, example, hints) => handleWordSolved(word, def, example, hints)}
-              solvedWords={solvedWords}
-              timeSpent={timeSpent}
-              timeFormatted={formatTime(timeSpent)}
-              storyContext={currentStorySegment}
-              currentPuzzleIndex={currentPuzzleIndex}
-              totalPuzzles={availablePuzzles.length}
-              sessionId={sessionId}
-            />
-          </motion.div>
-        )}
-        
-        {gameState === 'summary' && (
-          <motion.div
-            key="summary"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-          >
-            <SummaryScreen
-              solvedWords={solvedWords}
-              timeSpent={timeSpent}
-              timeFormatted={formatTime(timeSpent)}
-              theme="story"
-              onPlayAgain={handleNextEpisode}
-              onReturnToMenu={handleReturnToMenu}
-              totalWords={currentPuzzle?.words?.length || 0}
-              totalHints={totalHints}
-              isStoryMode={gameConfig.storyMode}
-              storySegment={currentStorySegment}
-              currentEpisode={currentEpisode}
-              totalEpisodes={gameStories[gameConfig.adventureId]?.episodes.length || 1}
-              hasNextEpisode={currentEpisode < (gameStories[gameConfig.adventureId]?.episodes.length || 0)}
-              sessionId={sessionId}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </motion.div>
+      );
+    }
+    
+    if (gameState === 'gameplay' && !showGuide && currentPuzzle) {
+      return (
+        <motion.div
+          key="gameplay"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <GameplayScreen
+            puzzle={currentPuzzle}
+            theme="story"
+            onWordSolved={(word, def, example, hints) => handleWordSolved(word, def, example, hints)}
+            solvedWords={solvedWords}
+            timeSpent={timeSpent}
+            timeFormatted={formatTime(timeSpent)}
+            storyContext={currentStorySegment}
+            currentPuzzleIndex={currentPuzzleIndex}
+            totalPuzzles={availablePuzzles.length}
+            sessionId={sessionId}
+          />
+        </motion.div>
+      );
+    }
+    
+    if (gameState === 'summary') {
+      return (
+        <motion.div
+          key="summary"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+        >
+          <SummaryScreen
+            solvedWords={solvedWords}
+            timeSpent={timeSpent}
+            timeFormatted={formatTime(timeSpent)}
+            theme="story"
+            onPlayAgain={handleNextEpisode}
+            onReturnToMenu={handleReturnToMenu}
+            totalWords={currentPuzzle?.words?.length || 0}
+            totalHints={totalHints}
+            isStoryMode={gameConfig.storyMode}
+            storySegment={currentStorySegment}
+            currentEpisode={currentEpisode}
+            totalEpisodes={gameStories[gameConfig.adventureId]?.totalEpisodes || 1}
+            hasNextEpisode={currentEpisode < (gameStories[gameConfig.adventureId]?.totalEpisodes || 0)}
+            sessionId={sessionId}
+          />
+        </motion.div>
+      );
+    }
+    
+    return null;
+  })()}
+</AnimatePresence>
       
       {showReadingCoach && (
         <>
