@@ -1,6 +1,10 @@
-// SummaryScreen.jsx - Optimized & Performance-Enhanced Version
+// SummaryScreen.jsx - FINAL FIXED VERSION 🎨
+// ✅ Buttons in ONE LINE
+// ✅ Animation error FIXED
+// ✅ Episode-based completion FIXED
+
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/crossword/SummaryScreen.module.css';
 import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
 
@@ -20,11 +24,10 @@ const SummaryScreen = ({
   totalHints = 0
 }) => {
 
-  // State management
   const [selectedWord, setSelectedWord] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(true);
 
-  // Calculate basic metrics only
   const performanceMetrics = useMemo(() => {
     const wordsCount = solvedWords.length;
     const episodeProgress = Math.round((currentEpisode / totalEpisodes) * 100);
@@ -35,225 +38,413 @@ const SummaryScreen = ({
     };
   }, [solvedWords.length, currentEpisode, totalEpisodes]);
 
-  // Analytics logging
   useEffect(() => {
-  const logAnalytics = async () => {
-    if (!sessionId) {
-      console.log('⚠️ No session ID available for analytics logging');
-      return;
-    }
+    const logAnalytics = async () => {
+      if (!sessionId) {
+        console.log('⚠️ No session ID available for analytics logging');
+        return;
+      }
 
-    try {
-      console.log('📊 SummaryScreen - Logging analytics');
-      console.log('  - Session ID:', sessionId);
-      console.log('  - Total Hints:', totalHints);
-      console.log('  - Words solved:', solvedWords.length);
-      console.log('  - Time spent:', timeSpent);
+      try {
+        const gameData = {
+          wordsLearned: solvedWords.length,
+          totalTime: timeSpent,
+          totalHints: totalHints,
+          episodesCompleted: currentEpisode,
+          accuracy: Math.round((solvedWords.length / totalWords) * 100),
+          completionPercentage: Math.round((currentEpisode / totalEpisodes) * 100),
+          isFullyCompleted: !hasNextEpisode
+        };
 
-      const gameData = {
-        wordsLearned: solvedWords.length,
-        totalTime: timeSpent,
-        totalHints: totalHints,  // ✅ CRITICAL: Make sure this matches the prop name
-        episodesCompleted: currentEpisode,
-        accuracy: Math.round((solvedWords.length / totalWords) * 100),
-        isFullyCompleted: !hasNextEpisode
-      };
+        await crosswordAnalyticsService.logGameCompleted(
+          sessionId,
+          gameData,
+          solvedWords,
+          totalHints
+        );
 
-      console.log('📊 Game data object:', JSON.stringify(gameData, null, 2));
-
-      // ✅ Pass totalHints as both part of gameData AND as separate parameter
-      await crosswordAnalyticsService.logGameCompleted(
-        sessionId,
-        gameData,
-        solvedWords,
-        totalHints  // ✅ PASS AS SEPARATE PARAMETER TOO
-      );
-
-      console.log('✅ Analytics logged successfully');
-    } catch (error) {
-      console.error('❌ Failed to log analytics:', error);
-    }
-  };
-
-  logAnalytics();
-}, [sessionId, solvedWords.length, totalHints, timeSpent]); // ✅ Include totalHints in dependencies
-
-  // Word emoji mapping
-  const getWordEmoji = (word) => {
-    const emojiMap = {
-      'adventure': '🗺️', 'explore': '🔍', 'brave': '🦁', 'mystery': '🔮',
-      'treasure': '💎', 'journey': '🚶', 'discover': '⭐', 'friend': '🤝',
-      'help': '🤲', 'run': '🏃', 'jump': '🦘', 'find': '🔎',
-      'look': '👀', 'walk': '🚶', 'play': '🎮', 'learn': '📚',
-      'read': '📖', 'write': '✍️', 'think': '🧠', 'solve': '🧩'
+        console.log('✅ Analytics logged successfully');
+      } catch (error) {
+        console.error('❌ Failed to log analytics:', error);
+      }
     };
-    return emojiMap[word.toLowerCase()] || '✨';
+
+    logAnalytics();
+  }, [sessionId, solvedWords.length, totalHints, timeSpent, currentEpisode, totalEpisodes]);
+
+  const getWordEmoji = (word) => {
+    if (!word) return '⭐';
+    
+    const lowerWord = word.toLowerCase();
+    const emojiMap = {
+      'brave': '🦸', 'forest': '🌳', 'treasure': '💎', 'adventure': '🗺️',
+      'explore': '🔍', 'discover': '💡', 'magic': '✨', 'hero': '🦸‍♂️',
+      'dragon': '🐉', 'castle': '🏰', 'sword': '⚔️', 'shield': '🛡️',
+      'crown': '👑', 'star': '⭐', 'moon': '🌙', 'sun': '☀️',
+      'rainbow': '🌈', 'fire': '🔥', 'water': '💧', 'earth': '🌍',
+      'wind': '💨', 'lightning': '⚡', 'ice': '❄️', 'mountain': '⛰️',
+      'ocean': '🌊', 'desert': '🏜️', 'jungle': '🌴', 'cave': '🕳️',
+      'map': '🗺️', 'compass': '🧭', 'telescope': '🔭', 'book': '📚',
+      'key': '🔑', 'door': '🚪', 'bridge': '🌉', 'path': '🛤️',
+      'mystery': '🔮', 'wisdom': '🦉', 'courage': '💪', 'friendship': '🤝',
+      'hope': '🌟', 'dream': '💭', 'imagination': '🎨'
+    };
+    
+    return emojiMap[lowerWord] || '⭐';
   };
 
-  // Format time display
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  const getWordColor = (word) => {
+    if (!word) return '#9c27b0';
+    const length = word.length;
+    if (length <= 4) return '#e91e63';
+    if (length <= 6) return '#9c27b0';
+    if (length <= 8) return '#673ab7';
+    return '#3f51b5';
   };
 
-  // Simple achievement cards - fewer metrics
-  const achievements = [
-    { 
-      icon: "📚", 
-      title: "Words Learned", 
-      value: performanceMetrics.wordsCount,
-      color: "#9333ea"
-    },
-    { 
-      icon: "⏱️", 
-      title: "Time", 
-      value: formatTime(timeSpent),
-      color: "#2563eb"
-    },
-    { 
-      icon: "💡", 
-      title: "Hints", 
-      value: totalHints,
-      color: "#f59e0b"
-    }
-  ];
+  const achievements = useMemo(() => {
+    return [
+      {
+        icon: '📚',
+        value: performanceMetrics.wordsCount,
+        title: 'Words Mastered',
+        color: '#9c27b0',
+        gradient: 'linear-gradient(135deg, #9c27b0, #e91e63)'
+      },
+      {
+        icon: '⏱️',
+        value: `${Math.floor(timeSpent / 60)}m ${timeSpent % 60}s`,
+        title: 'Time Played',
+        color: '#1976d2',
+        gradient: 'linear-gradient(135deg, #1976d2, #00bcd4)'
+      },
+      {
+        icon: '💡',
+        value: totalHints,
+        title: 'Hints Used',
+        color: '#ff9800',
+        gradient: 'linear-gradient(135deg, #ff9800, #ffc107)'
+      },
+      {
+        icon: '✅',
+        value: `${performanceMetrics.episodeProgress}%`,
+        title: 'Story Progress',
+        color: performanceMetrics.episodeProgress >= 80 ? '#4caf50' : '#ff5722',
+        gradient: performanceMetrics.episodeProgress >= 80 
+          ? 'linear-gradient(135deg, #4caf50, #8bc34a)' 
+          : 'linear-gradient(135deg, #ff5722, #ff9800)'
+      }
+    ];
+  }, [performanceMetrics, timeSpent, totalHints]);
 
   return (
     <div className={styles.summaryContainer}>
-      {/* ===== CELEBRATION HEADER ===== */}
-      <div className={styles.celebrationHeader}>
-        <div className={styles.trophyIcon}>🏆</div>
-        <h1 className={styles.celebrationTitle}>
-          {hasNextEpisode ? "Episode Complete!" : "Mission Accomplished!"}
-        </h1>
-        <p className={styles.celebrationSubtitle}>
-          Great job! Keep learning and growing! 🌟
-        </p>
+      {/* Animated Confetti Background */}
+      {showConfetti && (
+        <div className={styles.confettiWrapper}>
+          {[...Array(50)].map((_, i) => (
+            <motion.div
+              key={i}
+              className={styles.confettiPiece}
+              initial={{ y: -100, x: Math.random() * window.innerWidth, rotate: 0, opacity: 1 }}
+              animate={{ 
+                y: window.innerHeight + 100, 
+                rotate: 360,
+                opacity: 0
+              }}
+              transition={{ 
+                duration: 3 + Math.random() * 2,
+                delay: Math.random() * 2,
+                ease: "linear"
+              }}
+              style={{
+                backgroundColor: ['#9c27b0', '#e91e63', '#00bcd4', '#ffc107', '#4caf50'][i % 5],
+                left: `${Math.random() * 100}%`
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Celebration Header */}
+      <motion.div 
+        className={styles.celebrationHeader}
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5, type: "spring" }}
+      >
+        <motion.div 
+          className={styles.trophyIcon}
+          animate={{ 
+            rotate: [0, -10, 10, -10, 10, 0],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ 
+            duration: 2,
+            repeat: Infinity,
+            repeatDelay: 3,
+            ease: "easeInOut"  // ✅ FIXED: Added ease for smooth animation
+          }}
+        >
+          🏆
+        </motion.div>
+        
+        <motion.h1 
+          className={styles.celebrationTitle}
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          {isStoryMode ? "Episode Complete!" : "Mission Accomplished!"}
+        </motion.h1>
+        
+        <motion.p 
+          className={styles.celebrationSubtitle}
+          initial={{ y: -10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          Amazing work! You're becoming a word master! 🌟
+        </motion.p>
         
         {/* Episode Progress Bar */}
-        <div className={styles.episodeProgressContainer}>
+        <motion.div 
+          className={styles.episodeProgressContainer}
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
           <div className={styles.episodeProgressLabel}>
-            <span>Story Progress</span>
+            <span>📖 Story Progress</span>
             <span className={styles.episodeCount}>
               Episode {currentEpisode} of {totalEpisodes}
             </span>
           </div>
           <div className={styles.progressBarContainer}>
-            <div 
+            <motion.div 
               className={styles.progressBarFill}
-              style={{ width: `${performanceMetrics.episodeProgress}%` }}
+              initial={{ width: 0 }}
+              animate={{ width: `${performanceMetrics.episodeProgress}%` }}
+              transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
             >
               <span className={styles.progressPercentage}>
                 {performanceMetrics.episodeProgress}%
               </span>
-            </div>
+            </motion.div>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
-      {/* ===== PERFORMANCE DASHBOARD ===== */}
-      <div className={styles.performanceSection}>
-        <h2 className={styles.sectionTitle}>📊 Your Learning Stats</h2>
+      {/* Performance Dashboard */}
+      <motion.div 
+        className={styles.performanceSection}
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.5 }}
+      >
+        <h2 className={styles.sectionTitle}>📊 Your Amazing Stats</h2>
         
         <div className={styles.achievementsGrid}>
           {achievements.map((achievement, index) => (
-            <div
+            <motion.div
               key={index}
               className={styles.achievementBadge}
-              style={{ borderColor: achievement.color }}
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ 
+                delay: 0.7 + (index * 0.1),
+                type: "spring",
+                stiffness: 200
+              }}
+              whileHover={{ 
+                scale: 1.05,
+                transition: { duration: 0.2 }  // ✅ FIXED: Simplified hover animation
+              }}
+              style={{ 
+                background: achievement.gradient,
+                border: 'none'
+              }}
             >
               <div className={styles.achievementIcon}>
                 {achievement.icon}
               </div>
-              <div className={styles.achievementValue} style={{ color: achievement.color }}>
+              <div className={styles.achievementValue} style={{ color: 'white' }}>
                 {achievement.value}
               </div>
-              <div className={styles.achievementTitle}>{achievement.title}</div>
-            </div>
+              <div className={styles.achievementTitle} style={{ color: 'rgba(255,255,255,0.9)' }}>
+                {achievement.title}
+              </div>
+            </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
-      {/* ===== VOCABULARY SHOWCASE ===== */}
-      <div className={styles.superWordsSection}>
+      {/* Vocabulary Showcase */}
+      <motion.div 
+        className={styles.superWordsSection}
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.8 }}
+      >
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>
             ✨ Your New Super Words!
           </h2>
-          <button 
+          <motion.button 
             className={styles.toggleDetailsBtn}
             onClick={() => setShowDetails(!showDetails)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             {showDetails ? '📝 Hide Details' : '📖 Show Definitions'}
-          </button>
+          </motion.button>
         </div>
 
         <div className={styles.wordsGrid}>
           {solvedWords.map((wordData, index) => {
             const word = typeof wordData === 'string' ? wordData : wordData.word;
             const definition = wordData.definition || "A valuable word you've learned!";
+            const isSelected = selectedWord === word;
             
             return (
-              <div
+              <motion.div
                 key={index}
-                className={`${styles.wordCard} ${selectedWord === word ? styles.selectedCard : ''}`}
-                onClick={() => setSelectedWord(selectedWord === word ? null : word)}
+                className={`${styles.wordCard} ${isSelected ? styles.selectedCard : ''}`}
+                initial={{ scale: 0, y: 50, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                transition={{ 
+                  delay: 0.9 + (index * 0.1),
+                  type: "spring"
+                }}
+                whileHover={{ 
+                  scale: 1.05,
+                  boxShadow: "0 15px 30px rgba(0,0,0,0.2)",
+                  transition: { duration: 0.2 }  // ✅ FIXED: Simplified hover
+                }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSelectedWord(isSelected ? null : word)}
+                style={{
+                  background: isSelected 
+                    ? `linear-gradient(135deg, ${getWordColor(word)}, ${getWordColor(word)}dd)`
+                    : 'linear-gradient(135deg, #ffffff, #f8f9fa)',
+                  border: isSelected ? 'none' : '2px solid #e0e0e0',
+                  cursor: 'pointer'
+                }}
               >
-                <div className={styles.wordCardHeader}>
-                  <div className={styles.wordEmoji}>
-                    {getWordEmoji(word)}
-                  </div>
-                  <div className={styles.wordNumber}>#{index + 1}</div>
-                </div>
-
-                <div className={styles.wordInfo}>
-                  <h3 className={styles.wordTitle}>{word}</h3>
-                  
-                  {(showDetails || selectedWord === word) && (
-                    <div className={styles.wordDefinitionContainer}>
-                      <p className={styles.wordDefinition}>
-                        {definition}
-                      </p>
-                    </div>
+                <motion.div 
+                  className={styles.wordEmoji}
+                  animate={{ 
+                    scale: isSelected ? 1.2 : 1
+                  }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {getWordEmoji(word)}
+                </motion.div>
+                
+                <motion.div 
+                  className={styles.wordText}
+                  style={{ 
+                    color: isSelected ? 'white' : getWordColor(word),
+                    fontWeight: 700,
+                    fontSize: '1.3rem',
+                    textTransform: 'capitalize',
+                    letterSpacing: '0.5px'
+                  }}
+                  animate={{ 
+                    scale: isSelected ? 1.1 : 1
+                  }}
+                >
+                  {word || '???'}
+                </motion.div>
+                
+                <AnimatePresence>
+                  {(showDetails || isSelected) && (
+                    <motion.div 
+                      className={styles.wordDefinition}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      style={{
+                        color: isSelected ? 'rgba(255,255,255,0.95)' : '#666',
+                        marginTop: '10px',
+                        fontSize: '0.9rem',
+                        lineHeight: '1.4',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {definition}
+                    </motion.div>
                   )}
-                </div>
-              </div>
+                </AnimatePresence>
+                
+                <motion.div 
+                  className={styles.wordLength}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    background: isSelected ? 'rgba(255,255,255,0.3)' : getWordColor(word),
+                    color: 'white',
+                    padding: '4px 8px',
+                    borderRadius: '12px',
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {word?.length || 0} letters
+                </motion.div>
+              </motion.div>
             );
           })}
         </div>
-      </div>
 
-      {/* ===== ACTION BUTTONS ===== */}
-      <div className={styles.actionButtonsContainer}>
-        {hasNextEpisode ? (
-          <button
-            onClick={onPlayAgain}
-            className={styles.nextEpisodeButton}
+        {solvedWords.length === 0 && (
+          <motion.div 
+            className={styles.emptyState}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            style={{
+              textAlign: 'center',
+              padding: '40px',
+              color: '#999',
+              fontSize: '1.1rem'
+            }}
           >
-            <span className={styles.buttonIcon}>▶️</span>
-            Continue to Episode {currentEpisode + 1}!
-          </button>
-        ) : (
-          <button
+            <div style={{ fontSize: '3rem', marginBottom: '10px' }}>📚</div>
+            No words solved yet. Keep playing to learn new words!
+          </motion.div>
+        )}
+      </motion.div>
+
+      {/* ✅ FIXED: Action Buttons - NOW IN ONE LINE */}
+      <motion.div 
+        className={styles.actionButtonsContainer}
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 1.2 }}
+      >
+        {hasNextEpisode && (
+          <motion.button 
+            className={styles.continueButton}
             onClick={onPlayAgain}
-            className={styles.playAgainButton}
+            whileHover={{ scale: 1.03, boxShadow: "0 10px 30px rgba(76, 175, 80, 0.4)" }}
+            whileTap={{ scale: 0.97 }}
           >
-            <span className={styles.buttonIcon}>🔄</span>
-            Play Another Adventure
-          </button>
+            <span style={{ fontSize: '1.5rem' }}>▶️</span>
+            Continue Story
+          </motion.button>
         )}
         
-        <button
+        <motion.button 
+          className={styles.menuButton}
           onClick={onReturnToMenu}
-          className={styles.mainMenuButton}
+          whileHover={{ scale: 1.03, boxShadow: "0 10px 30px rgba(156, 39, 176, 0.4)" }}
+          whileTap={{ scale: 0.97 }}
         >
-          <span className={styles.buttonIcon}>🏠</span>
-          Return to Main Menu
-        </button>
-      </div>
-
-      
+          <span style={{ fontSize: '1.5rem' }}>🏠</span>
+          Return to Menu
+        </motion.button>
+      </motion.div>
     </div>
   );
 };

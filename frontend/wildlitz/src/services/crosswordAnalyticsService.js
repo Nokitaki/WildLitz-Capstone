@@ -1,5 +1,6 @@
-// src/services/crosswordAnalyticsService.js
-// COMPLETE service for crossword game analytics
+// crosswordAnalyticsService.js - FIXED VERSION with episode-based completion percentage
+// Place this at: frontend/wildlitz/src/services/crosswordAnalyticsService.js
+
 import { API_ENDPOINTS } from '../config/api';
 
 class CrosswordAnalyticsService {
@@ -24,7 +25,6 @@ class CrosswordAnalyticsService {
    */
   async createSession(sessionData) {
     try {
-      // Use current user email if not provided
       if (!sessionData.user_email) {
         sessionData.user_email = this.getUserEmail();
       }
@@ -58,8 +58,6 @@ class CrosswordAnalyticsService {
    */
   async updateSession(sessionId, updates) {
     try {
-     
-      
       const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/story/session/${sessionId}/update/`, {
         method: 'PUT',
         headers: {
@@ -74,7 +72,6 @@ class CrosswordAnalyticsService {
         throw new Error(data.error || 'Failed to update session');
       }
       
-      
       return data;
     } catch (error) {
       console.error('❌ Error updating session:', error);
@@ -87,8 +84,6 @@ class CrosswordAnalyticsService {
    */
   async logActivity(activityData) {
     try {
-      
-      
       const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/story/activity/log/`, {
         method: 'POST',
         headers: {
@@ -103,7 +98,6 @@ class CrosswordAnalyticsService {
         throw new Error(data.error || 'Failed to log activity');
       }
       
-      
       return data;
     } catch (error) {
       console.error('❌ Error logging activity:', error);
@@ -116,7 +110,6 @@ class CrosswordAnalyticsService {
    */
   async logWordSolved(sessionId, wordData, timeSpent = 0, hintsUsed = 0) {
     try {
-      // Skip logging if no valid session ID
       if (!sessionId || sessionId === 'undefined' || sessionId === 'null') {
         console.log('⚠️ No session ID available, skipping word solved logging');
         return { success: false, skipped: true };
@@ -141,78 +134,86 @@ class CrosswordAnalyticsService {
     }
   }
 
+  /**
+   * Log game completion with proper episode-based completion percentage
+   */
   async logGameCompleted(sessionId, gameData, solvedWords = [], totalHintsOverride = null) {
-  try {
-    // Skip logging if no valid session ID
-    if (!sessionId || sessionId === 'undefined' || sessionId === 'null') {
-      console.log('⚠️ No session ID available, skipping game completion logging');
-      return { success: false, skipped: true };
+    try {
+      if (!sessionId || sessionId === 'undefined' || sessionId === 'null') {
+        console.log('⚠️ No session ID available, skipping game completion logging');
+        return { success: false, skipped: true };
+      }
+
+      // Extract vocabulary words from solvedWords array
+      const vocabularyWords = Array.from(
+        solvedWords.map(sw => {
+          if (typeof sw === 'string') return sw;
+          if (sw && sw.word) return sw.word;
+          return null;
+        }).filter(Boolean)
+      );
+
+      // ✅ FIX: Properly extract hints with multiple fallbacks
+      const hintsUsed = totalHintsOverride !== null 
+        ? totalHintsOverride 
+        : (gameData?.totalHints || gameData?.total_hints_used || 0);
+      
+      console.log('📊 Logging game completion:');
+      console.log('  - Session ID:', sessionId);
+      console.log('  - Total Hints:', hintsUsed);
+      console.log('  - Words solved:', solvedWords.length);
+      console.log('  - Episodes completed:', gameData?.episodesCompleted);
+      console.log('  - Word Accuracy:', gameData?.accuracy + '%');
+      console.log('  - Completion Percentage (episodes):', gameData?.completionPercentage + '%');
+
+      // ✅ FIX: Use episode-based completion percentage, NOT word accuracy
+      const sessionUpdates = {
+        total_words_solved: gameData?.wordsLearned || solvedWords.length || 0,
+        total_duration_seconds: gameData?.totalTime || 0,
+        total_hints_used: hintsUsed,
+        episodes_completed: gameData?.episodesCompleted || 1,
+        completion_percentage: gameData?.completionPercentage || 0,  // ✅ FIXED: Use episode-based completion
+        is_completed: gameData?.isFullyCompleted || false,
+        vocabulary_words_learned: vocabularyWords
+      };
+
+      console.log('📊 Session updates being sent:', JSON.stringify(sessionUpdates, null, 2));
+
+      await this.updateSession(sessionId, sessionUpdates);
+
+      // Also log as an activity
+      const activityData = {
+        session_id: sessionId,
+        activity_type: 'game_completed',
+        word_data: {
+          wordsLearned: gameData?.wordsLearned || solvedWords.length || 0,
+          totalTime: gameData?.totalTime || 0,
+          totalHints: hintsUsed,
+          episodesCompleted: gameData?.episodesCompleted || 1,
+          accuracy: gameData?.accuracy || 0,  // Word accuracy (for this episode)
+          completionPercentage: gameData?.completionPercentage || 0,  // Overall completion (episodes)
+          vocabulary_words: vocabularyWords.slice()
+        },
+        is_correct: true,
+        time_spent_seconds: gameData?.totalTime || 0,
+        hint_count: hintsUsed,
+        user_email: this.getUserEmail()
+      };
+      
+      console.log('📊 Activity data being sent:', JSON.stringify(activityData, null, 2));
+      
+      await this.logActivity(activityData);
+      
+      console.log('✅ Game completion logged successfully');
+      console.log('  - Word Accuracy (episode):', gameData?.accuracy + '%');
+      console.log('  - Overall Completion (story):', gameData?.completionPercentage + '%');
+      
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Game completion logging failed:', error);
+      return { success: false, error: error.message };
     }
-
-    // Extract vocabulary words from solvedWords array
-    const vocabularyWords = Array.from(
-      solvedWords.map(sw => {
-        if (typeof sw === 'string') return sw;
-        if (sw && sw.word) return sw.word;
-        return null;
-      }).filter(Boolean)
-    );
-
-    // ✅ FIX: Properly extract hints with multiple fallbacks
-    const hintsUsed = totalHintsOverride !== null 
-      ? totalHintsOverride 
-      : (gameData?.totalHints || gameData?.total_hints_used || 0);
-    
-    console.log('📊 Logging game completion:');
-    console.log('  - Session ID:', sessionId);
-    console.log('  - Total Hints:', hintsUsed);
-    console.log('  - From gameData.totalHints:', gameData?.totalHints);
-    console.log('  - From totalHintsOverride:', totalHintsOverride);
-    console.log('  - Words solved:', solvedWords.length);
-
-    const sessionUpdates = {
-      total_words_solved: gameData?.wordsLearned || solvedWords.length || 0,
-      total_duration_seconds: gameData?.totalTime || 0,
-      total_hints_used: hintsUsed,  // ✅ USE THE FIXED VALUE
-      episodes_completed: gameData?.episodesCompleted || 1,
-      completion_percentage: gameData?.accuracy || 0,
-      is_completed: gameData?.isFullyCompleted || false,
-      vocabulary_words_learned: vocabularyWords
-    };
-
-    console.log('📊 Session updates being sent:', JSON.stringify(sessionUpdates, null, 2));
-
-    await this.updateSession(sessionId, sessionUpdates);
-
-    // Also log as an activity
-    const activityData = {
-      session_id: sessionId,
-      activity_type: 'game_completed',
-      word_data: {
-        wordsLearned: gameData?.wordsLearned || solvedWords.length || 0,
-        totalTime: gameData?.totalTime || 0,
-        totalHints: hintsUsed,  // ✅ USE THE FIXED VALUE
-        episodesCompleted: gameData?.episodesCompleted || 1,
-        accuracy: gameData?.accuracy || 0,
-        vocabulary_words: vocabularyWords.slice()
-      },
-      is_correct: true,
-      time_spent_seconds: gameData?.totalTime || 0,
-      hint_count: hintsUsed,  // ✅ USE THE FIXED VALUE
-      user_email: this.getUserEmail()
-    };
-    
-    console.log('📊 Activity data being sent:', JSON.stringify(activityData, null, 2));
-    
-    await this.logActivity(activityData);
-    
-    console.log('✅ Game completion logged successfully with hints:', hintsUsed);
-    return { success: true };
-  } catch (error) {
-    console.error('❌ Game completion logging failed:', error);
-    return { success: false, error: error.message };
   }
-}
 
   /**
    * Get analytics for a specific session
@@ -247,7 +248,7 @@ class CrosswordAnalyticsService {
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to get user analytics');
+        throw new Error(data.error || 'Failed to get analytics');
       }
       
       return data;
@@ -258,34 +259,27 @@ class CrosswordAnalyticsService {
   }
 
   /**
-   * Get general analytics (used by dashboard)
+   * Get general analytics (supports query params)
    */
-  async getAnalytics(filters = {}) {
+  async getAnalytics(params = {}) {
     try {
-      const params = new URLSearchParams();
+      const queryParams = new URLSearchParams(params).toString();
+      const response = await fetch(
+        `${API_ENDPOINTS.SENTENCE_FORMATION}/story/analytics/?${queryParams}`
+      );
       
-      // Use current user email if not specified
-      const userEmail = filters.user_email || this.getUserEmail();
-      params.append('user_email', userEmail);
-      
-      if (filters.user_id) params.append('user_id', filters.user_id);
-      if (filters.days) params.append('days', filters.days);
-      if (filters.limit) params.append('limit', filters.limit);
-      
-      const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/story/analytics/?${params}`);
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch analytics');
+        throw new Error(data.error || 'Failed to get analytics');
       }
       
       return data;
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      console.error('Error getting analytics:', error);
       throw error;
     }
   }
 }
 
-// Export singleton instance
 export default new CrosswordAnalyticsService();
