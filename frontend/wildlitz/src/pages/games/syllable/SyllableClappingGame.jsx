@@ -15,12 +15,15 @@ import useClapDetection from "./useClapDetection"; // ← ADD THIS LINE
 //import ClapRhythmTimer from "./ClapRhythmTimer";
 import DraggableRhythmTimer from "./DraggableRhythmTimer";
 
+
 const SyllableClappingGame = () => {
   const navigate = useNavigate();
 
   // Game state management
   const [gamePhase, setGamePhase] = useState("config"); // config, loading, playing, feedback, demo, complete
   const [gameConfig, setGameConfig] = useState(null);
+
+  const [wordPlayTimestamp, setWordPlayTimestamp] = useState(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -70,6 +73,10 @@ const SyllableClappingGame = () => {
     micEnabled && gamePhase === "playing", // Only enable during playing phase
     () => setClapCount((prev) => prev + 1) // ✅ Inline function works!
   );
+
+  useEffect(() => {
+  setWordPlayTimestamp(null);
+  }, [currentWord.word]);
 
 
   // Auto-enable microphone when entering playing phase
@@ -683,6 +690,7 @@ const SyllableClappingGame = () => {
     }
 
     setIsPlaying(true);
+    setWordPlayTimestamp(Date.now());
 
     const audio = new Audio();
     audioRef.current = audio;
@@ -1713,6 +1721,7 @@ const SyllableClappingGame = () => {
 
       <DraggableRhythmTimer 
         isGameActive={gamePhase === 'playing'}
+        wordPlayTimestamp={wordPlayTimestamp}
       />
     </>
   );

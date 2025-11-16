@@ -2,70 +2,87 @@ import React, { useState, useEffect, useRef } from 'react';
 import styles from '../../../styles/games/syllable/DraggableRhythmTimer.module.css';
 
 const DraggableRhythmTimer = ({ 
-  isGameActive = false, // Auto-start when game is active
+  isGameActive = false,
+  wordPlayTimestamp = null,
   onBeat
 }) => {
-  const [phase, setPhase] = useState('red');
+  const [phase, setPhase] = useState('waiting');
   const [progress, setProgress] = useState(0);
-  const [position, setPosition] = useState({ x: 20, y: 20 }); // Initial position
+  const [position, setPosition] = useState({ x: 20, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isMinimized, setIsMinimized] = useState(false);
+  const [countdown, setCountdown] = useState(3);
   
   const timerRef = useRef(null);
-  const lastPhaseRef = useRef('red'); // Track last phase for beat detection
+  const lastPhaseRef = useRef('waiting');
 
-  // Auto-start rhythm when game is active
+  // Main rhythm timer effect
   useEffect(() => {
-    if (!isGameActive) {
-      setPhase('red');
+    if (!isGameActive || !wordPlayTimestamp) {
+      setPhase('waiting');
       setProgress(0);
-      lastPhaseRef.current = 'red';
+      setCountdown(3);
+      lastPhaseRef.current = 'waiting';
       return;
     }
 
     let animationFrame;
-    let startTime = Date.now();
-
-    // Fixed timing
+    const DELAY = 3000; // 3 seconds delay
     const RED_DURATION = 1000;
     const YELLOW_DURATION = 2000;
     const GREEN_DURATION = 2000;
     const TOTAL_CYCLE = RED_DURATION + YELLOW_DURATION + GREEN_DURATION;
 
     const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const cycleProgress = elapsed % TOTAL_CYCLE;
+      const now = Date.now();
+      const elapsedSinceWord = now - wordPlayTimestamp;
 
-      let currentPhase;
-      let currentProgress;
-
-      if (cycleProgress < RED_DURATION) {
-        currentPhase = 'red';
-        currentProgress = (cycleProgress / RED_DURATION) * 100;
-      } else if (cycleProgress < RED_DURATION + YELLOW_DURATION) {
-        currentPhase = 'yellow';
-        const yellowProgress = cycleProgress - RED_DURATION;
-        currentProgress = (yellowProgress / YELLOW_DURATION) * 100;
+      if (elapsedSinceWord < DELAY) {
+        // Still in countdown phase
+        const remainingMs = DELAY - elapsedSinceWord;
+        const remainingSec = Math.ceil(remainingMs / 1000);
+        setCountdown(remainingSec);
+        setPhase('waiting');
+        lastPhaseRef.current = 'waiting';
       } else {
-        currentPhase = 'green';
-        const greenProgress = cycleProgress - RED_DURATION - YELLOW_DURATION;
-        currentProgress = (greenProgress / GREEN_DURATION) * 100;
-        
-        // Trigger beat on transition to green phase
-        if (lastPhaseRef.current !== 'green' && onBeat) {
-          onBeat();
-        }
-      }
+        // Rhythm phase - calculate elapsed time since rhythm should have started
+        const rhythmElapsed = elapsedSinceWord - DELAY;
+        const cycleProgress = rhythmElapsed % TOTAL_CYCLE;
 
-      // Update state
-      setPhase(currentPhase);
-      setProgress(currentProgress);
-      lastPhaseRef.current = currentPhase;
+        let currentPhase;
+        let currentProgress;
+
+        if (cycleProgress < RED_DURATION) {
+          // Red phase: 0-1000ms
+          currentPhase = 'red';
+          currentProgress = (cycleProgress / RED_DURATION) * 100;
+        } else if (cycleProgress < RED_DURATION + YELLOW_DURATION) {
+          // Yellow phase: 1000-3000ms
+          currentPhase = 'yellow';
+          const yellowProgress = cycleProgress - RED_DURATION;
+          currentProgress = (yellowProgress / YELLOW_DURATION) * 100;
+        } else {
+          // Green phase: 3000-5000ms
+          currentPhase = 'green';
+          const greenProgress = cycleProgress - RED_DURATION - YELLOW_DURATION;
+          currentProgress = (greenProgress / GREEN_DURATION) * 100;
+          
+          // Trigger beat on transition to green phase
+          if (lastPhaseRef.current !== 'green' && onBeat) {
+            onBeat();
+          }
+        }
+
+        setPhase(currentPhase);
+        setProgress(currentProgress);
+        lastPhaseRef.current = currentPhase;
+      }
 
       animationFrame = requestAnimationFrame(animate);
     };
 
+    // Start animation loop
     animationFrame = requestAnimationFrame(animate);
 
     return () => {
@@ -73,7 +90,7 @@ const DraggableRhythmTimer = ({
         cancelAnimationFrame(animationFrame);
       }
     };
-  }, [isGameActive, onBeat]); // FIXED: Removed 'phase' from dependencies
+  }, [isGameActive, wordPlayTimestamp, onBeat]);
 
   // Dragging handlers
   const handleMouseDown = (e) => {
@@ -93,7 +110,6 @@ const DraggableRhythmTimer = ({
     const newX = e.clientX - dragOffset.x;
     const newY = e.clientY - dragOffset.y;
 
-    // Keep within viewport bounds
     const maxX = window.innerWidth - timerRef.current.offsetWidth;
     const maxY = window.innerHeight - timerRef.current.offsetHeight;
 
@@ -185,38 +201,50 @@ const DraggableRhythmTimer = ({
       {/* Timer Content */}
       {!isMinimized && (
         <div className={styles.timerContent}>
-          {/* Traffic Lights */}
-          <div className={styles.trafficLights}>
-            <div className={`${styles.light} ${styles.red} ${phase === 'red' ? styles.active : ''}`} />
-            <div className={`${styles.light} ${styles.yellow} ${phase === 'yellow' ? styles.active : ''}`} />
-            <div className={`${styles.light} ${styles.green} ${phase === 'green' ? styles.active : ''}`} />
-          </div>
+          {phase === 'waiting' ? (
+            // Show countdown during 3-second wait
+            <div className={styles.countdownDisplay}>
+              <div className={styles.countdownNumber}>{countdown}</div>
+              <div className={styles.countdownText}>
+                {countdown > 0 ? 'Think about it...' : 'Get ready!'}
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Traffic Lights */}
+              <div className={styles.trafficLights}>
+                <div className={`${styles.light} ${styles.red} ${phase === 'red' ? styles.active : ''}`} />
+                <div className={`${styles.light} ${styles.yellow} ${phase === 'yellow' ? styles.active : ''}`} />
+                <div className={`${styles.light} ${styles.green} ${phase === 'green' ? styles.active : ''}`} />
+              </div>
 
-          {/* Phase Display */}
-          <div className={styles.phaseDisplay}>
-            {phase === 'red' && (
-              <span className={styles.phaseRed}>⏸️ Wait</span>
-            )}
-            {phase === 'yellow' && (
-              <span className={styles.phaseYellow}>⚡ Ready</span>
-            )}
-            {phase === 'green' && (
-              <span className={styles.phaseGreen}>👏 CLAP!</span>
-            )}
-          </div>
+              {/* Phase Display */}
+              <div className={styles.phaseDisplay}>
+                {phase === 'red' && (
+                  <span className={styles.phaseRed}>⏸️ Wait</span>
+                )}
+                {phase === 'yellow' && (
+                  <span className={styles.phaseYellow}>⚡ Ready</span>
+                )}
+                {phase === 'green' && (
+                  <span className={styles.phaseGreen}>👏 CLAP!</span>
+                )}
+              </div>
 
-          {/* Hands */}
-          <div className={styles.hands}>
-            {phase === 'green' ? '👏' : '👐'}
-          </div>
+              {/* Hands */}
+              <div className={styles.hands}>
+                {phase === 'green' ? '👏' : '👐'}
+              </div>
 
-          {/* Progress Bar */}
-          <div className={styles.progressBar}>
-            <div 
-              className={`${styles.progressFill} ${styles[phase]}`}
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+              {/* Progress Bar */}
+              <div className={styles.progressBar}>
+                <div 
+                  className={`${styles.progressFill} ${styles[phase]}`}
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

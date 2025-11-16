@@ -37,6 +37,8 @@ const SyllableConfigScreen = ({ onStartGame }) => {
   const [editingWord, setEditingWord] = useState(null);
 
   const [showEditWordModal, setShowEditWordModal] = useState(false);
+
+  const [showCustomWordsManager, setShowCustomWordsManager] = useState(false);
   const [showCustomWordModal, setShowCustomWordModal] = useState(false);
   const [customWords, setCustomWords] = useState([]);
   // Enhanced custom word form state
@@ -1103,6 +1105,18 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                   My Progress
                 </motion.button>
 
+                
+                {/* ✅ NEW: Manage Custom Words button */}
+                <motion.button
+                  className={`${styles.randomBtn} ${styles.manageDbBtn}`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowCustomWordsManager(true)}
+                >
+                  <span>🎯</span>
+                  Manage Custom Words
+                </motion.button>
+
                 <motion.button
                   className={styles.randomBtn}
                   whileHover={{ scale: 1.05 }}
@@ -1112,6 +1126,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                   <span className={styles.diceIcon}>🎲</span>
                   Random Mix
                 </motion.button>
+
               </div>
             </div>
 

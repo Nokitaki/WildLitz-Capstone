@@ -311,3 +311,77 @@
   user-select: none;
   -webkit-user-select: none;
 }
+
+/* Countdown Display */
+.countdownDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  min-height: 120px;
+}
+
+.countdownNumber {
+  font-size: 48px;
+  font-weight: 800;
+  color: #7c3aed;
+  line-height: 1;
+  margin-bottom: 8px;
+  animation: countdownPulse 1s ease-in-out infinite;
+}
+
+.countdownText {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  text-align: center;
+}
+
+@keyframes countdownPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* Mobile responsive countdown */
+@media (max-width: 768px) {
+  .countdownDisplay {
+    padding: 15px;
+    min-height: 100px;
+  }
+
+  .countdownNumber {
+    font-size: 40px;
+  }
+
+  .countdownText {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 400px) {
+  .countdownDisplay {
+    padding: 12px;
+    min-height: 90px;
+  }
+
+  .countdownNumber {
+    font-size: 36px;
+  }
+
+  .countdownText {
+    font-size: 11px;
+  }
+}
+
+
+
+
+
+
