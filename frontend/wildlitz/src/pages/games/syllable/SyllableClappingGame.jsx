@@ -12,6 +12,7 @@ import WordTransitionScreen from "./WordTransitionScreen";
 import soundManager from "../../../utils/soundManager";
 import { API_ENDPOINTS } from "../../../config/api";
 import useClapDetection from "./useClapDetection"; // ← ADD THIS LINE
+import ClapRhythmTimer from "./ClapRhythmTimer";
 
 const SyllableClappingGame = () => {
   const navigate = useNavigate();
@@ -47,6 +48,11 @@ const SyllableClappingGame = () => {
   const [syllableTip, setSyllableTip] = useState("");
   const [learningFeedback, setLearningFeedback] = useState("");
 
+  // Rhythm timer state
+  const [rhythmTimerEnabled, setRhythmTimerEnabled] = useState(false);
+  const [rhythmTimerActive, setRhythmTimerActive] = useState(false);
+  const [rhythmSpeed, setRhythmSpeed] = useState(1500); // milliseconds per cycle
+
   // Button disabling states
   const [checkButtonDisabled, setCheckButtonDisabled] = useState(false);
   const [nextButtonDisabled, setNextButtonDisabled] = useState(false);
@@ -68,12 +74,16 @@ const SyllableClappingGame = () => {
     () => setClapCount((prev) => prev + 1) // ✅ Inline function works!
   );
 
+  useEffect(() => {
+    setRhythmTimerActive(false);
+  }, [currentWord.word]);
+
   // Auto-enable microphone when entering playing phase
   useEffect(() => {
     if (gamePhase === "playing" && !micEnabled) {
       setMicEnabled(true); // ✅ Automatically turn ON mic when game starts
     }
-    
+
     // Disable mic when game ends
     if (gamePhase === "complete" || gamePhase === "config") {
       setMicEnabled(false);
@@ -115,25 +125,25 @@ const SyllableClappingGame = () => {
   };
 
   const handleQuit = () => {
-  if (
-    window.confirm(
-      "Are you sure you want to quit? Your progress will be lost."
-    )
-  ) {
-    // Reset all game state and go back to config screen
-    setGamePhase("config");
-    setClapCount(0);
-    setCurrentIndex(1);
-    setCorrectAnswers(0);
-    setStartTime(null);
-    setMicEnabled(false); // Turn off microphone
-    setIsFlipped(false);
-    setShowBubble(false);
-    setLearningFeedback("");
-    setGameWords([]);
-    setWordIndex(0);
-  }
-};
+    if (
+      window.confirm(
+        "Are you sure you want to quit? Your progress will be lost."
+      )
+    ) {
+      // Reset all game state and go back to config screen
+      setGamePhase("config");
+      setClapCount(0);
+      setCurrentIndex(1);
+      setCorrectAnswers(0);
+      setStartTime(null);
+      setMicEnabled(false); // Turn off microphone
+      setIsFlipped(false);
+      setShowBubble(false);
+      setLearningFeedback("");
+      setGameWords([]);
+      setWordIndex(0);
+    }
+  };
 
   // NEW: Handle syllable pronunciation with robust loading and NO TTS
   const handleSyllablePronunciation = (syllable, syllableIndex) => {
@@ -1310,6 +1320,63 @@ const SyllableClappingGame = () => {
                 ? "👏 Clap out loud "
                 : "Clap for each syllable!"}
             </p>
+
+            {/* ✅ ADD RHYTHM TIMER HERE */}
+            {rhythmTimerEnabled && (
+              <ClapRhythmTimer
+                isActive={rhythmTimerActive}
+                interval={rhythmSpeed}
+                onBeat={() => {
+                  console.log("Beat! Time to clap!");
+                  // Optional: Play a sound
+                }}
+              />
+            )}
+
+            {/* Rhythm Timer Controls */}
+            <div className={styles.rhythmControls}>
+              <button
+                className={`${styles.rhythmToggle} ${
+                  rhythmTimerEnabled ? styles.active : ""
+                }`}
+                onClick={() => {
+                  setRhythmTimerEnabled(!rhythmTimerEnabled);
+                  if (rhythmTimerEnabled) {
+                    setRhythmTimerActive(false);
+                  }
+                }}
+              >
+                {rhythmTimerEnabled ? "⏸️ Hide Rhythm" : "🚦 Show Rhythm"}
+              </button>
+
+              {rhythmTimerEnabled && (
+                <>
+                  <button
+                    className={`${styles.startRhythm} ${
+                      rhythmTimerActive ? styles.started : ""
+                    }`}
+                    onClick={() => setRhythmTimerActive(!rhythmTimerActive)}
+                  >
+                    {rhythmTimerActive ? "⏹️ Stop" : "▶️ Start"}
+                  </button>
+
+                  <div className={styles.speedControl}>
+                    <label>Speed:</label>
+                    <select
+                      value={rhythmSpeed}
+                      onChange={(e) => setRhythmSpeed(Number(e.target.value))}
+                      disabled={rhythmTimerActive}
+                    >
+                      <option value={2000}>Very Slow (2s)</option>
+                      <option value={1500}>Slow (1.5s)</option>
+                      <option value={1000}>Normal (1s)</option>
+                      <option value={800}>Fast (0.8s)</option>
+                      <option value={600}>Very Fast (0.6s)</option>
+                    </select>
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* Microphone Toggle Button */}
             <div className={styles.micControls}>

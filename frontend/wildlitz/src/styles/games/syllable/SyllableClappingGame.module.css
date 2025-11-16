@@ -1361,3 +1361,75 @@
   opacity: 0.7;
   cursor: not-allowed;
 }
+
+/* Rhythm Timer Controls */
+.rhythmControls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 15px 0;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.rhythmToggle,
+.startRhythm {
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: 2px solid #ddd;
+  background: white;
+  color: #667eea;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.rhythmToggle:hover,
+.startRhythm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.rhythmToggle.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+}
+
+.startRhythm.started {
+  background: #ef4444;
+  color: white;
+  border-color: #dc2626;
+}
+
+.speedControl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.speedControl label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.speedControl select {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+  background: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.speedControl select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
