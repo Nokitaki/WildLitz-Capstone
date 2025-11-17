@@ -63,6 +63,7 @@ const SoundSafariGame = () => {
   
   // UPDATED: Store all round data for final session save
   const [allRoundsData, setAllRoundsData] = useState([]);
+  const [currentRoundData, setCurrentRoundData] = useState(null);
   const [roundStartTime, setRoundStartTime] = useState(Date.now());
   
   const [error, setError] = useState(null);
@@ -82,6 +83,7 @@ const SoundSafariGame = () => {
     // Reset analytics tracking
     setSessionStartTime(Date.now());
     setAllRoundsData([]);
+    setCurrentRoundData(null); // ADD THIS LINE
     setRoundStartTime(Date.now());
     
     setCurrentRound(1);
@@ -106,8 +108,8 @@ const SoundSafariGame = () => {
   };
   
   /**
-   * UPDATED: Save round data after each round completion
-   * Now includes missedCorrect count
+   * UPDATED: Store round data temporarily (don't add to array yet)
+   * Will be added to allRoundsData only when "Next Round" is clicked
    */
   const saveRoundData = (correctSelections, incorrectSelections, missedCorrect) => {
     const roundTime = Math.floor((Date.now() - roundStartTime) / 1000);
@@ -118,17 +120,17 @@ const SoundSafariGame = () => {
       {
         correctSelections,
         incorrectSelections,
-        missedCorrect,  // NEW: Pass missed count
+        missedCorrect,
         timeSpent: roundTime
       }
     );
     
-    console.log(`📊 Round ${currentRound} data:`, roundData);
+    console.log(`📊 Round ${currentRound} data (stored temporarily):`, roundData);
     
-    // Add to rounds array
-    setAllRoundsData(prev => [...prev, roundData]);
+    // Store in temporary state (don't add to array yet)
+    setCurrentRoundData(roundData);
     
-    // Reset round timer for next round
+    // Reset round timer for potential retry
     setRoundStartTime(Date.now());
   };
 
@@ -358,21 +360,51 @@ const SoundSafariGame = () => {
   };
   
   /**
-   * UPDATED: Handle moving to next round
+   * UPDATED: Save current round data, then move to next round
+   * Fixed: Ensures Round 5 is included in analytics
    */
   const handleNextRound = async () => {
+    // Build the updated rounds array with current round data
+    let updatedRoundsData = allRoundsData;
+    
+    if (currentRoundData) {
+      console.log(`✅ Saving Round ${currentRound} data`);
+      updatedRoundsData = [...allRoundsData, currentRoundData];
+      setAllRoundsData(updatedRoundsData); // Update state
+      setCurrentRoundData(null); // Clear temporary storage
+    }
+    
     // Check if game is complete
     if (currentRound >= totalRounds) {
-      console.log('🎮 Game complete! Saving session...');
-      await saveCompleteSession();
+      console.log('🎮 Game complete! Saving session with all rounds...');
+      console.log(`   - Total rounds to save: ${updatedRoundsData.length}`);
+      
+      // Save session with the updated rounds data
+      const totalTimeSpent = Date.now() - sessionStartTime;
+      
+      const sessionData = soundSafariAnalyticsService.formatSessionData(
+        gameConfig,
+        updatedRoundsData, // Use the updated array directly
+        totalTimeSpent
+      );
+      
+      console.log('📊 Saving complete session:', sessionData);
+      console.log(`   - ${updatedRoundsData.length} rounds included`);
+      
+      const result = await soundSafariAnalyticsService.saveGameSession(sessionData);
+      
+      if (result.success) {
+        console.log('✅ Session saved successfully with all rounds!');
+      } else {
+        console.error('❌ Failed to save session:', result.error);
+      }
+      
       setGameState('complete');
       return;
     }
     
-    // Change state to loading
+    // Continue to next round (not the final round)
     setGameState('loading');
-    
-    // Continue to next round
     setCurrentRound(prev => prev + 1);
     const newSound = await selectNewTargetSound();
     
@@ -387,9 +419,14 @@ const SoundSafariGame = () => {
   };
   
   /**
-   * Handle trying the same round again
+   * UPDATED: Try the same round again (overwrites currentRoundData)
    */
   const handleTryAgain = async () => {
+    console.log(`🔄 Trying Round ${currentRound} again (will overwrite previous attempt)`);
+    
+    // currentRoundData will be overwritten when they complete this retry
+    // Don't clear it here - let saveRoundData overwrite it
+    
     await prepareNewRound(gameConfig.targetSound, gameConfig.difficulty, 0, []);
     
     // Reset round timer
@@ -414,6 +451,7 @@ const SoundSafariGame = () => {
     // Reset everything
     setSessionStartTime(Date.now());
     setAllRoundsData([]);
+    setCurrentRoundData(null); // ADD THIS LINE
     setRoundStartTime(Date.now());
     
     setCurrentRound(1);

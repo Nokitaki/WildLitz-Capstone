@@ -47,5 +47,12 @@
     "sound_position": "middle",
     "environment": "jungle",
     "difficulty_level": "medium"
+  },
+  {
+    "name": "Camel",
+    "target_sound": "c",
+    "sound_position": "beginning",
+    "environment": "jungle",
+    "difficulty_level": "hard"
   }
 ]
