@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import styles from '../../../styles/games/syllable/CustomWordsManager.module.css';
+import styles from "../../../styles/games/syllable/CustomWordsManager.module.css";
 import { API_ENDPOINTS } from '../../../config/api';
 
 const CustomWordsManager = ({ 
