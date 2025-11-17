@@ -12,7 +12,7 @@ const EditWordModal = ({ word, onSave, onClose }) => {
     syllableBreakdown: "",
     syllableCount: 0,
     category: "",
-    difficulty: "",  // ✅ ADD THIS LINE
+    difficulty: "", // ✅ ADD THIS LINE
   });
 
   // State for dismissing validation
@@ -251,6 +251,28 @@ const EditWordModal = ({ word, onSave, onClose }) => {
     "Everyday Words",
     "Everyday Objects", // ← ADD THIS LINE
   ];
+
+  useEffect(() => {
+    if (word) {
+      console.log("🔍 ========== EDIT WORD MODAL DEBUG ==========");
+      console.log("🔍 Complete word object:", word);
+      console.log("🔍 Full word audio URL:", word.full_word_audio_url);
+      console.log("🔍 Syllable audio URLs field:", word.syllable_audio_urls);
+      console.log("🔍 Type:", typeof word.syllable_audio_urls);
+      console.log("🔍 Is Array?:", Array.isArray(word.syllable_audio_urls));
+      console.log("🔍 Length:", word.syllable_audio_urls?.length);
+      console.log("🔍 ==========================================");
+
+      setEditedWord({
+        word: word.word || "",
+        syllableBreakdown: word.syllable_breakdown || "",
+        syllableCount: word.syllable_count || 0,
+        category: word.category || "",
+        difficulty: word.difficulty_level || "",
+      });
+    }
+  }, [word]);
+
   return (
     <div className={styles.modalOverlay}>
       <motion.div
@@ -472,10 +494,11 @@ const EditWordModal = ({ word, onSave, onClose }) => {
           <div className={styles.aiValidationSection}>
             {validationResult && (
               <div
-                className={`${styles.validationResult} ${validationResult.is_correct
+                className={`${styles.validationResult} ${
+                  validationResult.is_correct
                     ? styles.correct
                     : styles.incorrect
-                  }`}
+                }`}
               >
                 <div>
                   <span className={styles.resultIcon}>
@@ -526,7 +549,7 @@ const EditWordModal = ({ word, onSave, onClose }) => {
           {/* ✅ NEW: DIFFICULTY SELECT */}
           <div className={styles.formGroup}>
             <label htmlFor="edit-difficulty">
-              Difficulty Level <span style={{ color: 'red' }}>*</span>
+              Difficulty Level <span style={{ color: "red" }}>*</span>
             </label>
             <select
               id="edit-difficulty"
@@ -627,8 +650,9 @@ const EditWordModal = ({ word, onSave, onClose }) => {
 
               {/* Recording Controls */}
               <button
-                className={`${styles.recordButton} ${isRecordingFullWord ? styles.recording : ""
-                  }`}
+                className={`${styles.recordButton} ${
+                  isRecordingFullWord ? styles.recording : ""
+                }`}
                 onClick={() => {
                   if (isRecordingFullWord) {
                     stopRecording();
@@ -642,8 +666,8 @@ const EditWordModal = ({ word, onSave, onClose }) => {
                 {isRecordingFullWord
                   ? "⏹ Stop Recording"
                   : newFullWordAudio
-                    ? "🔄 Re-record"
-                    : "🎙️ Record New Audio"}
+                  ? "🔄 Re-record"
+                  : "🎙️ Record New Audio"}
               </button>
 
               {!word?.full_word_audio_url && !newFullWordAudio && (
@@ -700,7 +724,11 @@ const EditWordModal = ({ word, onSave, onClose }) => {
                     {syllables.map((syllable, index) => {
                       // Check for existing audio from database
                       const originalSyllableAudios =
-                        word?.syllable_audio_urls || [];
+                        typeof word?.syllable_audio_urls === "string"
+                          ? JSON.parse(word.syllable_audio_urls)
+                          : Array.isArray(word?.syllable_audio_urls)
+                          ? word.syllable_audio_urls
+                          : [];
                       const hasOriginalAudio = originalSyllableAudios[index];
 
                       // Check for new recording
@@ -764,10 +792,11 @@ const EditWordModal = ({ word, onSave, onClose }) => {
 
                           {/* Recording Button */}
                           <button
-                            className={`${styles.recordButton} ${recordingSyllableIndex === index
+                            className={`${styles.recordButton} ${
+                              recordingSyllableIndex === index
                                 ? styles.recording
                                 : ""
-                              }`}
+                            }`}
                             onClick={() => {
                               if (recordingSyllableIndex === index) {
                                 stopRecording();
@@ -790,8 +819,8 @@ const EditWordModal = ({ word, onSave, onClose }) => {
                             {recordingSyllableIndex === index
                               ? "⏹ Stop"
                               : hasNewAudio
-                                ? "🔄"
-                                : "🎙️"}
+                              ? "🔄"
+                              : "🎙️"}
                           </button>
 
                           {!hasOriginalAudio && !hasNewAudio && (
