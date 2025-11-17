@@ -5,6 +5,7 @@ import styles from "../../../styles/games/syllable/SyllableConfigScreen.module.c
 import EditWordModal from "./EditWordModal";
 import { API_ENDPOINTS } from "../../../config/api";
 import ProgressModal from "./ProgressModal";
+import CustomWordsManager from "./CustomWordsManager";
 
 const SyllableConfigScreen = ({ onStartGame }) => {
   // State management
@@ -828,7 +829,13 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         }
 
         // Reload custom words list
-        await loadCustomWordsFromDB();
+        if (
+          window.confirm(
+            "Word saved to database! Add to Custom Words priority list?"
+          )
+        ) {
+          setCustomWords((prev) => [...prev, response.data.word]);
+        }
       }
     } catch (error) {
       console.error("Error saving custom word:", error);
@@ -1105,7 +1112,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                   My Progress
                 </motion.button>
 
-                
                 {/* ✅ NEW: Manage Custom Words button */}
                 <motion.button
                   className={`${styles.randomBtn} ${styles.manageDbBtn}`}
@@ -1126,7 +1132,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                   <span className={styles.diceIcon}>🎲</span>
                   Random Mix
                 </motion.button>
-
               </div>
             </div>
 
@@ -1857,6 +1862,25 @@ const SyllableConfigScreen = ({ onStartGame }) => {
       <AnimatePresence>
         {showProgressModal && (
           <ProgressModal onClose={() => setShowProgressModal(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* ✅ CUSTOM WORDS MANAGER MODAL */}
+      <AnimatePresence>
+        {showCustomWordsManager && (
+          <div className={styles.modalOverlay}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+            >
+              <CustomWordsManager
+                customWords={customWords}
+                setCustomWords={setCustomWords}
+                onClose={() => setShowCustomWordsManager(false)}
+              />
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
