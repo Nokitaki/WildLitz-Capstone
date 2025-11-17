@@ -24,30 +24,36 @@ const GameAnalytics = ({ onBack }) => {
       .join(' ');
   };
 
-  useEffect(() => {
-    loadAnalytics();
-  }, []);
+useEffect(() => {
+  loadAnalytics();
+}, []);
 
-  const loadAnalytics = async () => {
-    try {
-      setLoading(true);
-      
-      const analyticsData = await phonicsAnalyticsService.getUserAnalytics(50);
-      if (analyticsData && analyticsData.success) {
-        setSessions(analyticsData.sessions || []);
-      }
-      
-      const patternData = await phonicsAnalyticsService.getPatternPerformance();
-      if (patternData && patternData.success) {
-        setPatterns(patternData.patterns || []);
-      }
-      
-    } catch (error) {
-      console.error('Error loading analytics:', error);
-    } finally {
-      setLoading(false);
+const loadAnalytics = async (forceRefresh = false) => {
+  try {
+    setLoading(true);
+    
+    console.log('📊 Loading analytics...', forceRefresh ? '(Forced Refresh)' : '');
+    
+    // 🔥 Fetch MORE sessions (100 instead of 50)
+    const analyticsData = await phonicsAnalyticsService.getUserAnalytics(100);
+    if (analyticsData && analyticsData.success) {
+      console.log(`✅ Loaded ${analyticsData.sessions?.length || 0} sessions`);
+      setSessions(analyticsData.sessions || []);
+    } else {
+      console.error('❌ Failed to load analytics:', analyticsData);
     }
-  };
+    
+    const patternData = await phonicsAnalyticsService.getPatternPerformance();
+    if (patternData && patternData.success) {
+      setPatterns(patternData.patterns || []);
+    }
+    
+  } catch (error) {
+    console.error('Error loading analytics:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Filter sessions based on mode
   const filteredSessions = useMemo(() => {
@@ -205,13 +211,23 @@ const GameAnalytics = ({ onBack }) => {
   return (
     <div className={styles.analyticsContainer}>
       {/* Header */}
-      <div className={styles.analyticsHeader}>
-        <button onClick={onBack} className={styles.backButton}>
-          ← Back to Game
-        </button>
-        <h1 className={styles.analyticsTitle}>📊 Game Analytics</h1>
-        <p className={styles.analyticsSubtitle}>Track your phonics learning progress</p>
-      </div>
+<div className={styles.analyticsHeader}>
+  <button onClick={onBack} className={styles.backButton}>
+    ← Back to Game
+  </button>
+  <h1 className={styles.analyticsTitle}>📊 Game Analytics</h1>
+  <p className={styles.analyticsSubtitle}>Track your phonics learning progress</p>
+  
+  {/* 🔥 ADD REFRESH BUTTON */}
+  <motion.button
+    className={styles.refreshButton}
+    onClick={() => loadAnalytics(true)}
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+  >
+    🔄 Refresh
+  </motion.button>
+</div>
 
       {/* Filter Tabs */}
       <div className={styles.filterTabs}>

@@ -139,22 +139,39 @@ const VanishingGame = () => {
     setCurrentTeam('teamA');
   }
     
-    try {
-  // 🔥 OPTION 2: Generate extra words as buffer for skips/give-ups
-  const extraWords = 5; // Always generate 5 extra words
+try {
   const roundsSelected = config.numberOfQuestions || 10;
-  const wordsToGenerate = roundsSelected + extraWords;
+  const BUFFER = 10;  // Always add 10 extra for skip/give-up
+  
+  // 🔥 Calculate total needed with buffer
+  let TOTAL_WORDS_TO_GENERATE = roundsSelected + BUFFER;
+  
+  // 🔥 Apply maximum limits per type (to avoid token issues)
+  let maxLimit;
+  if (config.challengeLevel === 'simple_sentences') {
+    maxLimit = 30;  // Max 30 sentences (2 batches of 15)
+  } else if (config.challengeLevel === 'phrases') {
+    maxLimit = 40;  // Max 40 phrases (2 batches of 20)
+  } else if (config.challengeLevel === 'compound_words') {
+    maxLimit = 50;  // Max 50 compounds (2 batches of 25)
+  } else {
+    maxLimit = 50;  // Max 50 simple words (2 batches of 34)
+  }
+  
+  TOTAL_WORDS_TO_GENERATE = Math.min(TOTAL_WORDS_TO_GENERATE, maxLimit);
   
   console.log(`🎮 User selected ${roundsSelected} rounds`);
-  console.log(`📚 Generating ${wordsToGenerate} words (${extraWords} extra for skips/give-ups)`);
+  console.log(`📚 Generating ${TOTAL_WORDS_TO_GENERATE} items (${TOTAL_WORDS_TO_GENERATE - roundsSelected} buffer)`);
   
   // Generate words using AI service
-  const generatedWords = await generateVanishingGameWords({
-    challengeLevel: config.challengeLevel,
-    learningFocus: config.learningFocus,
-    difficulty: config.difficulty,
-    wordCount: wordsToGenerate
-  });
+  const generatedWords = await generateVanishingGameWords(
+    {
+      challengeLevel: config.challengeLevel,
+      learningFocus: config.learningFocus,
+      difficulty: config.difficulty
+    },
+    TOTAL_WORDS_TO_GENERATE
+  );
       
       console.log('✅ Generated words:', generatedWords);
       

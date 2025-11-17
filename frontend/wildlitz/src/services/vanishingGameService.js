@@ -11,13 +11,13 @@ export const generateVanishingGameWords = async (config, wordCount = 10) => {
   console.log('Config:', config);
   console.log('Word count requested:', wordCount);
   
-  try {
-    // For smaller numbers, generate immediately
-    if (wordCount <= 10) {
-      return await generateWordsImmediate(config, wordCount);
-    }
+ try {
+  // 🚀 Generate up to 35 words in ONE call!
+  if (wordCount <= 34) {
+    return await generateWordsImmediate(config, wordCount);
+  }
     
-    // For larger numbers, generate in batches
+    // Only batch if more than 50 words
     return await generateWordsInBatches(config, wordCount);
   } catch (error) {
     console.error('🚨 AI generation failed, using fallback:', error);
@@ -112,7 +112,7 @@ const generateWordsImmediate = async (config, wordCount) => {
 const generateWordsInBatches = async (config, wordCount) => {
   console.log(`🔄 Generating ${wordCount} words in batches`);
   
-  const batchSize = 5;
+  const batchSize = 15;
   const batches = Math.ceil(wordCount / batchSize);
   const allWords = [];
   
@@ -127,10 +127,10 @@ const generateWordsInBatches = async (config, wordCount) => {
       allWords.push(...batchWords);
       
       // Small delay between batches to prevent overwhelming the API
-      if (i < batches - 1) {
-        console.log('⏳ Waiting before next batch...');
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
+// Minimal delay between batches
+if (i < batches - 1) {
+  await new Promise(resolve => setTimeout(resolve, 50)); // Reduced from 100ms to 50ms
+}
     } catch (error) {
       console.error(`❌ Batch ${i + 1} failed:`, error);
       // If a batch fails, add fallback words for that batch

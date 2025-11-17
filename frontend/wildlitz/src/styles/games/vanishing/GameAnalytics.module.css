@@ -34,6 +34,7 @@
 /* Header Section */
 .analyticsHeader {
   background: rgba(255, 255, 255, 0.95);
+  position: relative;
   border-radius: 20px;
   padding: 30px;
   margin-bottom: 25px;
@@ -567,4 +568,25 @@
 
 .errorRate {
   color: #f56565;
+}
+.refreshButton {
+  position: absolute;
+  top: 20px;
+  right: 20px;  /* ← Change this to give more space from edge */
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s;
+  z-index: 10;  /* ← Add this to keep it on top */
+}
+
+.refreshButton:hover {
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+  transform: translateY(-2px);
 }

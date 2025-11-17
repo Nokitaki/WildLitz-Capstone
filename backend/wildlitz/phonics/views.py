@@ -100,129 +100,132 @@ def generate_phonics_words_with_ai(challenge_level, learning_focus, difficulty, 
     """Generate phonics-based words using OpenAI GPT with educational expertise"""
     
     print(f"🎯 Requested word_count: {word_count}")
+    print(f"📋 Challenge level: {challenge_level}")
 
+    # 🔥 SMART LIMITS: Max per single API call based on token limits
+    if challenge_level == 'simple_sentences':
+        MAX_PER_CALL = 15  # 15 sentences × 250 tokens = 3750 tokens (safe)
+    elif challenge_level == 'phrases':
+        MAX_PER_CALL = 20  # 20 phrases × 180 tokens = 3600 tokens
+    elif challenge_level == 'compound_words':
+        MAX_PER_CALL = 25  # 25 compounds × 140 tokens = 3500 tokens
+    else:  # simple_words
+        MAX_PER_CALL = 34  # 34 words × 100 tokens = 3400 tokens
+    
+    # If request is within limit, generate in one call
+    if word_count <= MAX_PER_CALL:
+        print(f"✅ Single call: generating {word_count} items")
+        return generate_single_batch(challenge_level, learning_focus, difficulty, word_count)
+    
+    # If request exceeds limit, generate in batches
+    print(f"📦 Batching: generating {word_count} items in multiple calls")
+    return generate_in_batches(challenge_level, learning_focus, difficulty, word_count, MAX_PER_CALL)
+
+
+def generate_single_batch(challenge_level, learning_focus, difficulty, word_count):
+    """Generate a single batch of words"""
+    
+    # Calculate max tokens based on content type
+    if challenge_level == 'simple_sentences':
+        max_tokens = 4000
+    elif challenge_level == 'phrases':
+        max_tokens = 3800
+    elif challenge_level == 'compound_words':
+        max_tokens = 3600
+    else:
+        max_tokens = 3400
+    
     try:
-        # Create detailed AI prompt based on educational parameters
         prompt = create_phonics_prompt(challenge_level, learning_focus, difficulty, word_count)
         
-        logger.info("Calling OpenAI for word generation...")
-        
-        # Call OpenAI API with educational context
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {
                     "role": "system", 
-                    "content": """You are an expert elementary school phonics teacher with 20+ years of experience creating educational content for children ages 5-10. You specialize in:
-                    
-                    - Phonemic awareness and phonics instruction
-                    - Age-appropriate vocabulary development  
-                    - Creating engaging, educational word lists
-                    - Understanding different learning levels and challenges
-                    
-                    You always create content that is:
-                    - Educationally sound and research-based
-                    - Age-appropriate and engaging for children
-                    - Properly structured for learning phonics patterns
-                    - Varied in difficulty and complexity
+                    "content": f"""You are an expert elementary school phonics teacher.
 
-                    🚨🚨🚨 CRITICAL REQUIREMENTS 🚨🚨🚨
+🚨 CRITICAL: Generate EXACTLY {word_count} complete objects!
 
-            1. When generating JSON, DO NOT include trailing commas after the last property in objects or arrays.
-            
-            2. YOU MUST GENERATE EXACTLY {word_count} COMPLETE WORD OBJECTS!
-               - Required count: {word_count} words
-               - Count your output before responding
-               - DO NOT generate {word_count - 1} or {word_count - 5} words
-               - Generate EXACTLY {word_count} complete objects with all 7 fields
-               MANDATORY: Your JSON array MUST contain {word_count} word objects, no more, no less!
+RESPOND ONLY WITH A JSON ARRAY. NO MARKDOWN. NO EXPLANATIONS.
                     """
                 },
-                        {
-            "role": "user",
-            "content": """Before generating the real words, remember this EXACT format:
-
-EXAMPLE WORD OBJECT:
-{
-    "word": "chat",
-    "syllableBreakdown": "chat",
-    "targetLetter": "ch",
-    "definition": "To talk with someone",
-    "pattern": "digraph_ch",
-    "patternPosition": "beginning",
-    "phonicsRule": "The letters 'c' and 'h' together make the /ch/ sound like in 'chair'"
-}
-
-CRITICAL REMINDER: Generate EXACTLY {word_count} complete word objects like the example above.
-Count them: 1, 2, 3... all the way to {word_count}!
-
-Now generate the words I requested."""
-        },
+                {
+                    "role": "user",
+                    "content": f"""Generate EXACTLY {word_count} complete word objects.
+                    
+Now generate:"""
+                },
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7,
-            max_tokens=max(3000, word_count * 300)
+            temperature=0.5,
+            max_tokens=max_tokens
         )
         
         content = response.choices[0].message.content.strip()
-        logger.info(f"OpenAI response received: {len(content)} characters")
-
         print(f"\n{'='*70}\n🤖 RAW AI RESPONSE:\n{content}\n{'='*70}\n")
         
-# Parse the JSON response
+        # Parse JSON
         import re
         json_match = re.search(r'\[[\s\S]*\]', content)
         if json_match:
             json_str = json_match.group(0)
-            
-            # 🔥 FIX: Remove trailing commas that break JSON parsing
             json_str = re.sub(r',(\s*[}\]])', r'\1', json_str)
             
-            # Remove markdown code blocks if present
-            if '```json' in json_str:
-                json_str = json_str.split('```json')[1].split('```')[0].strip()
-            elif '```' in json_str:
-                json_str = json_str.split('```')[1].split('```')[0].strip()
+            words = json.loads(json_str)
+            print(f"📊 AI generated {len(words)} words, needed {word_count} words")
             
-            # Parse with error handling
-            try:
-                words = json.loads(json_str)
-                print(f"📊 AI generated {len(words)} words, needed {word_count} words")
-            except json.JSONDecodeError as e:
-                logger.error(f"JSON parsing error: {str(e)}")
-                logger.error(f"AI response content: {content[:500]}...")
-                logger.warning(f"Using static fallback words: {word_count} words needed")
-                return generate_static_fallback_words(challenge_level, learning_focus, word_count)
-            
-            # Validate the structure of each word
-            validated_words = []
-            for word_obj in words:
-                if validate_word_structure(word_obj):
-                    validated_words.append(word_obj)
-                else:
-                    logger.warning(f"Invalid word structure: {word_obj}")
+            # Validate
+            validated_words = [w for w in words if validate_word_structure(w)]
             
             if len(validated_words) >= word_count:
-                final_words = validated_words[:word_count]
-                logger.info(f"AI successfully generated {len(final_words)} valid words")
-                return final_words
+                return validated_words[:word_count]
             else:
-                logger.warning(f"Only {len(validated_words)} valid words from AI, supplementing with fallback")
-                # Supplement with fallback if needed
+                # Supplement with fallback
                 fallback_needed = word_count - len(validated_words)
-                fallback_words = generate_static_fallback_words(challenge_level, learning_focus, fallback_needed)
-                return validated_words + fallback_words
-        else:
-            raise Exception("AI response not in expected JSON format")
-            
-    except json.JSONDecodeError as e:
-        logger.error(f"JSON parsing error: {str(e)}")
-        logger.error(f"AI response content: {content[:500]}...")
-        return generate_static_fallback_words(challenge_level, learning_focus, word_count)
-    
+                fallback = generate_static_fallback_words(challenge_level, learning_focus, fallback_needed)
+                return validated_words + fallback
+        
+        raise Exception("Invalid JSON format")
+        
     except Exception as e:
-        logger.error(f"AI generation failed: {str(e)}")
+        print(f"❌ Error: {e}")
         return generate_static_fallback_words(challenge_level, learning_focus, word_count)
+
+
+def generate_in_batches(challenge_level, learning_focus, difficulty, total_count, batch_size):
+    """Generate words in multiple batches to stay within token limits"""
+    
+    all_words = []
+    batches_needed = (total_count + batch_size - 1) // batch_size  # Ceiling division
+    
+    print(f"🔄 Generating {total_count} items in {batches_needed} batches of {batch_size}")
+    
+    for i in range(batches_needed):
+        remaining = total_count - len(all_words)
+        current_batch_size = min(batch_size, remaining)
+        
+        print(f"📦 Batch {i+1}/{batches_needed}: generating {current_batch_size} items")
+        
+        try:
+            batch_words = generate_single_batch(challenge_level, learning_focus, difficulty, current_batch_size)
+            all_words.extend(batch_words)
+            
+            # Small delay between batches
+            if i < batches_needed - 1:
+                import time
+                time.sleep(0.1)
+                
+        except Exception as e:
+            print(f"❌ Batch {i+1} failed: {e}")
+            # Use fallback for remaining
+            fallback_needed = total_count - len(all_words)
+            fallback = generate_static_fallback_words(challenge_level, learning_focus, fallback_needed)
+            all_words.extend(fallback)
+            break
+    
+    print(f"✅ Total generated: {len(all_words)} items")
+    return all_words[:total_count]
 
 def create_phonics_prompt(challenge_level, learning_focus, difficulty, word_count):
     """Create a detailed educational prompt for OpenAI"""
