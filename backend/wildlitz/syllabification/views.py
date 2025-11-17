@@ -1102,7 +1102,7 @@ def rate_word(request, word_id):
         # Update or add user's rating
         user_ratings[user_id] = new_rating
         
-        # Calculate new average from all user ratings
+        # Calculate new average from all user ratingsdsss
         all_ratings = list(user_ratings.values())
         average_rating = sum(all_ratings) / len(all_ratings)
         

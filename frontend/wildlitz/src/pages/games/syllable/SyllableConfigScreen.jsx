@@ -8,7 +8,7 @@ import ProgressModal from "./ProgressModal";
 import CustomWordsManager from "./CustomWordsManager";
 
 const SyllableConfigScreen = ({ onStartGame }) => {
-  // State management
+  // State managements
   const [difficulty, setDifficulty] = useState("easy");
   const [questionCount, setQuestionCount] = useState(10);
   const [selectedCategories, setSelectedCategories] = useState({
