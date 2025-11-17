@@ -1789,57 +1789,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                 </div>
               </div>
 
-              {/* CUSTOM WORDS LIST FROM DATABASE */}
-              {customWords.length > 0 && (
-                <>
-                  {/* The header is now outside the scrollable container */}
-                  <h3 className={styles.customWordsHeader}>
-                    Custom Words ({customWords.length})
-                  </h3>
-                  <div className={styles.customWordsContainer}>
-                    <div className={styles.customList}>
-                      {customWords.map((word, index) => (
-                        <motion.div
-                          key={word.id || index}
-                          className={styles.wordItem}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                        >
-                          <div className={styles.wordItemContent}>
-                            <div className={styles.wordItemHeader}>
-                              <span className={styles.wordText}>
-                                {word.word}
-                              </span>
-                              <span className={styles.wordCategory}>
-                                {word.category}
-                              </span>
-                            </div>
-                            <div className={styles.wordItemDetails}>
-                              <span className={styles.syllableBreakdown}>
-                                {word.syllable_breakdown}
-                              </span>
-                              <span className={styles.syllableCounter}>
-                                {word.syllable_count} syllable
-                                {word.syllable_count !== 1 ? "s" : ""}
-                              </span>
-                            </div>
-                          </div>
-
-                          <motion.button
-                            className={styles.deleteButton}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => deleteCustomWord(word.id)}
-                          >
-                            ✕
-                          </motion.button>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-
               <div className={styles.modalActions}>
                 <motion.button
                   className={styles.saveButton}
