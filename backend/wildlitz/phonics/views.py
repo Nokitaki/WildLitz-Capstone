@@ -99,6 +99,8 @@ def generate_vanishing_words(request):
 def generate_phonics_words_with_ai(challenge_level, learning_focus, difficulty, word_count):
     """Generate phonics-based words using OpenAI GPT with educational expertise"""
     
+    print(f"🎯 Requested word_count: {word_count}")
+
     try:
         # Create detailed AI prompt based on educational parameters
         prompt = create_phonics_prompt(challenge_level, learning_focus, difficulty, word_count)
@@ -123,22 +125,74 @@ def generate_phonics_words_with_ai(challenge_level, learning_focus, difficulty, 
                     - Age-appropriate and engaging for children
                     - Properly structured for learning phonics patterns
                     - Varied in difficulty and complexity
+
+                    🚨🚨🚨 CRITICAL REQUIREMENTS 🚨🚨🚨
+
+            1. When generating JSON, DO NOT include trailing commas after the last property in objects or arrays.
+            
+            2. YOU MUST GENERATE EXACTLY {word_count} COMPLETE WORD OBJECTS!
+               - Required count: {word_count} words
+               - Count your output before responding
+               - DO NOT generate {word_count - 1} or {word_count - 5} words
+               - Generate EXACTLY {word_count} complete objects with all 7 fields
+               MANDATORY: Your JSON array MUST contain {word_count} word objects, no more, no less!
                     """
                 },
+                        {
+            "role": "user",
+            "content": """Before generating the real words, remember this EXACT format:
+
+EXAMPLE WORD OBJECT:
+{
+    "word": "chat",
+    "syllableBreakdown": "chat",
+    "targetLetter": "ch",
+    "definition": "To talk with someone",
+    "pattern": "digraph_ch",
+    "patternPosition": "beginning",
+    "phonicsRule": "The letters 'c' and 'h' together make the /ch/ sound like in 'chair'"
+}
+
+CRITICAL REMINDER: Generate EXACTLY {word_count} complete word objects like the example above.
+Count them: 1, 2, 3... all the way to {word_count}!
+
+Now generate the words I requested."""
+        },
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=2000
+            max_tokens=max(3000, word_count * 300)
         )
         
         content = response.choices[0].message.content.strip()
         logger.info(f"OpenAI response received: {len(content)} characters")
+
+        print(f"\n{'='*70}\n🤖 RAW AI RESPONSE:\n{content}\n{'='*70}\n")
         
-        # Parse the JSON response
+# Parse the JSON response
         import re
         json_match = re.search(r'\[[\s\S]*\]', content)
         if json_match:
-            words = json.loads(json_match.group(0))
+            json_str = json_match.group(0)
+            
+            # 🔥 FIX: Remove trailing commas that break JSON parsing
+            json_str = re.sub(r',(\s*[}\]])', r'\1', json_str)
+            
+            # Remove markdown code blocks if present
+            if '```json' in json_str:
+                json_str = json_str.split('```json')[1].split('```')[0].strip()
+            elif '```' in json_str:
+                json_str = json_str.split('```')[1].split('```')[0].strip()
+            
+            # Parse with error handling
+            try:
+                words = json.loads(json_str)
+                print(f"📊 AI generated {len(words)} words, needed {word_count} words")
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON parsing error: {str(e)}")
+                logger.error(f"AI response content: {content[:500]}...")
+                logger.warning(f"Using static fallback words: {word_count} words needed")
+                return generate_static_fallback_words(challenge_level, learning_focus, word_count)
             
             # Validate the structure of each word
             validated_words = []
@@ -195,8 +249,22 @@ def create_phonics_prompt(challenge_level, learning_focus, difficulty, word_coun
         'medium': 'grade-appropriate words with moderate complexity',
         'hard': 'more challenging vocabulary that expands learning'
     }
-    
-    prompt = f"""You are an expert phonics educator creating learning materials for elementary students.
+
+    # 🔥 ADD WORD COUNT REQUIREMENT AT THE START
+    prompt = f"""
+🚨🚨🚨 CRITICAL REQUIREMENT 🚨🚨🚨
+
+YOU MUST GENERATE EXACTLY {word_count} COMPLETE WORD OBJECTS IN YOUR JSON ARRAY!
+
+REQUIRED COUNT: {word_count} words
+NOT {word_count - 1} words. NOT {word_count - 5} words. EXACTLY {word_count} WORDS!
+
+Before you respond, count your output: 1, 2, 3... {word_count}
+If you don't have {word_count} complete objects, ADD MORE until you reach {word_count}!
+
+---
+
+You are an expert phonics educator creating learning materials for elementary students.
 
 {"⚠️ CRITICAL REQUIREMENT: Generate COMPLETE SENTENCES, not single words! Each entry must be a full sentence with subject and verb. ⚠️" if challenge_level == 'simple_sentences' else ""}
     
@@ -347,32 +415,86 @@ def create_phonics_prompt(challenge_level, learning_focus, difficulty, word_coun
     
     prompt += """
     
-    IMPORTANT FORMATTING RULES:
-    1. Return ONLY the JSON array, no additional text
-    2. Use double quotes for all strings
-    3. Ensure each word object has ALL required fields
-    4. Make syllableBreakdown show clear syllable divisions (use hyphens: "but-ter")
-    5. targetLetter should be the specific letter(s) being taught
-    6. pattern should be a short identifier (like "short_a", "st_blend", "compound_word")
-    7. patternPosition should be "beginning", "middle", "end", or "whole"
-    8. phonicsRule should be a clear, child-friendly explanation
-    9. definition should be simple but accurate for the target age group
-    
-    Generate exactly {word_count} words that meet these specifications.
+CRITICAL FORMATTING REQUIREMENTS:
+
+You MUST return a JSON array where EVERY word object contains ALL 7 required fields:
+
+1. "word": The actual word/phrase/sentence (string, not empty)
+2. "syllableBreakdown": Syllables with hyphens, e.g., "sun-set" (string, not empty)
+3. "targetLetter": The specific letter(s) being taught, e.g., "a", "sh", "st" (string, not empty)
+4. "definition": Simple, child-friendly meaning (string, not empty)
+5. "pattern": Short identifier like "short_a", "digraph_sh", "compound" (string, not empty)
+6. "patternPosition": Must be "beginning", "middle", "end", or "whole" (string, not empty)
+7. "phonicsRule": Child-friendly explanation of the phonics rule (string, not empty)
+
+EXAMPLE of a VALID word object:
+{
+    "word": "fish",
+    "syllableBreakdown": "fish",
+    "targetLetter": "sh",
+    "definition": "An animal that lives in water",
+    "pattern": "digraph_sh",
+    "patternPosition": "end",
+    "phonicsRule": "The letters 's' and 'h' work together to make the /sh/ sound"
+}
+
+DO NOT:
+- Leave any field empty ("")
+- Skip any of the 7 required fields
+- Add extra fields
+- Include trailing commas
+
+Generate EXACTLY {word_count} complete word objects.
     """
+
+        # 🔥 ADD THIS SECTION HERE (before return prompt)
+    prompt += f"""
+
+---
+
+🚨 FINAL CHECK BEFORE RESPONDING 🚨
+
+Count your word objects: [ ] 1, [ ] 2, [ ] 3... [ ] {word_count}
+
+✅ Did you generate EXACTLY {word_count} complete word objects?
+   - Each with all 7 required fields: word, syllableBreakdown, targetLetter, definition, pattern, patternPosition, phonicsRule
+   - NO trailing commas
+   - Proper JSON format
+
+IF YOUR COUNT ≠ {word_count}, DO NOT RESPOND YET!
+Add more words or remove words until you have EXACTLY {word_count}!
+
+REQUIRED: {word_count} words | YOUR COUNT: _____
+"""
     
     return prompt
 
 def validate_word_structure(word_obj):
     """Validate that a word object has the required structure"""
-    required_fields = ['word', 'syllableBreakdown', 'targetLetter', 'definition', 'pattern', 'patternPosition', 'phonicsRule']
+    required_fields = ['word', 'syllableBreakdown', 'targetLetter', 'definition', 
+                      'pattern', 'patternPosition', 'phonicsRule']
     
     if not isinstance(word_obj, dict):
         return False
     
+    missing_fields = []
+    empty_fields = []
+    
     for field in required_fields:
-        if field not in word_obj or not word_obj[field]:
-            return False
+        if field not in word_obj:
+            missing_fields.append(field)
+        elif not word_obj[field]:
+            empty_fields.append(field)
+    
+    if missing_fields or empty_fields:
+        # ADD THESE LINES:
+        print(f"\n❌ INVALID: '{word_obj.get('word', 'UNKNOWN')}'")
+        if missing_fields:
+            print(f"   MISSING: {missing_fields}")
+        if empty_fields:
+            print(f"   EMPTY: {empty_fields}")
+        # END OF NEW LINES
+        return False
     
     return True
 

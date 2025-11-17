@@ -140,13 +140,21 @@ const VanishingGame = () => {
   }
     
     try {
-      // Generate words using AI service
-      const generatedWords = await generateVanishingGameWords({
-        challengeLevel: config.challengeLevel,
-        learningFocus: config.learningFocus,
-        difficulty: config.difficulty,
-        wordCount: config.numberOfQuestions || 10
-      });
+  // 🔥 OPTION 2: Generate extra words as buffer for skips/give-ups
+  const extraWords = 5; // Always generate 5 extra words
+  const roundsSelected = config.numberOfQuestions || 10;
+  const wordsToGenerate = roundsSelected + extraWords;
+  
+  console.log(`🎮 User selected ${roundsSelected} rounds`);
+  console.log(`📚 Generating ${wordsToGenerate} words (${extraWords} extra for skips/give-ups)`);
+  
+  // Generate words using AI service
+  const generatedWords = await generateVanishingGameWords({
+    challengeLevel: config.challengeLevel,
+    learningFocus: config.learningFocus,
+    difficulty: config.difficulty,
+    wordCount: wordsToGenerate
+  });
       
       console.log('✅ Generated words:', generatedWords);
       
