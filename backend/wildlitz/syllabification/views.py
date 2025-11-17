@@ -936,7 +936,7 @@ def update_custom_word(request, word_id):
         word = data.get('word', '').strip()
         syllable_breakdown = data.get('syllable_breakdown', '').strip()
         category = data.get('category', '').strip()
-        difficulty_level = data.get('difficulty_level', '').strip()  # ✅ NEW: Get from request
+        difficulty_level = data.get('difficulty_level', '').strip()  # ✅ NEW: Get from requestddd
 
         if not word or not syllable_breakdown or not category:
             return Response(
