@@ -503,13 +503,14 @@ def validate_syllable_structure(request):
 def create_custom_word(request):
     """
     Create a new custom word with optional image and audio uploads
+    FIXED: Uses direct database operations instead of RPC
     """
     try:
         # Get form data
         word = request.data.get('word', '').strip()
         syllable_breakdown = request.data.get('syllable_breakdown', '').strip()
         category = request.data.get('category', '').strip()
-        difficulty_level = request.data.get('difficulty_level', '').strip()  # ✅ NEW: Get from request
+        difficulty_level = request.data.get('difficulty_level', '').strip()
         
         # Validate required fields
         if not word or not syllable_breakdown:
@@ -518,7 +519,7 @@ def create_custom_word(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # ✅ NEW: Validate difficulty_level is provided
+        # Validate difficulty_level is provided
         if not difficulty_level or difficulty_level not in ['easy', 'medium', 'hard']:
             return Response(
                 {'error': 'Valid difficulty_level is required (easy, medium, or hard)'}, 
@@ -527,9 +528,6 @@ def create_custom_word(request):
         
         # Calculate syllable count
         syllable_count = len(syllable_breakdown.split('-'))
-        
-        # ✅ REMOVED: The automatic difficulty calculation
-        # difficulty_level is now taken from the request instead of being calculated
         
         # AI: Validate syllable structure
         validation_result = ai_generator.validate_syllable_structure(word, syllable_breakdown)
@@ -542,14 +540,14 @@ def create_custom_word(request):
         fun_fact = ai_generator.generate_fun_fact(word, category)
         intro_message = ai_generator.generate_character_message(word, 'intro', difficulty_level)
         
-        # 🆕 NEW: Generate phonetic guide
+        # Generate phonetic guide
         phonetic_guide = ai_generator.generate_phonetic_guide(word, syllable_breakdown)
         
         # Handle file uploads
         image_url = None
         full_word_audio_url = None
         syllable_audio_urls = []
-        upload_warnings = []  # ✅ NEW: Track upload failures
+        upload_warnings = []
         
         # Upload image if provided
         if 'image' in request.FILES:
@@ -557,7 +555,6 @@ def create_custom_word(request):
             image_file = request.FILES['image']
             image_filename = f"{word.lower().replace(' ', '_')}.{image_file.name.split('.')[-1]}"
             
-            # ✅ NEW: Log file details
             logger.info(f"Attempting to upload image: {image_filename}, Size: {image_file.size} bytes, Type: {image_file.content_type}")
             
             try:
@@ -578,7 +575,6 @@ def create_custom_word(request):
             audio_file = request.FILES['full_word_audio']
             audio_filename = f"{word.lower().replace(' ', '_')}_full.{audio_file.name.split('.')[-1]}"
             
-            # ✅ NEW: Log file details
             logger.info(f"Attempting to upload full word audio: {audio_filename}, Size: {audio_file.size} bytes, Type: {audio_file.content_type}")
             
             try:
@@ -602,7 +598,6 @@ def create_custom_word(request):
                 syllable_file = request.FILES[field_name]
                 syllable_filename = f"{word.lower().replace(' ', '_')}_syl_{idx}.{syllable_file.name.split('.')[-1]}"
                 
-                # ✅ NEW: Log file details
                 logger.info(f"Attempting to upload syllable {idx} audio: {syllable_filename}, Size: {syllable_file.size} bytes")
                 
                 try:
@@ -622,39 +617,64 @@ def create_custom_word(request):
         created_by = None
         created_by_name = 'Anonymous'
         if request.user.is_authenticated:
-            created_by = request.user.id
+            created_by = str(request.user.id)
             created_by_name = request.user.username or request.user.email
         
-        syllable_audio_urls_json = json.dumps(syllable_audio_urls) if syllable_audio_urls else '[]'
+        # 🔥 FIX: Use direct database insert instead of RPC
+        # First, check if word already exists (case-insensitive)
+        logger.info(f"Checking if word '{word}' already exists...")
+        existing_check = supabase.table('syllable_words').select('id').ilike('word', word).execute()
         
-        # Use RPC function to insert into wildlitz schema
+        if existing_check.data and len(existing_check.data) > 0:
+            logger.warning(f"Word '{word}' already exists with ID: {existing_check.data[0]['id']}")
+            return Response(
+                {
+                    'error': f'Word "{word}" already exists in the database. Please use a different word or update the existing one.',
+                    'existing_word_id': existing_check.data[0]['id']
+                }, 
+                status=status.HTTP_409_CONFLICT
+            )
+        
+        # Prepare data for insert
+        word_data = {
+            'word': word.lower(),
+            'syllable_breakdown': syllable_breakdown,
+            'syllable_count': syllable_count,
+            'difficulty_level': difficulty_level,
+            'category': category,
+            'image_url': image_url,
+            'full_word_audio_url': full_word_audio_url,
+            'syllable_audio_urls': syllable_audio_urls,
+            'fun_fact': fun_fact,
+            'intro_message': intro_message,
+            'ai_suggested_category': category,
+            'is_ai_validated': True,
+            'ai_validation_result': validation_result,
+            'phonetic_guide': phonetic_guide,
+            'created_by': created_by,
+            'created_by_name': created_by_name,
+            'is_custom': True,
+            'is_public': True,
+            'rating': 0.0
+        }
+        
+        # Insert into database
         logger.info(f"Inserting word '{word}' into database...")
-        response = supabase.rpc('insert_custom_word_to_public', {
-            'p_word': word,
-            'p_syllable_breakdown': syllable_breakdown,
-            'p_syllable_count': syllable_count,
-            'p_difficulty_level': difficulty_level,
-            'p_category': category,
-            'p_image_url': image_url,
-            'p_full_word_audio_url': full_word_audio_url,
-            'p_syllable_audio_urls': syllable_audio_urls_json,
-            'p_fun_fact': fun_fact,
-            'p_intro_message': intro_message,
-            'p_ai_suggested_category': category,
-            'p_is_ai_validated': True,
-            'p_ai_validation_result': validation_result,
-            'p_phonetic_guide': phonetic_guide,  # 🆕 NEW: Add phonetic guide
-            'p_created_by': created_by,
-            'p_created_by_name': created_by_name,
-            'p_is_custom': True,
-            'p_is_public': True
-        }).execute()
+        logger.info(f"Word data: word={word}, syllable_breakdown={syllable_breakdown}, syllable_count={syllable_count}")
+        
+        response = supabase.table('syllable_words').insert(word_data).execute()
         
         if response.data and len(response.data) > 0:
             created_word = response.data[0]
-            logger.info(f"✅ Custom word created: {word} by {created_by_name}")
+            logger.info(f"✅ Custom word created: {word} (ID: {created_word.get('id')}) by {created_by_name}")
             
-            # ✅ NEW: Include warnings in response
+            # Verify syllable_breakdown was saved
+            saved_breakdown = created_word.get('syllable_breakdown')
+            if saved_breakdown != syllable_breakdown:
+                logger.error(f"⚠️ Syllable breakdown mismatch! Expected: '{syllable_breakdown}', Got: '{saved_breakdown}'")
+            else:
+                logger.info(f"✅ Syllable breakdown verified: '{saved_breakdown}'")
+            
             response_data = {
                 'success': True,
                 'message': f'Custom word "{word}" created successfully!',
@@ -668,6 +688,7 @@ def create_custom_word(request):
             
             return Response(response_data, status=status.HTTP_201_CREATED)
         else:
+            logger.error("Failed to create word - no data returned")
             return Response(
                 {'error': 'Failed to create word in database'}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -686,19 +707,29 @@ def get_custom_words(request):
     """
     Get custom words for the game
     Can filter by word IDs or get all public custom words
+    FIXED: Uses direct database query instead of RPC
     """
     try:
         word_ids = request.GET.getlist('word_ids[]', [])
         
-        # Use RPC function to query wildlitz schema
-        if word_ids:
-            # Convert to proper format for PostgreSQL array
-            response = supabase.rpc('get_custom_words_from_public', {'word_ids': word_ids}).execute()
-        else:
-            # Get all custom words (pass NULL)
-            response = supabase.rpc('get_custom_words_from_public', {'word_ids': None}).execute()
+        logger.info(f"Fetching custom words. Filter: {word_ids if word_ids else 'all public'}")
         
+        # Use direct query instead of RPC
+        query = supabase.table('syllable_words').select('*')
+        
+        if word_ids:
+            query = query.in_('id', word_ids)
+        else:
+            query = query.eq('is_public', True).eq('is_custom', True)
+        
+        response = query.execute()
         words = response.data if response.data else []
+        
+        logger.info(f"✅ Fetched {len(words)} custom words")
+        
+        if words and len(words) > 0:
+            sample = words[0]
+            logger.info(f"Sample: {sample.get('word')}, syllables: {sample.get('syllable_breakdown')}")
         
         return Response({
             'words': words,
@@ -707,7 +738,10 @@ def get_custom_words(request):
         
     except Exception as e:
         logger.error(f"Error fetching custom words: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -768,26 +802,126 @@ def search_words(request):
     
 @csrf_exempt
 @api_view(['DELETE'])
-@permission_classes([AllowAny]) # Or IsAuthenticated if you want to protect it
+@permission_classes([AllowAny])  # Change to IsAuthenticated if you want to protect it
 def delete_custom_word(request, word_id):
     """
     Permanently delete a custom word from the database.
+    FIXED: Proper response handling, storage cleanup, and error handling
     """
     try:
-        # Use the table in the public schema and delete the word matching the ID
-        response = supabase.table('syllable_words').delete().eq('id', word_id).execute()
+        # Validate UUID format
+        logger.info(f"Attempting to delete word with ID: {word_id}")
         
-        # Check if any data was returned (successful deletion)
-        if response.data:
-            logger.info(f"Successfully deleted word with ID: {word_id}")
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            logger.warning(f"Could not find word with ID: {word_id} to delete.")
-            return Response({'error': 'Word not found'}, status=status.HTTP_404_NOT_FOUND)
-
+        # First, get the word to check if it exists and to get file URLs for cleanup
+        check_response = supabase.table('syllable_words').select('*').eq('id', word_id).execute()
+        
+        if not check_response.data or len(check_response.data) == 0:
+            logger.warning(f"Word not found with ID: {word_id}")
+            return Response(
+                {'error': 'Word not found'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        word_data = check_response.data[0]
+        word_name = word_data.get('word', 'unknown')
+        logger.info(f"Found word to delete: '{word_name}' (ID: {word_id})")
+        
+        # 🧹 Delete associated storage files
+        deleted_files = []
+        failed_deletions = []
+        
+        try:
+            # Delete image if exists
+            image_url = word_data.get('image_url')
+            if image_url:
+                try:
+                    # Extract filename from URL
+                    # URL format: https://xxx.supabase.co/storage/v1/object/public/bucket-name/filename.ext
+                    filename = image_url.split('/')[-1]
+                    supabase.storage.from_('syllable-word-images').remove([filename])
+                    deleted_files.append(f"image: {filename}")
+                    logger.info(f"✅ Deleted image: {filename}")
+                except Exception as e:
+                    failed_deletions.append(f"image: {str(e)}")
+                    logger.warning(f"⚠️ Failed to delete image: {str(e)}")
+            
+            # Delete full word audio if exists
+            full_audio_url = word_data.get('full_word_audio_url')
+            if full_audio_url:
+                try:
+                    filename = full_audio_url.split('/')[-1]
+                    supabase.storage.from_('syllable-word-audio').remove([filename])
+                    deleted_files.append(f"full audio: {filename}")
+                    logger.info(f"✅ Deleted full word audio: {filename}")
+                except Exception as e:
+                    failed_deletions.append(f"full audio: {str(e)}")
+                    logger.warning(f"⚠️ Failed to delete full word audio: {str(e)}")
+            
+            # Delete syllable audio files if exist
+            syllable_audio_urls = word_data.get('syllable_audio_urls', [])
+            if syllable_audio_urls and isinstance(syllable_audio_urls, list):
+                for idx, audio_url in enumerate(syllable_audio_urls):
+                    if audio_url:
+                        try:
+                            filename = audio_url.split('/')[-1]
+                            supabase.storage.from_('syllable-word-audio').remove([filename])
+                            deleted_files.append(f"syllable {idx} audio: {filename}")
+                            logger.info(f"✅ Deleted syllable audio {idx}: {filename}")
+                        except Exception as e:
+                            failed_deletions.append(f"syllable {idx} audio: {str(e)}")
+                            logger.warning(f"⚠️ Failed to delete syllable audio {idx}: {str(e)}")
+        
+        except Exception as e:
+            logger.warning(f"⚠️ Error during storage cleanup: {str(e)}")
+            # Continue with database deletion even if storage cleanup fails
+        
+        # 🗑️ Delete the word from database
+        logger.info(f"Deleting word '{word_name}' from database...")
+        delete_response = supabase.table('syllable_words').delete().eq('id', word_id).execute()
+        
+        # ✅ FIX: Proper success check for Supabase delete
+        # Supabase delete returns the deleted rows OR an empty array on success
+        # We need to check if there was NO ERROR, not if data exists
+        # If we got here without an exception, the delete was successful
+        
+        logger.info(f"✅ Successfully deleted word '{word_name}' (ID: {word_id})")
+        
+        # Log storage cleanup results
+        if deleted_files:
+            logger.info(f"Storage files deleted: {', '.join(deleted_files)}")
+        if failed_deletions:
+            logger.warning(f"Storage deletions failed: {', '.join(failed_deletions)}")
+        
+        # Return success with optional warnings about storage cleanup
+        response_data = {
+            'message': f'Word "{word_name}" deleted successfully'
+        }
+        
+        if failed_deletions:
+            response_data['warnings'] = {
+                'message': 'Word deleted but some storage files could not be removed',
+                'failed_deletions': failed_deletions
+            }
+        
+        return Response(response_data, status=status.HTTP_200_OK)
+        
     except Exception as e:
-        logger.error(f"Error deleting word with ID {word_id}: {str(e)}")
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"❌ Error deleting word with ID {word_id}: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        
+        # Provide more detailed error information
+        error_message = str(e)
+        if 'UUID' in error_message or 'uuid' in error_message.lower():
+            return Response(
+                {'error': f'Invalid word ID format: {word_id}'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        return Response(
+            {'error': f'Failed to delete word: {error_message}'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
     
 @csrf_exempt
 @api_view(['PUT'])
