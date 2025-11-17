@@ -185,6 +185,25 @@ const EditWordModal = ({ word, onSave, onClose }) => {
     }
   };
 
+  const handleAudioUpload = (event, type, syllableIndex = null) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const audioUrl = URL.createObjectURL(file);
+    const audioBlob = file;
+
+    if (type === "fullWord") {
+      setNewFullWordAudio({ blob: audioBlob, url: audioUrl });
+    } else if (type === "syllable" && syllableIndex !== null) {
+      setNewSyllableAudios((prev) => ({
+        ...prev,
+        [syllableIndex]: { blob: audioBlob, url: audioUrl },
+      }));
+    }
+
+    event.target.value = null; // Allow re-selection of same file
+  };
+
   // Handle save
   const handleSave = () => {
     // ✅ CHANGED: Allow saving if validation is dismissed
@@ -649,26 +668,49 @@ const EditWordModal = ({ word, onSave, onClose }) => {
               )}
 
               {/* Recording Controls */}
-              <button
-                className={`${styles.recordButton} ${
-                  isRecordingFullWord ? styles.recording : ""
-                }`}
-                onClick={() => {
-                  if (isRecordingFullWord) {
-                    stopRecording();
-                  } else {
-                    startRecording("fullWord");
+              <div className={styles.audioActionButtons}>
+                <button
+                  className={`${styles.recordButton} ${
+                    isRecordingFullWord ? styles.recording : ""
+                  }`}
+                  onClick={() => {
+                    if (isRecordingFullWord) {
+                      stopRecording();
+                    } else {
+                      startRecording("fullWord");
+                    }
+                  }}
+                  disabled={recordingSyllableIndex !== null}
+                >
+                  <span className={styles.micIcon}>🎤</span>
+                  {isRecordingFullWord
+                    ? "Stop"
+                    : newFullWordAudio
+                    ? "Re-record"
+                    : "Record"}
+                </button>
+                <button
+                  className={styles.uploadButton}
+                  onClick={() =>
+                    document
+                      .getElementById("edit-full-word-audio-upload")
+                      .click()
                   }
-                }}
-                disabled={recordingSyllableIndex !== null}
-              >
-                <span className={styles.micIcon}>🎤</span>
-                {isRecordingFullWord
-                  ? "⏹ Stop Recording"
-                  : newFullWordAudio
-                  ? "🔄 Re-record"
-                  : "🎙️ Record New Audio"}
-              </button>
+                  disabled={
+                    isRecordingFullWord || recordingSyllableIndex !== null
+                  }
+                >
+                  <span>☁️</span>
+                  Upload
+                </button>
+              </div>
+              <input
+                type="file"
+                accept="audio/mp3, audio/wav, audio/m4a, audio/webm"
+                style={{ display: "none" }}
+                id="edit-full-word-audio-upload"
+                onChange={(e) => handleAudioUpload(e, "fullWord")}
+              />
 
               {!word?.full_word_audio_url && !newFullWordAudio && (
                 <div
@@ -790,38 +832,68 @@ const EditWordModal = ({ word, onSave, onClose }) => {
                             </div>
                           )}
 
-                          {/* Recording Button */}
-                          <button
-                            className={`${styles.recordButton} ${
-                              recordingSyllableIndex === index
-                                ? styles.recording
-                                : ""
-                            }`}
-                            onClick={() => {
-                              if (recordingSyllableIndex === index) {
-                                stopRecording();
-                              } else {
-                                startRecording("syllable", index);
+                          {/* Recording and Upload Buttons */}
+                          <div className={styles.audioActionButtons}>
+                            <button
+                              className={`${styles.recordButton} ${recordingSyllableIndex === index
+                                  ? styles.recording
+                                  : ""
+                                }`}
+                              onClick={() => {
+                                if (recordingSyllableIndex === index) {
+                                  stopRecording();
+                                } else {
+                                  startRecording("syllable", index);
+                                }
+                              }}
+                              disabled={
+                                isRecordingFullWord ||
+                                (recordingSyllableIndex !== null &&
+                                  recordingSyllableIndex !== index)
                               }
-                            }}
-                            disabled={
-                              isRecordingFullWord ||
-                              (recordingSyllableIndex !== null &&
-                                recordingSyllableIndex !== index)
-                            }
-                            style={{
-                              width: "100%",
-                              padding: "0.4rem 0.6rem",
-                              fontSize: "0.75rem",
-                            }}
-                          >
-                            <span className={styles.micIcon}>🎤</span>
-                            {recordingSyllableIndex === index
-                              ? "⏹ Stop"
-                              : hasNewAudio
-                              ? "🔄"
-                              : "🎙️"}
-                          </button>
+                              style={{
+                                flex: 1,
+                                padding: "0.4rem 0.6rem",
+                                fontSize: "0.75rem",
+                              }}
+                            >
+                              <span className={styles.micIcon}>🎤</span>
+                              {recordingSyllableIndex === index
+                                ? "Stop"
+                                : hasNewAudio
+                                  ? "Re-record"
+                                  : "Record"}
+                            </button>
+                            <button
+                              className={styles.uploadButton}
+                              onClick={() =>
+                                document
+                                  .getElementById(`edit-syllable-audio-upload-${index}`)
+                                  .click()
+                              }
+                              disabled={
+                                isRecordingFullWord ||
+                                (recordingSyllableIndex !== null &&
+                                  recordingSyllableIndex !== index)
+                              }
+                              style={{
+                                flex: 1,
+                                padding: "0.4rem 0.6rem",
+                                fontSize: "0.75rem",
+                              }}
+                            >
+                              <span>☁️</span>
+                              Upload
+                            </button>
+                          </div>
+                          <input
+                            type="file"
+                            accept="audio/mp3, audio/wav, audio/m4a, audio/webm"
+                            style={{ display: "none" }}
+                            id={`edit-syllable-audio-upload-${index}`}
+                            onChange={(e) => handleAudioUpload(e, "syllable", index)}
+                          />
+                          
 
                           {!hasOriginalAudio && !hasNewAudio && (
                             <div

@@ -515,7 +515,7 @@ body {
 .modal {
   background: white;
   border-radius: var(--radius);
-  width: 550px;
+  width: 750px;
   max-width: 95vw;
   max-height: 90vh;
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
@@ -1304,9 +1304,10 @@ body {
 /* Syllable Audio Grid */
 .syllableAudioGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
   margin-top: 0.8rem;
+  max-width: 100%;
 }
 
 .syllableAudioItem {
