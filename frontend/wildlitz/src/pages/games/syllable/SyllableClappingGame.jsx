@@ -15,7 +15,6 @@ import useClapDetection from "./useClapDetection"; // ← ADD THIS LINE
 //import ClapRhythmTimer from "./ClapRhythmTimer";
 import DraggableRhythmTimer from "./DraggableRhythmTimer";
 
-
 const SyllableClappingGame = () => {
   const navigate = useNavigate();
 
@@ -52,7 +51,6 @@ const SyllableClappingGame = () => {
   const [syllableTip, setSyllableTip] = useState("");
   const [learningFeedback, setLearningFeedback] = useState("");
 
-
   // Button disabling states
   const [checkButtonDisabled, setCheckButtonDisabled] = useState(false);
   const [nextButtonDisabled, setNextButtonDisabled] = useState(false);
@@ -75,9 +73,8 @@ const SyllableClappingGame = () => {
   );
 
   useEffect(() => {
-  setWordPlayTimestamp(null);
+    setWordPlayTimestamp(null);
   }, [currentWord.word]);
-
 
   // Auto-enable microphone when entering playing phase
   useEffect(() => {
@@ -1101,69 +1098,121 @@ const SyllableClappingGame = () => {
     setError(null);
 
     try {
-      // Use the selected difficulty and categories from config
       const difficulty = config?.difficulty || "medium";
       const categories = config?.categories || [];
       const wordCount = config?.questionCount || 10;
+      const customWordIds = config?.customWords || []; // Array of {id, word}
 
       console.log("Preloading with config:", {
         difficulty,
         categories,
         wordCount,
+        customWordCount: customWordIds.length,
       });
 
-      // Build query string for categories
-      const categoryParams = categories
-        .map((cat) => `categories[]=${encodeURIComponent(cat)}`)
-        .join("&");
+      let allWords = [];
 
-      const url = `${API_ENDPOINTS.SYLLABIFICATION}/get-word-batch/?difficulty=${difficulty}&${categoryParams}&count=${wordCount}`;
-      console.log("API URL:", url);
+      // ✅ STEP 1: Fetch custom words first (if any)
+      if (customWordIds.length > 0) {
+        console.log("Fetching custom words:", customWordIds);
 
-      // Call API to get a batch of words with AI-generated content
-      const response = await axios.get(url);
+        try {
+          // Extract just the IDs
+          const ids = customWordIds.map((w) => w.id);
 
-      const wordsData = response.data.words;
-      console.log("Received words:", wordsData?.length || 0);
+          // Fetch full word data for custom words
+          const customWordsResponse = await axios.get(
+            `${API_ENDPOINTS.SYLLABIFICATION}/get-custom-words/`,
+            {
+              params: {
+                word_ids: ids,
+              },
+            }
+          );
 
-      if (wordsData && wordsData.length > 0) {
-        // Check for duplicates in the received data
+          const customWordsData = customWordsResponse.data.words || [];
+          console.log("Custom words fetched:", customWordsData.length);
+
+          // Add custom words to the beginning
+          allWords = customWordsData.map((word) => ({
+            word: word.word,
+            syllables: word.syllable_breakdown,
+            count: word.syllable_count,
+            category: word.category || "Custom",
+            image_url: word.image_url || null,
+            full_word_audio_url: word.full_word_audio_url || null,
+            syllable_audio_urls: word.syllable_audio_urls || [],
+            fun_fact: `This is a custom word with ${word.syllable_count} syllables!`,
+            intro_message: `Let's practice "${word.word}"!`,
+          }));
+        } catch (error) {
+          console.error("Error fetching custom words:", error);
+          // Continue anyway - we'll just use category words
+        }
+      }
+
+      // ✅ STEP 2: Calculate how many MORE words we need from categories
+      const remainingCount = wordCount - allWords.length;
+
+      if (remainingCount > 0 && categories.length > 0) {
+        console.log(`Fetching ${remainingCount} more words from categories`);
+
+        // Build query string for categories
+        const categoryParams = categories
+          .map((cat) => `categories[]=${encodeURIComponent(cat)}`)
+          .join("&");
+
+        const url = `${API_ENDPOINTS.SYLLABIFICATION}/get-word-batch/?difficulty=${difficulty}&${categoryParams}&count=${remainingCount}`;
+        console.log("API URL:", url);
+
+        // Fetch category words
+        const response = await axios.get(url);
+        const categoryWords = response.data.words || [];
+
+        console.log("Category words fetched:", categoryWords.length);
+
+        // Add category words AFTER custom words
+        allWords = [...allWords, ...categoryWords];
+      }
+
+      console.log("Total words loaded:", allWords.length);
+
+      if (allWords.length > 0) {
+        // Remove duplicates
         const wordSet = new Set();
         const uniqueWords = [];
 
-        // Filter out any duplicates in the response
-        for (const word of wordsData) {
+        for (const word of allWords) {
           if (!wordSet.has(word.word)) {
             wordSet.add(word.word);
-
-            // Ensure image_url is null if it's an empty string
             if (word.image_url === "") {
               word.image_url = null;
             }
-
             uniqueWords.push(word);
-          } else {
-            console.warn(
-              `Duplicate word detected in API response: ${word.word}`
-            );
           }
         }
 
-        console.log(
-          `Unique words after filtering: ${uniqueWords.length} (removed ${
-            wordsData.length - uniqueWords.length
-          } duplicates)`
+        console.log(`Unique words: ${uniqueWords.length}`);
+
+        // ✅ IMPORTANT: Don't shuffle! Keep custom words at the start
+        // Only shuffle the category words portion
+        const customCount = customWordIds.length;
+        const customWordsSection = uniqueWords.slice(0, customCount);
+        const categoryWordsSection = uniqueWords.slice(customCount);
+
+        // Shuffle only category words
+        const shuffledCategoryWords = categoryWordsSection.sort(
+          () => Math.random() - 0.5
         );
 
-        // Shuffle the array to randomize word order
-        const shuffledWords = [...uniqueWords].sort(() => Math.random() - 0.5);
+        // Combine: custom words first, then shuffled category words
+        const finalWords = [...customWordsSection, ...shuffledCategoryWords];
 
-        // Set state for future use
-        setGameWords(shuffledWords);
+        // Set state
+        setGameWords(finalWords);
         setWordIndex(0);
 
-        // IMPORTANT CHANGE: Return the words array directly
-        return shuffledWords;
+        return finalWords;
       } else {
         setError("Could not load enough words. Please try different settings.");
         return null;
@@ -1317,13 +1366,10 @@ const SyllableClappingGame = () => {
 
           {/* Clap Area on Right */}
           <div className={styles.clapSection}>
-          <p 
-            className={styles.instructions} 
-            style={{ fontSize: '1.1rem' }}
-          >
-            👏 Clap out loud for <strong style={{ color: 'gold' }}>each syllable!</strong>
-          </p>
-
+            <p className={styles.instructions} style={{ fontSize: "1.1rem" }}>
+              👏 Clap out loud for{" "}
+              <strong style={{ color: "gold" }}>each syllable!</strong>
+            </p>
 
             {/* Microphone Toggle Button */}
             <div className={styles.micControls}>
@@ -1719,8 +1765,8 @@ const SyllableClappingGame = () => {
         {renderGameContent()}
       </div>
 
-      <DraggableRhythmTimer 
-        isGameActive={gamePhase === 'playing'}
+      <DraggableRhythmTimer
+        isGameActive={gamePhase === "playing"}
         wordPlayTimestamp={wordPlayTimestamp}
       />
     </>
