@@ -68,7 +68,23 @@ const GameplayScreen = ({
   const solvedCount = Object.keys(solvedClues).length;
   const isCurrentWordSolved = solvedClues[currentWord?.answer];
 
-  
+  useEffect(() => {
+  const hasSeenGuide = localStorage.getItem('wildlitz_crossword_guide_seen');
+  if (hasSeenGuide === 'true') {
+    setShowGuide(false);
+   
+}, []);
+
+// Add these handlers
+const handleStartFromGuide = () => {
+  setShowGuide(false);
+  setTimerActive(true);
+};
+
+const handleSkipGuide = () => {
+  setShowGuide(false);
+  setTimerActive(true);
+};
 
   // Initialize speech synthesis and load voices
   useEffect(() => {
