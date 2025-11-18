@@ -79,12 +79,12 @@ const GameplayScreen = ({
 // Add these handlers
 const handleStartFromGuide = () => {
   setShowGuide(false);
-  setTimerActive(true);
+  
 };
 
 const handleSkipGuide = () => {
   setShowGuide(false);
-  setTimerActive(true);
+ 
 };
 
   // Initialize speech synthesis and load voices
