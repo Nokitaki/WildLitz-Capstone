@@ -73,6 +73,7 @@ const GameplayScreen = ({
   if (hasSeenGuide === 'true') {
     setShowGuide(false);
    
+  }
 }, []);
 
 // Add these handlers
