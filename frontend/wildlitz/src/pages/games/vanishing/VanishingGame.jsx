@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/vanishing/VanishingGame.module.css';
 import phonicsAnalyticsService from '../../../services/phonicsAnalyticsService';
+import GuideScreen from './GuideScreen';
 
 // Import game screens
 import ConfigScreen from './ConfigScreen';
@@ -84,21 +85,45 @@ const VanishingGame = () => {
   correctWords: 0 // Add this
 });
 
-  /**
-   * 🎮 Start game configuration
-   */
-  const handleStartGame = async (config) => {
-  console.log('🚀 Starting game with config:', config);
+/**
+ * 🎮 Handle config submission - goes to guide screen first
+ */
+const handleStartGame = (config) => {
+  console.log('🎮 Config selected, showing guide:', config);
+  
+  setGameConfig({
+    ...config,
+    enableAudio: config.enableAudio !== undefined ? config.enableAudio : true,
+    voiceType: config.voiceType || 'happy',
+    teamPlay: config.teamPlay || false,
+    teamAName: config.teamAName || 'Team A',
+    teamBName: config.teamBName || 'Team B'
+  });
+  
+  if (config.teamPlay) {
+    setTeamNames({
+      teamA: config.teamAName || 'Team A',
+      teamB: config.teamBName || 'Team B'
+    });
+  }
+  
+  setTotalRounds(config.numberOfQuestions || 10);
+  setGameState('guide');
+};
 
-  // 🔧 FIX: Reset ALL game state FIRST (before anything else)
+/**
+ * 🚀 Actually start the game after guide
+ */
+const handleStartFromGuide = async () => {
+  console.log('🚀 Starting game after guide');
+
   setCurrentRound(1);
   setScore(0);
   setCurrentWordIndex(0);
   setUsedWords([]);
   setLastResult(null);
-  setWordData([]); // ← Clear old words immediately
+  setWordData([]);
   
-  // 🔧 FIX: Reset gameStats COMPLETELY
   setGameStats({
     wordsAttempted: 0,
     wordsRecognized: 0,
@@ -115,87 +140,70 @@ const VanishingGame = () => {
     correctWords: 0
   });
   
-  // 🔧 FIX: Reset session timestamps
   setSessionStartTime(Date.now());
   setGameStartTime(Date.now());
-  
-  // NOW set the game configuration
-  setGameConfig({
-    ...config,
-    enableAudio: config.enableAudio !== undefined ? config.enableAudio : true,
-    voiceType: config.voiceType || 'happy'
-  });
-  setTotalRounds(config.numberOfQuestions || 10);
+  setClassEnergy(100);
   setLoadingWords(true);
   setWordGenerationError(null);
 
-  // Reset team state if team play
-  if (config.teamPlay) {
-    setTeamNames({
-      teamA: config.teamAName || 'Team A',
-      teamB: config.teamBName || 'Team B'
-    });
+  if (gameConfig.teamPlay) {
     setTeamScores({ teamA: 0, teamB: 0 });
     setCurrentTeam('teamA');
   }
     
-try {
-  const roundsSelected = config.numberOfQuestions || 10;
-  const BUFFER = 10;  // Always add 10 extra for skip/give-up
-  
-  // 🔥 Calculate total needed with buffer
-  let TOTAL_WORDS_TO_GENERATE = roundsSelected + BUFFER;
-  
-  // 🔥 Apply maximum limits per type (to avoid token issues)
-  let maxLimit;
-  if (config.challengeLevel === 'simple_sentences') {
-    maxLimit = 30;  // Max 30 sentences (2 batches of 15)
-  } else if (config.challengeLevel === 'phrases') {
-    maxLimit = 40;  // Max 40 phrases (2 batches of 20)
-  } else if (config.challengeLevel === 'compound_words') {
-    maxLimit = 50;  // Max 50 compounds (2 batches of 25)
-  } else {
-    maxLimit = 50;  // Max 50 simple words (2 batches of 34)
-  }
-  
-  TOTAL_WORDS_TO_GENERATE = Math.min(TOTAL_WORDS_TO_GENERATE, maxLimit);
-  
-  console.log(`🎮 User selected ${roundsSelected} rounds`);
-  console.log(`📚 Generating ${TOTAL_WORDS_TO_GENERATE} items (${TOTAL_WORDS_TO_GENERATE - roundsSelected} buffer)`);
-  
-  // Generate words using AI service
-  const generatedWords = await generateVanishingGameWords(
-    {
-      challengeLevel: config.challengeLevel,
-      learningFocus: config.learningFocus,
-      difficulty: config.difficulty
-    },
-    TOTAL_WORDS_TO_GENERATE
-  );
-      
-      console.log('✅ Generated words:', generatedWords);
-      
-      if (generatedWords && generatedWords.length > 0) {
-        setWordData(generatedWords);
-        setCurrentWordIndex(0);
-        setGameState('gameplay');
-        setSessionStartTime(Date.now());
-        setGameStartTime(Date.now());
-        
-        // 🎭 Mascot welcome message!
-        setBubbleMessage('Let\'s learn some phonics! 🎉');
-        setShowBubble(true);
-        setTimeout(() => setShowBubble(false), 3000);
-      } else {
-        throw new Error('No words generated');
-      }
-    } catch (error) {
-      console.error('❌ Error generating words:', error);
-      setWordGenerationError('Failed to generate words. Please try again!');
-    } finally {
-      setLoadingWords(false);
+  try {
+    const roundsSelected = gameConfig.numberOfQuestions || 10;
+    const BUFFER = 10;
+    let TOTAL_WORDS_TO_GENERATE = roundsSelected + BUFFER;
+    
+    let maxLimit;
+    if (gameConfig.challengeLevel === 'simple_sentences') {
+      maxLimit = 30;
+    } else if (gameConfig.challengeLevel === 'phrases') {
+      maxLimit = 40;
+    } else if (gameConfig.challengeLevel === 'compound_words') {
+      maxLimit = 50;
+    } else {
+      maxLimit = 50;
     }
-  };
+    
+    TOTAL_WORDS_TO_GENERATE = Math.min(TOTAL_WORDS_TO_GENERATE, maxLimit);
+    
+    console.log(`🎮 User selected ${roundsSelected} rounds`);
+    console.log(`📚 Generating ${TOTAL_WORDS_TO_GENERATE} items`);
+    
+    const generatedWords = await generateVanishingGameWords(
+      {
+        challengeLevel: gameConfig.challengeLevel,
+        learningFocus: gameConfig.learningFocus,
+        difficulty: gameConfig.difficulty
+      },
+      TOTAL_WORDS_TO_GENERATE
+    );
+      
+    console.log('✅ Generated words:', generatedWords);
+      
+    if (generatedWords && generatedWords.length > 0) {
+      setWordData(generatedWords);
+      setCurrentWordIndex(0);
+      setGameState('gameplay');
+      setSessionStartTime(Date.now());
+      setGameStartTime(Date.now());
+        
+      setBubbleMessage('Let\'s learn some phonics! 🎉');
+      setShowBubble(true);
+      setTimeout(() => setShowBubble(false), 3000);
+    } else {
+      throw new Error('No words generated');
+    }
+  } catch (error) {
+    console.error('❌ Error generating words:', error);
+    setWordGenerationError('Failed to generate words. Please try again!');
+    setGameState('config');
+  } finally {
+    setLoadingWords(false);
+  }
+};
 
   /**
    * 🎯 Handle word result from gameplay
@@ -616,6 +624,19 @@ const handlePlayAgain = () => {
             />
           </motion.div>
         )}
+        {gameState === 'guide' && (
+    <motion.div
+      key="guide"
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+    >
+      <GuideScreen 
+        onStartGame={handleStartFromGuide}
+        config={gameConfig}
+      />
+    </motion.div>
+  )}
 
         {gameState === 'gameplay' && wordData[currentWordIndex] && (
           <motion.div

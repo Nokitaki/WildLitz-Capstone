@@ -1,0 +1,494 @@
+/* src/styles/games/vanishing/GuideScreen.module.css */
+
+.guideContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background decorations */
+.backgroundDecoration {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.floatingShape {
+  position: absolute;
+  font-size: 3rem;
+  animation: float 3s ease-in-out infinite;
+  opacity: 0.3;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+/* Main card */
+.guideCard {
+  background: white;
+  border-radius: 30px;
+  padding: 40px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar for the card */
+.guideCard::-webkit-scrollbar {
+  width: 10px;
+}
+
+.guideCard::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.guideCard::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 10px;
+}
+
+.guideCard::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #764ba2, #667eea);
+}
+
+/* Header */
+.guideHeader {
+  text-align: center;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.headerEmoji {
+  font-size: 5rem;
+  margin-bottom: 15px;
+  display: inline-block;
+}
+
+.guideTitle {
+  font-size: 2.5rem;
+  color: #333;
+  margin: 0;
+  font-weight: 800;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.skipButton {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: transparent;
+  border: 2px solid #667eea;
+  color: #667eea;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.skipButton:hover {
+  background: #667eea;
+  color: white;
+  transform: translateX(5px);
+}
+
+/* Progress */
+.progressContainer {
+  margin-bottom: 30px;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Guide content */
+.guideContent {
+  text-align: center;
+  padding: 20px 0;
+  min-height: 350px;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 15px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar styling */
+.guideContent::-webkit-scrollbar {
+  width: 8px;
+}
+
+.guideContent::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.guideContent::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 10px;
+}
+
+.guideContent::-webkit-scrollbar-thumb:hover {
+  background: #764ba2;
+}
+
+.imageContainer {
+  margin-bottom: 30px;
+}
+
+.guideImage {
+  font-size: 8rem;
+  display: inline-block;
+}
+
+.stepTitle {
+  font-size: 2rem;
+  color: #333;
+  margin: 0 0 15px 0;
+  font-weight: 700;
+}
+
+.stepDescription {
+  font-size: 1.2rem;
+  color: #666;
+  line-height: 1.6;
+  margin: 0 0 25px 0;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Tip box */
+.tipBox {
+  background: linear-gradient(135deg, #fff9e6, #fff3cd);
+  border: 2px solid #ffc107;
+  border-radius: 15px;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.tipIcon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.tipText {
+  color: #856404;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  text-align: left;
+}
+
+/* Config summary */
+.configSummary {
+  background: linear-gradient(135deg, #f0f4ff, #e8f0fe);
+  border: 2px solid #667eea;
+  border-radius: 15px;
+  padding: 20px;
+  margin-top: 25px;
+}
+
+.configSummary h4 {
+  color: #667eea;
+  margin: 0 0 15px 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.summaryItem {
+  background: white;
+  padding: 10px 15px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summaryLabel {
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.summaryValue {
+  color: #667eea;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+/* Navigation */
+.navigationButtons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 30px;
+  gap: 20px;
+}
+
+.navButton {
+  padding: 12px 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: 2px solid #667eea;
+  background: white;
+  color: #667eea;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.navButton:hover:not(:disabled) {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.navButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.nextButton {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+}
+
+.startButton {
+  background: linear-gradient(135deg, #4caf50, #81c784);
+  padding: 15px 40px;
+  font-size: 1.3rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Dot indicators */
+.dotIndicators {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dot:hover {
+  background: #bbb;
+  transform: scale(1.2);
+}
+
+.activeDot {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  width: 16px;
+  height: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .guideCard {
+    padding: 25px;
+  }
+
+  .headerEmoji {
+    font-size: 3.5rem;
+  }
+
+  .guideTitle {
+    font-size: 1.8rem;
+  }
+
+  .guideImage {
+    font-size: 6rem;
+  }
+
+  .stepTitle {
+    font-size: 1.5rem;
+  }
+
+  .stepDescription {
+    font-size: 1rem;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .navigationButtons {
+    flex-direction: column;
+  }
+
+  .navButton {
+    width: 100%;
+  }
+
+  .skipButton {
+    position: static;
+    margin-top: 10px;
+  }
+}
+
+/* ═══════════════════════════════════════ */
+/* LOADING SCREEN STYLES */
+/* ═══════════════════════════════════════ */
+
+.loadingScreen {
+  background: white;
+  border-radius: 30px;
+  padding: 60px 40px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
+}
+
+.loadingSpinner {
+  font-size: 5rem;
+  margin-bottom: 10px;
+}
+
+.loadingTitle {
+  font-size: 2.5rem;
+  color: #333;
+  margin: 0;
+  font-weight: 800;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.loadingText {
+  font-size: 1.2rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.loadingDots {
+  font-size: 1.1rem;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.loadingDetails {
+  display: flex;
+  gap: 20px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.detailItem {
+  background: linear-gradient(135deg, #f0f4ff, #e8f0fe);
+  border: 2px solid #667eea;
+  border-radius: 15px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detailIcon {
+  font-size: 1.5rem;
+}
+
+.detailItem span:last-child {
+  color: #667eea;
+  font-weight: 700;
+  text-transform: capitalize;
+  font-size: 1rem;
+}
+
+/* Responsive loading screen */
+@media (max-width: 768px) {
+  .loadingScreen {
+    padding: 40px 25px;
+  }
+
+  .loadingSpinner {
+    font-size: 4rem;
+  }
+
+  .loadingTitle {
+    font-size: 2rem;
+  }
+
+  .loadingText {
+    font-size: 1rem;
+  }
+
+  .loadingDetails {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .detailItem {
+    width: 100%;
+  }
+}
