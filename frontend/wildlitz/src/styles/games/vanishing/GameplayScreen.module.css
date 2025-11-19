@@ -209,8 +209,14 @@
 }
 
 .patternLetter {
-  color: #FF6B9D;
+  color: #2d3748;
+  background: #FFFF00;  /* Bright yellow highlighter */
+  padding: 3px 7px;
+  border-radius: 6px;
   position: relative;
+  font-weight: 700;
+  margin: 0 2px;
+  box-shadow: 0 2px 6px rgba(255, 255, 0, 0.3);
 }
 
 .vanished {

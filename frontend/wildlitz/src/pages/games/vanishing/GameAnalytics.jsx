@@ -1,8 +1,8 @@
-// src/pages/games/vanishing/GameAnalytics.jsx - ENHANCED WITH TEAM SUPPORT
+// src/pages/games/vanishing/GameAnalytics.jsx - COMPACT VERSION
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+  LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import styles from '../../../styles/games/vanishing/GameAnalytics.module.css';
@@ -13,7 +13,7 @@ const GameAnalytics = ({ onBack }) => {
   const [patterns, setPatterns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedMetric, setSelectedMetric] = useState('successRate');
-  const [filterMode, setFilterMode] = useState('all'); // 'all', 'solo', 'team'
+  const [filterMode, setFilterMode] = useState('all');
   const [selectedSession, setSelectedSession] = useState(null);
 
   const formatPatternName = (pattern) => {
@@ -24,38 +24,35 @@ const GameAnalytics = ({ onBack }) => {
       .join(' ');
   };
 
-useEffect(() => {
-  loadAnalytics();
-}, []);
+  useEffect(() => {
+    loadAnalytics();
+  }, []);
 
-const loadAnalytics = async (forceRefresh = false) => {
-  try {
-    setLoading(true);
-    
-    console.log('📊 Loading analytics...', forceRefresh ? '(Forced Refresh)' : '');
-    
-    // 🔥 Fetch MORE sessions (100 instead of 50)
-    const analyticsData = await phonicsAnalyticsService.getUserAnalytics(100);
-    if (analyticsData && analyticsData.success) {
-      console.log(`✅ Loaded ${analyticsData.sessions?.length || 0} sessions`);
-      setSessions(analyticsData.sessions || []);
-    } else {
-      console.error('❌ Failed to load analytics:', analyticsData);
+  const loadAnalytics = async (forceRefresh = false) => {
+    try {
+      setLoading(true);
+      console.log('📊 Loading analytics...', forceRefresh ? '(Forced Refresh)' : '');
+      
+      const analyticsData = await phonicsAnalyticsService.getUserAnalytics(100);
+      if (analyticsData && analyticsData.success) {
+        console.log(`✅ Loaded ${analyticsData.sessions?.length || 0} sessions`);
+        setSessions(analyticsData.sessions || []);
+      } else {
+        console.error('❌ Failed to load analytics:', analyticsData);
+      }
+      
+      const patternData = await phonicsAnalyticsService.getPatternPerformance();
+      if (patternData && patternData.success) {
+        setPatterns(patternData.patterns || []);
+      }
+      
+    } catch (error) {
+      console.error('Error loading analytics:', error);
+    } finally {
+      setLoading(false);
     }
-    
-    const patternData = await phonicsAnalyticsService.getPatternPerformance();
-    if (patternData && patternData.success) {
-      setPatterns(patternData.patterns || []);
-    }
-    
-  } catch (error) {
-    console.error('Error loading analytics:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-  // Filter sessions based on mode
   const filteredSessions = useMemo(() => {
     if (!sessions) return [];
     
@@ -67,12 +64,10 @@ const loadAnalytics = async (forceRefresh = false) => {
     return sessions;
   }, [sessions, filterMode]);
 
-  // Calculate team statistics
   const teamStats = useMemo(() => {
     if (!sessions) return null;
     
     const teamGames = sessions.filter(s => s.team_play && s.team_scores);
-    
     if (teamGames.length === 0) return null;
     
     let totalGames = 0;
@@ -92,7 +87,6 @@ const loadAnalytics = async (forceRefresh = false) => {
         else if (scoreB > scoreA) teamBWins++;
         else ties++;
         
-        // Track matchups
         if (game.team_names) {
           const matchup = `${game.team_names.teamA} vs ${game.team_names.teamB}`;
           teamMatchups[matchup] = (teamMatchups[matchup] || 0) + 1;
@@ -109,7 +103,6 @@ const loadAnalytics = async (forceRefresh = false) => {
     };
   }, [sessions]);
 
-  // Format session data for charts
   const sessionChartData = useMemo(() => {
     if (!filteredSessions || filteredSessions.length === 0) return [];
     
@@ -127,11 +120,9 @@ const loadAnalytics = async (forceRefresh = false) => {
       }));
   }, [filteredSessions]);
 
-  // Format pattern performance data - FIX: Calculate from sessions
   const patternPerformanceData = useMemo(() => {
     if (!filteredSessions || filteredSessions.length === 0) return [];
     
-    // Aggregate pattern stats from all sessions
     const patternAggregates = {};
     
     filteredSessions.forEach(session => {
@@ -151,7 +142,6 @@ const loadAnalytics = async (forceRefresh = false) => {
       patternAggregates[focus].count++;
     });
     
-    // Convert to chart format
     return Object.entries(patternAggregates).map(([pattern, data]) => ({
       name: formatPatternName(pattern),
       'Success Rate': data.totalAttempted > 0 
@@ -162,7 +152,6 @@ const loadAnalytics = async (forceRefresh = false) => {
     }));
   }, [filteredSessions]);
 
-  // Calculate aggregate stats
   const aggregateStats = useMemo(() => {
     if (!filteredSessions || filteredSessions.length === 0) {
       return {
@@ -195,8 +184,6 @@ const loadAnalytics = async (forceRefresh = false) => {
     };
   }, [filteredSessions, sessions]);
 
-  const COLORS = ['#667eea', '#764ba2', '#f093fb', '#4facfe'];
-
   if (loading) {
     return (
       <div className={styles.analyticsContainer}>
@@ -210,26 +197,25 @@ const loadAnalytics = async (forceRefresh = false) => {
 
   return (
     <div className={styles.analyticsContainer}>
-      {/* Header */}
-<div className={styles.analyticsHeader}>
-  <button onClick={onBack} className={styles.backButton}>
-    ← Back to Game
-  </button>
-  <h1 className={styles.analyticsTitle}>📊 Game Analytics</h1>
-  <p className={styles.analyticsSubtitle}>Track your phonics learning progress</p>
-  
-  {/* 🔥 ADD REFRESH BUTTON */}
-  <motion.button
-    className={styles.refreshButton}
-    onClick={() => loadAnalytics(true)}
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.95 }}
-  >
-    🔄 Refresh
-  </motion.button>
-</div>
+      {/* COMPACT Header */}
+      <div className={styles.analyticsHeader}>
+        <button onClick={onBack} className={styles.backButton}>
+          ← Back
+        </button>
+        <h1 className={styles.analyticsTitle}>📊 Analytics</h1>
+        <p className={styles.analyticsSubtitle}>Track your progress</p>
+        
+        <motion.button
+          className={styles.refreshButton}
+          onClick={() => loadAnalytics(true)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          🔄
+        </motion.button>
+      </div>
 
-      {/* Filter Tabs */}
+      {/* COMPACT Filter Tabs */}
       <div className={styles.filterTabs}>
         <motion.button
           className={`${styles.filterTab} ${filterMode === 'all' ? styles.active : ''}`}
@@ -237,7 +223,7 @@ const loadAnalytics = async (forceRefresh = false) => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          🎮 All Games ({sessions.length})
+          All ({sessions.length})
         </motion.button>
         <motion.button
           className={`${styles.filterTab} ${filterMode === 'solo' ? styles.active : ''}`}
@@ -245,7 +231,7 @@ const loadAnalytics = async (forceRefresh = false) => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          👤 Solo ({aggregateStats.soloGames})
+          Solo ({aggregateStats.soloGames})
         </motion.button>
         <motion.button
           className={`${styles.filterTab} ${filterMode === 'team' ? styles.active : ''}`}
@@ -253,68 +239,50 @@ const loadAnalytics = async (forceRefresh = false) => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          👥 Team ({aggregateStats.teamGames})
+          Team ({aggregateStats.teamGames})
         </motion.button>
       </div>
 
-      {/* Summary Stats */}
+      {/* COMPACT Summary Stats - 2x2 Grid */}
       <div className={styles.summaryGrid}>
-        <motion.div 
-          className={styles.statCard}
-          whileHover={{ scale: 1.05 }}
-        >
+        <motion.div className={styles.statCard} whileHover={{ scale: 1.02 }}>
           <div className={styles.statIcon}>🎯</div>
           <div className={styles.statValue}>{aggregateStats.totalSessions}</div>
-          <div className={styles.statLabel}>Total Games</div>
+          <div className={styles.statLabel}>Games</div>
         </motion.div>
 
-        <motion.div 
-          className={styles.statCard}
-          whileHover={{ scale: 1.05 }}
-        >
+        <motion.div className={styles.statCard} whileHover={{ scale: 1.02 }}>
           <div className={styles.statIcon}>✨</div>
           <div className={styles.statValue}>{aggregateStats.averageSuccessRate}%</div>
-          <div className={styles.statLabel}>Avg Success Rate</div>
+          <div className={styles.statLabel}>Success</div>
         </motion.div>
 
-        <motion.div 
-          className={styles.statCard}
-          whileHover={{ scale: 1.05 }}
-        >
+        <motion.div className={styles.statCard} whileHover={{ scale: 1.02 }}>
           <div className={styles.statIcon}>📖</div>
           <div className={styles.statValue}>{aggregateStats.totalWordsRecognized}</div>
-          <div className={styles.statLabel}>Words Mastered</div>
-        </motion.div>
-
-        <motion.div 
-          className={styles.statCard}
-          whileHover={{ scale: 1.05 }}
-        >
-          <div className={styles.statIcon}>⚡</div>
-          <div className={styles.statValue}>{(aggregateStats.averageResponseTime / 1000).toFixed(1)}s</div>
-          <div className={styles.statLabel}>Avg Response</div>
+          <div className={styles.statLabel}>Words</div>
         </motion.div>
       </div>
 
-      {/* Team Statistics Card - Only show if there are team games */}
+      {/* COMPACT Team Stats */}
       {teamStats && teamStats.totalGames > 0 && (
         <motion.div 
           className={styles.teamStatsCard}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h3 className={styles.teamStatsTitle}>🏆 Team Play Statistics</h3>
+          <h3 className={styles.teamStatsTitle}>🏆 Team Stats</h3>
           <div className={styles.teamStatsGrid}>
             <div className={styles.teamStatItem}>
-              <span className={styles.teamStatLabel}>Total Team Games</span>
+              <span className={styles.teamStatLabel}>Total</span>
               <span className={styles.teamStatValue}>{teamStats.totalGames}</span>
             </div>
             <div className={styles.teamStatItem}>
-              <span className={styles.teamStatLabel}>🔵 Team A Wins</span>
+              <span className={styles.teamStatLabel}>🔵 A Wins</span>
               <span className={styles.teamStatValue}>{teamStats.teamAWins}</span>
             </div>
             <div className={styles.teamStatItem}>
-              <span className={styles.teamStatLabel}>🔴 Team B Wins</span>
+              <span className={styles.teamStatLabel}>🔴 B Wins</span>
               <span className={styles.teamStatValue}>{teamStats.teamBWins}</span>
             </div>
             <div className={styles.teamStatItem}>
@@ -322,143 +290,144 @@ const loadAnalytics = async (forceRefresh = false) => {
               <span className={styles.teamStatValue}>{teamStats.ties}</span>
             </div>
           </div>
-          {teamStats.mostFrequentMatchup && (
-            <div className={styles.popularMatchup}>
-              <span className={styles.popularMatchupLabel}>Most Frequent Matchup:</span>
-              <span className={styles.popularMatchupValue}>
-                {teamStats.mostFrequentMatchup[0]} ({teamStats.mostFrequentMatchup[1]} games)
-              </span>
-            </div>
-          )}
         </motion.div>
       )}
 
-      {/* Progress Chart */}
-      <div className={styles.chartSection}>
-        <h3 className={styles.chartTitle}>📈 Performance Over Time</h3>
-        <div className={styles.metricSelector}>
-          <button
-            className={`${styles.metricButton} ${selectedMetric === 'successRate' ? styles.active : ''}`}
-            onClick={() => setSelectedMetric('successRate')}
-          >
-            Success Rate
-          </button>
-          <button
-            className={`${styles.metricButton} ${selectedMetric === 'wordsRecognized' ? styles.active : ''}`}
-            onClick={() => setSelectedMetric('wordsRecognized')}
-          >
-            Words Recognized
-          </button>
-          <button
-            className={`${styles.metricButton} ${selectedMetric === 'maxStreak' ? styles.active : ''}`}
-            onClick={() => setSelectedMetric('maxStreak')}
-          >
-            Max Streak
-          </button>
-        </div>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={sessionChartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="session" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line 
-              type="monotone" 
-              dataKey={selectedMetric} 
-              stroke="#667eea" 
-              strokeWidth={2}
-              dot={{ fill: '#667eea', r: 5 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Pattern Mastery */}
-      <div className={styles.chartSection}>
-        <h3 className={styles.chartTitle}>🎯 Pattern Mastery</h3>
-        {patternPerformanceData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={patternPerformanceData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="Success Rate" fill="#4CAF50" />
-            </BarChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className={styles.noDataMessage}>
-            <p>🎮 Play more games with different patterns to see your mastery!</p>
-            <p className={styles.noDataHint}>Try: Blends, Digraphs, Long Vowels, Short Vowels</p>
+      {/* CHARTS SIDE-BY-SIDE */}
+      <div className={styles.chartsWrapper}>
+        {/* COMPACT Progress Chart */}
+        <div className={styles.chartSection}>
+          <h3 className={styles.chartTitle}>📈 Progress</h3>
+          <div className={styles.metricSelector}>
+            <button
+              className={`${styles.metricButton} ${selectedMetric === 'successRate' ? styles.active : ''}`}
+              onClick={() => setSelectedMetric('successRate')}
+            >
+              Success %
+            </button>
+            <button
+              className={`${styles.metricButton} ${selectedMetric === 'wordsRecognized' ? styles.active : ''}`}
+              onClick={() => setSelectedMetric('wordsRecognized')}
+            >
+              Words
+            </button>
+            <button
+              className={`${styles.metricButton} ${selectedMetric === 'maxStreak' ? styles.active : ''}`}
+              onClick={() => setSelectedMetric('maxStreak')}
+            >
+              Streak
+            </button>
           </div>
-        )}
+          {/* SMALLER GRAPH */}
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={sessionChartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="session" tick={{fontSize: 11}} />
+              <YAxis tick={{fontSize: 11}} />
+              <Tooltip />
+              <Legend wrapperStyle={{fontSize: '12px'}} />
+              <Line 
+                type="monotone" 
+                dataKey={selectedMetric} 
+                stroke="#667eea" 
+                strokeWidth={2}
+                dot={{ fill: '#667eea', r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* COMPACT Pattern Mastery */}
+        <div className={styles.chartSection}>
+          <h3 className={styles.chartTitle}>🎯 Patterns</h3>
+          {patternPerformanceData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={patternPerformanceData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" tick={{fontSize: 10}} angle={-15} textAnchor="end" height={60} />
+                <YAxis tick={{fontSize: 11}} />
+                <Tooltip />
+                <Legend wrapperStyle={{fontSize: '12px'}} />
+                <Bar dataKey="Success Rate" fill="#4CAF50" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className={styles.noDataMessage}>
+              <p>Play more to see pattern mastery!</p>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Recent Sessions List */}
+      {/* COMPACT Recent Sessions */}
       <div className={styles.sessionsSection}>
-        <h3 className={styles.sectionsTitle}>📜 Recent Sessions</h3>
+        <h3 className={styles.sectionTitle}>📜 Recent Sessions</h3>
         <div className={styles.sessionsList}>
           {filteredSessions.slice(0, 10).map((session, index) => (
             <motion.div
               key={index}
               className={`${styles.sessionCard} ${session.team_play ? styles.teamSession : styles.soloSession}`}
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.01 }}
               onClick={() => setSelectedSession(selectedSession === session ? null : session)}
             >
               <div className={styles.sessionHeader}>
                 <span className={styles.sessionType}>
-                  {session.team_play ? '👥 Team Play' : '👤 Solo'}
+                  {session.team_play ? '👥 Team' : '👤 Solo'}
                 </span>
                 <span className={styles.sessionDate}>
                   {new Date(session.timestamp).toLocaleDateString()}
                 </span>
               </div>
+
               <div className={styles.sessionStats}>
-                <span className={styles.sessionStat}>
-                  📊 {session.success_rate || 0}%
-                </span>
-                <span className={styles.sessionStat}>
-                  ✅ {session.words_recognized || 0}/{session.words_attempted || 0}
-                </span>
-                <span className={styles.sessionStat}>
-                  🎯 {formatPatternName(session.learning_focus)}
-                </span>
-              </div>
-              
-              {/* Team Details - Show if team play */}
-              {session.team_play && session.team_scores && session.team_names && (
-                <div className={styles.teamDetails}>
-                  <div className={styles.teamScore}>
-                    <span className={styles.teamName}>🔵 {session.team_names.teamA}</span>
-                    <span className={styles.teamPoints}>{session.team_scores.teamA}</span>
+                <div className={styles.sessionStat}>
+                  <div className={styles.sessionStatLabel}>SUCCESS</div>
+                  <div className={styles.sessionStatValue}>{session.success_rate || 0}%</div>
+                </div>
+                <div className={styles.sessionStat}>
+                  <div className={styles.sessionStatLabel}>SCORE</div>
+                  <div className={styles.sessionStatValue}>
+                    {session.words_recognized || 0}/{session.words_attempted || 0}
                   </div>
-                  <span className={styles.teamVsDivider}>VS</span>
+                </div>
+                <div className={styles.sessionStat}>
+                  <div className={styles.sessionStatLabel}>PATTERN</div>
+                  <div className={styles.sessionStatValue}>
+                    {formatPatternName(session.learning_focus)}
+                  </div>
+                </div>
+              </div>
+
+              {session.team_play && session.team_scores && (
+                <div className={styles.teamScores}>
                   <div className={styles.teamScore}>
-                    <span className={styles.teamName}>🔴 {session.team_names.teamB}</span>
-                    <span className={styles.teamPoints}>{session.team_scores.teamB}</span>
+                    <div className={styles.teamName}>
+                      {session.team_names?.teamA || 'Team A'}
+                    </div>
+                    <div className={styles.teamPoints}>{session.team_scores.teamA || 0}</div>
+                  </div>
+                  <div className={styles.vsText}>VS</div>
+                  <div className={styles.teamScore}>
+                    <div className={styles.teamName}>
+                      {session.team_names?.teamB || 'Team B'}
+                    </div>
+                    <div className={styles.teamPoints}>{session.team_scores.teamB || 0}</div>
                   </div>
                 </div>
               )}
-              
-              {/* Expanded Details */}
+
               <AnimatePresence>
                 {selectedSession === session && (
                   <motion.div
-                    className={styles.sessionExpanded}
+                    className={styles.expandedDetails}
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                   >
                     <div className={styles.expandedStats}>
                       <div className={styles.expandedStat}>
-                        <span className={styles.expandedLabel}>Challenge Level</span>
-                        <span className={styles.expandedValue}>{formatPatternName(session.challenge_level)}</span>
-                      </div>
-                      <div className={styles.expandedStat}>
-                        <span className={styles.expandedLabel}>Difficulty</span>
-                        <span className={styles.expandedValue}>{session.difficulty}</span>
+                        <span className={styles.expandedLabel}>Words Attempted</span>
+                        <span className={styles.expandedValue}>{session.words_attempted || 0}</span>
                       </div>
                       <div className={styles.expandedStat}>
                         <span className={styles.expandedLabel}>Max Streak</span>
