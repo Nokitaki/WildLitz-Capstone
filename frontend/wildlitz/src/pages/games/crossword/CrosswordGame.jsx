@@ -14,7 +14,7 @@ import SummaryScreen from './SummaryScreen';
 import SentenceBuilderScreen from './SentenceBuilderScreen';
 import StoryGeneratorScreen from './StoryGeneratorScreen';
 
-// ✅ NEW: Import the CrosswordGuideModal
+// âœ… NEW: Import the CrosswordGuideModal
 import CrosswordGuideModal from '../crossword/CrosswordGuideModalEnhanced';
 
 // Import AI components
@@ -155,10 +155,10 @@ const CrosswordGame = () => {
       theme: data.story.theme,
       gradeLevel: data.story.gradeLevel,
       episodes: data.story.episodes ? data.story.episodes : [],
-      totalEpisodes: data.story.totalEpisodes || 1,        // ⭐ ADD
-      generatedEpisodes: data.story.generatedEpisodes || 1, // ⭐ ADD
-      focusSkills: data.story.focusSkills || [],           // ⭐ ADD
-      characterNames: data.story.characterNames || ''       // ⭐ ADD
+      totalEpisodes: data.story.totalEpisodes || 1,        // â­ ADD
+      generatedEpisodes: data.story.generatedEpisodes || 1, // â­ ADD
+      focusSkills: data.story.focusSkills || [],           // â­ ADD
+      characterNames: data.story.characterNames || ''       // â­ ADD
     };
     
     const newStories = {
@@ -192,7 +192,7 @@ const CrosswordGame = () => {
   story_title: newStory.title,
   theme: data.story.theme || 'adventure',
   focus_skills: data.story.focusSkills || [],
-  episode_count: newStory.totalEpisodes || newStory.episodes.length,  // ✅ USE totalEpisodes!
+  episode_count: newStory.totalEpisodes || newStory.episodes.length,  // âœ… USE totalEpisodes!
   difficulty: newStory.gradeLevel || 'grade_3',
   character_names: data.story.characterNames || ''
 };
@@ -254,12 +254,13 @@ const CrosswordGame = () => {
   
  const handleContinueToPuzzle = () => {
   setGameState('gameplay');
+  setTimerActive(true); // âœ… START TIMER
 };
   
   
   
   const handleWordSolved = (word, definition, example, hintsUsedForWord = 0) => {
-  console.log('🎯 Word solved:', word);
+  console.log('ðŸŽ¯ Word solved:', word);
   console.log('  - Hints used for this word:', hintsUsedForWord);
   console.log('  - Current total hints:', totalHints);
   
@@ -271,26 +272,26 @@ const CrosswordGame = () => {
         definition,
         example,
         timestamp: new Date(),
-        hintsUsed: hintsUsedForWord  // ✅ STORE hints with the word
+        hintsUsed: hintsUsedForWord  // âœ… STORE hints with the word
       }
     ]);
     
-    // ✅ FIX: Make sure hints are accumulated correctly
+    // âœ… FIX: Make sure hints are accumulated correctly
     if (hintsUsedForWord > 0) {
       setTotalHints(prev => {
         const newTotal = prev + hintsUsedForWord;
-        console.log(`📊 Updating hints: ${prev} + ${hintsUsedForWord} = ${newTotal}`);
+        console.log(`ðŸ“Š Updating hints: ${prev} + ${hintsUsedForWord} = ${newTotal}`);
         return newTotal;
       });
     }
   } else {
-    console.log('⚠️ Word already solved, not adding hints');
+    console.log('âš ï¸ Word already solved, not adding hints');
   }
   
   if (currentPuzzle && solvedWords.length + 1 >= currentPuzzle.words.length) {
     setTimerActive(false);
     setTimeout(() => {
-      console.log('🎉 All words solved! Total hints used:', totalHints + hintsUsedForWord);
+      console.log('ðŸŽ‰ All words solved! Total hints used:', totalHints + hintsUsedForWord);
       setGameState('summary');
     }, 1000);
   }
@@ -332,7 +333,7 @@ const CrosswordGame = () => {
   } 
   // Check if we need to generate the next episode
   else if (adventure.generatedEpisodes < adventure.totalEpisodes) {
-    // ⭐ GENERATE NEXT EPISODE ON-DEMAND
+    // â­ GENERATE NEXT EPISODE ON-DEMAND
     await generateNextEpisodeOnDemand();
   } 
   else {
@@ -341,7 +342,7 @@ const CrosswordGame = () => {
   }
 };
 
-// ⭐ NEW FUNCTION: Generate next episode on demand
+// â­ NEW FUNCTION: Generate next episode on demand
 const generateNextEpisodeOnDemand = async () => {
   const adventure = gameStories[gameConfig.adventureId];
   const nextEpisodeNumber = adventure.generatedEpisodes + 1;
@@ -450,7 +451,7 @@ const generateNextEpisodeOnDemand = async () => {
     <div className={styles.container}>
    <AnimatePresence mode="wait">
   {(() => {
-    // ✅ ONLY RENDER ONE CHILD AT A TIME
+    // âœ… ONLY RENDER ONE CHILD AT A TIME
     if (isGeneratingNextEpisode) {
       return (
         <motion.div
@@ -481,7 +482,7 @@ const generateNextEpisodeOnDemand = async () => {
                   transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
                   style={{ fontSize: '72px', marginBottom: '30px' }}
                 >
-                  📚
+                  ðŸ“š
                 </motion.div>
                 <h2 style={{ fontSize: '2rem', marginBottom: '15px', color: '#333' }}>
                   Creating Next Episode...
@@ -513,7 +514,7 @@ const generateNextEpisodeOnDemand = async () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <div style={{ fontSize: '72px', marginBottom: '30px' }}>❌</div>
+                <div style={{ fontSize: '72px', marginBottom: '30px' }}>âŒ</div>
                 <h2 style={{ fontSize: '2rem', marginBottom: '15px', color: '#333' }}>
                   Generation Failed
                 </h2>

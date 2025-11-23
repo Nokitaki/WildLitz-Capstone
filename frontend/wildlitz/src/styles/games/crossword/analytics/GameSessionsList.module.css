@@ -1,0 +1,658 @@
+/* GameSessionsList.module.css - Beautiful Session Cards */
+
+.sessionsContainer {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.sectionIcon {
+  font-size: 2rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.sectionTitle {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.sessionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Session Card - Enhanced Design */
+.sessionCard {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid #e0e0e0;
+  position: relative;
+}
+
+.sessionCard::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sessionCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+  border-color: #667eea;
+}
+
+.sessionCard:hover::before {
+  opacity: 1;
+}
+
+.sessionCard.expanded {
+  border-color: #667eea;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+}
+
+.sessionCard.expanded::before {
+  opacity: 1;
+}
+
+/* Session Header - Clickable */
+.sessionHeader {
+  padding: 25px 30px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  transition: background 0.2s ease;
+  user-select: none;
+}
+
+.sessionHeader:hover {
+  background: rgba(102, 126, 234, 0.03);
+}
+
+.sessionInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.sessionTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 15px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.titleLeft {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.titleRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timestamp {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sessionMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.95rem;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.statusCompleted {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+  border: 2px solid #28a745;
+}
+
+.statusInProgress {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+  color: #856404;
+  border: 2px solid #ffc107;
+}
+
+.expandIcon {
+  font-size: 1.5rem;
+  color: #667eea;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.expandIcon.rotated {
+  transform: rotate(180deg);
+}
+
+/* Session Details - Expandable */
+.sessionDetails {
+  border-top: 2px solid #e0e0e0;
+  background: #fafafa;
+}
+
+.detailsContent {
+  padding: 30px;
+}
+
+.detailsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.detailsTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.storyTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.storyTag {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.storyTag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.themeTag {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  border: 2px solid #3b82f6;
+}
+
+.episodeTag {
+  background: linear-gradient(135deg, #fae8ff 0%, #f3e8ff 100%);
+  color: #7e22ce;
+  border: 2px solid #a855f7;
+}
+
+.skillTag {
+  background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+  color: #c2410c;
+  border: 2px solid #f97316;
+}
+
+/* Vocabulary Section */
+.vocabularySection {
+  margin-top: 20px;
+}
+
+.vocabularyHeader {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vocabularyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.vocabularyWord {
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 18px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1f2937;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.vocabularyWord:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: #6366f1;
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  color: #4f46e5;
+}
+
+/* Word-by-Word Performance Section */
+.wordPerformanceSection {
+  margin-top: 25px;
+  border-top: 2px solid #e5e7eb;
+  padding-top: 20px;
+}
+
+.wordPerformanceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  user-select: none;
+  border: 2px solid #e5e7eb;
+}
+
+.wordPerformanceHeader:hover {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-color: #6366f1;
+}
+
+.wordPerformanceTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wordPerformanceToggle {
+  font-size: 1.3rem;
+  color: #6366f1;
+  transition: transform 0.3s ease;
+}
+
+.wordPerformanceToggle.rotated {
+  transform: rotate(180deg);
+}
+
+.wordPerformanceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.wordPerformanceCard {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 2px solid #86efac;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.wordPerformanceCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+  border-color: #22c55e;
+}
+
+.wordName {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #166534;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 15px;
+  text-align: center;
+  border-bottom: 2px solid #86efac;
+  padding-bottom: 10px;
+}
+
+.wordStats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.wordStatBox {
+  flex: 1;
+  background: white;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  border: 1px solid #86efac;
+}
+
+.wordStatIcon {
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
+
+.wordStatValue {
+  font-size: 1.3rem;
+  font-weight: 900;
+  margin-bottom: 3px;
+}
+
+.wordStatValue.timeValue {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.wordStatValue.hintValue {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.wordStatLabel {
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.wordEpisode {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  border: 2px solid #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.emptyVocabulary {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.emptyVocabularyIcon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  opacity: 0.4;
+}
+
+.emptyVocabularyText {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Performance Stats */
+.performanceStats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.statCard {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: 2px solid #e0e0e0;
+  border-radius: 15px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  transition: opacity 0.3s ease;
+}
+
+.statCard:nth-child(1)::before {
+  background: linear-gradient(90deg, #8b5cf6, #7c3aed);
+}
+
+.statCard:nth-child(2)::before {
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.statCard:nth-child(3)::before {
+  background: linear-gradient(90deg, #f97316, #ea580c);
+}
+
+.statCard:nth-child(4)::before {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.statCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  border-color: #667eea;
+}
+
+.statCard:hover::before {
+  height: 100%;
+  opacity: 0.05;
+}
+
+.statValue {
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.statCard:nth-child(1) .statValue {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.statCard:nth-child(2) .statValue {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.statCard:nth-child(3) .statValue {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.statCard:nth-child(4) .statValue {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sessionsContainer {
+    padding: 20px;
+  }
+
+  .sessionHeader {
+    padding: 20px;
+  }
+
+  .sessionTitle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .titleRight {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sessionMeta {
+    gap: 8px;
+  }
+
+  .detailsContent {
+    padding: 20px;
+  }
+
+  .vocabularyGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+  }
+
+  .performanceStats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .storyTags {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sectionTitle {
+    font-size: 1.5rem;
+  }
+
+  .sessionTitle {
+    font-size: 1.1rem;
+  }
+
+  .vocabularyGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .wordPerformanceGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .performanceStats {
+    grid-template-columns: 1fr;
+  }
+  
+  .wordStatBox {
+    padding: 8px;
+  }
+  
+  .wordStatValue {
+    font-size: 1.1rem;
+  }
+}
+
+/* Animation Utilities */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sessionCard {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.sessionCard:nth-child(1) { animation-delay: 0.05s; }
+.sessionCard:nth-child(2) { animation-delay: 0.1s; }
+.sessionCard:nth-child(3) { animation-delay: 0.15s; }
+.sessionCard:nth-child(4) { animation-delay: 0.2s; }
+.sessionCard:nth-child(5) { animation-delay: 0.25s; }

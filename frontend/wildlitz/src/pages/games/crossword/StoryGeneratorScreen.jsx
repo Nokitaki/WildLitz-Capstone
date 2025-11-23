@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { Volume2 } from 'lucide-react';
 import styles from '../../../styles/games/crossword/StoryGeneratorScreen.module.css';
 import { StoryLoadingScreen } from '../../../components/common/LoadingStates';
-import CrosswordAnalyticsDashboard from '../../../pages/games/crossword/CrosswordAnalyticsDashboard';
+import CrosswordAnalyticsDashboard from './analytics/CrosswordAnalyticsDashboard';
 import { API_ENDPOINTS } from '../../../config/api';
 import BackToHomeButton from '../../games/crossword/BackToHomeButton';
 

@@ -13,7 +13,7 @@ import SoundSafariGame from './pages/games/soundsafari/SoundSafariGame';
 import VanishingGame from './pages/games/vanishing/VanishingGame';
 import CrosswordGame from './pages/games/crossword/CrosswordGame';
 import ProfilePage from './pages/profile/ProfilePage';
-import CrosswordAnalyticsDashboard from './pages/games/crossword/CrosswordAnalyticsDashboard';
+import CrosswordAnalyticsDashboard from './pages/games/crossword/analytics/CrosswordAnalyticsDashboard';
 
 function App() {
   return (

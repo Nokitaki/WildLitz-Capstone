@@ -1,5 +1,10 @@
-/* src/styles/games/crossword/CrosswordAnalyticsDashboard.module.css */
+/* CrosswordAnalyticsDashboard.module.css - CLEANED VERSION */
+/* Only keeps styles needed for dashboard container, back button, header, and stats cards */
+/* Game Sessions styles are now in GameSessionsList.module.css */
 
+/* ============================================ */
+/* Dashboard Container */
+/* ============================================ */
 .dashboardContainer {
   width: 100%;
   padding: 20px;
@@ -9,7 +14,9 @@
   min-height: 400px;
 }
 
-/* ADD THESE NEW STYLES FOR BACK BUTTON */
+/* ============================================ */
+/* Back Button */
+/* ============================================ */
 .backButtonContainer {
   margin-bottom: 20px;
 }
@@ -50,8 +57,10 @@
 .backButton:hover .backArrow {
   transform: translateX(-3px);
 }
-/* END OF NEW BACK BUTTON STYLES */
 
+/* ============================================ */
+/* Dashboard Header */
+/* ============================================ */
 .dashboardHeader {
   text-align: center;
   margin-bottom: 30px;
@@ -74,7 +83,9 @@
   font-weight: 500;
 }
 
+/* ============================================ */
 /* Loading and Empty States */
+/* ============================================ */
 .loadingMessage {
   display: flex;
   flex-direction: column;
@@ -129,7 +140,9 @@
   margin: 0;
 }
 
-/* Stats Grid */
+/* ============================================ */
+/* Stats Overview Cards (Top of Dashboard) */
+/* ============================================ */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -182,122 +195,9 @@
   letter-spacing: 0.5px;
 }
 
-/* Top Words Section */
-.topWordsSection {
-  background: white;
-  border-radius: 15px;
-  padding: 25px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  margin-top: 20px;
-}
-
-.sectionTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #333;
-  margin: 0 0 20px 0;
-  text-align: center;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #e0e0e0;
-}
-
-.wordsList {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.wordCard {
-  background: linear-gradient(to right, #f9f9f9, #ffffff);
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-  border-left: 4px solid #9c27b0;
-}
-
-.wordCard:hover {
-  transform: translateX(5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
-}
-
-.wordRank {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #9c27b0;
-  background: linear-gradient(135deg, #f3e5f5, #e1bee7);
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.2);
-}
-
-.wordInfo {
-  flex: 1;
-}
-
-.wordText {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #333;
-  margin: 0 0 8px 0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.wordStats {
-  display: flex;
-  gap: 20px;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.wordAttempts {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.wordAttempts::before {
-  content: '📝';
-}
-
-.wordAccuracy {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-weight: 600;
-  color: #4caf50;
-}
-
-.wordAccuracy::before {
-  content: '✅';
-}
-
-.wordProgress {
-  width: 100px;
-  height: 8px;
-  background-color: #e0e0e0;
-  border-radius: 10px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.wordProgressBar {
-  height: 100%;
-  background: linear-gradient(to right, #66bb6a, #4caf50);
-  border-radius: 10px;
-  transition: width 0.5s ease;
-}
-
+/* ============================================ */
 /* Responsive Design */
+/* ============================================ */
 @media (max-width: 768px) {
   .dashboardContainer {
     padding: 15px;
@@ -328,20 +228,6 @@
   .statValue {
     font-size: 1.5rem;
   }
-
-  .wordCard {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .wordProgress {
-    width: 100%;
-  }
-
-  .wordStats {
-    flex-direction: column;
-    gap: 8px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -356,15 +242,5 @@
 
   .statsGrid {
     gap: 10px;
-  }
-
-  .wordText {
-    font-size: 1.1rem;
-  }
-
-  .wordRank {
-    width: 40px;
-    height: 40px;
-    font-size: 1.2rem;
   }
 }
