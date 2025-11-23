@@ -41,7 +41,8 @@ const CrosswordGame = () => {
   });
   
   // Story tracking
-  const [currentEpisode, setCurrentEpisode] = useState(0);
+
+  
   const [storyProgress, setStoryProgress] = useState({});
   
   // Story and puzzle data
@@ -70,6 +71,8 @@ const CrosswordGame = () => {
   
   // Reading coach
   const [showReadingCoach, setShowReadingCoach] = useState(false);
+  const [currentEpisode, setCurrentEpisode] = useState(1);
+  const [totalEpisodes, setTotalEpisodes] = useState(1); // ✅ ADD THIS
   
  
   
@@ -114,6 +117,28 @@ const CrosswordGame = () => {
       setTotalHints(0);
     }
   }, [currentStorySegment, gamePuzzles]);
+
+
+
+
+  const handleAnswerAttempt = React.useCallback((attemptData) => {
+  setTotalAttempts(prev => prev + 1);
+  if (attemptData.isCorrect) {
+    setCorrectAttempts(prev => prev + 1);
+  }
+  
+  // Log to backend
+  if (sessionId) {
+    crosswordAnalyticsService.logAnswerAttempt(sessionId, {
+      ...attemptData,
+      episodeNumber: currentEpisode
+    });
+  }
+}, [sessionId, currentEpisode]);
+
+
+
+
   
   const handleChangePuzzle = (index) => {
     if (index >= 0 && index < availablePuzzles.length) {
@@ -160,6 +185,8 @@ const CrosswordGame = () => {
       focusSkills: data.story.focusSkills || [],           // â­ ADD
       characterNames: data.story.characterNames || ''       // â­ ADD
     };
+
+    
     
     const newStories = {
       ...gameStories,
@@ -173,6 +200,8 @@ const CrosswordGame = () => {
     
     setGameStories(newStories);
     setGamePuzzles(newPuzzles);
+    setCurrentEpisode(1);
+    setTotalEpisodes(newStory.totalEpisodes || 1);
     
     const config = {
       storyMode: true,
@@ -186,15 +215,19 @@ const CrosswordGame = () => {
         ? user.email 
         : 'guest@wildlitz.com';
       
-     const sessionData = {
+        
+const sessionData = {
   user_email: userEmail,
   story_id: newStory.id,
   story_title: newStory.title,
   theme: data.story.theme || 'adventure',
   focus_skills: data.story.focusSkills || [],
-  episode_count: newStory.totalEpisodes || newStory.episodes.length,  // âœ… USE totalEpisodes!
+  episode_count: newStory.totalEpisodes || newStory.episodes.length,
   difficulty: newStory.gradeLevel || 'grade_3',
-  character_names: data.story.characterNames || ''
+  character_names: data.story.characterNames || '',
+  total_attempts: 0,
+  correct_attempts: 0,
+  accuracy_percentage: 0
 };
       
       const session = await crosswordAnalyticsService.createSession(sessionData);
@@ -482,7 +515,7 @@ const generateNextEpisodeOnDemand = async () => {
                   transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
                   style={{ fontSize: '72px', marginBottom: '30px' }}
                 >
-                  ðŸ“š
+                  📚
                 </motion.div>
                 <h2 style={{ fontSize: '2rem', marginBottom: '15px', color: '#333' }}>
                   Creating Next Episode...
@@ -579,11 +612,12 @@ const generateNextEpisodeOnDemand = async () => {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -50 }}
         >
-          <StoryScreen
+          <StoryScreen 
             storySegment={currentStorySegment}
-            currentEpisode={currentEpisode}
-            vocabularyWords={getCurrentEpisodeVocabularyWords()}
             onContinue={handleContinueToPuzzle}
+            vocabularyWords={getCurrentEpisodeVocabularyWords()}
+            currentEpisode={currentEpisode}
+            totalEpisodes={totalEpisodes}
             onToggleReadingCoach={toggleReadingCoach}
           />
         </motion.div>
@@ -600,7 +634,7 @@ const generateNextEpisodeOnDemand = async () => {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
         >
-          <GameplayScreen
+                  <GameplayScreen
             puzzle={currentPuzzle}
             theme="story"
             onWordSolved={(word, def, example, hints) => handleWordSolved(word, def, example, hints)}
@@ -611,6 +645,9 @@ const generateNextEpisodeOnDemand = async () => {
             currentPuzzleIndex={currentPuzzleIndex}
             totalPuzzles={availablePuzzles.length}
             sessionId={sessionId}
+            currentEpisode={currentEpisode}
+            totalEpisodes={totalEpisodes}
+            onAnswerAttempt={handleAnswerAttempt}
           />
         </motion.div>
       );

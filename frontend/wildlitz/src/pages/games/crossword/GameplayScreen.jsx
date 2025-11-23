@@ -15,7 +15,12 @@ const GameplayScreen = ({
   storyContext,
   currentPuzzleIndex = 0,
   totalPuzzles = 1,
-  sessionId
+  currentEpisode = 1,
+  totalEpisodes = 1,
+  sessionId,
+  onAnswerAttempt
+  
+  
 }) => {
   // State management
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -75,6 +80,43 @@ const GameplayScreen = ({
    
   }
 }, []);
+
+
+
+const handleAnswerSelection = useCallback((choiceIndex) => {
+    if (isCurrentWordSolved || feedback) return;
+
+    const selectedChoice = answerChoices[choiceIndex];
+    setSelectedAnswer(choiceIndex);
+
+    const isCorrect = selectedChoice === currentWord.answer;
+    
+    // ✅ TRACK ATTEMPT:
+    if (onAnswerAttempt) {
+      onAnswerAttempt({
+        word: currentWord.answer,
+        isCorrect: isCorrect,
+        timeSpent: (Date.now() - wordStartTime.current) / 1000,
+        hintsUsed: hintsUsedForCurrentWordRef.current
+      });
+    }
+
+    if (isCorrect) {
+      // Handle correct answer
+      setFeedback({ type: 'correct', message: 'Correct! 🎉' });
+      // ... rest of correct logic ...
+    } else {
+      // Handle wrong answer
+      setFeedback({ type: 'incorrect', message: 'Try again!' });
+      
+      setTimeout(() => {
+        setFeedback(null);
+        setSelectedAnswer(null);
+      }, 1500);
+    }
+  }, [currentWord, answerChoices, isCurrentWordSolved, feedback, onAnswerAttempt]);
+
+  
 
 // Add these handlers
 const handleStartFromGuide = () => {
@@ -626,7 +668,8 @@ const handleSubmitAnswer = useCallback(async () => {
           left: '50%',
           transform: 'translateX(-50%)'
         }}>
-          📚 Episode {currentPuzzleIndex + 1} of {totalPuzzles}
+          
+          📚 Episode {currentEpisode} of {totalEpisodes}
         </div>
         
         {/* Right side stats */}

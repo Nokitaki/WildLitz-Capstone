@@ -1,4 +1,4 @@
-// crosswordAnalyticsService.js - FIXED VERSION with episode-based completion percentage
+// crosswordAnalyticsService.js - COMPLETE WITH ALL FIXES
 // Place this at: frontend/wildlitz/src/services/crosswordAnalyticsService.js
 
 import { API_ENDPOINTS } from '../config/api';
@@ -22,12 +22,18 @@ class CrosswordAnalyticsService {
 
   /**
    * Create a new crossword game session
+   * ✅ MODIFIED: Added accuracy tracking fields
    */
   async createSession(sessionData) {
     try {
       if (!sessionData.user_email) {
         sessionData.user_email = this.getUserEmail();
       }
+      
+      // ✅ ADD ACCURACY FIELDS IF NOT PROVIDED
+      if (!sessionData.total_attempts) sessionData.total_attempts = 0;
+      if (!sessionData.correct_attempts) sessionData.correct_attempts = 0;
+      if (!sessionData.accuracy_percentage) sessionData.accuracy_percentage = 0;
       
       console.log('📤 Creating session with email:', sessionData.user_email);
       
@@ -135,7 +141,40 @@ class CrosswordAnalyticsService {
   }
 
   /**
+   * ✅ NEW: Log an answer attempt (correct or wrong)
+   */
+  async logAnswerAttempt(sessionId, attemptData) {
+    try {
+      if (!sessionId || sessionId === 'undefined' || sessionId === 'null') {
+        console.log('⚠️ No session ID available, skipping attempt logging');
+        return { success: false, skipped: true };
+      }
+
+      const activityData = {
+        session_id: sessionId,
+        activity_type: 'answer_attempt',
+        word_data: {
+          word: attemptData.word,
+          timeSpent: attemptData.timeSpent,
+          hintsUsed: attemptData.hintsUsed
+        },
+        is_correct: attemptData.isCorrect,
+        time_spent_seconds: attemptData.timeSpent,
+        hint_count: attemptData.hintsUsed || 0,
+        user_email: this.getUserEmail(),
+        episode_number: attemptData.episodeNumber || 1
+      };
+      
+      return await this.logActivity(activityData);
+    } catch (error) {
+      console.log('⚠️ Attempt logging skipped:', error.message);
+      return { success: false };
+    }
+  }
+
+  /**
    * Log game completion with proper episode-based completion percentage
+   * ✅ MODIFIED: Added accuracy tracking
    */
   async logGameCompleted(sessionId, gameData, solvedWords = [], totalHintsOverride = null) {
     try {
@@ -153,28 +192,39 @@ class CrosswordAnalyticsService {
         }).filter(Boolean)
       );
 
-      // ✅ FIX: Properly extract hints with multiple fallbacks
       const hintsUsed = totalHintsOverride !== null 
         ? totalHintsOverride 
         : (gameData?.totalHints || gameData?.total_hints_used || 0);
+      
+      // ✅ CALCULATE ACCURACY
+      const totalAttempts = gameData?.totalAttempts || 0;
+      const correctAttempts = gameData?.correctAttempts || 0;
+      const accuracyPercentage = totalAttempts > 0 
+        ? Math.round((correctAttempts / totalAttempts) * 100)
+        : 0;
       
       console.log('📊 Logging game completion:');
       console.log('  - Session ID:', sessionId);
       console.log('  - Total Hints:', hintsUsed);
       console.log('  - Words solved:', solvedWords.length);
       console.log('  - Episodes completed:', gameData?.episodesCompleted);
-      console.log('  - Word Accuracy:', gameData?.accuracy + '%');
+      console.log('  - Total Attempts:', totalAttempts);
+      console.log('  - Correct Attempts:', correctAttempts);
+      console.log('  - Accuracy:', accuracyPercentage + '%');
       console.log('  - Completion Percentage (episodes):', gameData?.completionPercentage + '%');
 
-      // ✅ FIX: Use episode-based completion percentage, NOT word accuracy
       const sessionUpdates = {
         total_words_solved: gameData?.wordsLearned || solvedWords.length || 0,
         total_duration_seconds: gameData?.totalTime || 0,
         total_hints_used: hintsUsed,
         episodes_completed: gameData?.episodesCompleted || 1,
-        completion_percentage: gameData?.completionPercentage || 0,  // ✅ FIXED: Use episode-based completion
+        completion_percentage: gameData?.completionPercentage || 0,
         is_completed: gameData?.isFullyCompleted || false,
-        vocabulary_words_learned: vocabularyWords
+        vocabulary_words_learned: vocabularyWords,
+        // ✅ ADD ACCURACY FIELDS
+        total_attempts: totalAttempts,
+        correct_attempts: correctAttempts,
+        accuracy_percentage: accuracyPercentage
       };
 
       console.log('📊 Session updates being sent:', JSON.stringify(sessionUpdates, null, 2));
@@ -190,9 +240,13 @@ class CrosswordAnalyticsService {
           totalTime: gameData?.totalTime || 0,
           totalHints: hintsUsed,
           episodesCompleted: gameData?.episodesCompleted || 1,
-          accuracy: gameData?.accuracy || 0,  // Word accuracy (for this episode)
-          completionPercentage: gameData?.completionPercentage || 0,  // Overall completion (episodes)
-          vocabulary_words: vocabularyWords.slice()
+          accuracy: gameData?.accuracy || 0,
+          completionPercentage: gameData?.completionPercentage || 0,
+          vocabulary_words: vocabularyWords.slice(),
+          // ✅ ADD ACCURACY FIELDS
+          totalAttempts: totalAttempts,
+          correctAttempts: correctAttempts,
+          accuracyPercentage: accuracyPercentage
         },
         is_correct: true,
         time_spent_seconds: gameData?.totalTime || 0,
@@ -205,7 +259,7 @@ class CrosswordAnalyticsService {
       await this.logActivity(activityData);
       
       console.log('✅ Game completion logged successfully');
-      console.log('  - Word Accuracy (episode):', gameData?.accuracy + '%');
+      console.log('  - Answer Accuracy:', accuracyPercentage + '%');
       console.log('  - Overall Completion (story):', gameData?.completionPercentage + '%');
       
       return { success: true };

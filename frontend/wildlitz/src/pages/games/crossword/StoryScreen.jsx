@@ -12,6 +12,8 @@ const StoryScreen = ({
   onContinue, 
   vocabularyWords = [], 
   currentEpisode,
+  totalEpisodes,
+  
   onToggleReadingCoach
 }) => {
   // State for reading
