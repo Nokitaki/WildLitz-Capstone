@@ -46,19 +46,22 @@ const SummaryScreen = ({
     }
 
     try {
-      await crosswordAnalyticsService.logGameCompleted(
-        sessionId,
-        {
-          wordsLearned: solvedWords.length,
-          totalTime: timeSpent,
-          totalHints: totalHints,
-          episodesCompleted: currentEpisode,
-          completionPercentage: Math.round((currentEpisode / totalEpisodes) * 100),
-          isFullyCompleted: currentEpisode >= totalEpisodes
-        },
-        solvedWords,
-        totalHints
-      );
+     await crosswordAnalyticsService.logGameCompleted(
+  sessionId,
+  {
+    wordsLearned: solvedWords.length,
+    totalTime: timeSpent,
+    totalHints: totalHints,
+    episodesCompleted: currentEpisode,
+    completionPercentage: Math.round((currentEpisode / totalEpisodes) * 100),
+    isFullyCompleted: currentEpisode >= totalEpisodes,
+    // ✅ ADD THESE:
+    totalAttempts: solvedWords.length,  // Each solved word is an attempt
+    correctAttempts: solvedWords.length  // All words in solvedWords are correct
+  },
+  solvedWords,
+  totalHints
+);
       console.log('Analytics logged');
     } catch (error) {
       console.error('Failed to log analytics:', error);

@@ -1,18 +1,13 @@
-// GameSessionsList.jsx - COMPLETE FIX with Episode Dropdown & Accuracy
-// ✅ Fixed ALL Issues:
-// - Episode dropdown selector
-// - Shows accuracy instead of puzzle words solved
-// - Cumulative stats across all episodes
-// - Average time per episode in word performance
-// - Word performance filters and grouping
+// GameSessionsList.jsx - FIXED with Separate Episode Filter
+// ✅ Episode filter now independent from grouping/sorting
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_ENDPOINTS } from '../../../../config/api';
 import styles from '../../../../styles/games/crossword/analytics/GameSessionsList.module.css';
 
-// ✅ Episode Selector Component
-const EpisodeSelector = ({ episodes, selectedEpisode, onEpisodeChange }) => {
+// ✅ Episode Filter Component (Separate from sorting)
+const EpisodeFilter = ({ episodes, selectedEpisode, onEpisodeChange }) => {
   return (
     <div style={{
       display: 'flex',
@@ -25,15 +20,15 @@ const EpisodeSelector = ({ episodes, selectedEpisode, onEpisodeChange }) => {
       border: '2px solid #e2e8f0'
     }}>
       <span style={{ fontWeight: '600', color: '#2d3748', fontSize: '14px' }}>
-        📚 Select Episode:
+        📚 Filter by Episode:
       </span>
-      <select
+      <select 
         value={selectedEpisode}
         onChange={(e) => onEpisodeChange(e.target.value)}
         style={{
-          padding: '10px 16px',
+          padding: '8px 16px',
           borderRadius: '8px',
-          border: '2px solid #667eea',
+          border: '2px solid #e2e8f0',
           background: 'white',
           color: '#2d3748',
           fontWeight: '600',
@@ -42,10 +37,10 @@ const EpisodeSelector = ({ episodes, selectedEpisode, onEpisodeChange }) => {
           minWidth: '150px'
         }}
       >
-        <option value="all">All Episodes</option>
-        {episodes.map((ep) => (
+        <option value="all">📚 All Episodes</option>
+        {episodes.map(ep => (
           <option key={ep} value={ep}>
-            Episode {ep}
+            📚 Episode {ep}
           </option>
         ))}
       </select>
@@ -74,7 +69,7 @@ const EpisodeSelector = ({ episodes, selectedEpisode, onEpisodeChange }) => {
   );
 };
 
-// ✅ Word Performance Filters
+// ✅ Word Performance Filters (word-based filters + sorting)
 const WordPerformanceFilters = ({ onFilterChange, onSortChange, activeFilter, sortBy }) => {
   return (
     <div style={{
@@ -87,6 +82,7 @@ const WordPerformanceFilters = ({ onFilterChange, onSortChange, activeFilter, so
       borderRadius: '12px',
       border: '2px solid #e2e8f0'
     }}>
+      {/* Word Filters */}
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', flex: 1 }}>
         <button
           onClick={() => onFilterChange('all')}
@@ -154,6 +150,7 @@ const WordPerformanceFilters = ({ onFilterChange, onSortChange, activeFilter, so
         </button>
       </div>
 
+      {/* Sorting Dropdown */}
       <div style={{ display: 'flex', gap: '8px' }}>
         <select
           value={sortBy}
@@ -182,12 +179,20 @@ const WordPerformanceFilters = ({ onFilterChange, onSortChange, activeFilter, so
 };
 
 const GameSessionsList = ({ gameSessions }) => {
+  const calculateAccuracy = (wordActivities) => {
+    if (!wordActivities || wordActivities.length === 0) return 0;
+    const correctWords = wordActivities.filter(w => w.is_correct === true).length;
+    return Math.round((correctWords / wordActivities.length) * 100);
+  };
+
   const [expandedSession, setExpandedSession] = useState(null);
   const [showWordPerformance, setShowWordPerformance] = useState({});
   const [sessionWordPerformance, setSessionWordPerformance] = useState({});
   const [loadingWordPerf, setLoadingWordPerf] = useState({});
-  const [selectedEpisode, setSelectedEpisode] = useState({});  // ✅ Episode filter per session
-  const [filterSettings, setFilterSettings] = useState({});
+  
+  // ✅ STEP 1: Add separate state for episode filtering
+  const [selectedEpisodeFilter, setSelectedEpisodeFilter] = useState({});
+  const [wordFilterMode, setWordFilterMode] = useState({});
   const [sortSettings, setSortSettings] = useState({});
 
   const toggleSessionExpansion = async (sessionId) => {
@@ -235,29 +240,39 @@ const GameSessionsList = ({ gameSessions }) => {
     return episodes;
   };
 
-  // ✅ Filter and sort logic with episode filtering
+  // ✅ STEP 3: Updated filtering logic - Episode filter first, then word filters, then sort
   const getFilteredAndSortedWords = (sessionId) => {
-    const words = sessionWordPerformance[sessionId] || [];
-    const filter = filterSettings[sessionId] || 'all';
+    const allWords = sessionWordPerformance[sessionId] || [];
+    if (allWords.length === 0) return [];
+    
+    // ✅ FILTER BY EPISODE FIRST
+    const episodeFilter = selectedEpisodeFilter[sessionId];
+    let filtered = allWords;
+    
+    if (episodeFilter && episodeFilter !== 'all') {
+      filtered = allWords.filter(w => (w.episode_number || 1) === Number(episodeFilter));
+    }
+    
+    // Then apply word-based filters (hints, slow, fast)
+    const filterMode = wordFilterMode[sessionId] || 'all';
+    
+    switch (filterMode) {
+      case 'hints':
+        filtered = filtered.filter(w => (w.hints_used || 0) > 0);
+        break;
+      case 'slow':
+        filtered = filtered.filter(w => (w.time_spent || 0) > 10);
+        break;
+      case 'fast':
+        filtered = filtered.filter(w => (w.time_spent || 0) < 5);
+        break;
+      default:
+        // 'all' - no additional filter
+    }
+    
+    // Finally apply sorting
     const sort = sortSettings[sessionId] || 'episode';
-    const episodeFilter = selectedEpisode[sessionId] || 'all';
-
-    // Apply episode filter
-    let filtered = [...words];
-    if (episodeFilter !== 'all') {
-      filtered = filtered.filter(w => (w.episode_number || 1) === parseInt(episodeFilter));
-    }
-
-    // Apply other filters
-    if (filter === 'hints') {
-      filtered = filtered.filter(w => (w.hints_used || 0) > 0);
-    } else if (filter === 'slow') {
-      filtered = filtered.filter(w => (w.time_spent || 0) > 10);
-    } else if (filter === 'fast') {
-      filtered = filtered.filter(w => (w.time_spent || 0) < 5);
-    }
-
-    // Apply sorting
+    
     if (sort === 'time-asc') {
       filtered.sort((a, b) => (a.time_spent || 0) - (b.time_spent || 0));
     } else if (sort === 'time-desc') {
@@ -271,11 +286,11 @@ const GameSessionsList = ({ gameSessions }) => {
     } else if (sort === 'episode') {
       filtered.sort((a, b) => (a.episode_number || 0) - (b.episode_number || 0));
     }
-
+    
     return filtered;
   };
 
-  // ✅ Group words by episode
+  // ✅ Group words by episode (for display when "Group by Episode" is selected)
   const getWordsByEpisode = (sessionId) => {
     const words = getFilteredAndSortedWords(sessionId);
     const grouped = words.reduce((groups, word) => {
@@ -288,7 +303,7 @@ const GameSessionsList = ({ gameSessions }) => {
     return Object.entries(grouped).sort(([a], [b]) => Number(a) - Number(b));
   };
 
-  // ✅ Calculate average time per episode
+  // ✅ Calculate stats per episode
   const getEpisodeStats = (sessionId, episodeNumber) => {
     const words = sessionWordPerformance[sessionId] || [];
     const episodeWords = words.filter(w => (w.episode_number || 1) === episodeNumber);
@@ -353,6 +368,7 @@ const GameSessionsList = ({ gameSessions }) => {
           const filteredWords = getFilteredAndSortedWords(sessionId);
           const wordsByEpisode = getWordsByEpisode(sessionId);
           const sessionEpisodes = getSessionEpisodes(sessionId);
+          const shouldGroupByEpisode = (sortSettings[sessionId] || 'episode') === 'episode';
           
           return (
             <motion.div
@@ -418,7 +434,7 @@ const GameSessionsList = ({ gameSessions }) => {
                     transition={{ duration: 0.3 }}
                   >
                     <div className={styles.detailsContent}>
-                      {/* ✅ UPDATED Performance Stats with ACCURACY */}
+                      {/* Performance Stats */}
                       {(session.total_words_solved > 0 || session.total_duration_seconds > 0) && (
                         <div className={styles.performanceStats}>
                           <div className={styles.statCard}>
@@ -449,7 +465,7 @@ const GameSessionsList = ({ gameSessions }) => {
                         </div>
                       )}
 
-                      {/* Word-by-Word Performance with Episode Selector */}
+                      {/* Word-by-Word Performance */}
                       <div className={styles.wordPerformanceSection}>
                         <div 
                           className={styles.wordPerformanceHeader}
@@ -483,36 +499,39 @@ const GameSessionsList = ({ gameSessions }) => {
                                 </div>
                               ) : wordPerfData.length > 0 ? (
                                 <>
-                                  {/* ✅ EPISODE SELECTOR */}
+                                  {/* ✅ STEP 2: Episode Filter (independent from sorting) */}
                                   {sessionEpisodes.length > 1 && (
-                                    <EpisodeSelector
+                                    <EpisodeFilter
                                       episodes={sessionEpisodes}
-                                      selectedEpisode={selectedEpisode[sessionId] || 'all'}
+                                      selectedEpisode={selectedEpisodeFilter[sessionId] || 'all'}
                                       onEpisodeChange={(episode) => {
-                                        setSelectedEpisode(prev => ({ ...prev, [sessionId]: episode }));
+                                        setSelectedEpisodeFilter(prev => ({ 
+                                          ...prev, 
+                                          [sessionId]: episode 
+                                        }));
                                       }}
                                     />
                                   )}
 
-                                  {/* Filters */}
+                                  {/* Word Filters and Sorting */}
                                   <WordPerformanceFilters
-                                    activeFilter={filterSettings[sessionId] || 'all'}
+                                    activeFilter={wordFilterMode[sessionId] || 'all'}
                                     sortBy={sortSettings[sessionId] || 'episode'}
                                     onFilterChange={(filter) => {
-                                      setFilterSettings(prev => ({ ...prev, [sessionId]: filter }));
+                                      setWordFilterMode(prev => ({ ...prev, [sessionId]: filter }));
                                     }}
                                     onSortChange={(sort) => {
                                       setSortSettings(prev => ({ ...prev, [sessionId]: sort }));
                                     }}
                                   />
 
-                                  {/* Words Display */}
-                                  {(sortSettings[sessionId] || 'episode') === 'episode' ? (
+                                  {/* ✅ Display words: grouped by episode OR flat list */}
+                                  {shouldGroupByEpisode ? (
                                     // Grouped by episode view
-                                    wordsByEpisode.map(([episode, words]) => {
-                                      const stats = getEpisodeStats(sessionId, parseInt(episode));
+                                    wordsByEpisode.map(([episodeNum, episodeWords]) => {
+                                      const stats = getEpisodeStats(sessionId, Number(episodeNum));
                                       return (
-                                        <div key={episode} style={{ marginBottom: '30px' }}>
+                                        <div key={episodeNum} style={{ marginBottom: '30px' }}>
                                           <div style={{
                                             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                             color: 'white',
@@ -527,7 +546,7 @@ const GameSessionsList = ({ gameSessions }) => {
                                             flexWrap: 'wrap',
                                             boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
                                           }}>
-                                            <span>📚 Episode {episode}</span>
+                                            <span>📚 Episode {episodeNum}</span>
                                             <span style={{
                                               background: 'rgba(255,255,255,0.2)',
                                               padding: '4px 12px',
@@ -535,9 +554,8 @@ const GameSessionsList = ({ gameSessions }) => {
                                               fontSize: '13px',
                                               backdropFilter: 'blur(10px)'
                                             }}>
-                                              {words.length} word{words.length !== 1 ? 's' : ''}
+                                              {episodeWords.length} word{episodeWords.length !== 1 ? 's' : ''}
                                             </span>
-                                            {/* ✅ AVERAGE TIME PER EPISODE */}
                                             <span style={{
                                               background: 'rgba(255,255,255,0.2)',
                                               padding: '4px 12px',
@@ -559,9 +577,9 @@ const GameSessionsList = ({ gameSessions }) => {
                                             </span>
                                           </div>
                                           <div className={styles.wordPerformanceGrid}>
-                                            {words.map((wordData, idx) => (
+                                            {episodeWords.map((wordData, idx) => (
                                               <motion.div
-                                                key={idx}
+                                                key={`${sessionId}-${wordData.word}-${idx}`}
                                                 className={styles.wordPerformanceCard}
                                                 initial={{ opacity: 0, scale: 0.9 }}
                                                 animate={{ opacity: 1, scale: 1 }}
@@ -600,11 +618,11 @@ const GameSessionsList = ({ gameSessions }) => {
                                       );
                                     })
                                   ) : (
-                                    // Non-grouped view
+                                    // Flat list view (sorted but not grouped)
                                     <div className={styles.wordPerformanceGrid}>
                                       {filteredWords.map((wordData, idx) => (
                                         <motion.div
-                                          key={idx}
+                                          key={`${sessionId}-${wordData.word}-${idx}`}
                                           className={styles.wordPerformanceCard}
                                           initial={{ opacity: 0, scale: 0.9 }}
                                           animate={{ opacity: 1, scale: 1 }}
@@ -633,11 +651,9 @@ const GameSessionsList = ({ gameSessions }) => {
                                               <div className={styles.wordStatLabel}>Hints</div>
                                             </div>
                                           </div>
-                                          {wordData.episode_number && (
-                                            <div className={styles.wordEpisode}>
-                                              📚 Episode {wordData.episode_number}
-                                            </div>
-                                          )}
+                                          <div className={styles.wordEpisode}>
+                                            📚 Episode {wordData.episode_number || 1}
+                                          </div>
                                           {wordData.is_correct && (
                                             <div className={styles.correctBadge}>✅</div>
                                           )}

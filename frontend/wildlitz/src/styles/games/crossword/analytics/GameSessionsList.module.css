@@ -868,3 +868,43 @@
     grid-template-columns: 1fr;
   }
 }
+
+.episodeGroup {
+  margin-bottom: 30px;
+}
+
+.episodeGroupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
+.episodeGroupTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.episodeWordCount {
+  font-size: 14px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.episodeGroupStats {
+  display: flex;
+  gap: 15px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+}
