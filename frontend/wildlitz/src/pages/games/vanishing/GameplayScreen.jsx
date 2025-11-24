@@ -23,7 +23,7 @@ const GameplayScreen = ({
   teamScores = { teamA: 0, teamB: 0 },
   teamNames = { teamA: 'Team A', teamB: 'Team B' }
 }) => {
-  const { word, pattern, patternPosition } = wordData;
+  const { word, pattern, patternPosition, targetLetter } = wordData;
   
   // Game states
   const [timeRemaining, setTimeRemaining] = useState(5);
@@ -46,6 +46,371 @@ const peekTimeoutRef = useRef(null);
   // Audio refs
   const wordAudioRef = useRef(null);
   const successSoundRef = useRef(null);
+
+/**
+ * ULTIMATE COMPREHENSIVE pattern detection with smart category-aware fallback
+ * Ensures appropriate patterns are ALWAYS highlighted!
+ */
+const isCharPartOfPattern = (charIndex, text, pattern) => {
+  if (!pattern || !text || pattern.length === 0) return false;
+  
+  const lowerText = text.toLowerCase();
+  const lowerPattern = pattern.toLowerCase();
+  
+  // ============================================
+  // COMPREHENSIVE PATTERN LISTS
+  // ============================================
+  
+  // ALL Long Vowel Patterns (organized by vowel sound)
+  const LONG_A_PATTERNS = ['ai', 'ay', 'a_e', 'ea', 'ei', 'eigh', 'ey'];
+  const LONG_E_PATTERNS = ['ee', 'ea', 'e_e', 'ie', 'ei', 'ey'];
+  const LONG_I_PATTERNS = ['ie', 'igh', 'i_e', 'uy'];
+  const LONG_O_PATTERNS = ['oa', 'ow', 'o_e', 'oe', 'ou', 'ough'];
+  const LONG_U_PATTERNS = ['ue', 'ui', 'u_e', 'ew', 'oo', 'ou'];
+  
+  const ALL_VOWEL_TEAMS = [
+    ...LONG_A_PATTERNS,
+    ...LONG_E_PATTERNS,
+    ...LONG_I_PATTERNS,
+    ...LONG_O_PATTERNS,
+    ...LONG_U_PATTERNS
+  ];
+  
+  // ALL Digraphs
+  const ALL_DIGRAPHS = [
+    'sh', 'ch', 'th', 'wh', 'ph',     // Common digraphs
+    'gh', 'ck', 'ng', 'qu',            // Other digraphs
+    'tch', 'dge',                      // 3-letter digraphs
+    'ss', 'zz', 'ff', 'll'             // Double consonants
+  ];
+  
+  // ALL Blends (sorted longest first)
+  const ALL_BLENDS = [
+    // 3-letter blends
+    'scr', 'spr', 'str', 'spl', 'shr', 'thr', 'squ',
+    // 2-letter blends (beginning)
+    'bl', 'br', 'cl', 'cr', 'dr', 'fl', 'fr', 'gl', 'gr',
+    'pl', 'pr', 'sc', 'sk', 'sl', 'sm', 'sn', 'sp', 'st',
+    'sw', 'tr', 'tw',
+    // Ending blends
+    'ld', 'nd', 'ng', 'nk', 'nt', 'mp', 'lt', 'lp', 'lf', 'lk',
+    'ft', 'pt', 'ct', 'xt'
+  ];
+  
+  // ============================================
+  // 1. MAGIC-E PATTERNS (a_e, i_e, o_e, u_e, e_e)
+  // ============================================
+  if (lowerPattern.includes('_')) {
+    const [vowel, e] = lowerPattern.split('_');
+    
+    // Try exact magic-e first
+    for (let i = 0; i < lowerText.length - 2; i++) {
+      if (lowerText[i] === vowel && 
+          lowerText[i + 2] === e && 
+          lowerText[i + 1] !== ' ') {
+        if (charIndex === i || charIndex === i + 2) {
+          return true;
+        }
+      }
+    }
+    
+    // ✅ FALLBACK: Search ALL vowel teams for this vowel
+    let vowelTeamsForVowel = [];
+    if (vowel === 'a') vowelTeamsForVowel = LONG_A_PATTERNS;
+    else if (vowel === 'e') vowelTeamsForVowel = LONG_E_PATTERNS;
+    else if (vowel === 'i') vowelTeamsForVowel = LONG_I_PATTERNS;
+    else if (vowel === 'o') vowelTeamsForVowel = LONG_O_PATTERNS;
+    else if (vowel === 'u') vowelTeamsForVowel = LONG_U_PATTERNS;
+    
+    for (const team of vowelTeamsForVowel) {
+      if (team.includes('_')) {
+        continue; // Skip magic-e patterns (already checked)
+      }
+      
+      let teamStart = 0;
+      while (true) {
+        const index = lowerText.indexOf(team, teamStart);
+        if (index === -1) break;
+        
+        if (charIndex >= index && charIndex < index + team.length) {
+          return true;
+        }
+        teamStart = index + 1;
+      }
+    }
+    
+    return false;
+  }
+  
+  // ============================================
+  // 2. VOWEL TEAMS & LONG VOWELS
+  // ============================================
+  if (lowerPattern.includes('vowel_team_') || lowerPattern.includes('long_')) {
+    const extractedPattern = lowerPattern.replace('vowel_team_', '').replace('long_', '');
+    
+    // Try exact pattern first
+    if (extractedPattern.length > 0) {
+      let startIndex = 0;
+      while (true) {
+        const index = lowerText.indexOf(extractedPattern, startIndex);
+        if (index === -1) break;
+        
+        if (charIndex >= index && charIndex < index + extractedPattern.length) {
+          return true;
+        }
+        startIndex = index + 1;
+      }
+    }
+    
+    // ✅ FALLBACK: Search ALL vowel teams
+    for (const team of ALL_VOWEL_TEAMS) {
+      if (team.includes('_')) {
+        // Handle magic-e
+        const [vowel, e] = team.split('_');
+        for (let i = 0; i < lowerText.length - 2; i++) {
+          if (lowerText[i] === vowel && 
+              lowerText[i + 2] === e && 
+              lowerText[i + 1] !== ' ') {
+            if (charIndex === i || charIndex === i + 2) {
+              return true;
+            }
+          }
+        }
+      } else {
+        // Handle vowel teams
+        let teamStart = 0;
+        while (true) {
+          const index = lowerText.indexOf(team, teamStart);
+          if (index === -1) break;
+          
+          if (charIndex >= index && charIndex < index + team.length) {
+            return true;
+          }
+          teamStart = index + 1;
+        }
+      }
+    }
+    
+    return false;
+  }
+  
+  // ============================================
+  // 3. SHORT VOWELS
+  // ============================================
+  if (lowerPattern.includes('short_')) {
+    const vowel = lowerPattern.replace('short_', '');
+    
+    // Find ALL occurrences of this vowel
+    let startIndex = 0;
+    while (true) {
+      const index = lowerText.indexOf(vowel, startIndex);
+      if (index === -1) break;
+      
+      if (charIndex === index) {
+        return true;
+      }
+      startIndex = index + 1;
+    }
+    
+    return false;
+  }
+  
+  // ============================================
+  // 4. DIGRAPHS
+  // ============================================
+  if (lowerPattern.includes('digraph_') || lowerPattern === 'digraphs') {
+    const extractedDigraph = lowerPattern.replace('digraph_', '');
+    
+    // Try exact digraph first
+    if (extractedDigraph && extractedDigraph !== 'digraphs') {
+      let startIndex = 0;
+      while (true) {
+        const index = lowerText.indexOf(extractedDigraph, startIndex);
+        if (index === -1) break;
+        
+        if (charIndex >= index && charIndex < index + extractedDigraph.length) {
+          return true;
+        }
+        startIndex = index + 1;
+      }
+    }
+    
+    // ✅ FALLBACK: Search ALL digraphs (longest first)
+    const sortedDigraphs = [...ALL_DIGRAPHS].sort((a, b) => b.length - a.length);
+    
+    for (const dg of sortedDigraphs) {
+      let dgStart = 0;
+      while (true) {
+        const index = lowerText.indexOf(dg, dgStart);
+        if (index === -1) break;
+        
+        if (charIndex >= index && charIndex < index + dg.length) {
+          return true;
+        }
+        dgStart = index + 1;
+      }
+    }
+    
+    return false;
+  }
+  
+  // ============================================
+  // 5. BLENDS
+  // ============================================
+  if (lowerPattern.includes('blend_') || lowerPattern === 'blends') {
+    const extractedBlend = lowerPattern.replace('blend_', '');
+    
+    // Try exact blend first
+    if (extractedBlend && extractedBlend !== 'blends') {
+      let startIndex = 0;
+      while (true) {
+        const index = lowerText.indexOf(extractedBlend, startIndex);
+        if (index === -1) break;
+        
+        if (charIndex >= index && charIndex < index + extractedBlend.length) {
+          return true;
+        }
+        startIndex = index + 1;
+      }
+    }
+    
+    // ✅ FALLBACK: Search ALL blends (longest first)
+    const sortedBlends = [...ALL_BLENDS].sort((a, b) => b.length - a.length);
+    
+    for (const bl of sortedBlends) {
+      let blStart = 0;
+      while (true) {
+        const index = lowerText.indexOf(bl, blStart);
+        if (index === -1) break;
+        
+        if (charIndex >= index && charIndex < index + bl.length) {
+          return true;
+        }
+        blStart = index + 1;
+      }
+    }
+    
+    return false;
+  }
+  
+  // ============================================
+  // 6. GENERIC FALLBACK (try as consecutive pattern)
+  // ============================================
+  let startIndex = 0;
+  while (true) {
+    const index = lowerText.indexOf(lowerPattern, startIndex);
+    if (index === -1) break;
+    
+    if (charIndex >= index && charIndex < index + lowerPattern.length) {
+      return true;
+    }
+    startIndex = index + 1;
+  }
+  
+  // ============================================
+  // 7. ✨ SMART ULTIMATE FALLBACK ✨
+  // Only search related patterns based on category
+  // ============================================
+  
+  // Determine what category we're searching for
+  const isVowelSearch = lowerPattern.includes('vowel') || 
+                        lowerPattern.includes('long') || 
+                        lowerPattern.includes('short') ||
+                        'aeiou'.includes(lowerPattern);
+  
+  const isBlendSearch = lowerPattern.includes('blend') || 
+                        ALL_BLENDS.includes(lowerPattern);
+  
+  const isDigraphSearch = lowerPattern.includes('digraph') || 
+                          ALL_DIGRAPHS.includes(lowerPattern);
+  
+  // Only search blends if we're looking for blends
+  if (isBlendSearch) {
+    const sortedBlends = [...ALL_BLENDS].sort((a, b) => b.length - a.length);
+    for (const bl of sortedBlends) {
+      let blStart = 0;
+      while (true) {
+        const index = lowerText.indexOf(bl, blStart);
+        if (index === -1) break;
+        
+        if (charIndex >= index && charIndex < index + bl.length) {
+          return true;
+        }
+        blStart = index + 1;
+      }
+    }
+  }
+  
+  // Only search digraphs if we're looking for digraphs
+  if (isDigraphSearch) {
+    const sortedDigraphs = [...ALL_DIGRAPHS].sort((a, b) => b.length - a.length);
+    for (const dg of sortedDigraphs) {
+      let dgStart = 0;
+      while (true) {
+        const index = lowerText.indexOf(dg, dgStart);
+        if (index === -1) break;
+        
+        if (charIndex >= index && charIndex < index + dg.length) {
+          return true;
+        }
+        dgStart = index + 1;
+      }
+    }
+  }
+  
+  // Only search vowel teams if we're looking for vowels/long vowels
+  if (isVowelSearch) {
+    for (const team of ALL_VOWEL_TEAMS) {
+      if (team.includes('_')) {
+        const [vowel, e] = team.split('_');
+        for (let i = 0; i < lowerText.length - 2; i++) {
+          if (lowerText[i] === vowel && 
+              lowerText[i + 2] === e && 
+              lowerText[i + 1] !== ' ' &&
+              lowerText[i + 1] !== vowel) {
+            if (charIndex === i || charIndex === i + 2) {
+              return true;
+            }
+          }
+        }
+      } else {
+        let teamStart = 0;
+        while (true) {
+          const index = lowerText.indexOf(team, teamStart);
+          if (index === -1) break;
+          
+          if (charIndex >= index && charIndex < index + team.length) {
+            return true;
+          }
+          teamStart = index + 1;
+        }
+      }
+    }
+  }
+  
+  return false;
+};
+
+
+const extractPatternLetters = (pattern) => {
+  if (!pattern) return '';
+  
+  // Handle specific patterns
+  if (pattern.includes('short_')) return pattern.replace('short_', '');
+  if (pattern.includes('long_')) return pattern.replace('long_', '');
+  if (pattern.includes('digraph_')) return pattern.replace('digraph_', '');
+  if (pattern.includes('blend_')) return pattern.replace('blend_', '');
+  
+  // ✅ NEW: Handle generic category names by returning empty
+  // This prevents trying to find literal "blends" or "digraphs" in the word
+  if (pattern === 'blends' || pattern === 'digraphs' || pattern === 'short_vowels' || pattern === 'long_vowels') {
+    console.warn(`⚠️ Generic pattern "${pattern}" detected - AI should return specific pattern like "blend_bl"`);
+    return ''; // Don't highlight anything if pattern is too generic
+  }
+  
+  // If no prefix, return as-is
+  return pattern;
+};
   
   // Initialize vanishing style based on difficulty
   useEffect(() => {
@@ -229,10 +594,15 @@ useEffect(() => {
   // Render word with vanishing effect
 const renderWord = () => {
   const text = word.trim();
-  const words = text.split(' '); // Split into words
+  const words = text.split(' ');
+  
+  // Extract the actual pattern to search for
+  const actualPattern = targetLetter || extractPatternLetters(pattern);
   
   // ===== PREVIEW & READY PHASE =====
   if (preVanishPhase === 'preview' || preVanishPhase === 'ready') {
+    let globalCharIndex = 0;
+    
     return (
       <motion.div
         className={styles.wordDisplay}
@@ -243,24 +613,27 @@ const renderWord = () => {
         {words.map((singleWord, wordIndex) => (
           <span key={wordIndex} className={styles.wordWrapper}>
             {singleWord.split('').map((letter, letterIndex) => {
-              // Calculate global index for pattern highlighting
-              const globalIndex = text.indexOf(singleWord) + letterIndex;
-              const isPattern = pattern && 
-                              text.toLowerCase().indexOf(pattern.toLowerCase()) <= globalIndex && 
-                              globalIndex < text.toLowerCase().indexOf(pattern.toLowerCase()) + pattern.length;
+              const currentGlobalIndex = globalCharIndex;
+              globalCharIndex++;
+              
+              const isPattern = config.highlightTarget && isCharPartOfPattern(currentGlobalIndex, text, actualPattern);
               
               return (
                 <motion.span
                   key={`${wordIndex}-${letterIndex}`}
-                  className={`${styles.letter} ${isPattern && config.highlightTarget ? styles.patternLetter : ''}`}
+                  className={`${styles.letter} ${isPattern ? styles.patternLetter : ''}`}
                   initial={{ y: -50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: globalIndex * 0.05, type: 'spring', bounce: 0.6 }}
+                  transition={{ delay: currentGlobalIndex * 0.05, type: 'spring', bounce: 0.6 }}
                 >
                   {letter}
                 </motion.span>
               );
             })}
+            {wordIndex < words.length - 1 && (() => {
+              globalCharIndex++;
+              return <span className={styles.letter}> </span>;
+            })()}
           </span>
         ))}
       </motion.div>
@@ -269,21 +642,13 @@ const renderWord = () => {
   
   // ===== VANISHING PHASE =====
   if (preVanishPhase === 'vanishing') {
+    let globalCharIndex = 0;
+    
     const getOpacityStyle = () => {
-      if (vanishState === 'vanished') {
-        return { opacity: 0 };
-      }
+      if (vanishState === 'vanished') return { opacity: 0 };
       if (vanishState === 'vanishing') {
-        const durations = {
-          'slow': '3s',
-          'normal': '1.5s', 
-          'fast': '0.8s',
-          'instant': '0.3s'
-        };
-        return {
-          opacity: 0,
-          transition: `opacity ${durations[config.vanishSpeed] || '1.5s'} ease-out`
-        };
+        const durations = { 'slow': '3s', 'normal': '1.5s', 'fast': '0.8s', 'instant': '0.3s' };
+        return { opacity: 0, transition: `opacity ${durations[config.vanishSpeed] || '1.5s'} ease-out` };
       }
       return { opacity: 1 };
     };
@@ -291,12 +656,13 @@ const renderWord = () => {
     return (
       <div className={styles.wordDisplay}>
         {vanishingStyle === 'letterDrop' ? (
-          // Letter drop animation
           words.map((singleWord, wordIndex) => (
             <span key={wordIndex} className={styles.wordWrapper}>
               {singleWord.split('').map((letter, letterIndex) => {
-                const globalIndex = text.indexOf(singleWord) + letterIndex;
-                const isVanished = vanishingLetters.includes(globalIndex);
+                const currentGlobalIndex = globalCharIndex;
+                const isVanished = vanishingLetters.includes(currentGlobalIndex);
+                globalCharIndex++;
+                
                 return (
                   <motion.span
                     key={letterIndex}
@@ -312,27 +678,34 @@ const renderWord = () => {
                   </motion.span>
                 );
               })}
+              {wordIndex < words.length - 1 && (() => {
+                globalCharIndex++;
+                return <span className={styles.letter}> </span>;
+              })()}
             </span>
           ))
         ) : (
-          // Fade animation
           <div style={getOpacityStyle()}>
             {words.map((singleWord, wordIndex) => (
               <span key={wordIndex} className={styles.wordWrapper}>
                 {singleWord.split('').map((letter, letterIndex) => {
-                  const globalIndex = text.indexOf(singleWord) + letterIndex;
-                  const isPattern = pattern && 
-                                  text.toLowerCase().indexOf(pattern.toLowerCase()) <= globalIndex && 
-                                  globalIndex < text.toLowerCase().indexOf(pattern.toLowerCase()) + pattern.length;
+                  const currentGlobalIndex = globalCharIndex;
+                  const isPattern = config.highlightTarget && isCharPartOfPattern(currentGlobalIndex, text, actualPattern);
+                  globalCharIndex++;
+                  
                   return (
                     <span 
                       key={letterIndex} 
-                      className={`${styles.letter} ${isPattern && config.highlightTarget ? styles.patternLetter : ''}`}
+                      className={`${styles.letter} ${isPattern ? styles.patternLetter : ''}`}
                     >
                       {letter}
                     </span>
                   );
                 })}
+                {wordIndex < words.length - 1 && (() => {
+                  globalCharIndex++;
+                  return <span className={styles.letter}> </span>;
+                })()}
               </span>
             ))}
           </div>

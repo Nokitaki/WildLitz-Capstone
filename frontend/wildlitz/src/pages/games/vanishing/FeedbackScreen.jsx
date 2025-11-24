@@ -17,29 +17,81 @@ const FeedbackScreen = ({ wordData, config, onNextWord, onRetry, success }) => {
 const [loadingExamples, setLoadingExamples] = useState(false);
 
   // Render word with highlighted pattern
-  const renderWordWithHighlight = () => {
-    if (!pattern || pattern.length === 0) {
-      return <span className={styles.wordText}>{word}</span>;
+// NEW VERSION - Finds ALL patterns
+const renderWordWithHighlight = () => {
+  if (!pattern || pattern.length === 0 || !word) {
+    return <span className={styles.wordText}>{word}</span>;
+  }
+  
+  // Helper: Find ALL occurrences
+  const findAllOccurrences = (text, searchPattern) => {
+    const occurrences = [];
+    const lowerText = text.toLowerCase();
+    const lowerPattern = searchPattern.toLowerCase();
+    let startIndex = 0;
+    
+    while (true) {
+      const index = lowerText.indexOf(lowerPattern, startIndex);
+      if (index === -1) break;
+      occurrences.push(index);
+      startIndex = index + 1;
     }
     
-    const patternIndex = word.toLowerCase().indexOf(pattern.toLowerCase());
-    
-    if (patternIndex === -1) {
-      return <span className={styles.wordText}>{word}</span>;
-    }
-    
-    const beforePattern = word.substring(0, patternIndex);
-    const patternText = word.substring(patternIndex, patternIndex + pattern.length);
-    const afterPattern = word.substring(patternIndex + pattern.length);
-    
-    return (
-      <span className={styles.wordText}>
-        <span>{beforePattern}</span>
-        <span className={styles.highlightedPattern}>{patternText}</span>
-        <span>{afterPattern}</span>
-      </span>
-    );
+    return occurrences;
   };
+  
+  const occurrences = findAllOccurrences(word, pattern);
+  
+  if (occurrences.length === 0) {
+    return <span className={styles.wordText}>{word}</span>;
+  }
+  
+  // Build segments with ALL patterns highlighted
+  const segments = [];
+  let lastIndex = 0;
+  
+  for (const patternStart of occurrences) {
+    const patternEnd = patternStart + pattern.length;
+    
+    if (lastIndex < patternStart) {
+      segments.push({
+        text: word.substring(lastIndex, patternStart),
+        isPattern: false,
+        key: `text-${lastIndex}`
+      });
+    }
+    
+    segments.push({
+      text: word.substring(patternStart, patternEnd),
+      isPattern: true,
+      key: `pattern-${patternStart}`
+    });
+    
+    lastIndex = patternEnd;
+  }
+  
+  if (lastIndex < word.length) {
+    segments.push({
+      text: word.substring(lastIndex),
+      isPattern: false,
+      key: `text-${lastIndex}`
+    });
+  }
+  
+  return (
+    <span className={styles.wordText}>
+      {segments.map(segment => (
+        segment.isPattern ? (
+          <span key={segment.key} className={styles.highlightedPattern}>
+            {segment.text}
+          </span>
+        ) : (
+          <span key={segment.key}>{segment.text}</span>
+        )
+      ))}
+    </span>
+  );
+};
 
   useEffect(() => {
   loadExampleWords();
