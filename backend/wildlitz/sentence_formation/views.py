@@ -1217,74 +1217,55 @@ def log_crossword_activity(request):
 @permission_classes([AllowAny])
 def get_crossword_analytics(request):
     """
-    Get basic analytics for crossword game sessions
-    Teachers can see: total games played, words solved, accuracy, time spent
+    Get analytics for crossword game sessions
     """
     try:
-        # Get all crossword-related activities
-        crossword_activities = UserActivity.objects.filter(
-            module='sentence_formation',
-            activity_type__in=['crossword_word_solved', 'crossword_game_completed']
-        )
+        user_email = request.GET.get('user_email', 'guest@wildlitz.com')
         
-        # Basic stats
-        total_games = crossword_activities.filter(activity_type='crossword_game_completed').count()
-        total_words_attempted = crossword_activities.filter(activity_type='crossword_word_solved').count()
-        correct_words = crossword_activities.filter(
-            activity_type='crossword_word_solved',
-            is_correct=True
-        ).count()
+        # Get all sessions for this user
+        sessions_response = supabase.table('story_game_sessions').select('*').eq('user_email', user_email).execute()
+        sessions = sessions_response.data if sessions_response.data else []
         
-        # Calculate accuracy
-        accuracy = (correct_words / total_words_attempted * 100) if total_words_attempted > 0 else 0
+        if not sessions:
+            return JsonResponse({
+                'success': True,
+                'analytics': {
+                    'total_games_played': 0,
+                    'total_words_attempted': 0,
+                    'total_correct_words': 0,
+                    'overall_accuracy': 0,
+                    'average_time_per_game': 0
+                }
+            })
         
-        # Calculate average time per game
-        completed_games = crossword_activities.filter(activity_type='crossword_game_completed')
-        total_time = sum([game.time_spent for game in completed_games], 0)
+        # Calculate totals
+        total_games = len(sessions)
+        total_words = sum([s.get('total_words_solved', 0) for s in sessions])
+        total_time = sum([s.get('total_duration_seconds', 0) for s in sessions])
+        
+        # ✅ NEW: Calculate accuracy from accuracy_percentage field
+        total_accuracy = 0
+        sessions_with_accuracy = 0
+        
+        for session in sessions:
+            accuracy = session.get('accuracy_percentage', 0)
+            if accuracy > 0:
+                total_accuracy += accuracy
+                sessions_with_accuracy += 1
+        
+        # Average accuracy across all sessions
+        overall_accuracy = (total_accuracy / sessions_with_accuracy) if sessions_with_accuracy > 0 else 0
+        
         avg_time_per_game = (total_time / total_games) if total_games > 0 else 0
-        
-        # Get recent activities (last 10)
-        recent_activities = crossword_activities.order_by('-timestamp')[:10].values(
-            'activity_type',
-            'is_correct',
-            'time_spent',
-            'timestamp',
-            'question_data'
-        )
-        
-        # Most solved words
-        word_stats = {}
-        for activity in crossword_activities.filter(activity_type='crossword_word_solved'):
-            word = activity.question_data.get('word', 'Unknown')
-            if word not in word_stats:
-                word_stats[word] = {'attempts': 0, 'correct': 0}
-            word_stats[word]['attempts'] += 1
-            if activity.is_correct:
-                word_stats[word]['correct'] += 1
-        
-        # Convert to list and sort by attempts
-        popular_words = [
-            {
-                'word': word,
-                'attempts': stats['attempts'],
-                'correct': stats['correct'],
-                'accuracy': (stats['correct'] / stats['attempts'] * 100) if stats['attempts'] > 0 else 0
-            }
-            for word, stats in word_stats.items()
-        ]
-        popular_words.sort(key=lambda x: x['attempts'], reverse=True)
-        top_words = popular_words[:10]
         
         return JsonResponse({
             'success': True,
             'analytics': {
                 'total_games_played': total_games,
-                'total_words_attempted': total_words_attempted,
-                'total_correct_words': correct_words,
-                'overall_accuracy': round(accuracy, 1),
-                'average_time_per_game': round(avg_time_per_game, 1),
-                'recent_activities': list(recent_activities),
-                'top_words': top_words
+                'total_words_attempted': total_words,
+                'total_correct_words': total_words,  # All solved words are correct
+                'overall_accuracy': round(overall_accuracy, 1),  # ✅ Use new calculation
+                'average_time_per_game': round(avg_time_per_game, 1)
             }
         })
         
@@ -1554,9 +1535,8 @@ def get_story_analytics(request):
         
         logger.info(f"Found {len(sessions)} sessions for user_email: {user_email}")
         
-        # Helper functions - MUST BE DEFINED FIRST
+        # Helper functions
         def safe_int(value, default=0):
-            """Safely convert value to int, handling None and other edge cases"""
             if value is None:
                 return default
             try:
@@ -1565,7 +1545,6 @@ def get_story_analytics(request):
                 return default
         
         def safe_float(value, default=0.0):
-            """Safely convert value to float, handling None and other edge cases"""
             if value is None:
                 return default
             try:
@@ -1573,14 +1552,25 @@ def get_story_analytics(request):
             except (ValueError, TypeError):
                 return default
         
-        # Calculate aggregate statistics with proper None handling
+        # Calculate aggregate statistics
         total_sessions = len(sessions)
         completed_sessions = len([s for s in sessions if s.get('is_completed', False)])
-        
-        # ✅ FIX: Use safe_int for ALL numeric operations
         total_episodes_completed = sum(safe_int(s.get('episodes_completed'), 0) for s in sessions)
         total_words_solved = sum(safe_int(s.get('total_words_solved'), 0) for s in sessions)
         total_time_spent = sum(safe_int(s.get('total_duration_seconds'), 0) for s in sessions)
+        
+        # ✅ NEW: Calculate accuracy from accuracy_percentage field
+        total_accuracy = 0
+        sessions_with_accuracy = 0
+        
+        for session in sessions:
+            accuracy = safe_float(session.get('accuracy_percentage'), 0)
+            if accuracy > 0:
+                total_accuracy += accuracy
+                sessions_with_accuracy += 1
+        
+        # Average accuracy across all sessions
+        average_accuracy = round((total_accuracy / sessions_with_accuracy), 1) if sessions_with_accuracy > 0 else 0
         
         # Theme distribution
         theme_counts = {}
@@ -1591,18 +1581,18 @@ def get_story_analytics(request):
         # Skills distribution
         skill_counts = {}
         for session in sessions:
-            skills = session.get('focus_skills', []) or []  # ✅ Handle None
+            skills = session.get('focus_skills', []) or []
             for skill in skills:
-                if skill:  # ✅ Make sure skill is not None
+                if skill:
                     skill_counts[skill] = skill_counts.get(skill, 0) + 1
         
-        # Average metrics with safe division
+        # Average metrics
         avg_completion_rate = round((completed_sessions / total_sessions * 100), 2) if total_sessions > 0 else 0
         avg_episodes_per_session = round((total_episodes_completed / total_sessions), 2) if total_sessions > 0 else 0
         avg_words_per_session = round((total_words_solved / total_sessions), 2) if total_sessions > 0 else 0
         avg_session_duration = round((total_time_spent / total_sessions), 2) if total_sessions > 0 else 0
         
-        logger.info(f"📊 Analytics calculated: {total_sessions} sessions, {total_episodes_completed} episodes, {total_words_solved} words")
+        logger.info(f"📊 Analytics calculated: accuracy={average_accuracy}%")
         
         return Response({
             'success': True,
@@ -1613,6 +1603,7 @@ def get_story_analytics(request):
                     'total_episodes_completed': total_episodes_completed,
                     'total_words_solved': total_words_solved,
                     'total_time_spent_seconds': total_time_spent,
+                    'average_accuracy': average_accuracy,  # ✅ ADD THIS
                     'avg_completion_rate': avg_completion_rate,
                     'avg_episodes_per_session': avg_episodes_per_session,
                     'avg_words_per_session': avg_words_per_session,
@@ -1628,7 +1619,7 @@ def get_story_analytics(request):
         
     except Exception as e:
         logger.error(f"Error fetching story analytics: {str(e)}")
-        logger.error(f"Full traceback: {traceback.format_exc()}")  # ✅ ADD THIS for better debugging
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         return Response({
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

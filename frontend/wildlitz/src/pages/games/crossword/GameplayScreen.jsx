@@ -34,6 +34,9 @@ const GameplayScreen = ({
   const [showCelebration, setShowCelebration] = useState(false);
   const [confettiPieces, setConfettiPieces] = useState([]);
   const [showHintTooltip, setShowHintTooltip] = useState(false);
+
+
+  const [currentWordAttempts, setCurrentWordAttempts] = React.useState(0);
   
   // NEW: Audio state for reading questions and choices
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
@@ -444,16 +447,26 @@ const handleSkipGuide = () => {
     setSelectedAnswer(choice);
   }, [feedback, isCurrentWordSolved, readChoice]);
 
-  // Handle submit answer
-  // frontend/wildlitz/src/pages/games/crossword/GameplayScreen.jsx
 
-// REPLACE the handleSubmitAnswer function with this:
+   React.useEffect(() => {
+    setCurrentWordAttempts(0);
+  }, [currentWordIndex]);
+
 
 const handleSubmitAnswer = useCallback(async () => {
   if (!selectedAnswer || !currentWord || isCurrentWordSolved) return;
 
   const correctAnswer = currentWord.answer;
   const isCorrect = selectedAnswer.toUpperCase() === correctAnswer.toUpperCase();
+  
+  // Increment attempt counter
+  const attemptNumber = currentWordAttempts + 1;
+  setCurrentWordAttempts(attemptNumber);
+  
+  // ✅ LOG EVERY ATTEMPT (correct or wrong)
+  if (onAnswerAttempt) {
+    onAnswerAttempt(correctAnswer, isCorrect, attemptNumber);
+  }
   
   if (isCorrect && window.playCorrectSound) window.playCorrectSound();
   else if (!isCorrect && window.playWrongSound) window.playWrongSound();
@@ -471,18 +484,18 @@ const handleSubmitAnswer = useCallback(async () => {
     
     if (sessionId) {
       try {
-        // ✅ FIXED: Pass timeSpent and hintsUsed as separate parameters
         await crosswordAnalyticsService.logWordSolved(
           sessionId,
           {
             word: correctAnswer,
             clue: currentWord.clue,
-            episodeNumber: currentPuzzleIndex + 1 || 1
+            episodeNumber: currentPuzzleIndex + 1 || 1,
+            attempts: attemptNumber,
+            score: attemptNumber === 1 ? 100 : attemptNumber === 2 ? 50 : attemptNumber === 3 ? 25 : 0
           },
-          wordTimeSpent,  // Pass as 3rd parameter
-          hintsUsedForCurrentWordRef.current  // Pass as 4th parameter
+          wordTimeSpent,
+          hintsUsedForCurrentWordRef.current
         );
-        console.log(`✅ Logged word "${correctAnswer}" - Hints used: ${hintsUsedForCurrentWordRef.current}`);
       } catch (error) {
         console.error('Analytics failed:', error);
       }
@@ -498,10 +511,14 @@ const handleSubmitAnswer = useCallback(async () => {
       moveToNextWord();
     }, 1500);
   } else {
+    // Wrong answer - allow retry
     if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
-    feedbackTimeoutRef.current = setTimeout(() => setFeedback(null), 2000);
+    feedbackTimeoutRef.current = setTimeout(() => {
+      setFeedback(null);
+      setSelectedAnswer(null); // Clear selection so they can try again
+    }, 2000);
   }
-}, [selectedAnswer, currentWord, isCurrentWordSolved, sessionId, onWordSolved, triggerCelebration, moveToNextWord, updateGridWithWord, currentPuzzleIndex]);
+}, [selectedAnswer, currentWord, isCurrentWordSolved, sessionId, onWordSolved, triggerCelebration, moveToNextWord, updateGridWithWord, currentPuzzleIndex, currentWordAttempts, onAnswerAttempt]);
 
   // Navigation handlers
   const handleNext = useCallback(() => {

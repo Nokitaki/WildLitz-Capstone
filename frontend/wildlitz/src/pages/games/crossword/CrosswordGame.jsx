@@ -1,7 +1,7 @@
 // src/pages/games/crossword/CrosswordGame.jsx
 // COMPLETE VERSION WITH CROSSWORD GUIDE MODAL INTEGRATION
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/crossword/CrosswordGame.module.css';
 import { GameLoadingScreen, CrosswordGridLoader } from '../../../components/common/LoadingStates';
@@ -29,6 +29,9 @@ import { API_ENDPOINTS } from '../../../config/api';
  * Main Crossword Puzzle Game component that manages game state and flow
  */
 const CrosswordGame = () => {
+  
+  const [questionStats, setQuestionStats] = React.useState({});
+  
   // Game states
   const [gameState, setGameState] = useState('generate-story');
   
@@ -121,25 +124,62 @@ const CrosswordGame = () => {
 
 
 
-  const handleAnswerAttempt = React.useCallback((attemptData) => {
-  setTotalAttempts(prev => prev + 1);
-  if (attemptData.isCorrect) {
-    setCorrectAttempts(prev => prev + 1);
-  }
+   const handleAnswerAttempt = React.useCallback((word, isCorrect, attemptNumber) => {
+  setQuestionStats(prev => {
+    const existing = prev[word] || { attempts: 0, score: 0, finalAttempt: false };
+    
+    // If already finalized, don't update
+    if (existing.finalAttempt) {
+      return prev;
+    }
+    
+    if (isCorrect) {
+      // Calculate score based on attempt number
+      let score = 0;
+      if (attemptNumber === 1) score = 100;
+      else if (attemptNumber === 2) score = 50;
+      else if (attemptNumber === 3) score = 25;
+      else score = 0;
+      
+      return {
+        ...prev,
+        [word]: { 
+          attempts: attemptNumber, 
+          score,
+          finalAttempt: true // Mark as finalized
+        }
+      };
+    } else {
+      // Wrong attempt - just update attempt count
+      return {
+        ...prev,
+        [word]: { 
+          attempts: attemptNumber, 
+          score: 0,
+          finalAttempt: false
+        }
+      };
+    }
+  });
+}, []);
+
+
+   const calculateAccuracy = React.useCallback(() => {
+  const questions = Object.values(questionStats);
   
-  // Log to backend
-  if (sessionId) {
-    crosswordAnalyticsService.logAnswerAttempt(sessionId, {
-      ...attemptData,
-      episodeNumber: currentEpisode
-    });
-  }
-}, [sessionId, currentEpisode]);
-
-
-
-
+  // Only count finalized questions (where student got it correct eventually)
+  const finalizedQuestions = questions.filter(q => q.finalAttempt);
   
+  if (finalizedQuestions.length === 0) return 0;
+  
+  const totalScore = finalizedQuestions.reduce((sum, q) => sum + q.score, 0);
+  const maxPossibleScore = finalizedQuestions.length * 100;
+  const accuracy = (totalScore / maxPossibleScore) * 100;
+  
+  return Math.round(accuracy * 10) / 10; // Round to 1 decimal
+}, [questionStats]);
+
+
   const handleChangePuzzle = (index) => {
     if (index >= 0 && index < availablePuzzles.length) {
       setCurrentPuzzleIndex(index);
@@ -648,38 +688,41 @@ const generateNextEpisodeOnDemand = async () => {
             currentEpisode={currentEpisode}
             totalEpisodes={totalEpisodes}
             onAnswerAttempt={handleAnswerAttempt}
+            calculatedAccuracy={calculateAccuracy()}
           />
         </motion.div>
       );
     }
     
-    if (gameState === 'summary') {
-      return (
-        <motion.div
-          key="summary"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-        >
-          <SummaryScreen
-            solvedWords={solvedWords}
-            timeSpent={timeSpent}
-            timeFormatted={formatTime(timeSpent)}
-            theme="story"
-            onPlayAgain={handleNextEpisode}
-            onReturnToMenu={handleReturnToMenu}
-            totalWords={currentPuzzle?.words?.length || 0}
-            totalHints={totalHints}
-            isStoryMode={gameConfig.storyMode}
-            storySegment={currentStorySegment}
-            currentEpisode={currentEpisode}
-            totalEpisodes={gameStories[gameConfig.adventureId]?.totalEpisodes || 1}
-            hasNextEpisode={currentEpisode < (gameStories[gameConfig.adventureId]?.totalEpisodes || 0)}
-            sessionId={sessionId}
-          />
-        </motion.div>
-      );
-    }
+   if (gameState === 'summary') {
+  return (
+    <motion.div
+      key="summary"
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+    >
+      <SummaryScreen
+        solvedWords={solvedWords}
+        timeSpent={timeSpent}
+        timeFormatted={formatTime(timeSpent)}
+        theme="story"
+        onPlayAgain={handleNextEpisode}
+        onReturnToMenu={handleReturnToMenu}
+        totalWords={currentPuzzle?.words?.length || 0}
+        totalHints={totalHints}
+        isStoryMode={gameConfig.storyMode}
+        storySegment={currentStorySegment}
+        currentEpisode={currentEpisode}
+        totalEpisodes={gameStories[gameConfig.adventureId]?.totalEpisodes || 1}
+        hasNextEpisode={currentEpisode < (gameStories[gameConfig.adventureId]?.totalEpisodes || 0)}
+        sessionId={sessionId}
+        questionStats={questionStats}  // ✅ ADD THIS LINE
+        calculatedAccuracy={calculateAccuracy()}  // ✅ ADD THIS LINE
+      />
+    </motion.div>
+  );
+}
     
     return null;
   })()}

@@ -1,7 +1,8 @@
 // StatsCards.jsx - Statistics overview cards
+// ✅ UPDATED: Added accuracy card display
 import React from 'react';
 import { motion } from 'framer-motion';
-import { formatDuration } from '../analytics/analyticsUtils';
+import { formatDuration } from './analyticsUtils';
 
 const StatCard = ({ icon, value, label, gradient }) => (
   <motion.div 
@@ -63,6 +64,13 @@ const StatsCards = ({ analytics }) => {
         value={analytics?.total_sessions || 0}
         label="Games Played"
         gradient="linear-gradient(135deg, #667eea, #764ba2)"
+      />
+      
+      <StatCard
+        icon="🎯"
+        value={`${analytics?.average_accuracy || 0}%`}
+        label="Accuracy"
+        gradient="linear-gradient(135deg, #43e97b, #38f9d7)"
       />
       
       <StatCard

@@ -21,7 +21,9 @@ const SummaryScreen = ({
   sessionId,
   timeSpent = 0,
   totalWords = 0,
-  totalHints = 0
+  totalHints = 0,
+  questionStats = {},
+  calculatedAccuracy = 0
 }) => {
 
   const [selectedWord, setSelectedWord] = useState(null);
@@ -39,37 +41,41 @@ const SummaryScreen = ({
   }, [solvedWords.length, currentEpisode, totalEpisodes]);
 
   useEffect(() => {
-  const logAnalytics = async () => {
-    if (!sessionId) {
-      console.log('No session ID available');
-      return;
-    }
+    const logAnalytics = async () => {
+      if (!sessionId) {
+        console.log('No session ID available');
+        return;
+      }
 
-    try {
-     await crosswordAnalyticsService.logGameCompleted(
-  sessionId,
-  {
-    wordsLearned: solvedWords.length,
-    totalTime: timeSpent,
-    totalHints: totalHints,
-    episodesCompleted: currentEpisode,
-    completionPercentage: Math.round((currentEpisode / totalEpisodes) * 100),
-    isFullyCompleted: currentEpisode >= totalEpisodes,
-    // ✅ ADD THESE:
-    totalAttempts: solvedWords.length,  // Each solved word is an attempt
-    correctAttempts: solvedWords.length  // All words in solvedWords are correct
-  },
-  solvedWords,
-  totalHints
-);
-      console.log('Analytics logged');
-    } catch (error) {
-      console.error('Failed to log analytics:', error);
-    }
-  };
+      try {
+        const totalAttempts = Object.values(questionStats).reduce((sum, q) => sum + q.attempts, 0);
+        const correctAttempts = Object.values(questionStats).filter(q => q.finalAttempt).length;
 
-  logAnalytics();
-}, [sessionId, solvedWords.length, totalHints, timeSpent, currentEpisode, totalEpisodes]);
+        await crosswordAnalyticsService.logGameCompleted(
+          sessionId,
+          {
+            wordsLearned: solvedWords.length,
+            totalTime: timeSpent,
+            totalHints: totalHints,
+            episodesCompleted: currentEpisode,
+            completionPercentage: Math.round((currentEpisode / totalEpisodes) * 100),
+            isFullyCompleted: currentEpisode >= totalEpisodes,
+            questionStats: questionStats,  // ✅ Pass full stats
+            totalAttempts: totalAttempts,
+            correctAttempts: correctAttempts,
+            accuracy: calculatedAccuracy  // ✅ Pass calculated accuracy
+          },
+          solvedWords,
+          totalHints
+        );
+        console.log('✅ Analytics logged with accuracy:', calculatedAccuracy);
+      } catch (error) {
+        console.error('Failed to log analytics:', error);
+      }
+    };
+
+    logAnalytics();
+  }, [sessionId, solvedWords.length, totalHints, timeSpent, currentEpisode, totalEpisodes, questionStats, calculatedAccuracy]);
 
   const getWordEmoji = (word) => {
     if (!word) return '⭐';
