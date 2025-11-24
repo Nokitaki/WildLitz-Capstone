@@ -1244,19 +1244,30 @@ def get_crossword_analytics(request):
         total_time = sum([s.get('total_duration_seconds', 0) for s in sessions])
         
         # ✅ NEW: Calculate accuracy from accuracy_percentage field
+       # ✅ FIXED: Calculate accuracy - include ALL sessions
+        # âœ… FIXED: Calculate accuracy from accuracy_percentage field
         total_accuracy = 0
-        sessions_with_accuracy = 0
-        
+        sessions_with_data = 0
+
         for session in sessions:
-            accuracy = session.get('accuracy_percentage', 0)
-            if accuracy > 0:
+            # Try to get accuracy_percentage first
+            accuracy = safe_float(session.get('accuracy_percentage'), None)
+            
+            # If accuracy_percentage exists (even if 0), use it
+            if accuracy is not None:  # âœ… This includes 0% accuracy!
                 total_accuracy += accuracy
-                sessions_with_accuracy += 1
-        
-        # Average accuracy across all sessions
-        overall_accuracy = (total_accuracy / sessions_with_accuracy) if sessions_with_accuracy > 0 else 0
-        
-        avg_time_per_game = (total_time / total_games) if total_games > 0 else 0
+                sessions_with_data += 1
+            else:
+                # Otherwise, calculate from attempts if available
+                total_attempts = safe_int(session.get('total_attempts'), 0)
+                correct_attempts = safe_int(session.get('correct_attempts'), 0)
+                if total_attempts > 0:
+                    calculated_accuracy = (correct_attempts / total_attempts) * 100
+                    total_accuracy += calculated_accuracy
+                    sessions_with_data += 1
+
+        # Average accuracy across all sessions with data
+        average_accuracy = round((total_accuracy / sessions_with_data), 1) if sessions_with_data > 0 else 0
         
         return JsonResponse({
             'success': True,
@@ -1365,35 +1376,20 @@ def create_story_session(request):
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@api_view(['PUT', 'POST'])  # ✅ Accept both PUT and POST
+@api_view(['PUT', 'POST'])
 @permission_classes([AllowAny])
 def update_story_session(request, session_id):
     """Update an existing story game session"""
     try:
         data = request.data
         
-        # ⭐ ADDED: Validate and log incoming hint data
-        if 'total_hints_used' in data:
-            hints = data['total_hints_used']
-            logger.info(f"📊 Updating session {session_id} with hints: {hints}")
-            
-            # Validate hint data
-            if not isinstance(hints, (int, float)) or hints < 0:
-                logger.warning(f"⚠️ Invalid hints value: {hints}, defaulting to 0")
-                data['total_hints_used'] = 0
-            else:
-                data['total_hints_used'] = int(hints)
-        
         update_data = {}
         
         # Update fields if provided
         if 'episodes_completed' in data:
-            # ✅ ADDED: Validate episodes_completed
             episodes_completed = data['episodes_completed']
             if isinstance(episodes_completed, (int, float)) and episodes_completed > 0:
                 update_data['episodes_completed'] = int(episodes_completed)
-            else:
-                logger.warning(f"Invalid episodes_completed value: {episodes_completed}")
         
         if 'current_episode' in data:
             update_data['current_episode'] = data['current_episode']
@@ -1406,7 +1402,6 @@ def update_story_session(request, session_id):
         
         if 'total_hints_used' in data:
             update_data['total_hints_used'] = data['total_hints_used']
-            logger.info(f"✅ Setting total_hints_used to: {update_data['total_hints_used']}")
         
         if 'average_time_per_word' in data:
             update_data['average_time_per_word'] = data['average_time_per_word']
@@ -1434,14 +1429,26 @@ def update_story_session(request, session_id):
         if 'metadata' in data:
             update_data['metadata'] = data['metadata']
         
-        # ✅ ADDED: Log what we're updating
+        # ✅ CRITICAL: Add these three fields for accuracy tracking
+        if 'total_attempts' in data:
+            update_data['total_attempts'] = int(data['total_attempts'])
+            logger.info(f"✅ Setting total_attempts to: {update_data['total_attempts']}")
+        
+        if 'correct_attempts' in data:
+            update_data['correct_attempts'] = int(data['correct_attempts'])
+            logger.info(f"✅ Setting correct_attempts to: {update_data['correct_attempts']}")
+        
+        if 'accuracy_percentage' in data:
+            update_data['accuracy_percentage'] = float(data['accuracy_percentage'])
+            logger.info(f"✅ Setting accuracy_percentage to: {update_data['accuracy_percentage']}")
+        
         logger.info(f"📊 Updating session {session_id} with data: {update_data}")
         
         response = supabase.table('story_game_sessions').update(update_data).eq('id', session_id).execute()
         
         if response.data:
             logger.info(f"✅ Story session updated: {session_id}")
-            logger.info(f"   Hints in response: {response.data[0].get('total_hints_used', 'NOT FOUND')}")
+            logger.info(f"   Response data: {response.data[0]}")
             return Response({
                 'success': True,
                 'session': response.data[0]
@@ -1559,18 +1566,39 @@ def get_story_analytics(request):
         total_words_solved = sum(safe_int(s.get('total_words_solved'), 0) for s in sessions)
         total_time_spent = sum(safe_int(s.get('total_duration_seconds'), 0) for s in sessions)
         
-        # ✅ NEW: Calculate accuracy from accuracy_percentage field
+        # ✅ FIXED: Calculate accuracy - include ALL sessions
         total_accuracy = 0
-        sessions_with_accuracy = 0
-        
+        sessions_with_data = 0
+
         for session in sessions:
-            accuracy = safe_float(session.get('accuracy_percentage'), 0)
-            if accuracy > 0:
-                total_accuracy += accuracy
-                sessions_with_accuracy += 1
+            # Try to get accuracy_percentage first
+            accuracy = session.get('accuracy_percentage')
+            
+            # Log what we're getting
+            logger.info(f"Session {session.get('id')}: accuracy_percentage = {accuracy}")
+            
+            # If accuracy_percentage exists (even if 0 or None), try to use it
+            if accuracy is not None:
+                total_accuracy += float(accuracy)
+                sessions_with_data += 1
+                logger.info(f"  ✅ Used accuracy_percentage: {accuracy}")
+            else:
+                # Otherwise, calculate from attempts if available
+                total_attempts = safe_int(session.get('total_attempts'), 0)
+                correct_attempts = safe_int(session.get('correct_attempts'), 0)
+                if total_attempts > 0:
+                    calculated_accuracy = (correct_attempts / total_attempts) * 100
+                    total_accuracy += calculated_accuracy
+                    sessions_with_data += 1
+                    logger.info(f"  📊 Calculated accuracy: {calculated_accuracy}%")
+
+        # Average accuracy across all sessions with data
+        average_accuracy = round((total_accuracy / sessions_with_data), 1) if sessions_with_data > 0 else 0
         
-        # Average accuracy across all sessions
-        average_accuracy = round((total_accuracy / sessions_with_accuracy), 1) if sessions_with_accuracy > 0 else 0
+        logger.info(f"📊 Accuracy Calculation Summary:")
+        logger.info(f"   Total accuracy sum: {total_accuracy}")
+        logger.info(f"   Sessions with data: {sessions_with_data}")
+        logger.info(f"   Average accuracy: {average_accuracy}%")
         
         # Theme distribution
         theme_counts = {}
@@ -1592,9 +1620,12 @@ def get_story_analytics(request):
         avg_words_per_session = round((total_words_solved / total_sessions), 2) if total_sessions > 0 else 0
         avg_session_duration = round((total_time_spent / total_sessions), 2) if total_sessions > 0 else 0
         
-        logger.info(f"📊 Analytics calculated: accuracy={average_accuracy}%")
+        logger.info(f"📊 Final Analytics Summary:")
+        logger.info(f"   Total sessions: {total_sessions}")
+        logger.info(f"   Average accuracy: {average_accuracy}%")
+        logger.info(f"   Avg completion rate: {avg_completion_rate}%")
         
-        return Response({
+        response_data = {
             'success': True,
             'analytics': {
                 'summary': {
@@ -1603,7 +1634,7 @@ def get_story_analytics(request):
                     'total_episodes_completed': total_episodes_completed,
                     'total_words_solved': total_words_solved,
                     'total_time_spent_seconds': total_time_spent,
-                    'average_accuracy': average_accuracy,  # ✅ ADD THIS
+                    'average_accuracy': average_accuracy,  # ✅ CRITICAL
                     'avg_completion_rate': avg_completion_rate,
                     'avg_episodes_per_session': avg_episodes_per_session,
                     'avg_words_per_session': avg_words_per_session,
@@ -1615,7 +1646,12 @@ def get_story_analytics(request):
                 },
                 'recent_sessions': sessions[:10]
             }
-        })
+        }
+        
+        # Log the response we're sending
+        logger.info(f"📤 Sending response with average_accuracy: {response_data['analytics']['summary']['average_accuracy']}")
+        
+        return Response(response_data)
         
     except Exception as e:
         logger.error(f"Error fetching story analytics: {str(e)}")

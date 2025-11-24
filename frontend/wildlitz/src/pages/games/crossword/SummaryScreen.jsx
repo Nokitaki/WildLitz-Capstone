@@ -51,23 +51,23 @@ const SummaryScreen = ({
         const totalAttempts = Object.values(questionStats).reduce((sum, q) => sum + q.attempts, 0);
         const correctAttempts = Object.values(questionStats).filter(q => q.finalAttempt).length;
 
-        await crosswordAnalyticsService.logGameCompleted(
-          sessionId,
-          {
-            wordsLearned: solvedWords.length,
-            totalTime: timeSpent,
-            totalHints: totalHints,
-            episodesCompleted: currentEpisode,
-            completionPercentage: Math.round((currentEpisode / totalEpisodes) * 100),
-            isFullyCompleted: currentEpisode >= totalEpisodes,
-            questionStats: questionStats,  // ✅ Pass full stats
-            totalAttempts: totalAttempts,
-            correctAttempts: correctAttempts,
-            accuracy: calculatedAccuracy  // ✅ Pass calculated accuracy
-          },
-          solvedWords,
-          totalHints
-        );
+       await crosswordAnalyticsService.logGameCompleted(
+            sessionId,
+            {
+              wordsLearned: solvedWords.length,
+              totalTime: timeSpent,
+              totalHints: totalHints,
+              episodesCompleted: currentEpisode,
+              completionPercentage: Math.round((currentEpisode / totalEpisodes) * 100),
+              isFullyCompleted: currentEpisode >= totalEpisodes,
+              questionStats: questionStats,  // âœ… Ensure this exists
+              totalAttempts: Object.values(questionStats).reduce((sum, q) => sum + q.attempts, 0),
+              correctAttempts: Object.values(questionStats).filter(q => q.finalAttempt).length,
+              accuracy: calculatedAccuracy  // âœ… Make sure this is passed
+            },
+            solvedWords,
+            totalHints
+          );
         console.log('✅ Analytics logged with accuracy:', calculatedAccuracy);
       } catch (error) {
         console.error('Failed to log analytics:', error);

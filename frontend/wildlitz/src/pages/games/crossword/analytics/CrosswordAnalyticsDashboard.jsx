@@ -35,10 +35,12 @@ const CrosswordAnalyticsDashboard = () => {
           days: 365
         });
         
-        if (analyticsData.success) {
-          setAnalytics(analyticsData.analytics.summary);
-          setGameSessions(analyticsData.analytics.recent_sessions || []);
-        }
+       if (analyticsData.success) {
+  console.log('📊 Raw analytics data:', analyticsData.analytics);
+  console.log('   Average accuracy:', analyticsData.analytics.summary?.average_accuracy);
+  setAnalytics(analyticsData.analytics.summary);
+  setGameSessions(analyticsData.analytics.recent_sessions || []);
+}
 
         // Fetch word performance
         const wordResponse = await fetch(

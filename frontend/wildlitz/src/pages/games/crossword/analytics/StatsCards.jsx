@@ -68,7 +68,7 @@ const StatsCards = ({ analytics }) => {
       
       <StatCard
         icon="🎯"
-        value={`${analytics?.average_accuracy || 0}%`}
+        value={`${Math.round(analytics?.average_accuracy || 0)}%`}
         label="Accuracy"
         gradient="linear-gradient(135deg, #43e97b, #38f9d7)"
       />

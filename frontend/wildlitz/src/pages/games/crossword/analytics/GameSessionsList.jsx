@@ -440,7 +440,17 @@ const GameSessionsList = ({ gameSessions }) => {
                           <div className={styles.statCard}>
                             <div className={styles.statIcon}>🎯</div>
                             <div className={styles.statValue}>
-                              {session.accuracy_percentage || 0}%
+                              {(() => {
+                                  if (session.accuracy_percentage !== null && session.accuracy_percentage !== undefined) {
+                                    return session.accuracy_percentage;
+                                  }
+                                  const total = session.total_attempts || 0;
+                                  const correct = session.correct_attempts || 0;
+                                  if (total > 0) {
+                                    return Math.round((correct / total) * 100);
+                                  }
+                                  return 0;
+                                })()}%
                             </div>
                             <div className={styles.statLabel}>Accuracy</div>
                           </div>
