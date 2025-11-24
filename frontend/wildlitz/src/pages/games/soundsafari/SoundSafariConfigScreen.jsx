@@ -1,8 +1,9 @@
 // src/pages/games/soundsafari/SoundSafariConfigScreen.jsx <updated on 2025-10-26>
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../../styles/games/safari/SoundSafariConfig.module.css';
+import backgroundMusic from '../../../assets/music/sound-safari-background-music.mp3';
 
 /**
  * Configuration screen component for Sound Safari game
@@ -16,6 +17,58 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
   const [soundPosition, setSoundPosition] = useState('beginning');
   const [environment, setEnvironment] = useState('jungle');
   const [difficulty, setDifficulty] = useState('easy');
+  
+  // Audio control state
+  const audioRef = useRef(null);
+  const [volume, setVolume] = useState(0.5);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showVolumeControl, setShowVolumeControl] = useState(false);
+  
+  // Initialize and play background music
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+      audioRef.current.loop = true;
+      
+      const playMusic = async () => {
+        try {
+          await audioRef.current.play();
+        } catch (error) {
+          console.log('Auto-play blocked:', error);
+        }
+      };
+      
+      playMusic();
+    }
+    
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, []);
+  
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume;
+    }
+  }, [volume, isMuted]);
+  
+  const handleVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    if (newVolume > 0) {
+      setIsMuted(false);
+    }
+  };
+  
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+  
+  const toggleVolumeControl = () => {
+    setShowVolumeControl(!showVolumeControl);
+  };
   
   // Handle back button click
   const handleBackClick = () => {
@@ -60,7 +113,76 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
   
   return (
     <div className={styles.configContainer}>
+      <audio 
+        ref={audioRef} 
+        src={backgroundMusic}
+        onLoadedData={() => console.log('✅ Audio loaded successfully!')}
+        onError={(e) => console.log('❌ Audio error:', e)}
+      />
+      
+      <motion.div 
+        className={styles.soundControlWrapper}
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 0.5, type: 'spring', stiffness: 260, damping: 20 }}
+      >
+        <motion.button
+          className={styles.soundButton}
+          onClick={toggleVolumeControl}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {isMuted ? '🔇' : volume > 0.5 ? '🔊' : volume > 0 ? '🔉' : '🔈'}
+        </motion.button>
+        
+        <AnimatePresence>
+          {showVolumeControl && (
+            <motion.div
+              className={styles.volumeControlPanel}
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className={styles.volumeHeader}>
+                <span className={styles.volumeTitle}>🎵 Background Music</span>
+              </div>
+              
+              <div className={styles.volumeControls}>
+                <div className={styles.volumeSliderContainer}>
+                  <span className={styles.volumeIcon}>🔈</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={volume}
+                    onChange={handleVolumeChange}
+                    className={styles.volumeSlider}
+                  />
+                  <span className={styles.volumeIcon}>🔊</span>
+                </div>
+                
+                <div className={styles.volumePercentage}>
+                  {Math.round(volume * 100)}%
+                </div>
+                
+                <motion.button
+                  className={`${styles.muteButton} ${isMuted ? styles.muted : ''}`}
+                  onClick={toggleMute}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {isMuted ? '🔇 Unmute' : '🔇 Mute'}
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+      
       <div className={styles.configCardWrapper}>
+
         {/* Back Button - Inside the card border */}
         <motion.button
           className={styles.backButton}
