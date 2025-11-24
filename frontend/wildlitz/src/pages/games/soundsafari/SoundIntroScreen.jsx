@@ -1,7 +1,7 @@
 // src/pages/games/soundsafari/SoundIntroScreen.jsx <updated on 2025-05-16>
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SOUND_EXAMPLES, SOUND_DESCRIPTIONS } from '../../../mock/soundSafariData'; 
 import { fetchSoundExamples } from '../../../services/soundSafariApi';
 import styles from '../../../styles/games/safari/SoundIntroScreen.module.css';
@@ -11,7 +11,17 @@ import { playSpeech } from '../../../utils/soundUtils';
  * Component for introducing the target sound to players
  * Updated to use Supabase for sound examples when available
  */
-const SoundIntroScreen = ({ targetSound, onContinue }) => {
+const SoundIntroScreen = ({ 
+  targetSound, 
+  onContinue,
+  volume,
+  isMuted,
+  showVolumeControl,
+  onVolumeChange,
+  onToggleMute,
+  onToggleVolumeControl
+  }) => {
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeExample, setActiveExample] = useState(null);
   const [examples, setExamples] = useState([]);
@@ -73,6 +83,66 @@ const SoundIntroScreen = ({ targetSound, onContinue }) => {
   
   return (
     <div className={styles.introContainer}>
+      <motion.div 
+        className={styles.soundControlWrapper}
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 0.5, type: 'spring', stiffness: 260, damping: 20 }}
+      >
+        <motion.button
+          className={styles.soundButton}
+          onClick={onToggleVolumeControl}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {isMuted ? '🔇' : volume > 0.5 ? '🔊' : volume > 0 ? '🔉' : '🔈'}
+        </motion.button>
+        
+        <AnimatePresence>
+          {showVolumeControl && (
+            <motion.div
+              className={styles.volumeControlPanel}
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className={styles.volumeHeader}>
+                <span className={styles.volumeTitle}>🎵 Background Music</span>
+              </div>
+              
+              <div className={styles.volumeControls}>
+                <div className={styles.volumeSliderContainer}>
+                  <span className={styles.volumeIcon}>🔈</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={volume}
+                    onChange={onVolumeChange}
+                    className={styles.volumeSlider}
+                  />
+                  <span className={styles.volumeIcon}>🔊</span>
+                </div>
+                
+                <div className={styles.volumePercentage}>
+                  {Math.round(volume * 100)}%
+                </div>
+                
+                <motion.button
+                  className={`${styles.muteButton} ${isMuted ? styles.muted : ''}`}
+                  onClick={onToggleMute}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {isMuted ? '🔇 Unmute' : '🔇 Mute'}
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
       <div className={styles.introCard}>
         <div className={styles.introHeader}>
           <h2 className={styles.introTitle}>

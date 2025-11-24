@@ -61,5 +61,12 @@
     "sound_position": "beginning",
     "environment": "savanna",
     "difficulty_level": "medium"
+  },
+  {
+    "name": "Lemur",
+    "target_sound": "l",
+    "sound_position": "beginning",
+    "environment": "jungle",
+    "difficulty_level": "easy"
   }
 ]

@@ -1,8 +1,7 @@
 // src/pages/games/soundsafari/SoundSafariLoadingScreen.jsx <updated on 2025-11-03>
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/safari/SoundSafariLoading.module.css';
-
 /**
  * Loading screen component for Sound Safari game
  * Redesigned with jungle safari theme to match config screen
@@ -12,7 +11,13 @@ const SoundSafariLoadingScreen = ({
   difficulty = 'easy', 
   onContinue,
   round = 1,
-  totalRounds = 5
+  totalRounds = 5,
+  volume,
+  isMuted,
+  showVolumeControl,
+  onVolumeChange,
+  onToggleMute,
+  onToggleVolumeControl
 }) => {
   const [progress, setProgress] = useState(0);
   const [factsIndex, setFactsIndex] = useState(0);
@@ -124,6 +129,66 @@ const SoundSafariLoadingScreen = ({
 
   return (
     <div className={styles.loadingContainer}>
+      <motion.div 
+        className={styles.soundControlWrapper}
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 0.5, type: 'spring', stiffness: 260, damping: 20 }}
+      >
+        <motion.button
+          className={styles.soundButton}
+          onClick={onToggleVolumeControl}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {isMuted ? '🔇' : volume > 0.5 ? '🔊' : volume > 0 ? '🔉' : '🔈'}
+        </motion.button>
+        
+        <AnimatePresence>
+          {showVolumeControl && (
+            <motion.div
+              className={styles.volumeControlPanel}
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className={styles.volumeHeader}>
+                <span className={styles.volumeTitle}>🎵 Background Music</span>
+              </div>
+              
+              <div className={styles.volumeControls}>
+                <div className={styles.volumeSliderContainer}>
+                  <span className={styles.volumeIcon}>🔈</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={volume}
+                    onChange={onVolumeChange}
+                    className={styles.volumeSlider}
+                  />
+                  <span className={styles.volumeIcon}>🔊</span>
+                </div>
+                
+                <div className={styles.volumePercentage}>
+                  {Math.round(volume * 100)}%
+                </div>
+                
+                <motion.button
+                  className={`${styles.muteButton} ${isMuted ? styles.muted : ''}`}
+                  onClick={onToggleMute}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {isMuted ? '🔇 Unmute' : '🔇 Mute'}
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
       {/* Falling leaves animation */}
       <div className={styles.leavesBackground}>🍃</div>
       

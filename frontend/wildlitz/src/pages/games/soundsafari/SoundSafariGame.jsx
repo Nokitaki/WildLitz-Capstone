@@ -1,9 +1,10 @@
 // frontend/wildlitz/src/pages/games/soundsafari/SoundSafariGame.jsx
 // UPDATED: Saves round data after each round, then complete session at end
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/safari/SoundSafariGame.module.css';
+import backgroundMusic2 from '../../../assets/music/sound-safari-background-music-2.mp3';
 
 // Import mascot
 import WildLitzFox from '../../../assets/img/wildlitz-idle.png';
@@ -36,6 +37,56 @@ import {
 const SoundSafariGame = () => {
   // Game states
   const [gameState, setGameState] = useState('config');
+  // Shared audio state for Loading and Intro screens
+  const audioRef = useRef(null);
+  const [volume, setVolume] = useState(0.5);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showVolumeControl, setShowVolumeControl] = useState(false);
+  
+  // Initialize audio for Loading/Intro screens
+  useEffect(() => {
+    // Only play audio on loading or intro screens
+    if ((gameState === 'loading' || gameState === 'intro') && audioRef.current) {
+      audioRef.current.volume = volume;
+      audioRef.current.loop = true;
+      
+      const playMusic = async () => {
+        try {
+          await audioRef.current.play();
+        } catch (error) {
+          console.log('Auto-play blocked:', error);
+        }
+      };
+      
+      playMusic();
+    } else if (audioRef.current && gameState !== 'loading' && gameState !== 'intro') {
+      // Pause audio when leaving loading/intro screens
+      audioRef.current.pause();
+    }
+  }, [gameState]);
+  
+  // Update volume
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume;
+    }
+  }, [volume, isMuted]);
+  
+  const handleVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    if (newVolume > 0) {
+      setIsMuted(false);
+    }
+  };
+  
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+  
+  const toggleVolumeControl = () => {
+    setShowVolumeControl(!showVolumeControl);
+  };
   
   // Game configuration
   const [gameConfig, setGameConfig] = useState({
@@ -559,6 +610,11 @@ const SoundSafariGame = () => {
   
   return (
     <div className={`${styles.gameContainer} ${getEnvironmentClass()}`}>
+      {/* Shared audio for Loading and Intro screens */}
+      {(gameState === 'loading' || gameState === 'intro') && (
+        <audio ref={audioRef} src={backgroundMusic2} />
+      )}
+      
       <div className={styles.gameContent}>
         
         {/* Add Fox Mascot that only appears during intro and gameplay */}
@@ -602,7 +658,7 @@ const SoundSafariGame = () => {
             </motion.div>
           )}
           
-          {gameState === 'loading' && (
+{gameState === 'loading' && (
             <motion.div
               key="loading"
               initial={{ opacity: 0 }}
@@ -616,6 +672,12 @@ const SoundSafariGame = () => {
                 onContinue={handleContinueFromLoading}
                 round={currentRound}
                 totalRounds={totalRounds}
+                volume={volume}
+                isMuted={isMuted}
+                showVolumeControl={showVolumeControl}
+                onVolumeChange={handleVolumeChange}
+                onToggleMute={toggleMute}
+                onToggleVolumeControl={toggleVolumeControl}
               />
             </motion.div>
           )}
@@ -631,6 +693,12 @@ const SoundSafariGame = () => {
               <SoundIntroScreen 
                 targetSound={gameConfig.targetSound}
                 onContinue={handleContinueFromIntro}
+                volume={volume}
+                isMuted={isMuted}
+                showVolumeControl={showVolumeControl}
+                onVolumeChange={handleVolumeChange}
+                onToggleMute={toggleMute}
+                onToggleVolumeControl={toggleVolumeControl}
               />
             </motion.div>
           )}
