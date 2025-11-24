@@ -10,85 +10,131 @@ import { API_ENDPOINTS } from '../../../config/api';
  * Colorful, engaging, and educational feedback after each word
  */
 const FeedbackScreen = ({ wordData, config, onNextWord, onRetry, success }) => {
-  const { word, pattern, patternPosition, phonicsRule } = wordData;
+  const { word, pattern, patternPosition, phonicsRule, targetLetter } = wordData;
   const [showExamples, setShowExamples] = useState(false);
 
   const [exampleWords, setExampleWords] = useState([]);
 const [loadingExamples, setLoadingExamples] = useState(false);
 
+  const isCharPartOfPattern = (charIndex, text, searchPattern) => {
+    if (!searchPattern || !text || searchPattern.length === 0) return false;
+    
+    const lowerText = text.toLowerCase();
+    const lowerPattern = searchPattern.toLowerCase();
+    
+    // Remove prefixes to get actual pattern
+    const cleanPattern = lowerPattern
+      .replace(/^short_/, '')
+      .replace(/^long_/, '')
+      .replace(/^blend_/, '')
+      .replace(/^digraph_/, '');
+    
+    // Check if character at charIndex is part of the pattern
+    for (let i = 0; i < cleanPattern.length; i++) {
+      const patternStartIndex = charIndex - i;
+      if (patternStartIndex >= 0 && patternStartIndex + cleanPattern.length <= text.length) {
+        const substring = lowerText.substring(patternStartIndex, patternStartIndex + cleanPattern.length);
+        if (substring === cleanPattern) {
+          // This character is part of the pattern
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  };
+
+
   // Render word with highlighted pattern
 // NEW VERSION - Finds ALL patterns
 const renderWordWithHighlight = () => {
-  if (!pattern || pattern.length === 0 || !word) {
+  // Extract targetLetter from wordData
+  const targetLetter = wordData.targetLetter || pattern;
+  
+  if (!targetLetter || targetLetter.length === 0 || !word) {
     return <span className={styles.wordText}>{word}</span>;
   }
   
-  // Helper: Find ALL occurrences
-  const findAllOccurrences = (text, searchPattern) => {
-    const occurrences = [];
-    const lowerText = text.toLowerCase();
-    const lowerPattern = searchPattern.toLowerCase();
-    let startIndex = 0;
+  // Remove any prefixes to get the actual pattern to search for
+  const cleanPattern = targetLetter
+    .replace(/^short_/, '')
+    .replace(/^long_/, '')
+    .replace(/^blend_/, '')
+    .replace(/^digraph_/, '')
+    .replace(/^vowel_team_/, '');
+  
+  // ============================================
+  // SPECIAL HANDLING: Magic-e patterns (a_e, i_e, o_e, u_e, e_e)
+  // ============================================
+  if (cleanPattern.includes('_')) {
+    const [vowel, e] = cleanPattern.split('_');
+    const characters = word.split('');
+    const lowerWord = word.toLowerCase();
     
-    while (true) {
-      const index = lowerText.indexOf(lowerPattern, startIndex);
-      if (index === -1) break;
-      occurrences.push(index);
-      startIndex = index + 1;
+    return (
+      <span className={styles.wordText}>
+        {characters.map((char, index) => {
+          let shouldHighlight = false;
+          
+          // Look for: vowel + any consonant + 'e'
+          // Example: "fire" has 'i' at index 1, 'r' at index 2, 'e' at index 3
+          for (let i = 0; i < lowerWord.length - 2; i++) {
+            if (lowerWord[i] === vowel && 
+                lowerWord[i + 2] === e && 
+                lowerWord[i + 1] !== ' ') {
+              // Underline both the vowel AND the silent e
+              if (index === i || index === i + 2) {
+                shouldHighlight = true;
+                break;
+              }
+            }
+          }
+          
+          return shouldHighlight ? (
+            <span key={index} className={styles.highlightedPattern}>
+              {char}
+            </span>
+          ) : (
+            <span key={index}>{char}</span>
+          );
+        })}
+      </span>
+    );
+  }
+  
+  // ============================================
+  // REGULAR PATTERNS: Consecutive letters (blends, digraphs, vowel teams)
+  // ============================================
+  const characters = word.split('');
+  const lowerWord = word.toLowerCase();
+  const lowerPattern = cleanPattern.toLowerCase();
+  
+  const isPartOfPattern = (index) => {
+    for (let i = 0; i < lowerPattern.length; i++) {
+      const patternStartIndex = index - i;
+      if (patternStartIndex >= 0 && patternStartIndex + lowerPattern.length <= word.length) {
+        const substring = lowerWord.substring(patternStartIndex, patternStartIndex + lowerPattern.length);
+        if (substring === lowerPattern) {
+          return true;
+        }
+      }
     }
-    
-    return occurrences;
+    return false;
   };
-  
-  const occurrences = findAllOccurrences(word, pattern);
-  
-  if (occurrences.length === 0) {
-    return <span className={styles.wordText}>{word}</span>;
-  }
-  
-  // Build segments with ALL patterns highlighted
-  const segments = [];
-  let lastIndex = 0;
-  
-  for (const patternStart of occurrences) {
-    const patternEnd = patternStart + pattern.length;
-    
-    if (lastIndex < patternStart) {
-      segments.push({
-        text: word.substring(lastIndex, patternStart),
-        isPattern: false,
-        key: `text-${lastIndex}`
-      });
-    }
-    
-    segments.push({
-      text: word.substring(patternStart, patternEnd),
-      isPattern: true,
-      key: `pattern-${patternStart}`
-    });
-    
-    lastIndex = patternEnd;
-  }
-  
-  if (lastIndex < word.length) {
-    segments.push({
-      text: word.substring(lastIndex),
-      isPattern: false,
-      key: `text-${lastIndex}`
-    });
-  }
   
   return (
     <span className={styles.wordText}>
-      {segments.map(segment => (
-        segment.isPattern ? (
-          <span key={segment.key} className={styles.highlightedPattern}>
-            {segment.text}
+      {characters.map((char, index) => {
+        const shouldHighlight = isPartOfPattern(index);
+        
+        return shouldHighlight ? (
+          <span key={index} className={styles.highlightedPattern}>
+            {char}
           </span>
         ) : (
-          <span key={segment.key}>{segment.text}</span>
-        )
-      ))}
+          <span key={index}>{char}</span>
+        );
+      })}
     </span>
   );
 };
@@ -153,20 +199,11 @@ const getStaticExamples = () => {
   };
 
   // Get phonics explanation
-  const getPhonicsExplanation = () => {
-    const explanations = {
-      'e': 'The letter "e" makes the /eh/ sound, like in "egg"',
-      'a': 'The letter "a" makes the /ah/ sound, like in "apple"',
-      'i': 'The letter "i" makes the /ih/ sound, like in "igloo"',
-      'o': 'The letter "o" makes the /oh/ sound, like in "octopus"',
-      'u': 'The letter "u" makes the /uh/ sound, like in "umbrella"',
-      'sh': '"sh" makes the /sh/ sound, like in "shoe"',
-      'ch': '"ch" makes the /ch/ sound, like in "cheese"',
-      'th': '"th" makes the /th/ sound, like in "thumb"'
-    };
-    
-    return explanations[pattern] || phonicsRule || `The pattern "${pattern}" is a special sound!`;
-  };
+ // Get phonics explanation based on learning focus (not specific pattern)
+const getPhonicsExplanation = () => {
+  // Just use the phonicsRule from AI - it has explanations for ALL patterns!
+  return phonicsRule || `The pattern "${pattern}" is a special sound!`;
+};
 
   return (
     <div className={styles.feedbackContainer}>

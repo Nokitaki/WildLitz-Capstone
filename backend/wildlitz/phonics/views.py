@@ -20,6 +20,54 @@ logger = logging.getLogger(__name__)
 openai.api_key = settings.OPENAI_API_KEY
 supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
+def validate_long_vowel_pattern(word, target_letter):
+    """
+    Validate that the targetLetter pattern actually exists in the word.
+    Returns True if valid, False if not.
+    """
+    if not target_letter or not word:
+        return False
+    
+    word_lower = word.lower()
+    target_lower = target_letter.lower()
+    
+    # Remove prefixes
+    clean_target = target_lower.replace('short_', '').replace('long_', '').replace('blend_', '').replace('digraph_', '').replace('vowel_team_', '')
+    
+    # For magic-e patterns (a_e, i_e, o_e, u_e, e_e)
+    if '_' in clean_target:
+        vowel, e = clean_target.split('_')
+        # Check if vowel + any letter + 'e' exists
+        for i in range(len(word_lower) - 2):
+            if word_lower[i] == vowel and word_lower[i + 2] == e:
+                return True
+        return False
+    
+    # For regular patterns (consecutive letters)
+    return clean_target in word_lower
+
+
+def regenerate_if_invalid(words, learning_focus):
+    """
+    Check each word and regenerate if targetLetter doesn't exist in word.
+    Only applies to long_vowels.
+    """
+    if learning_focus != 'long_vowels':
+        return words
+    
+    validated_words = []
+    for word_obj in words:
+        word = word_obj.get('word', '')
+        target = word_obj.get('targetLetter', '')
+        
+        if validate_long_vowel_pattern(word, target):
+            validated_words.append(word_obj)
+        else:
+            # Log the error for debugging
+            print(f"❌ REJECTED: '{word}' with targetLetter '{target}' - pattern doesn't exist!")
+    
+    return validated_words
+
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -269,7 +317,7 @@ If you don't have {word_count} complete objects, ADD MORE until you reach {word_
 
 You are an expert phonics educator creating learning materials for elementary students.
 
-{"⚠️ CRITICAL REQUIREMENT: Generate COMPLETE SENTENCES, not single words! Each entry must be a full sentence with subject and verb. ⚠️" if challenge_level == 'simple_sentences' else ""}
+{"CRITICAL REQUIREMENT: Generate COMPLETE SENTENCES, not single words! Each entry must be a full sentence with subject and verb. ⚠️" if challenge_level == 'simple_sentences' else ""}
     
     TARGET SPECIFICATIONS:
     - Challenge Level: {level_descriptions[challenge_level]}
@@ -282,7 +330,105 @@ You are an expert phonics educator creating learning materials for elementary st
     3. Include variety to maintain student engagement
     4. Ensure proper phonics rules are represented
     5. Create educationally meaningful definitions
-    
+
+        """
+
+    if challenge_level == 'simple_sentences':
+        prompt += """
+
+!!!!! CRITICAL REQUIREMENT - DO NOT IGNORE THIS !!!!!
+
+You are generating SIMPLE SENTENCES with phonics patterns.
+
+ABSOLUTE RULE - NO EXCEPTIONS:
+The targetLetter field MUST NEVER be "sentence" or "simple_sentence"!
+
+You MUST identify the actual phonics pattern in the sentence and use that specific pattern.
+
+Based on the learning focus:
+"""
+        
+        if learning_focus == 'long_vowels':
+            prompt += """
+LEARNING FOCUS: Long Vowels
+
+!!!!! CRITICAL WARNING - LONG VOWELS ARE COMPLEX !!!!!
+
+Long vowel patterns require EXTRA ATTENTION!
+You MUST specify exact patterns like "a_e", "ue", "ai", "oa"
+NEVER EVER use "sentence" or "simple_sentence" for targetLetter!
+
+This is MORE CRITICAL for long vowels than other patterns!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+LEARNING FOCUS: Long Vowels
+
+
+For EVERY sentence you generate:
+1. Identify which long vowel pattern appears in the sentence
+2. Use that SPECIFIC pattern in targetLetter
+
+Required patterns for long vowels:
+- Long A: "a_e" (cake, make, snake, take), "ai" (rain, wait), "ay" (day, play)
+- Long E: "ee" (tree, see), "ea" (beach, eat), "e_e" (these)
+- Long I: "i_e" (like, time, wise), "ie" (pie, tie), "igh" (night, light)
+- Long O: "o_e" (home, hope, rope), "oa" (boat, road), "ow" (snow, blow)
+- Long U: "u_e" (huge, cute, use), "ue" (blue, true), "ui" (fruit, juice)
+
+EXAMPLE - CORRECT:
+Sentence: "The huge snake slithered through the grass."
+Analysis: This has "huge" (u_e) and "snake" (a_e)
+Choose the most prominent: "a_e"
+{{
+    "word": "The huge snake slithered through the grass.",
+    "targetLetter": "a_e",
+    "pattern": "long_a",
+    "patternPosition": "multiple"
+}}
+
+EXAMPLE - WRONG (DO NOT DO THIS):
+{{
+    "word": "The huge snake slithered through the grass.",
+    "targetLetter": "sentence",
+    "pattern": "simple_sentence"
+}}
+"""
+        elif learning_focus == 'short_vowels':
+            prompt += """
+LEARNING FOCUS: Short Vowels
+
+Use: "a", "e", "i", "o", or "u" based on which short vowel appears most in the sentence.
+
+Example: "The cat sat on a mat." -> targetLetter: "a", pattern: "short_a"
+"""
+        elif learning_focus == 'blends':
+            prompt += """
+LEARNING FOCUS: Consonant Blends
+
+Use the specific blend: "st", "bl", "fr", "gr", "cl", etc.
+
+Example: "The frog can jump fast." -> targetLetter: "fr", pattern: "blend_fr"
+"""
+        elif learning_focus == 'digraphs':
+            prompt += """
+LEARNING FOCUS: Digraphs
+
+Use the specific digraph: "sh", "ch", "th", "wh", "ph"
+
+Example: "The ship sails on the sea." -> targetLetter: "sh", pattern: "digraph_sh"
+"""
+        
+        prompt += """
+
+FINAL REMINDER:
+- targetLetter = specific pattern ("a_e", "ee", "sh", "bl", etc.)
+- targetLetter NEVER EQUALS "sentence" or "simple_sentence"
+- If you use "sentence", the game will break and students cannot learn!
+"""
+
+    prompt += """
+
     RETURN FORMAT - JSON array with this EXACT structure:
     [
         {{
@@ -312,9 +458,30 @@ You are an expert phonics educator creating learning materials for elementary st
         prompt += """
     - Two distinct words joined (not hyphenated)
     - Each part should be recognizable to children
-    - Examples: sunset, popcorn, rainbow, bedroom
-    - Syllable breakdown shows the compound structure (sun-set)
-        """
+    
+!!!!! FOR LONG VOWELS WITH COMPOUND WORDS !!!!!
+
+The compound word MUST ACTUALLY CONTAIN a long vowel pattern!
+
+CORRECT EXAMPLES:
+- "rainbow" → has "ai" in "rain" ✅
+- "toothpaste" → has "oo" and "a_e" ✅
+- "seaweed" → has "ea" in "sea" and "ee" in "weed" ✅
+- "mailbox" → has "ai" in "mail" ✅
+- "moonlight" → has "oo" in "moon" and "igh" in "light" ✅
+
+WRONG EXAMPLES - DO NOT GENERATE THESE:
+- "sunset" → NO long vowels (short u, short e) ❌
+- "butterfly" → NO clear long vowels ❌
+- "hotdog" → NO long vowels (short o) ❌
+- "backpack" → NO long vowels (short a) ❌
+
+CHECK YOUR WORK:
+1. Generate a compound word
+2. Look at EACH part: Does it have a long vowel pattern?
+3. If NO long vowel → Generate a DIFFERENT word!
+4. If YES → Use that pattern for targetLetter
+    """
     elif challenge_level == 'phrases':
         prompt += """
     - 2-4 words that go together naturally
@@ -359,13 +526,52 @@ You are an expert phonics educator creating learning materials for elementary st
     - Examples: cat, bed, pig, dog, sun
             """
     elif learning_focus == 'long_vowels':
+        prompt += """
+    
+!!!!! CRITICAL FOR LONG VOWELS - ALL CHALLENGE LEVELS !!!!!
+
+Long vowel patterns are COMPLEX and require SPECIFIC targetLetter values!
+
+YOU MUST USE EXACT PATTERNS:
+- For long A: "a_e", "ai", "ay", "ea"
+- For long E: "ee", "ea", "e_e", "ie"
+- For long I: "i_e", "ie", "igh", "y"
+- For long O: "o_e", "oa", "ow", "oe"
+- For long U: "u_e", "ue", "ui", "ew"
+
+EXAMPLES BY CHALLENGE LEVEL:
+
+Simple Words: "cake" -> targetLetter: "a_e", pattern: "long_a"
+Compound Words: "rainbow" -> targetLetter: "ai", pattern: "long_a"
+Phrases: "green tree" -> targetLetter: "ee", pattern: "long_e"
+Simple Sentences: "I like to bake." -> targetLetter: "a_e", pattern: "long_a"
+
+!!!!! CRITICAL VALIDATION CHECK !!!!!
+
+BEFORE you set targetLetter, VERIFY the pattern EXISTS in the word!
+
+BAD Example:
+Word: "whalebone" 
+targetLetter: "oa" ❌ WRONG! There is NO "oa" in "whalebone"!
+
+GOOD Example:
+Word: "whalebone" (has wh-a-l-e-bone)
+targetLetter: "a_e" ✅ CORRECT! The "a_e" exists in "whale"
+
+STEP-BY-STEP CHECK:
+1. Look at the word you generated
+2. Find the long vowel pattern that ACTUALLY APPEARS in the word
+3. Use that pattern for targetLetter
+4. Double-check: Can you see those exact letters in the word?
+
+NEVER use generic values like "long_vowels" or "vowels" in targetLetter!
+ALWAYS use the specific pattern like "ee", "ai", "a_e"!
+        """
         if challenge_level == 'simple_sentences':
             prompt += """
-    - Focus on long vowel sounds and patterns
     - MUST generate complete SENTENCES (not single words!)
     - Each sentence must have a subject and verb
     - Include words with long vowel sounds in the sentences
-    - Examples: "I like cake a lot.", "The tree is so green.", "My bike is nice.", "We go home today.", "That tune is cute."
             """
         else:
             prompt += """
@@ -424,7 +630,12 @@ You MUST return a JSON array where EVERY word object contains ALL 7 required fie
 
 1. "word": The actual word/phrase/sentence (string, not empty)
 2. "syllableBreakdown": Syllables with hyphens, e.g., "sun-set" (string, not empty)
-3. "targetLetter": The specific letter(s) being taught, e.g., "a", "sh", "st" (string, not empty)
+3. "targetLetter": The specific letter(s) or pattern being taught (string, not empty)
+   ⚠️ CRITICAL: For simple_sentences, MUST be specific pattern, NEVER "sentence"
+   - Short Vowels: "a", "e", "i", "o", "u"
+   - Long Vowels: "a_e", "ai", "ay", "ee", "ea", "i_e", "ie", "igh", "o_e", "oa", "ow", "u_e", "ue", "ui"
+   - Blends: "st", "bl", "fr", "cl", "gr", "pl", "pr", "tr", etc.
+   - Digraphs: "sh", "ch", "th", "wh", "ph", "ng", "ck"
 4. "definition": Simple, child-friendly meaning (string, not empty)
 5. "pattern": Short identifier like "short_a", "digraph_sh", "compound" (string, not empty)
 6. "patternPosition": Must be "beginning", "middle", "end", or "whole" (string, not empty)
