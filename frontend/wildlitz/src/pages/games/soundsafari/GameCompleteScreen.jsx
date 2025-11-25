@@ -1,10 +1,11 @@
 // frontend/wildlitz/src/pages/games/soundsafari/GameCompleteScreen.jsx
 // UPDATED - Shows overall success rate (like analytics) without points display
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../../styles/games/safari/GameCompleteScreen.module.css';
+import gameCompleteSoundEffect from '../../../assets/sound_effects/game-complete-sound-effect.mp3';
 import WildLitzFox from '../../../assets/img/wildlitz-idle.png';
 
 /**
@@ -21,6 +22,25 @@ const GameCompleteScreen = ({
   gameConfig = null,
   roundsData = null // New prop for detailed round data
 }) => {
+  // Sound effect reference
+  const audioRef = useRef(null);
+  
+  // Play sound effect when component mounts
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = 0.5; // Set to 50% volume
+      
+      const playSound = async () => {
+        try {
+          await audioRef.current.play();
+        } catch (error) {
+          console.log('Sound effect auto-play blocked:', error);
+        }
+      };
+      
+      playSound();
+    }
+  }, []);
   const navigate = useNavigate();
   const [showConfetti, setShowConfetti] = useState(false);
   
@@ -133,6 +153,8 @@ const GameCompleteScreen = ({
   
   return (
     <div className={styles.completeContainer}>
+      {/* Game Complete Sound Effect */}
+      <audio ref={audioRef} src={gameCompleteSoundEffect} />
       {/* Confetti Animation */}
       <AnimatePresence>
         {showConfetti && (
