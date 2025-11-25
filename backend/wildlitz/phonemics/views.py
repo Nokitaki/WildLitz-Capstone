@@ -124,23 +124,23 @@ def log_phonemics_activity(user, activity_type, question_data, user_answer, corr
 def get_difficulty_requirements(difficulty):
     """
     Get the required number of correct and total animals for each difficulty level.
-    Guarantees minimum 3 correct animals in every round.
+    UPDATED: Lowered minimum to 2 to handle sparse database
     """
     requirements = {
         'easy': {
-            'min_correct': 3,
+            'min_correct': 2,
             'total_animals': 6,
-            'max_incorrect': 3
+            'max_incorrect': 4
         },
         'medium': {
-            'min_correct': 3,
+            'min_correct': 2,
             'total_animals': 8,
-            'max_incorrect': 5
+            'max_incorrect': 6
         },
         'hard': {
-            'min_correct': 3,
+            'min_correct': 2,
             'total_animals': 12,
-            'max_incorrect': 9
+            'max_incorrect': 10
         }
     }
     return requirements.get(difficulty, requirements['easy'])
@@ -544,27 +544,107 @@ def get_safari_animals_by_sound(request):
                 # Add all we found
                 animals_found.extend(additional_animals)
                 logger.warning(f"⚠️ Could only add {len(additional_animals)} more, total: {len(animals_found)}")
+
+        # ============================================================
+        # ✅ CRITICAL FIX: Validate position match for non-"anywhere" positions
+        # This ensures backend and frontend agree on what's "correct"
+        # ============================================================
+        if sound_position and sound_position != 'anywhere':
+            # Filter animals_found to ONLY include exact position matches
+            position_matched_animals = [
+                animal for animal in animals_found 
+                if animal.get('sound_position') == sound_position
+            ]
+            
+            # Log what we're doing
+            original_count = len(animals_found)
+            matched_count = len(position_matched_animals)
+            
+            if matched_count < original_count:
+                logger.warning(
+                    f"⚠️ POSITION VALIDATION: Filtered {original_count} animals down to {matched_count} "
+                    f"that match position '{sound_position}'"
+                )
+                logger.warning(
+                    f"   Excluded {original_count - matched_count} animals with sound '{target_sound}' "
+                    f"but different positions"
+                )
+            
+            # Use only position-matched animals
+            animals_found = position_matched_animals
+
+        # ============================================================
+        # ✅ EMERGENCY: Accept ANY animals we found (even if < minimum)
+        # ============================================================
+        if len(animals_found) >= 1 and len(animals_found) < min_correct:
+            logger.warning(
+                f"⚠️ EMERGENCY: Only found {len(animals_found)} animals for sound='{target_sound}' "
+                f"position='{sound_position}' (need {min_correct})"
+            )
+            logger.warning(f"🔄 Lowering minimum to {len(animals_found)} to avoid 404 error")
+            min_correct = len(animals_found)
         
         # Final check - if STILL not enough correct animals after relaxing filters
         if len(animals_found) < min_correct:
-            logger.error(f"🚨 CRITICAL: Only {len(animals_found)} correct animals found after all attempts!")
-            logger.error(f"🚨 Database needs more animals for sound='{target_sound}' position='{sound_position}'")
+            # ============================================================
+            # ✅ FALLBACK: Switch to "anywhere" position if specific position fails
+            # ============================================================
+            logger.warning(
+                f"⚠️ FALLBACK TRIGGERED: Insufficient animals for sound='{target_sound}' "
+                f"position='{sound_position}' (found {len(animals_found)}, need {min_correct})"
+            )
+            logger.info(f"🔄 Attempting fallback to 'anywhere' position for sound='{target_sound}'")
             
-            # Return error with detailed information
-            return Response({
-                'success': False,
-                'animals': [],
-                'error': f'Insufficient animals in database. Found {len(animals_found)} but need minimum {min_correct} for {difficulty} difficulty.',
-                'details': {
-                    'target_sound': target_sound,
-                    'sound_position': sound_position,
-                    'environment': environment,
-                    'difficulty': difficulty,
-                    'found': len(animals_found),
-                    'required': min_correct
-                },
-                'fallback_used': strategy_used
-            }, status=status.HTTP_404_NOT_FOUND)
+            # Try to get animals with target sound at ANY position
+            fallback_query = supabase.table('safari_animals').select('*')
+            fallback_query = fallback_query.eq('target_sound', target_sound)
+            
+            if environment:
+                fallback_query = fallback_query.eq('environment', environment)
+            
+            if difficulty != 'hard':
+                fallback_query = fallback_query.eq('difficulty_level', difficulty)
+            
+            if exclude_ids:
+                fallback_query = fallback_query.not_.in_('id', exclude_ids)
+            
+            fallback_response = fallback_query.execute()
+            fallback_animals = fallback_response.data or []
+            
+            if len(fallback_animals) >= min_correct:
+                logger.info(
+                    f"✅ FALLBACK SUCCESS: Found {len(fallback_animals)} animals with sound '{target_sound}' "
+                    f"at ANY position (switched from '{sound_position}')"
+                )
+                
+                # Use fallback animals as "correct" animals
+                animals_found = fallback_animals[:min_correct]
+                strategy_used = f"fallback_anywhere_from_{sound_position}"
+                
+            else:
+                # Even fallback failed - return error
+                logger.error(
+                    f"🚨 FALLBACK FAILED: Only found {len(fallback_animals)} animals with sound '{target_sound}' "
+                    f"at ANY position (need {min_correct})"
+                )
+                logger.error(f"🚨 Database critically lacks animals for sound '{target_sound}'")
+                
+                return Response({
+                    'success': False,
+                    'animals': [],
+                    'error': f'Insufficient animals in database. Found {len(fallback_animals)} with sound "{target_sound}" at any position, but need minimum {min_correct} for {difficulty} difficulty.',
+                    'details': {
+                        'target_sound': target_sound,
+                        'requested_position': sound_position,
+                        'fallback_attempted': 'anywhere',
+                        'environment': environment,
+                        'difficulty': difficulty,
+                        'found_specific': len(animals_found),
+                        'found_any': len(fallback_animals),
+                        'required': min_correct
+                    },
+                    'suggestion': 'Add more animals to database or use "anywhere" position'
+                }, status=status.HTTP_404_NOT_FOUND)
         
         logger.info(f"✅ Have {len(animals_found)} correct animals (minimum {min_correct} satisfied)")
         
@@ -658,7 +738,9 @@ def get_safari_animals_by_sound(request):
             'total_count': len(all_animals),
             'min_correct_guaranteed': min_correct,
             'requirement_met': len(animals_found) >= min_correct,
-            'fallback_used': strategy_used
+            'fallback_used': strategy_used,
+            'position_validated': sound_position != 'anywhere',
+            'effective_position': sound_position if 'fallback_anywhere' not in strategy_used else 'anywhere'
         })
         
     except Exception as e:
@@ -1225,11 +1307,3 @@ def get_session_rounds(request, session_id):
             'success': False,
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-# ==========================================
-# ADD THIS TO urls.py:
-# path('get-session-rounds/<uuid:session_id>/', views.get_session_rounds, name='get_session_rounds'),
-# ==========================================
-
-

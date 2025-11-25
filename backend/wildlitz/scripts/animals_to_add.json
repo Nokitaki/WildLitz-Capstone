@@ -68,5 +68,144 @@
     "sound_position": "beginning",
     "environment": "jungle",
     "difficulty_level": "easy"
+  },{
+    "name": "Anteater",
+    "target_sound": "r",
+    "sound_position": "ending",
+    "environment": "jungle",
+    "difficulty_level": "easy"
+  },
+  {
+    "name": "Badger",
+    "target_sound": "r",
+    "sound_position": "ending",
+    "environment": "jungle",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Bear",
+    "target_sound": "r",
+    "sound_position": "ending",
+    "environment": "jungle",
+    "difficulty_level": "easy"
+  },
+  {
+    "name": "Cheetah",
+    "target_sound": "h",
+    "sound_position": "ending",
+    "environment": "savanna",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Clownfish",
+    "target_sound": "h",
+    "sound_position": "ending",
+    "environment": "ocean",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Finch",
+    "target_sound": "h",
+    "sound_position": "ending",
+    "environment": "jungle",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Cow",
+    "target_sound": "w",
+    "sound_position": "ending",
+    "environment": "savanna",
+    "difficulty_level": "easy"
+  },
+  {
+    "name": "Sparrow",
+    "target_sound": "w",
+    "sound_position": "ending",
+    "environment": "jungle",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Black Panther",
+    "target_sound": "h",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Cheetah",
+    "target_sound": "h",
+    "sound_position": "middle",
+    "environment": "savanna",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Black Panther",
+    "target_sound": "c",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Crocodile",
+    "target_sound": "c",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Lamb",
+    "target_sound": "b",
+    "sound_position": "ending",
+    "environment": "savanna",
+    "difficulty_level": "easy"
+  },
+  {
+    "name": "Bison",
+    "target_sound": "s",
+    "sound_position": "middle",
+    "environment": "savanna",
+    "difficulty_level": "easy"
+  },
+  {
+    "name": "Shrimp",
+    "target_sound": "p",
+    "sound_position": "ending",
+    "environment": "ocean",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Clownfish",
+    "target_sound": "w",
+    "sound_position": "middle",
+    "environment": "ocean",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Wolf",
+    "target_sound": "f",
+    "sound_position": "ending",
+    "environment": "jungle",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Snail",
+    "target_sound": "s",
+    "sound_position": "beginning",
+    "environment": "jungle",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Slug",
+    "target_sound": "s",
+    "sound_position": "beginning",
+    "environment": "jungle",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Frog",
+    "target_sound": "r",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "easy"
   }
 ]
