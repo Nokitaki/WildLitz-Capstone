@@ -49,47 +49,60 @@ def validate_long_vowel_pattern(word, target_letter):
 def detect_long_vowel_pattern(word):
     """
     Automatically detect which long vowel pattern exists in a word.
-    Returns the pattern string (e.g., 'a_e', 'ee', 'ai') or None if not found.
+    Returns the pattern string (e.g., 'a_e', 'ee', 'ai', 'ui') or None if not found.
+    
+    CRITICAL FIX: Check vowel teams FIRST, then magic-e patterns.
+    This prevents "suitcase" from being identified as "u_e" when it's really "ui".
     """
     word_lower = word.lower()
     
-    # Check for magic-e patterns first (a_e, i_e, o_e, u_e, e_e)
-    magic_e_patterns = [
-        ('a', 'e', 'a_e'),
-        ('i', 'e', 'i_e'),
-        ('o', 'e', 'o_e'),
-        ('u', 'e', 'u_e'),
-        ('e', 'e', 'e_e')
-    ]
-    
-    for vowel, e, pattern_name in magic_e_patterns:
-        # Check for vowel + consonant + e pattern
-        for i in range(len(word_lower) - 2):
-            if word_lower[i] == vowel and word_lower[i + 2] == e and word_lower[i + 1] != ' ':
-                return pattern_name
-    
-    # Check for vowel team patterns (order matters - check longer patterns first)
+    # ============================================
+    # STEP 1: Check for vowel team patterns FIRST
+    # ============================================
     vowel_teams = [
-        'igh',  # night, light
+        # 4-letter teams
         'eigh', # eight, weigh
-        'ough', # though
-        'augh', # taught
-        'ai',   # rain, wait
-        'ay',   # day, play
-        'ee',   # tree, see
-        'ea',   # beach, eat
-        'ie',   # pie, tie
-        'oa',   # boat, road
-        'ow',   # snow, blow
-        'ue',   # blue, true
-        'ui',   # fruit, juice
-        'ey',   # key, they
-        'ew',   # new, few
+        'augh', # taught, caught
+        'ough', # though, dough
+        # 3-letter teams
+        'igh',  # night, light, right
+        # 2-letter teams
+        'ai',   # rain, wait, train
+        'ay',   # day, play, stay
+        'ee',   # tree, see, feet
+        'ea',   # beach, eat, read
+        'ie',   # pie, tie, tried
+        'oa',   # boat, road, toad
+        'ow',   # snow, blow, show
+        'ue',   # blue, true, clue
+        'ui',   # fruit, juice, suitcase ← FIXES YOUR ISSUE!
+        'ey',   # key, they, monkey
+        'ew',   # new, few, grew
+        'oo',   # moon, food, soon
     ]
     
     for team in vowel_teams:
         if team in word_lower:
             return team
+    
+    # ============================================
+    # STEP 2: Check for magic-e patterns SECOND
+    # ============================================
+    magic_e_patterns = [
+        ('a', 'e', 'a_e'),  # cake, make, snake
+        ('i', 'e', 'i_e'),  # bike, kite, time
+        ('o', 'e', 'o_e'),  # home, rope, bone
+        ('u', 'e', 'u_e'),  # cute, tube, huge
+        ('e', 'e', 'e_e'),  # these, Pete
+    ]
+    
+    for vowel, e, pattern_name in magic_e_patterns:
+        # Check for vowel + consonant + e pattern
+        for i in range(len(word_lower) - 2):
+            if (word_lower[i] == vowel and 
+                word_lower[i + 2] == e and 
+                word_lower[i + 1] not in ' aeiouy'):
+                return pattern_name
     
     return None
 
@@ -99,6 +112,23 @@ def regenerate_if_invalid(words, learning_focus):
     Check each word and FIX incorrect targetLetter values.
     For long_vowels, validates and corrects the targetLetter pattern.
     """
+    if learning_focus == 'short_vowels':
+        validated_words = []
+        for word_obj in words:
+            word = word_obj.get('word', '')
+            
+            # Check if word contains any LONG vowel pattern
+            has_long_vowel = detect_long_vowel_pattern(word)
+            
+            if has_long_vowel:
+                # REJECT this word - it has a long vowel pattern!
+                print(f"❌ REJECTED (short vowels): '{word}' - contains long vowel pattern '{has_long_vowel}'")
+            else:
+                # ACCEPT this word - no long vowel patterns found
+                print(f"✅ VALID (short vowels): '{word}' - only short vowels")
+                validated_words.append(word_obj)
+        
+        return validated_words
     if learning_focus != 'long_vowels':
         return words
     
