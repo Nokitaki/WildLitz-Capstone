@@ -21,7 +21,6 @@ const ConfigScreen = ({
   const [vanishSpeed, setVanishSpeed] = useState('normal');
   const [numberOfQuestions, setNumberOfQuestions] = useState(10);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
-  const audioRef = useRef(null);
   
   // Configuration progress
   const [configProgress, setConfigProgress] = useState(0);
@@ -33,23 +32,6 @@ const ConfigScreen = ({
   const [teamAName, setTeamAName] = useState('Team A');
   const [teamBName, setTeamBName] = useState('Team B');
 
-  // ✅ ADD THIS ENTIRE useEffect ✅
-// ✅ Simple music with HTML5 audio ✅
-useEffect(() => {
-  if (audioRef.current) {
-    audioRef.current.volume = 0.3;
-    audioRef.current.play().catch(() => {
-      console.log('Music will start on first click');
-    });
-  }
-  
-  return () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-  };
-}, []);
   
   // Calculate configuration progress
   useEffect(() => {
@@ -82,10 +64,6 @@ useEffect(() => {
   // Handle start game with custom settings
   const handleStartGame = () => {
     if (!isConfigComplete || loading) return;
-
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
     
     const config = {
       challengeLevel,
@@ -98,7 +76,7 @@ useEffect(() => {
       voiceType,
       teamPlay,
       teamAName: teamPlay ? teamAName : null,
-      teamBName: teamPlay ? teamBName : null
+      teamBName: teamPlay ? teamBName : null,
     };
     
     if (onStartGame) {
@@ -664,11 +642,6 @@ useEffect(() => {
           </motion.div>
         )}
       </motion.div>
-
-      {/* Background music */}
-      <audio ref={audioRef} loop preload="auto">
-        <source src="https://www.bensound.com/bensound-music/bensound-happy.mp3" type="audio/mpeg" />
-      </audio>
     </div>
   );
 };

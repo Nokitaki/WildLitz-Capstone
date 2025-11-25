@@ -67,6 +67,17 @@ const VanishingGame = () => {
   const [teamScores, setTeamScores] = useState({ teamA: 0, teamB: 0 });
 
   const [teamNames, setTeamNames] = useState({ teamA: 'Team A', teamB: 'Team B' });
+
+ const backgroundAudioRef = useRef(null);
+
+// ✅ Start music when component mounts and keep it playing until gameplay
+// ✅ Start music when component first loads
+useEffect(() => {
+  if (backgroundAudioRef?.current) {
+    backgroundAudioRef.current.volume = 0.3;
+    backgroundAudioRef.current.play().catch(err => console.log('Music will start on first click'));
+  }
+}, []); // Empty array = runs once on mount
   
   // Enhanced game statistics
   const [gameStats, setGameStats] = useState({
@@ -90,6 +101,7 @@ const VanishingGame = () => {
  */
 const handleStartGame = (config) => {
   console.log('🎮 Config selected, showing guide:', config);
+
   
   setGameConfig({
     ...config,
@@ -116,6 +128,10 @@ const handleStartGame = (config) => {
  */
 const handleStartFromGuide = async () => {
   console.log('🚀 Starting game after guide');
+
+    if (backgroundAudioRef?.current) {
+    backgroundAudioRef.current.pause();
+  }
 
   setCurrentRound(1);
   setScore(0);
@@ -186,6 +202,9 @@ const handleStartFromGuide = async () => {
     if (generatedWords && generatedWords.length > 0) {
       setWordData(generatedWords);
       setCurrentWordIndex(0);
+    if (backgroundAudioRef?.current) {
+        backgroundAudioRef.current.pause();
+      }
       setGameState('gameplay');
       setSessionStartTime(Date.now());
       setGameStartTime(Date.now());
@@ -470,6 +489,11 @@ const handleNextWord = (countRound = true) => {
 }
     
     setGameState('complete');
+
+    if (backgroundAudioRef?.current) {
+  backgroundAudioRef.current.currentTime = 0; // Start from beginning
+  backgroundAudioRef.current.play().catch(err => console.log('Music play error:', err));
+}
   };
 
   /**
@@ -784,6 +808,12 @@ const handlePlayAgain = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+            {/* ✅ ADD THESE LINES HERE */}
+      <audio ref={backgroundAudioRef} loop preload="auto">
+        <source src="https://www.bensound.com/bensound-music/bensound-ukulele.mp3" type="audio/mpeg" />
+        <source src="https://www.bensound.com/bensound-music/bensound-sunny.mp3" type="audio/mpeg" />
+      </audio>
     </div>
   );
 };
