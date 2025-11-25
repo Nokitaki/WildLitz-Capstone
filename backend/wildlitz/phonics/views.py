@@ -46,11 +46,58 @@ def validate_long_vowel_pattern(word, target_letter):
     # For regular patterns (consecutive letters)
     return clean_target in word_lower
 
+def detect_long_vowel_pattern(word):
+    """
+    Automatically detect which long vowel pattern exists in a word.
+    Returns the pattern string (e.g., 'a_e', 'ee', 'ai') or None if not found.
+    """
+    word_lower = word.lower()
+    
+    # Check for magic-e patterns first (a_e, i_e, o_e, u_e, e_e)
+    magic_e_patterns = [
+        ('a', 'e', 'a_e'),
+        ('i', 'e', 'i_e'),
+        ('o', 'e', 'o_e'),
+        ('u', 'e', 'u_e'),
+        ('e', 'e', 'e_e')
+    ]
+    
+    for vowel, e, pattern_name in magic_e_patterns:
+        # Check for vowel + consonant + e pattern
+        for i in range(len(word_lower) - 2):
+            if word_lower[i] == vowel and word_lower[i + 2] == e and word_lower[i + 1] != ' ':
+                return pattern_name
+    
+    # Check for vowel team patterns (order matters - check longer patterns first)
+    vowel_teams = [
+        'igh',  # night, light
+        'eigh', # eight, weigh
+        'ough', # though
+        'augh', # taught
+        'ai',   # rain, wait
+        'ay',   # day, play
+        'ee',   # tree, see
+        'ea',   # beach, eat
+        'ie',   # pie, tie
+        'oa',   # boat, road
+        'ow',   # snow, blow
+        'ue',   # blue, true
+        'ui',   # fruit, juice
+        'ey',   # key, they
+        'ew',   # new, few
+    ]
+    
+    for team in vowel_teams:
+        if team in word_lower:
+            return team
+    
+    return None
+
 
 def regenerate_if_invalid(words, learning_focus):
     """
-    Check each word and regenerate if targetLetter doesn't exist in word.
-    Only applies to long_vowels.
+    Check each word and FIX incorrect targetLetter values.
+    For long_vowels, validates and corrects the targetLetter pattern.
     """
     if learning_focus != 'long_vowels':
         return words
@@ -60,11 +107,38 @@ def regenerate_if_invalid(words, learning_focus):
         word = word_obj.get('word', '')
         target = word_obj.get('targetLetter', '')
         
+        # Try to validate with current targetLetter
         if validate_long_vowel_pattern(word, target):
             validated_words.append(word_obj)
+            print(f"✅ VALID: '{word}' with targetLetter '{target}'")
         else:
-            # Log the error for debugging
-            print(f"❌ REJECTED: '{word}' with targetLetter '{target}' - pattern doesn't exist!")
+            # Try to find and fix the correct pattern
+            print(f"⚠️  INVALID: '{word}' with targetLetter '{target}' - attempting to fix...")
+            
+            # Try to detect the correct long vowel pattern
+            correct_pattern = detect_long_vowel_pattern(word)
+            
+            if correct_pattern:
+                # Fix the targetLetter
+                word_obj['targetLetter'] = correct_pattern
+                # Also update the pattern field if needed
+                if not word_obj.get('pattern', '').startswith('long_'):
+                    if correct_pattern[0] == 'a':
+                        word_obj['pattern'] = 'long_a'
+                    elif correct_pattern[0] == 'e':
+                        word_obj['pattern'] = 'long_e'
+                    elif correct_pattern[0] == 'i':
+                        word_obj['pattern'] = 'long_i'
+                    elif correct_pattern[0] == 'o':
+                        word_obj['pattern'] = 'long_o'
+                    elif correct_pattern[0] == 'u':
+                        word_obj['pattern'] = 'long_u'
+                
+                print(f"✅ FIXED: '{word}' → targetLetter changed to '{correct_pattern}'")
+                validated_words.append(word_obj)
+            else:
+                # Can't fix it, reject the word
+                print(f"❌ REJECTED: '{word}' - no valid long vowel pattern found")
     
     return validated_words
 
@@ -123,6 +197,18 @@ def generate_vanishing_words(request):
         
         # Generate words using OpenAI
         words = generate_phonics_words_with_ai(challenge_level, learning_focus, difficulty, word_count)
+        
+        # ✅ ADD THESE LINES HERE ✅
+        # Validate and fix long vowel patterns
+        words = regenerate_if_invalid(words, learning_focus)
+        
+        # Supplement with fallback if needed
+        if len(words) < word_count and learning_focus == 'long_vowels':
+            logger.warning(f"Lost {word_count - len(words)} words due to validation, supplementing with fallback")
+            fallback_needed = word_count - len(words)
+            fallback = generate_static_fallback_words(challenge_level, learning_focus, fallback_needed)
+            words.extend(fallback)
+        # ✅ END OF NEW LINES ✅
         
         return Response({
             'success': True,
@@ -747,6 +833,15 @@ def generate_example_words(request):
 
 IMPORTANT: The examples MUST match the challenge level format!
 
+🎯 CRITICAL: All examples must contain the EXACT SAME pattern: "{pattern}"
+
+Examples:
+- If pattern is "u": Generate "cup", "bug", "run", "hut"
+- If pattern is "a_e": Generate "cake", "make", "take", "bake"  
+- If pattern is "sh": Generate "shop", "ship", "shell", "shark"
+
+DO NOT mix patterns! Every word MUST contain "{pattern}".
+
 Return ONLY a JSON array of {count} words/phrases/sentences, nothing else.
 Format: ["example1", "example2", "example3", ...]
 
@@ -807,6 +902,31 @@ Examples:
 
 def get_smart_fallback(pattern, challenge_level, learning_focus):
     """Generate smart fallback examples based on all parameters"""
+
+    if pattern in ['a', 'short_a']:
+        return ['cat', 'hat', 'bat', 'mat', 'rat']
+    elif pattern in ['e', 'short_e']:
+        return ['bed', 'red', 'pet', 'wet', 'get']
+    elif pattern in ['i', 'short_i']:
+        return ['big', 'pig', 'sit', 'hit', 'fit']
+    elif pattern in ['o', 'short_o']:
+        return ['hot', 'pot', 'dot', 'top', 'hop']
+    elif pattern in ['u', 'short_u']:
+        return ['cup', 'sun', 'run', 'fun', 'bug']
+    elif pattern in ['a_e', 'long_a']:
+        return ['cake', 'make', 'take', 'bake', 'lake']
+    elif pattern in ['i_e', 'long_i']:
+        return ['bike', 'like', 'time', 'nice', 'five']
+    elif pattern in ['ee']:
+        return ['tree', 'see', 'bee', 'feet', 'meet']
+    elif pattern in ['sh', 'digraph_sh']:
+        return ['shop', 'ship', 'fish', 'wish', 'dish']
+    elif pattern in ['ch', 'digraph_ch']:
+        return ['chip', 'chat', 'chin', 'chop', 'much']
+    elif pattern in ['bl', 'blend_bl']:
+        return ['blue', 'blow', 'black', 'block', 'blend']
+    elif pattern in ['st', 'blend_st']:
+        return ['stop', 'step', 'stick', 'star', 'stay']
     
     fallbacks = {
         'simple_words': {

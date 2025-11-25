@@ -146,10 +146,12 @@ const renderWordWithHighlight = () => {
 const loadExampleWords = async () => {
   setLoadingExamples(true);
   try {
+    const patternToUse = targetLetter || pattern;  // ✅ ADD THIS LINE
+    
     const response = await axios.post(
       `${API_ENDPOINTS.PHONICS}/generate-example-words/`,
       {
-        pattern: pattern,
+        pattern: patternToUse,  // ✅ CHANGE TO THIS
         challengeLevel: config.challengeLevel, 
         learningFocus: config.learningFocus,    
         count: 5
