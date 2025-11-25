@@ -70,14 +70,25 @@ const VanishingGame = () => {
 
  const backgroundAudioRef = useRef(null);
 
+ const [volume, setVolume] = useState(0.3);
+const [isMuted, setIsMuted] = useState(false);
+const [showVolumeControl, setShowVolumeControl] = useState(false);
+
 // ✅ Start music when component mounts and keep it playing until gameplay
 // ✅ Start music when component first loads
 useEffect(() => {
   if (backgroundAudioRef?.current) {
-    backgroundAudioRef.current.volume = 0.3;
+    backgroundAudioRef.current.volume = volume;
     backgroundAudioRef.current.play().catch(err => console.log('Music will start on first click'));
   }
-}, []); // Empty array = runs once on mount
+}, []);
+
+// Update volume when it changes
+useEffect(() => {
+  if (backgroundAudioRef?.current) {
+    backgroundAudioRef.current.volume = isMuted ? 0 : volume;
+  }
+}, [volume, isMuted]);
   
   // Enhanced game statistics
   const [gameStats, setGameStats] = useState({
@@ -96,6 +107,22 @@ useEffect(() => {
   correctWords: 0 // Add this
 });
 
+// Music control handlers
+const handleVolumeChange = (e) => {
+  const newVolume = parseFloat(e.target.value);
+  setVolume(newVolume);
+  if (newVolume > 0) {
+    setIsMuted(false);
+  }
+};
+
+const toggleMute = () => {
+  setIsMuted(!isMuted);
+};
+
+const toggleVolumeControl = () => {
+  setShowVolumeControl(!showVolumeControl);
+};
 /**
  * 🎮 Handle config submission - goes to guide screen first
  */
@@ -641,11 +668,18 @@ const handlePlayAgain = () => {
             exit={{ opacity: 0, y: -20 }}
           >
             <ConfigScreen 
-              onStartGame={handleStartGame}
-              onViewAnalytics={handleViewAnalytics}
-              loading={loadingWords}
-              error={wordGenerationError}
-            />
+  onStartGame={handleStartGame}
+  onViewAnalytics={handleViewAnalytics}
+  loading={loadingWords}
+  error={wordGenerationError}
+  // Music control props
+  volume={volume}
+  isMuted={isMuted}
+  showVolumeControl={showVolumeControl}
+  onVolumeChange={handleVolumeChange}
+  onToggleMute={toggleMute}
+  onToggleVolumeControl={toggleVolumeControl}
+/>
           </motion.div>
         )}
         {gameState === 'guide' && (

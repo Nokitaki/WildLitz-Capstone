@@ -1286,4 +1286,243 @@
   .buttonIcon {
     font-size: 2rem;
   }
+  /* ===== BACKGROUND MUSIC CONTROL STYLES ===== */
+.soundControlWrapper {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999; /* Higher z-index to stay on top */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none; /* Allow clicks to pass through wrapper */
+}
+
+.soundControlWrapper > * {
+  pointer-events: auto; /* But capture clicks on children */
+}
+
+.soundButton {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3), 
+              inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  font-size: 1.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+  backdrop-filter: blur(10px);
+}
+
+.soundButton::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  filter: blur(12px);
+}
+
+.soundButton:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5),
+              inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.soundButton:hover::before {
+  opacity: 0.7;
+}
+
+.soundButton:active {
+  transform: scale(0.95);
+}
+
+.volumeControlPanel {
+  position: absolute; /* CRITICAL: absolute positioning */
+  top: 70px; /* Position below the button */
+  right: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 248, 255, 0.98) 100%);
+  border: 3px solid #667eea;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+  width: 280px;
+  backdrop-filter: blur(10px);
+  /* Prevent layout shift */
+  margin: 0;
+  transform-origin: top right;
+}
+
+.volumeHeader {
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.volumeTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4a5568;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-shadow: none;
+}
+
+.volumeControls {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.volumeSliderContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.volumeIcon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.volumeSlider {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e2e8f0 0%, #cbd5e0 100%);
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.volumeSlider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+}
+
+.volumeSlider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.volumeSlider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+}
+
+.volumePercentage {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #667eea;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  border: 2px solid #667eea;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.muteButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.muteButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.muteButton:active {
+  transform: translateY(0);
+}
+
+.muteButton.muted {
+  background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+  box-shadow: 0 4px 12px rgba(74, 85, 104, 0.3);
+}
+
+.muteButton.muted:hover {
+  box-shadow: 0 6px 16px rgba(74, 85, 104, 0.4);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .soundControlWrapper {
+    top: 15px;
+    right: 15px;
+  }
+  
+  .soundButton {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+  
+  .volumeControlPanel {
+    width: 250px;
+    padding: 15px;
+    top: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .soundControlWrapper {
+    top: 10px;
+    right: 10px;
+  }
+  
+  .soundButton {
+    width: 45px;
+    height: 45px;
+    font-size: 1.3rem;
+  }
+  
+  .volumeControlPanel {
+    width: 220px;
+    padding: 12px;
+    top: 55px;
+  }
+}
 }

@@ -9,9 +9,16 @@ import styles from '../../../styles/games/vanishing/ConfigScreen.module.css';
  */
 const ConfigScreen = ({ 
   onStartGame, 
-  onViewAnalytics, // ANALYTICS ADDED - Only change to props
+  onViewAnalytics,
   loading = false, 
-  error = null 
+  error = null,
+  // Music control props
+  volume = 0.5,
+  isMuted = false,
+  showVolumeControl = false,
+  onVolumeChange,
+  onToggleMute,
+  onToggleVolumeControl
 }) => {
   // Game configuration state - Start with no selections
   const [challengeLevel, setChallengeLevel] = useState('');
@@ -641,6 +648,67 @@ const ConfigScreen = ({
             )}
           </motion.div>
         )}
+      </motion.div>
+   {/* Background Music Controls */}
+      <motion.div 
+        className={styles.soundControlWrapper}
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 0.5, type: 'spring', stiffness: 260, damping: 20 }}
+      >
+        <motion.button
+          className={styles.soundButton}
+          onClick={onToggleVolumeControl}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {isMuted ? '🔇' : volume > 0.5 ? '🔊' : volume > 0 ? '🔉' : '🔈'}
+        </motion.button>
+        
+        <AnimatePresence>
+          {showVolumeControl && (
+            <motion.div
+              className={styles.volumeControlPanel}
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className={styles.volumeHeader}>
+                <span className={styles.volumeTitle}>🎵 Background Music</span>
+              </div>
+              
+              <div className={styles.volumeControls}>
+                <div className={styles.volumeSliderContainer}>
+                  <span className={styles.volumeIcon}>🔈</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={volume}
+                    onChange={onVolumeChange}
+                    className={styles.volumeSlider}
+                  />
+                  <span className={styles.volumeIcon}>🔊</span>
+                </div>
+                
+                <div className={styles.volumePercentage}>
+                  {Math.round(volume * 100)}%
+                </div>
+                
+                <motion.button
+                  className={`${styles.muteButton} ${isMuted ? styles.muted : ''}`}
+                  onClick={onToggleMute}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {isMuted ? '🔇 Unmute' : '🔊 Mute'}
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   );
