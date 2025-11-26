@@ -107,53 +107,64 @@ def detect_long_vowel_pattern(word):
     return None
 def is_compound_word(word):
     """
-    Check if a word is a true compound word (two recognizable words joined together).
-    Returns True if it's a compound word, False otherwise.
+    Simple validation using a blacklist of common single words.
+    Accepts compound words, rejects obvious single words.
     """
     if not word or len(word) < 4:
         return False
     
     word_lower = word.lower().replace('-', '')
     
-    # Common compound word patterns
-    common_words = {
-        'sun', 'moon', 'rain', 'snow', 'sea', 'star', 'fire', 'water', 'air',
-        'hand', 'foot', 'head', 'eye', 'tooth', 'finger', 'heart',
-        'back', 'front', 'side', 'up', 'down', 'out', 'in',
-        'home', 'house', 'bed', 'bath', 'room', 'door', 'wall',
-        'day', 'night', 'time', 'week', 'year',
-        'play', 'work', 'school', 'class', 'book', 'note',
-        'black', 'white', 'blue', 'red', 'green',
-        'cup', 'tea', 'butter', 'pan', 'pot',
-        'mail', 'ship', 'air', 'any', 'every', 'some',
-        'bird', 'fish', 'dog', 'cat', 'pig', 'bee',
-        'tooth', 'brush', 'flash', 'light', 'spot', 'stop', 'check',
-        'white', 'board', 'black', 'phone', 'yard', 'basket', 'ball',
-        'foot', 'base', 'grass', 'land', 'sand', 'box',
-        'man', 'men', 'boy', 'girl', 'child', 'person',
-        'ball', 'box', 'bag', 'pack', 'case', 'book', 'room',
-        'light', 'shine', 'bow', 'flake', 'fall', 'rise',
-        'yard', 'pond', 'house', 'home', 'place', 'land', 'side',
-        'time', 'day', 'way', 'thing', 'body', 'where', 'one',
-        'maker', 'keeper', 'work', 'worker', 'player', 'teacher',
-        'mark', 'board', 'brush', 'fish', 'shell', 'weed',
-        'cake', 'dog', 'hat', 'mat', 'pen', 'pot', 'pan',
-        'watch', 'bird', 'tank', 'stick', 'ship', 'sail',
-        'made', 'ful', 'able', 'less',
-        'plane', 'port', 'gate', 'craft', 'boat', 'cart'
+    # Blacklist of SINGLE WORDS that might slip through
+    # These are words that LOOK like they could be compound but are NOT
+    single_word_blacklist = {
+        # Common single words with blends
+        'sled', 'street', 'trick', 'brave', 'crisp', 'black', 'blue', 'class',
+        'clock', 'close', 'cloud', 'club', 'flag', 'flame', 'flash', 'flat',
+        'floor', 'flower', 'frame', 'fresh', 'friend', 'front', 'frost',
+        'glad', 'glass', 'globe', 'glove', 'grade', 'grand', 'grape', 'grass',
+        'great', 'green', 'ground', 'group', 'plan', 'plane', 'plant', 'plate',
+        'play', 'please', 'pride', 'print', 'price', 'prize', 'prove',
+        'scale', 'scare', 'slide', 'slope', 'small', 'smart', 'smile', 'smoke',
+        'snake', 'space', 'speak', 'speed', 'spell', 'spend', 'spill', 'sport',
+        'spread', 'spring', 'square', 'stage', 'stamp', 'stand', 'star', 'start',
+        'state', 'stick', 'still', 'stone', 'store', 'story', 'strange', 'strap',
+        'stream', 'stress', 'strike', 'string', 'strong', 'trace', 'track', 'trade',
+        'train', 'trash', 'treat', 'tree', 'trial', 'tribe', 'truck',
+        
+        # Common single words with digraphs
+        'chair', 'chain', 'change', 'charge', 'cheap', 'cheat', 'check', 'cheek',
+        'cheer', 'cheese', 'cherry', 'chest', 'chick', 'chicken', 'child', 'choice',
+        'phone', 'photo', 'phrase', 'graph', 'dolphin', 'elephant', 'alphabet',
+        'shell', 'ship', 'shirt', 'shock', 'shoot', 'shop', 'shore', 'short',
+        'should', 'shout', 'show', 'shut', 'fish', 'dish', 'wish', 'rush', 'push',
+        'brush', 'crash', 'fresh', 'trash',
+        'thank', 'thick', 'thing', 'think', 'third', 'thirsty', 'thorn', 'those',
+        'thought', 'three', 'throw', 'thumb', 'thunder', 'path', 'bath', 'math',
+        'whale', 'wheat', 'wheel', 'when', 'where', 'which', 'while', 'whip', 'white',
+        
+        # Other common single words
+        'another', 'together', 'nothing', 'something', 'anything', 'everything',
+        'mother', 'father', 'brother', 'sister', 'weather', 'whether', 'water',
+        'butter', 'letter', 'better', 'other', 'either',
+        'apple', 'orange', 'banana', 'purple', 'yellow', 'number', 'little',
+        'middle', 'people', 'animal', 'family', 'happy', 'ready', 'study'
     }
     
-    # Check if word can be split into two recognizable parts
-    for i in range(2, len(word_lower) - 1):
-        first_part = word_lower[:i]
-        second_part = word_lower[i:]
-        
-        if first_part in common_words and second_part in common_words:
-            print(f"✅ COMPOUND VALIDATED: '{word}' = '{first_part}' + '{second_part}'")
-            return True
+    # Reject if in blacklist
+    if word_lower in single_word_blacklist:
+        print(f"❌ BLACKLIST REJECTED: '{word}' is a single word, not compound")
+        return False
     
-    print(f"❌ NOT COMPOUND: '{word}' cannot be split into two recognizable words")
+    # Accept if at least 6 characters and not in blacklist
+    if len(word_lower) >= 6:
+        print(f"✅ COMPOUND ACCEPTED: '{word}' (passed blacklist)")
+        return True
+    
+    # For shorter words (4-5 chars), be cautious
+    print(f"⚠️ REJECTED: '{word}' too short to reliably validate as compound")
     return False
+
 
 
 def regenerate_if_invalid(words, learning_focus):
@@ -725,22 +736,123 @@ CHECK YOUR WORK:
     - Examples: "big blue car", "happy little dog"
     - Keep syllable breakdown as the full phrase
         """
-    if challenge_level == 'compound_words':
-        if learning_focus == 'short_vowels':
-            prompt += """
+        if challenge_level == 'compound_words':
+            prompt += f"""
+
+    🔥🔥🔥 MANDATORY: EVERY WORD MUST BE A COMPOUND WORD 🔥🔥🔥
+
+    COMPOUND WORD = TWO REAL WORDS JOINED TOGETHER
+
+    You MUST generate {word_count} COMPOUND WORDS (not single words!)
+
+    REQUIRED FORMAT FOR EVERY WORD:
+    - Split it into two parts: "word1" + "word2" = "compound"
+    - Both parts must be real English words
+    - Example: "hot" + "dog" = "hotdog" ✅
+    - NOT allowed: "cat" (single word) ❌
+
+    BEFORE WRITING EACH WORD, ASK:
+    1. Can I split this into "part1 + part2"?
+    2. Are BOTH parts real words?
+    3. If NO to either → DON'T USE IT!
+
+            """
             
-✅ COMPOUND WORD + SHORT VOWEL RULES:
+            if learning_focus == 'short_vowels':
+                prompt += """
+    COMPOUND WORDS WITH SHORT VOWELS:
 
-When combining compound_words with short_vowels:
-- BOTH parts of the compound should primarily use SHORT vowels
-- The targeted short vowel should appear in at least one part
-- Avoid mixing with long vowel patterns
+    Generate COMPOUND words where both parts use short vowel sounds.
 
-EXAMPLES:
-✅ CORRECT: "hotdog" (short o + short o), "sunset" (short u + short e), "sandbox" (short a + short o)
-❌ WRONG: "mailbox" (has long vowel "ai"), "rainbow" (has long vowels "ai" and "ow")
+    EXAMPLES (use patterns like these):
+    1. "hotdog" = "hot" + "dog" (both short vowels)
+    2. "catfish" = "cat" + "fish" (both short vowels)
+    3. "pigpen" = "pig" + "pen" (both short vowels)
+    4. "sandbox" = "sand" + "box" (both short vowels)
+    5. "sunset" = "sun" + "set" (both short vowels)
+    6. "backpack" = "back" + "pack" (both short vowels)
+    7. "hotpot" = "hot" + "pot" (both short vowels)
+    8. "ragdoll" = "rag" + "doll" (both short vowels)
+    9. "piglet" = "pig" + "let" (both short vowels)
+    10. "hatbox" = "hat" + "box" (both short vowels)
 
-GENERATE: Compound words where the focus is on short vowel sounds
+    CRITICAL: Every word MUST be two words joined! Not just "cat" or "dog"!
+                """
+                
+            elif learning_focus == 'long_vowels':
+                prompt += """
+    COMPOUND WORDS WITH LONG VOWELS:
+
+    Generate COMPOUND words where at least one part has a long vowel.
+
+    EXAMPLES (use patterns like these):
+    1. "rainbow" = "rain" + "bow" (long vowel: ai, ow)
+    2. "mailbox" = "mail" + "box" (long vowel: ai)
+    3. "seaweed" = "sea" + "weed" (long vowel: ea, ee)
+    4. "sailboat" = "sail" + "boat" (long vowel: ai, oa)
+    5. "cupcake" = "cup" + "cake" (long vowel: a_e)
+    6. "daytime" = "day" + "time" (long vowel: ay, i_e)
+    7. "moonlight" = "moon" + "light" (long vowel: oo, igh)
+    8. "beehive" = "bee" + "hive" (long vowel: ee, i_e)
+    9. "seashell" = "sea" + "shell" (long vowel: ea)
+    10. "raincoat" = "rain" + "coat" (long vowel: ai, oa)
+
+    CRITICAL: Every word MUST be two words joined! Not just "rain" or "moon"!
+                """
+                
+            elif learning_focus == 'blends':
+                prompt += """
+    COMPOUND WORDS WITH BLENDS:
+
+    Generate COMPOUND words where at least one part has a consonant blend.
+
+    EXAMPLES (use patterns like these):
+    1. "starfish" = "star" + "fish" (blend: st)
+    2. "classroom" = "class" + "room" (blend: cl)
+    3. "playground" = "play" + "ground" (blend: pl, gr)
+    4. "grassland" = "grass" + "land" (blend: gr)
+    5. "stopwatch" = "stop" + "watch" (blend: st)
+    6. "driftwood" = "drift" + "wood" (blend: dr)
+    7. "drumstick" = "drum" + "stick" (blend: dr, st)
+    8. "backpack" = "back" + "pack" (blend: ck, ck)
+    9. "blueberry" = "blue" + "berry" (blend: bl)
+    10. "snowflake" = "snow" + "flake" (blend: sn, fl)
+
+    CRITICAL: Every word MUST be two words joined! Not just "stop" or "grass"!
+                """
+                
+            elif learning_focus == 'digraphs':
+                prompt += """
+    COMPOUND WORDS WITH DIGRAPHS:
+
+    Generate COMPOUND words where at least one part has a digraph (sh, ch, th, wh, ph).
+
+    EXAMPLES (use patterns like these):
+    1. "toothbrush" = "tooth" + "brush" (digraph: th, sh)
+    2. "fishpond" = "fish" + "pond" (digraph: sh)
+    3. "bathtub" = "bath" + "tub" (digraph: th)
+    4. "whiteboard" = "white" + "board" (digraph: wh)
+    5. "seashell" = "sea" + "shell" (digraph: sh)
+    6. "checkpoint" = "check" + "point" (digraph: ch)
+    7. "bathrobe" = "bath" + "robe" (digraph: th)
+    8. "toothpick" = "tooth" + "pick" (digraph: th)
+    9. "dishpan" = "dish" + "pan" (digraph: sh)
+    10. "chessboard" = "chess" + "board" (digraph: ch)
+
+    CRITICAL: Every word MUST be two words joined! Not just "fish" or "white"!
+                """
+
+            prompt += f"""
+
+    🚨 FINAL REMINDER 🚨
+    YOU ARE GENERATING {word_count} COMPOUND WORDS!
+    NOT single words! NOT regular words!
+    COMPOUND = TWO WORDS JOINED!
+
+    If you write "cat" → WRONG! ❌
+    If you write "catfish" → CORRECT! ✅
+
+    Generate EXACTLY {word_count} COMPOUND WORDS now:
             """
         elif learning_focus == 'long_vowels':
             prompt += """
@@ -1118,9 +1230,14 @@ def validate_pattern_isolation(words, learning_focus, challenge_level='simple_wo
         should_accept = True
         if challenge_level == 'compound_words':
             if not is_compound_word(word):
-                print(f"❌ COMPOUND REJECTED: '{word}' is not a compound word (it's a simple word)")
+                print(f"❌ COMPOUND REJECTED: '{word}' is not a compound word (it's a single word)")
                 rejected_count += 1
                 continue  # Skip this word entirely
+            else:
+                # It's compound - accept it! Don't check pattern isolation
+                print(f"✅ COMPOUND ACCEPTED: '{word}' (pattern checks skipped)")
+                validated.append(word_obj)
+                continue
         
         # Short vowels check - reject if contains long vowel patterns
         if learning_focus == 'short_vowels':
