@@ -105,6 +105,55 @@ def detect_long_vowel_pattern(word):
                 return pattern_name
     
     return None
+def is_compound_word(word):
+    """
+    Check if a word is a true compound word (two recognizable words joined together).
+    Returns True if it's a compound word, False otherwise.
+    """
+    if not word or len(word) < 4:
+        return False
+    
+    word_lower = word.lower().replace('-', '')
+    
+    # Common compound word patterns
+    common_words = {
+        'sun', 'moon', 'rain', 'snow', 'sea', 'star', 'fire', 'water', 'air',
+        'hand', 'foot', 'head', 'eye', 'tooth', 'finger', 'heart',
+        'back', 'front', 'side', 'up', 'down', 'out', 'in',
+        'home', 'house', 'bed', 'bath', 'room', 'door', 'wall',
+        'day', 'night', 'time', 'week', 'year',
+        'play', 'work', 'school', 'class', 'book', 'note',
+        'black', 'white', 'blue', 'red', 'green',
+        'cup', 'tea', 'butter', 'pan', 'pot',
+        'mail', 'ship', 'air', 'any', 'every', 'some',
+        'bird', 'fish', 'dog', 'cat', 'pig', 'bee',
+        'tooth', 'brush', 'flash', 'light', 'spot', 'stop', 'check',
+        'white', 'board', 'black', 'phone', 'yard', 'basket', 'ball',
+        'foot', 'base', 'grass', 'land', 'sand', 'box',
+        'man', 'men', 'boy', 'girl', 'child', 'person',
+        'ball', 'box', 'bag', 'pack', 'case', 'book', 'room',
+        'light', 'shine', 'bow', 'flake', 'fall', 'rise',
+        'yard', 'pond', 'house', 'home', 'place', 'land', 'side',
+        'time', 'day', 'way', 'thing', 'body', 'where', 'one',
+        'maker', 'keeper', 'work', 'worker', 'player', 'teacher',
+        'mark', 'board', 'brush', 'fish', 'shell', 'weed',
+        'cake', 'dog', 'hat', 'mat', 'pen', 'pot', 'pan',
+        'watch', 'bird', 'tank', 'stick', 'ship', 'sail',
+        'made', 'ful', 'able', 'less',
+        'plane', 'port', 'gate', 'craft', 'boat', 'cart'
+    }
+    
+    # Check if word can be split into two recognizable parts
+    for i in range(2, len(word_lower) - 1):
+        first_part = word_lower[:i]
+        second_part = word_lower[i:]
+        
+        if first_part in common_words and second_part in common_words:
+            print(f"✅ COMPOUND VALIDATED: '{word}' = '{first_part}' + '{second_part}'")
+            return True
+    
+    print(f"❌ NOT COMPOUND: '{word}' cannot be split into two recognizable words")
+    return False
 
 
 def regenerate_if_invalid(words, learning_focus):
@@ -246,7 +295,7 @@ def generate_vanishing_words(request):
             
             # Validate pattern isolation
             print(f"🔍 VALIDATING PATTERN ISOLATION for {learning_focus}...")
-            new_words = validate_pattern_isolation(new_words, learning_focus)
+            new_words = validate_pattern_isolation(new_words, learning_focus, challenge_level)
             print(f"✅ Validation: {len(new_words)}/{generate_count} words passed")
             
             # Long vowel specific validation
@@ -725,20 +774,44 @@ EXAMPLES:
 GENERATE: Compound words featuring consonant blends
             """
         elif learning_focus == 'digraphs':
-            prompt += """
+            prompt += '''
             
 ✅ COMPOUND WORD + DIGRAPH RULES:
 
+‼️ CRITICAL: MUST BE TRUE COMPOUND WORDS (TWO WORDS JOINED) ‼️
+
 When combining compound_words with digraphs:
+- MUST be a TRUE COMPOUND WORD: Two separate, recognizable words joined together
 - At least ONE part should contain a digraph (sh, ch, th, wh, ph)
 - Use targetLetter for the specific digraph
 
-EXAMPLES:
-✅ CORRECT: "shipyard" (sh), "fishpond" (sh), "toothbrush" (th and sh), "whiteboard" (wh)
-❌ WRONG: Words without digraphs
+⚠️ REJECT SIMPLE WORDS - THESE ARE WRONG:
+❌ "cherry" - This is ONE word, not compound! (even though it has 'ch')
+❌ "whale" - This is ONE word, not compound! (even though it has 'wh')
+❌ "fish" - This is ONE word, not compound! (even though it has 'sh')
+❌ "shell" - This is ONE word, not compound! (even though it has 'sh')
+❌ "path" - This is ONE word, not compound! (even though it has 'th')
 
-GENERATE: Compound words featuring digraphs
-            """
+✅ CORRECT EXAMPLES (TWO WORDS JOINED):
+- "shipyard" (ship + yard, contains 'sh')
+- "fishpond" (fish + pond, contains 'sh')
+- "toothbrush" (tooth + brush, contains 'th' and 'sh')
+- "whiteboard" (white + board, contains 'wh')
+- "checkpoint" (check + point, contains 'ch')
+- "bathtub" (bath + tub, contains 'th')
+- "flashlight" (flash + light, contains 'sh')
+- "seashell" (sea + shell, contains 'sh')
+
+VALIDATION CHECKLIST:
+[ ] Can you split it into TWO separate words?
+[ ] Are both parts real words children know?
+[ ] Does at least one part contain a digraph?
+
+DO NOT GENERATE: Single words with digraphs!
+ONLY GENERATE: Compound words (two words joined) that contain digraphs!
+
+GENERATE: True compound words featuring digraphs
+            '''
     if challenge_level == 'simple_sentences':
         prompt += """
 ‼️ CRITICAL: GENERATE COMPLETE SENTENCES, NOT SINGLE WORDS! ‼️
@@ -1031,7 +1104,7 @@ def validate_word_structure(word_obj):
     
     return True
 
-def validate_pattern_isolation(words, learning_focus):
+def validate_pattern_isolation(words, learning_focus, challenge_level='simple_words'):
     """
     Ensure generated words only contain the targeted pattern
     This prevents mixing of short vowels with long vowels, blends with digraphs, etc.
@@ -1043,6 +1116,11 @@ def validate_pattern_isolation(words, learning_focus):
         word = word_obj.get('word', '').lower()
         target = word_obj.get('targetLetter', '').lower()
         should_accept = True
+        if challenge_level == 'compound_words':
+            if not is_compound_word(word):
+                print(f"❌ COMPOUND REJECTED: '{word}' is not a compound word (it's a simple word)")
+                rejected_count += 1
+                continue  # Skip this word entirely
         
         # Short vowels check - reject if contains long vowel patterns
         if learning_focus == 'short_vowels':
