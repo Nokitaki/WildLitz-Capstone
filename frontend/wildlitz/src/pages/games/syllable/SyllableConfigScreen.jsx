@@ -15,11 +15,9 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     Animals: true,
     Fruits: false,
     Food: true,
-    Toys: true,
     Clothes: false,
     "School Supplies": true,
     Nature: true,
-    "Everyday Words": true,
     "Everyday Objects": false,
   });
 
@@ -304,11 +302,9 @@ const SyllableConfigScreen = ({ onStartGame }) => {
     { id: "Animals", name: "Animals", icon: "🦁" },
     { id: "Fruits", name: "Fruits", icon: "🍎" },
     { id: "Food", name: "Food", icon: "🍕" },
-    { id: "Toys", name: "Toys", icon: "🧸" },
     { id: "Clothes", name: "Clothes", icon: "👕" },
     { id: "School Supplies", name: "School Supplies", icon: "✏️" },
     { id: "Nature", name: "Nature", icon: "🌿" },
-    { id: "Everyday Words", name: "Everyday Words", icon: "🗣️" },
     { id: "Everyday Objects", name: "Everyday Objects", icon: "🔧" },
   ];
 

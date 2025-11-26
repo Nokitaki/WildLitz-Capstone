@@ -260,16 +260,14 @@ const EditWordModal = ({ word, onSave, onClose }) => {
   };
 
   const categories = [
-    "Animals",
-    "Fruits",
-    "Food",
-    "Toys",
-    "Clothes",
-    "School Supplies",
-    "Nature",
-    "Everyday Words",
-    "Everyday Objects", // ← ADD THIS LINE
-  ];
+  "Animals",
+  "Fruits",
+  "Food",
+  "Clothes",
+  "School Supplies",
+  "Nature",
+  "Everyday Objects",
+];
 
   useEffect(() => {
     if (word) {

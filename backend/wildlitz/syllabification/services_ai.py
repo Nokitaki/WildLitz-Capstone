@@ -278,13 +278,11 @@ class AIContentGenerator:
             - Animals (for any living creatures: pets, wild animals, insects, birds, fish, etc.)
             - Fruits (for fruits only)
             - Food (for any food items, meals, snacks, drinks)
-            - Toys (for playthings, games, sports equipment)
             - Clothes (for any wearable items, shoes, accessories)
             - School Supplies (for educational items: pencils, books, backpacks, etc.)
             - Nature (for plants, weather, natural phenomena, landscapes)
-            - Everyday Words (for common action words, descriptive words, basic concepts)
             - Everyday Objects (for common household items, tools, furniture, appliances)
-            
+
             Examples:
             - "lion" → Animals
             - "elephant" → Animals
@@ -297,10 +295,10 @@ class AIContentGenerator:
             - "chair" → Everyday Objects
             - "lamp" → Everyday Objects
             - "scissors" → Everyday Objects
-            
+
             Respond with ONLY ONE category name from the list above.
             If "{word}" doesn't clearly fit any category, respond with "Custom Words".
-            
+
             Word to categorize: {word}
             Category:
             """
@@ -322,11 +320,9 @@ class AIContentGenerator:
                 'Animals', 
                 'Fruits', 
                 'Food', 
-                'Toys', 
                 'Clothes', 
                 'School Supplies', 
                 'Nature', 
-                'Everyday Words', 
                 'Everyday Objects'
             ]
             
