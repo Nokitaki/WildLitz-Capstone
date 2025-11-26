@@ -225,20 +225,60 @@ def generate_vanishing_words(request):
         
         logger.info(f"AI generating {word_count} words for {challenge_level}/{learning_focus}/{difficulty}")
         
-        # Generate words using OpenAI
-        words = generate_phonics_words_with_ai(challenge_level, learning_focus, difficulty, word_count)
+# 🔥 NEW: AUTO-RETRY SYSTEM (NO FALLBACK) 🔥
+        validated_words = []
+        max_attempts = 5
+        attempt = 0
         
-        # ✅ ADD THESE LINES HERE ✅
-        # Validate and fix long vowel patterns
-        words = regenerate_if_invalid(words, learning_focus)
+        while len(validated_words) < word_count and attempt < max_attempts:
+            attempt += 1
+            
+            # Calculate how many more words we need
+            remaining_needed = word_count - len(validated_words)
+            
+            # Generate extra to account for rejections (generate 50% more than needed)
+            generate_count = int(remaining_needed * 1.5)
+            
+            print(f"\n🔄 ATTEMPT {attempt}/{max_attempts}: Generating {generate_count} words (need {remaining_needed} more valid words)")
+            
+            # Generate words using OpenAI
+            new_words = generate_phonics_words_with_ai(challenge_level, learning_focus, difficulty, generate_count)
+            
+            # Validate pattern isolation
+            print(f"🔍 VALIDATING PATTERN ISOLATION for {learning_focus}...")
+            new_words = validate_pattern_isolation(new_words, learning_focus)
+            print(f"✅ Validation: {len(new_words)}/{generate_count} words passed")
+            
+            # Long vowel specific validation
+            if learning_focus == 'long_vowels':
+                new_words = regenerate_if_invalid(new_words, learning_focus)
+            
+            # Add validated words to our collection
+            validated_words.extend(new_words)
+            
+            # Remove duplicates
+            seen_words = set()
+            unique_words = []
+            for word_obj in validated_words:
+                word_text = word_obj.get('word', '').lower()
+                if word_text not in seen_words:
+                    seen_words.add(word_text)
+                    unique_words.append(word_obj)
+            
+            validated_words = unique_words
+            
+            print(f"📊 Total valid unique words so far: {len(validated_words)}/{word_count}")
+            
+            if len(validated_words) >= word_count:
+                print(f"✅ SUCCESS! Got {len(validated_words)} valid words")
+                break
         
-        # Supplement with fallback if needed
-        if len(words) < word_count and learning_focus == 'long_vowels':
-            logger.warning(f"Lost {word_count - len(words)} words due to validation, supplementing with fallback")
-            fallback_needed = word_count - len(words)
-            fallback = generate_static_fallback_words(challenge_level, learning_focus, fallback_needed)
-            words.extend(fallback)
-        # ✅ END OF NEW LINES ✅
+        # If we still don't have enough after max attempts, use what we got
+        if len(validated_words) < word_count:
+            logger.warning(f"⚠️ Only generated {len(validated_words)}/{word_count} valid words after {max_attempts} attempts")
+        
+        # Return exactly word_count words (or less if we couldn't generate enough)
+        words = validated_words[:word_count]
         
         return Response({
             'success': True,
@@ -492,6 +532,37 @@ Required patterns for long vowels:
 - Long O: "o_e" (home, hope, rope), "oa" (boat, road), "ow" (snow, blow)
 - Long U: "u_e" (huge, cute, use), "ue" (blue, true), "ui" (fruit, juice)
 
+⚠️ CRITICAL VERIFICATION STEP ⚠️
+
+After you write each sentence, CHECK:
+1. Find the word with the long vowel
+2. Look at the EXACT letters in that word
+3. Match the targetLetter to what you SEE
+
+EXAMPLES:
+
+✅ CORRECT:
+Sentence: "The wise owl sat on a rope."
+Word: "rope" has r-o-p-e (this is "o_e" pattern)
+targetLetter: "o_e" ✅
+
+❌ WRONG:
+Sentence: "The owl hooted loudly."
+Word: "hooted" has h-o-o-t-e-d (this is "oo" pattern, NOT "o_e")
+targetLetter: "o_e" ❌ WRONG!
+Correct: targetLetter: "oo" ✅
+
+✅ CORRECT:
+Sentence: "The queen wore a crown."
+Word: "queen" has q-u-e-e-n (this is "ue" pattern)
+targetLetter: "ue" ✅
+
+DOUBLE-CHECK EVERY SENTENCE:
+- Does the targetLetter pattern ACTUALLY appear in the word?
+- Can you point to those exact letters in order?
+- If not, change the targetLetter or change the sentence!
+```
+
 EXAMPLE - CORRECT:
 Sentence: "The huge snake slithered through the grass."
 Analysis: This has "huge" (u_e) and "snake" (a_e)
@@ -605,6 +676,69 @@ CHECK YOUR WORK:
     - Examples: "big blue car", "happy little dog"
     - Keep syllable breakdown as the full phrase
         """
+    if challenge_level == 'compound_words':
+        if learning_focus == 'short_vowels':
+            prompt += """
+            
+✅ COMPOUND WORD + SHORT VOWEL RULES:
+
+When combining compound_words with short_vowels:
+- BOTH parts of the compound should primarily use SHORT vowels
+- The targeted short vowel should appear in at least one part
+- Avoid mixing with long vowel patterns
+
+EXAMPLES:
+✅ CORRECT: "hotdog" (short o + short o), "sunset" (short u + short e), "sandbox" (short a + short o)
+❌ WRONG: "mailbox" (has long vowel "ai"), "rainbow" (has long vowels "ai" and "ow")
+
+GENERATE: Compound words where the focus is on short vowel sounds
+            """
+        elif learning_focus == 'long_vowels':
+            prompt += """
+            
+✅ COMPOUND WORD + LONG VOWEL RULES:
+
+When combining compound_words with long_vowels:
+- At least ONE part MUST contain a clear long vowel pattern
+- Use targetLetter for the specific long vowel pattern (a_e, ai, ee, etc.)
+- Both parts can have long vowels for extra challenge
+
+EXAMPLES:
+✅ CORRECT: "rainbow" (ai in rain), "seaweed" (ea in sea, ee in weed), "moonlight" (oo in moon, igh in light)
+❌ WRONG: "hotdog" (both short vowels), "sunset" (both short vowels)
+
+GENERATE: Compound words with clear long vowel patterns
+            """
+        elif learning_focus == 'blends':
+            prompt += """
+            
+✅ COMPOUND WORD + BLEND RULES:
+
+When combining compound_words with blends:
+- At least ONE part should START or END with a consonant blend
+- Use targetLetter for the specific blend (st, bl, fr, etc.)
+
+EXAMPLES:
+✅ CORRECT: "stopwatch" (st blend), "playground" (pl and gr blends), "backpack" (ck blend)
+❌ WRONG: Words without clear blends
+
+GENERATE: Compound words featuring consonant blends
+            """
+        elif learning_focus == 'digraphs':
+            prompt += """
+            
+✅ COMPOUND WORD + DIGRAPH RULES:
+
+When combining compound_words with digraphs:
+- At least ONE part should contain a digraph (sh, ch, th, wh, ph)
+- Use targetLetter for the specific digraph
+
+EXAMPLES:
+✅ CORRECT: "shipyard" (sh), "fishpond" (sh), "toothbrush" (th and sh), "whiteboard" (wh)
+❌ WRONG: Words without digraphs
+
+GENERATE: Compound words featuring digraphs
+            """
     if challenge_level == 'simple_sentences':
         prompt += """
 ‼️ CRITICAL: GENERATE COMPLETE SENTENCES, NOT SINGLE WORDS! ‼️
@@ -626,23 +760,55 @@ CHECK YOUR WORK:
     """
     
     if learning_focus == 'short_vowels':
+        prompt += """
+        
+    ⚠️ CRITICAL PATTERN ISOLATION ⚠️
+
+    ONLY generate words with SHORT VOWELS!
+    - MUST have: a, e, i, o, u making SHORT sounds ONLY
+    - NO long vowels (no silent-e, no vowel teams like ai, ee, oa)
+    - NO words like "cake", "bike", "meet", "boat", "cute"
+    - YES words like "cat", "bed", "pig", "hot", "sun"
+
+    VALIDATION CHECKLIST FOR EACH WORD:
+    [ ] Does it contain ONLY short vowel sounds?
+    [ ] Does it avoid silent-e patterns?
+    [ ] Does it avoid vowel teams (ai, ee, oa, ay)?
+
+    EXAMPLES TO FOLLOW:
+    ✅ CORRECT: "cat", "bed", "pig", "hot", "cup", "run", "sit", "dog", "fun"
+    ❌ WRONG: "cake" (long a), "time" (long i), "hope" (long o), "tree" (long e)
+        """
         if challenge_level == 'simple_sentences':
             prompt += """
-    - Focus on a, e, i, o, u making their short sounds
-    - MUST generate complete SENTENCES (not single words!)
-    - Each sentence must have a subject and verb
-    - Include words with short vowel sounds in the sentences
-    - Examples: "The cat sat down.", "A red pen is here.", "The pig is big.", "The dog can hop.", "The sun is fun."
-            """
+        - MUST generate complete SENTENCES (not single words!)
+        - Each sentence must have a subject and verb
+        - Include ONLY words with short vowel sounds
+        - Examples: "The cat sat down.", "A red pen is here.", "The pig is big."
+                """
         else:
             prompt += """
-    - Focus on a, e, i, o, u making their short sounds
-    - Target different vowels across the word list
-    - Clear examples of CVC patterns (consonant-vowel-consonant)
-    - Examples: cat, bed, pig, dog, sun
-            """
+        - Clear examples of CVC patterns (consonant-vowel-consonant)
+        - Single syllable preferred for simple words
+                    """
     elif learning_focus == 'long_vowels':
         prompt += """
+
+⚠️ CRITICAL PATTERN ISOLATION ⚠️
+
+ONLY generate words with LONG VOWELS!
+- MUST have: a_e, ai, ay, ee, ea, i_e, ie, igh, o_e, oa, ow, u_e, ue, ui
+- NO short vowels (no CVC patterns like "cat", "bed", "pig")
+- Each word MUST contain at least ONE long vowel pattern
+
+VALIDATION CHECKLIST FOR EACH WORD:
+[ ] Does it contain a long vowel pattern?
+[ ] Is targetLetter the SPECIFIC pattern (not "long_vowels")?
+[ ] Can you SEE that pattern in the word?
+
+EXAMPLES TO FOLLOW:
+✅ CORRECT: "cake" (a_e), "rain" (ai), "tree" (ee), "bike" (i_e), "boat" (oa)
+❌ WRONG: "cat" (short a), "bed" (short e), "pig" (short i)
     
 !!!!! CRITICAL FOR LONG VOWELS - ALL CHALLENGE LEVELS !!!!!
 
@@ -698,18 +864,50 @@ ALWAYS use the specific pattern like "ee", "ai", "a_e"!
             """
     elif learning_focus == 'blends':
         prompt += """
-    - Two or three consonants that each keep their sound
+        
+    ⚠️ CRITICAL PATTERN ISOLATION ⚠️
+
+    ONLY generate words with CONSONANT BLENDS!
+    - Two or three consonants that EACH keep their own sound
+    - MUST start or end with: bl, cl, fl, fr, gr, pl, pr, sl, sp, st, tr, dr, br, cr, sc, sk, sm, sn, sw
+    - Focus on BLENDS specifically, NOT digraphs
+    - Each word MUST have a clear consonant blend
+
+    VALIDATION CHECKLIST FOR EACH WORD:
+    [ ] Does it start or end with a consonant blend?
+    [ ] Are you using targetLetter = "st", "bl", "fr" (not "blends")?
+    [ ] Is it a BLEND (two sounds) not a DIGRAPH (one sound)?
+
+    EXAMPLES TO FOLLOW:
+    ✅ CORRECT: "stop" (st), "frog" (fr), "clip" (cl), "grab" (gr), "swim" (sw)
+    ❌ WRONG: "cat" (no blend), "ship" (sh is digraph, not blend)
+
     - Include both beginning and ending blends
-    - Common blends: bl, cl, fl, fr, gr, pl, pr, sl, sp, st, tr, dr, br
-    - Examples: stop, tree, flag, clap
-        """
+    - Common blends: bl, cl, fl, fr, gr, pl, pr, sl, sp, st, tr, dr, br, cr, sc, sk, sm, sn, sw
+            """
     elif learning_focus == 'digraphs':
         prompt += """
-    - Two letters that make one sound
+        
+    ⚠️ CRITICAL PATTERN ISOLATION ⚠️
+
+    ONLY generate words with DIGRAPHS!
+    - Two letters that make ONE sound (not two sounds like blends)
+    - MUST contain: sh, ch, th, wh, ph, ng, ck
+    - Focus on DIGRAPHS specifically, NOT blends
+    - Each word MUST have a clear digraph
+
+    VALIDATION CHECKLIST FOR EACH WORD:
+    [ ] Does it contain a digraph (sh, ch, th, wh, ph)?
+    [ ] Are you using targetLetter = "sh", "ch", "th" (not "digraphs")?
+    [ ] Is it a DIGRAPH (one sound) not a BLEND (two sounds)?
+
+    EXAMPLES TO FOLLOW:
+    ✅ CORRECT: "ship" (sh), "chat" (ch), "thin" (th), "when" (wh), "phone" (ph)
+    ❌ WRONG: "cat" (no digraph), "stop" (st is blend, not digraph)
+
     - Common digraphs: sh, ch, th, wh, ph, ng, ck
-    - Examples: ship, chat, thin, when, phone
-    - Show how two letters work together as a team
-        """
+    - Show how two letters work together as ONE team making ONE sound
+            """
     
     prompt += f"""
     
@@ -825,8 +1023,117 @@ def validate_word_structure(word_obj):
             print(f"   EMPTY: {empty_fields}")
         # END OF NEW LINES
         return False
+# Check for generic targetLetter values
+    if word_obj.get('targetLetter') in ['sentence', 'simple_sentence', 'vowels', 'blends', 'digraphs', 'short_vowels', 'long_vowels']:
+        print(f"\n❌ INVALID: '{word_obj.get('word', 'UNKNOWN')}'")
+        print(f"   GENERIC targetLetter: '{word_obj.get('targetLetter')}' (must be specific like 'a', 'sh', 'st', 'a_e')")
+        return False
     
     return True
+
+def validate_pattern_isolation(words, learning_focus):
+    """
+    Ensure generated words only contain the targeted pattern
+    This prevents mixing of short vowels with long vowels, blends with digraphs, etc.
+    """
+    validated = []
+    rejected_count = 0
+    
+    for word_obj in words:
+        word = word_obj.get('word', '').lower()
+        target = word_obj.get('targetLetter', '').lower()
+        should_accept = True
+        
+        # Short vowels check - reject if contains long vowel patterns
+        if learning_focus == 'short_vowels':
+            long_patterns = ['a_e', 'ai', 'ay', 'ee', 'ea', 'i_e', 'ie', 'igh', 'o_e', 'oa', 'ow', 'u_e', 'ue', 'ui']
+            
+            # Check if word or target contains any long vowel pattern
+            for pattern in long_patterns:
+                if pattern in word.replace(' ', '').replace('-', '') or pattern in target:
+                    print(f"❌ SHORT VOWEL REJECTED '{word}': Contains long vowel pattern '{pattern}'")
+                    should_accept = False
+                    break
+            
+            # Also check that target is actually a short vowel
+            if should_accept and target not in ['a', 'e', 'i', 'o', 'u', 'short_a', 'short_e', 'short_i', 'short_o', 'short_u']:
+                print(f"❌ SHORT VOWEL REJECTED '{word}': targetLetter '{target}' is not a short vowel")
+                should_accept = False
+        
+        # Long vowels check - must contain at least one long vowel pattern
+# Long vowels check - must contain at least one long vowel pattern
+        elif learning_focus == 'long_vowels':
+            long_patterns = ['a_e', 'ai', 'ay', 'ee', 'ea', 'i_e', 'ie', 'igh', 'o_e', 'oa', 'ow', 'u_e', 'ue', 'ui', 'ew', 'oo']
+            has_long = any(pattern in target for pattern in long_patterns)
+            
+            if not has_long:
+                print(f"❌ LONG VOWEL REJECTED '{word}': No long vowel pattern in targetLetter '{target}'")
+                should_accept = False
+            
+            # 🔥 NEW: Verify the pattern actually exists in the word 🔥
+            else:
+                # Check if the targetLetter pattern actually appears in the word
+                word_lower = word.replace(' ', '').replace('.', '').replace('!', '').replace('?', '').lower()
+                
+                # For magic-e patterns (a_e, i_e, o_e, u_e, e_e)
+                if '_' in target:
+                    vowel = target.split('_')[0]
+                    # Look for: vowel + consonant + e
+                    pattern_found = False
+                    for i in range(len(word_lower) - 2):
+                        if word_lower[i] == vowel and word_lower[i + 2] == 'e':
+                            pattern_found = True
+                            break
+                    
+                    if not pattern_found:
+                        print(f"❌ LONG VOWEL REJECTED '{word}': Pattern '{target}' not found in word (no {vowel}_e pattern)")
+                        should_accept = False
+                
+                # For vowel teams (ai, ee, oa, ue, etc.)
+                else:
+                    if target not in word_lower:
+                        print(f"❌ LONG VOWEL REJECTED '{word}': Pattern '{target}' not found in word")
+                        should_accept = False
+        
+        # Blends check - must contain blend pattern
+        elif learning_focus == 'blends':
+            blend_patterns = ['bl', 'cl', 'fl', 'fr', 'gr', 'pl', 'pr', 'sl', 'sp', 'st', 'tr', 'dr', 'br', 'cr', 'sc', 'sk', 'sm', 'sn', 'sw', 'tw', 'str', 'spr', 'spl']
+            has_blend = any(pattern in target for pattern in blend_patterns)
+            
+            if not has_blend:
+                print(f"❌ BLEND REJECTED '{word}': No blend pattern in targetLetter '{target}'")
+                should_accept = False
+            
+            # Make sure it's not a digraph
+            digraph_patterns = ['sh', 'ch', 'th', 'wh', 'ph']
+            has_digraph = any(pattern in target for pattern in digraph_patterns)
+            if has_digraph:
+                print(f"❌ BLEND REJECTED '{word}': Contains digraph '{target}', not blend")
+                should_accept = False
+        
+        # Digraphs check - must contain digraph pattern
+        elif learning_focus == 'digraphs':
+            digraph_patterns = ['sh', 'ch', 'th', 'wh', 'ph', 'ng', 'ck']
+            has_digraph = any(pattern in target for pattern in digraph_patterns)
+            
+            if not has_digraph:
+                print(f"❌ DIGRAPH REJECTED '{word}': No digraph pattern in targetLetter '{target}'")
+                should_accept = False
+        
+        # Check for generic targetLetter values (should never be used)
+        if target in ['sentence', 'simple_sentence', 'vowels', 'blends', 'digraphs', 'short_vowels', 'long_vowels']:
+            print(f"❌ GENERIC TARGET REJECTED '{word}': targetLetter is too generic: '{target}'")
+            should_accept = False
+        
+        if should_accept:
+            validated.append(word_obj)
+        else:
+            rejected_count += 1
+    
+    if rejected_count > 0:
+        print(f"\n⚠️  VALIDATION SUMMARY: {rejected_count} words rejected, {len(validated)} words passed\n")
+    
+    return validated
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
