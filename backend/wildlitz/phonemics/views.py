@@ -25,6 +25,20 @@ logger = logging.getLogger(__name__)
 # Create Supabase client using settings
 supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
+# ============================================================
+# EXCLUDED COMBINATIONS (Too few animals - only 2 each)
+# ============================================================
+EXCLUDED_COMBINATIONS = [
+    ('w', 'ending'),      # w-ending: only 2 animals (Cow, Sparrow)
+    ('b', 'ending'),      # b-ending: only 2 animals (Lamb, Cub)
+    ('f', 'ending'),      # f-ending: only 2 animals (Wolf, Giraffe)
+    ('z', 'beginning'),   # z-beginning: only 2 animals (Zebra, Zebu)
+]
+
+def is_combination_excluded(sound, position):
+    """Check if a sound-position combination should be excluded from game rounds"""
+    return (sound, position) in EXCLUDED_COMBINATIONS
+
 # Image utility functions for the new Supabase storage structure
 SUPABASE_STORAGE_BASE_URL = "https://eixryunajxcthprajaxk.supabase.co/storage/v1/object/public/IMG/SoundSafariAnimals/"
 
@@ -128,17 +142,17 @@ def get_difficulty_requirements(difficulty):
     """
     requirements = {
         'easy': {
-            'min_correct': 2,
+            'min_correct': 3,
             'total_animals': 6,
             'max_incorrect': 4
         },
         'medium': {
-            'min_correct': 2,
+            'min_correct': 3,
             'total_animals': 8,
             'max_incorrect': 6
         },
         'hard': {
-            'min_correct': 2,
+            'min_correct': 3,
             'total_animals': 12,
             'max_incorrect': 10
         }
@@ -157,6 +171,16 @@ def get_safari_animals_by_sound(request):
     environment = request.GET.get('environment', '')
     sound_position = request.GET.get('position', '')
     exclude_ids = request.GET.getlist('exclude[]', [])
+
+    # ✅ Check if this combination is excluded (too few animals)
+    if sound_position and is_combination_excluded(target_sound, sound_position):
+        logger.warning(f"⚠️ Excluded combination requested: {target_sound}-{sound_position}")
+        return Response({
+            'success': False,
+            'error': f'Combination {target_sound}-{sound_position} is excluded (insufficient animals)',
+            'animals': [],
+            'excluded': True
+        }, status=status.HTTP_400_BAD_REQUEST)
     
     # ✅ CORE SOUNDS FILTER
     CORE_SOUNDS = ['g', 'k', 'w', 'd', 'r', 'c', 'h', 's', 'm', 't', 'b', 'p', 'f', 'l', 'z']
@@ -754,9 +778,12 @@ def get_safari_animals_by_sound(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_random_sound(request):
-    """Get a random sound for the game - only core sounds"""
+    """Get a random sound for the game - only core sounds, excluding thin combinations"""
     # ✅ CORE SOUNDS ONLY
     CORE_SOUNDS = ['g', 'k', 'w', 'd', 'r', 'c', 'h', 's', 'm', 't', 'b', 'p', 'f', 'l', 'z']
+    
+    # Get the requested position (if specified by frontend)
+    requested_position = request.GET.get('position', None)
     
     try:
         # Get all unique sounds from the database that are core sounds
@@ -767,6 +794,23 @@ def get_random_sound(request):
             # ✅ Filter to only core sounds
             core_sounds_in_db = [s for s in unique_sounds if s in CORE_SOUNDS]
             
+            # ✅ NEW: Filter out sounds that form excluded combinations
+            if requested_position:
+                valid_sounds = [
+                    sound for sound in core_sounds_in_db 
+                    if not is_combination_excluded(sound, requested_position)
+                ]
+                
+                if valid_sounds:
+                    random_sound = random.choice(valid_sounds)
+                    logger.info(f"✅ Selected sound '{random_sound}' for position '{requested_position}' (excluded thin combinations)")
+                    return JsonResponse({
+                        'sound': random_sound,
+                        'available_sounds': valid_sounds,
+                        'excluded_combinations': len(core_sounds_in_db) - len(valid_sounds)
+                    })
+            
+            # If no position specified or all sounds excluded, return any core sound
             if core_sounds_in_db:
                 random_sound = random.choice(core_sounds_in_db)
                 return JsonResponse({
