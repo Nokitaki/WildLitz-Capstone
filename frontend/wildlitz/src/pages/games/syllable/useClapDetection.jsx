@@ -17,7 +17,7 @@ const useClapDetection = (isEnabled = false, onClapDetected) => {
   const animationFrameRef = useRef(null);
 
   // Configuration constants
-  const CLAP_THRESHOLD = 0.4; // Volume threshold (0-1) for clap detection
+  const CLAP_THRESHOLD = 0.25; // Volume threshold (0-1) for clap detection
   const DEBOUNCE_TIME = 200; // Minimum milliseconds between claps
   const FFT_SIZE = 2048; // Frequency analysis resolution
   const SMOOTHING = 0.8; // Audio smoothing (0-1)
