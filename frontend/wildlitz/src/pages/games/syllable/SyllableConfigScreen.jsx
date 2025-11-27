@@ -10,7 +10,7 @@ import CustomWordsManager from "./CustomWordsManager";
 const SyllableConfigScreen = ({ onStartGame }) => {
   // State managements
   const [difficulty, setDifficulty] = useState("easy");
-  const [questionCount, setQuestionCount] = useState(10);
+  const [questionCount, setQuestionCount] = useState(5);
   const [selectedCategories, setSelectedCategories] = useState({
     Animals: true,
     Fruits: false,
@@ -1181,7 +1181,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
               <input
                 type="range"
                 min="5"
-                max="20"
+                max="10"
                 step="1"
                 value={questionCount}
                 onChange={(e) => setQuestionCount(parseInt(e.target.value))}
@@ -1190,7 +1190,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                   background: `linear-gradient(to right, 
                     ${difficultyInfo[difficulty].color} 0%, 
                     ${difficultyInfo[difficulty].color} ${
-                    ((questionCount - 5) / 15) * 100
+                    ((questionCount - 5) / 5) * 100
                   }%, 
                     #ddd ${((questionCount - 5) / 15) * 100}%, 
                     #ddd 100%)`,
@@ -1204,7 +1204,7 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                 >
                   {questionCount}
                 </span>
-                <span>20</span>
+                <span>10</span>
               </div>
             </div>
           </div>
