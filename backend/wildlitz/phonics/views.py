@@ -221,6 +221,88 @@ def is_phrase(text):
     print(f"✅ PHRASE ACCEPTED: '{text}' ({word_count} words)")
     return True
 
+def is_valid_compound_word(word_str):
+    """
+    Validate if a string is actually a compound word (not a single word).
+    This filters out single words that slip through AI generation.
+    
+    Returns:
+        bool: True if word appears to be a compound word, False otherwise
+    """
+    if not word_str:
+        return False
+    
+    word_lower = word_str.lower().strip()
+    
+    # REJECT if has spaces (that's a phrase, not compound)
+    if ' ' in word_lower:
+        print(f"❌ COMPOUND REJECTED: '{word_str}' contains spaces (it's a phrase)")
+        return False
+    
+    # REJECT if too short (compound words are usually 6+ characters)
+    if len(word_lower) < 6:
+        print(f"❌ COMPOUND REJECTED: '{word_str}' is too short ({len(word_lower)} chars)")
+        return False
+    
+    # Common compound word parts
+    compound_parts = [
+        'back', 'sun', 'hot', 'sand', 'box', 'man', 'dog', 'cat', 'fish', 
+        'fire', 'rain', 'snow', 'mail', 'bed', 'hand', 'book', 'note', 
+        'base', 'water', 'fall', 'hill', 'side', 'door', 'way', 'tooth', 
+        'brush', 'hair', 'shoe', 'neck', 'arm', 'chair', 'eye', 'finger', 
+        'bee', 'honey', 'coat', 'under', 'over', 'flash', 'blue', 'bird', 
+        'black', 'berry', 'straw', 'grape', 'fruit', 'pan', 'stop', 'watch', 
+        'class', 'check', 'point', 'mark', 'white', 'board', 'frog', 'pond', 
+        'grass', 'land', 'spot', 'light', 'play', 'ground'
+    ]
+    
+    # Check if word starts or ends with common compound parts
+    for part in compound_parts:
+        if word_lower.startswith(part) or word_lower.endswith(part):
+            # Make sure it's longer than just the part itself
+            if len(word_lower) > len(part) + 2:
+                print(f"✅ COMPOUND ACCEPTED: '{word_str}' (contains '{part}')")
+                return True
+    
+    # If it has multiple capital letters (CamelCase), might be compound
+    capitals = sum(1 for c in word_str if c.isupper())
+    if capitals >= 2:
+        print(f"✅ COMPOUND ACCEPTED: '{word_str}' (has CamelCase)")
+        return True
+    
+    print(f"❌ COMPOUND REJECTED: '{word_str}' - couldn't validate as compound")
+    return False
+
+
+def is_valid_phrase(word_str):
+    """
+    Validate if a string is actually a phrase (2-4 words) not a single word.
+    This filters out single words that slip through AI generation.
+    
+    Returns:
+        bool: True if string is a valid phrase (2+ words), False otherwise
+    """
+    if not word_str:
+        return False
+    
+    # Clean and split by spaces
+    words = word_str.strip().split()
+    word_count = len(words)
+    
+    # REJECT if only 1 word
+    if word_count < 2:
+        print(f"❌ PHRASE REJECTED: '{word_str}' is a single word")
+        return False
+    
+    # Accept if 2-4 words
+    if word_count <= 4:
+        print(f"✅ PHRASE ACCEPTED: '{word_str}' ({word_count} words)")
+        return True
+    
+    # Warn if more than 4 words but still accept
+    print(f"⚠️ PHRASE WARNING: '{word_str}' has {word_count} words (might be too long)")
+    return True
+
 
 
 def regenerate_if_invalid(words, learning_focus):
@@ -341,21 +423,39 @@ def generate_vanishing_words(request):
         
         logger.info(f"AI generating {word_count} words for {challenge_level}/{learning_focus}/{difficulty}")
         
-# 🔥 NEW: AUTO-RETRY SYSTEM (NO FALLBACK) 🔥
+# 🔥 SOLUTION 3: REQUEST MORE WORDS FOR COMPOUND/PHRASES 🔥
+        actual_word_count = word_count
+        
+        if challenge_level == 'compound_words':
+            # Request 2.5x more to account for filtering
+            requested_count = int(word_count * 2.5)
+            logger.info(f"🔥 COMPOUND WORDS: Requesting {requested_count} words (2.5x buffer)")
+        elif challenge_level == 'phrases':
+            # Request 2x more to account for filtering
+            requested_count = int(word_count * 2)
+            logger.info(f"🔥 PHRASES: Requesting {requested_count} words (2x buffer)")
+        else:
+            # Normal word count for other challenge levels
+            requested_count = word_count
+        
+        # 🔥 AUTO-RETRY SYSTEM WITH FILTERING 🔥
         validated_words = []
         max_attempts = 5
         attempt = 0
         
-        while len(validated_words) < word_count and attempt < max_attempts:
+        while len(validated_words) < actual_word_count and attempt < max_attempts:
             attempt += 1
             
             # Calculate how many more words we need
-            remaining_needed = word_count - len(validated_words)
+            remaining_needed = actual_word_count - len(validated_words)
             
-            # Generate extra to account for rejections (generate 50% more than needed)
-            generate_count = int(remaining_needed * 1.5)
+            # For first attempt, use requested_count; for retries, ask for what we need
+            if attempt == 1:
+                generate_count = requested_count
+            else:
+                generate_count = int(remaining_needed * 1.5)
             
-            print(f"\n🔄 ATTEMPT {attempt}/{max_attempts}: Generating {generate_count} words (need {remaining_needed} more valid words)")
+            print(f"\n🔄 ATTEMPT {attempt}/{max_attempts}: Generating {generate_count} words (need {remaining_needed} more)")
             
             # Generate words using OpenAI
             new_words = generate_phonics_words_with_ai(challenge_level, learning_focus, difficulty, generate_count)
@@ -363,11 +463,32 @@ def generate_vanishing_words(request):
             # Validate pattern isolation
             print(f"🔍 VALIDATING PATTERN ISOLATION for {learning_focus}...")
             new_words = validate_pattern_isolation(new_words, learning_focus, challenge_level)
-            print(f"✅ Validation: {len(new_words)}/{generate_count} words passed")
+            print(f"✅ Pattern validation: {len(new_words)}/{generate_count} words passed")
             
             # Long vowel specific validation
             if learning_focus == 'long_vowels':
                 new_words = regenerate_if_invalid(new_words, learning_focus)
+            
+            # 🔥 SOLUTION 1: FILTER BY CHALLENGE LEVEL 🔥
+            if challenge_level == 'compound_words':
+                print(f"🔍 FILTERING COMPOUND WORDS...")
+                before_count = len(new_words)
+                filtered_words = []
+                for word_obj in new_words:
+                    if is_valid_compound_word(word_obj.get('word', '')):
+                        filtered_words.append(word_obj)
+                new_words = filtered_words
+                print(f"✅ Compound filter: {len(new_words)}/{before_count} are valid compound words")
+                
+            elif challenge_level == 'phrases':
+                print(f"🔍 FILTERING PHRASES...")
+                before_count = len(new_words)
+                filtered_words = []
+                for word_obj in new_words:
+                    if is_valid_phrase(word_obj.get('word', '')):
+                        filtered_words.append(word_obj)
+                new_words = filtered_words
+                print(f"✅ Phrase filter: {len(new_words)}/{before_count} are valid phrases")
             
             # Add validated words to our collection
             validated_words.extend(new_words)
@@ -383,18 +504,18 @@ def generate_vanishing_words(request):
             
             validated_words = unique_words
             
-            print(f"📊 Total valid unique words so far: {len(validated_words)}/{word_count}")
+            print(f"📊 Total valid unique words so far: {len(validated_words)}/{actual_word_count}")
             
-            if len(validated_words) >= word_count:
+            if len(validated_words) >= actual_word_count:
                 print(f"✅ SUCCESS! Got {len(validated_words)} valid words")
                 break
         
         # If we still don't have enough after max attempts, use what we got
-        if len(validated_words) < word_count:
-            logger.warning(f"⚠️ Only generated {len(validated_words)}/{word_count} valid words after {max_attempts} attempts")
+        if len(validated_words) < actual_word_count:
+            logger.warning(f"⚠️ Only generated {len(validated_words)}/{actual_word_count} valid words after {max_attempts} attempts")
         
-        # Return exactly word_count words (or less if we couldn't generate enough)
-        words = validated_words[:word_count]
+        # Return exactly actual_word_count words (or less if we couldn't generate enough)
+        words = validated_words[:actual_word_count]
         
         return Response({
             'success': True,
