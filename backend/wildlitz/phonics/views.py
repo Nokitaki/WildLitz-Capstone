@@ -107,16 +107,15 @@ def detect_long_vowel_pattern(word):
     return None
 def is_compound_word(word):
     """
-    Simple validation using a blacklist of common single words.
-    Accepts compound words, rejects obvious single words.
+    Validate if a word is truly a compound word by checking if it can be split
+    into two recognizable English words.
     """
     if not word or len(word) < 4:
         return False
     
-    word_lower = word.lower().replace('-', '')
+    word_lower = word.lower().replace('-', '').strip()
     
-    # Blacklist of SINGLE WORDS that might slip through
-    # These are words that LOOK like they could be compound but are NOT
+    # Blacklist of SINGLE WORDS that must be rejected
     single_word_blacklist = {
         # Common single words with blends
         'sled', 'street', 'trick', 'brave', 'crisp', 'black', 'blue', 'class',
@@ -156,14 +155,71 @@ def is_compound_word(word):
         print(f"❌ BLACKLIST REJECTED: '{word}' is a single word, not compound")
         return False
     
-    # Accept if at least 6 characters and not in blacklist
-    if len(word_lower) >= 6:
-        print(f"✅ COMPOUND ACCEPTED: '{word}' (passed blacklist)")
+    # Common word parts for compound word validation
+    common_words = {
+        'sun', 'hot', 'dog', 'cat', 'fish', 'sand', 'box', 'bed', 'mat', 'pig', 'pen',
+        'back', 'pack', 'hat', 'time', 'day', 'night', 'light', 'sea', 'weed', 'shell',
+        'rain', 'bow', 'snow', 'man', 'ball', 'mail', 'cupcake', 'cup', 'cake', 'bath',
+        'tub', 'room', 'play', 'ground', 'yard', 'ship', 'boat', 'sail', 'air', 'port',
+        'plane', 'fire', 'fly', 'butter', 'moon', 'star', 'foot', 'print', 'hand',
+        'book', 'note', 'base', 'water', 'fall', 'hill', 'side', 'up', 'down', 'out',
+        'in', 'door', 'way', 'some', 'any', 'every', 'thing', 'one', 'body', 'where',
+        'tooth', 'brush', 'hair', 'cut', 'shoe', 'lace', 'neck', 'tie', 'arm', 'chair',
+        'eye', 'brow', 'finger', 'nail', 'sun', 'flower', 'bee', 'hive', 'honey', 'comb',
+        'rain', 'coat', 'under', 'over', 'flash', 'blue', 'bird', 'black', 'berry',
+        'straw', 'grape', 'fruit', 'pan', 'stop', 'watch', 'class', 'check', 'point',
+        'mark', 'white', 'board', 'frog', 'pond', 'grass', 'land', 'spot', 'book', 'shelf'
+    }
+    
+    # Try to split the word into two parts
+    for i in range(2, len(word_lower) - 1):  # Start at 2, end before last char
+        part1 = word_lower[:i]
+        part2 = word_lower[i:]
+        
+        # Check if both parts are common words
+        if part1 in common_words and part2 in common_words:
+            print(f"✅ COMPOUND ACCEPTED: '{word}' = '{part1}' + '{part2}'")
+            return True
+    
+    # If it's long enough and not in blacklist, give it benefit of doubt
+    # But warn that we couldn't definitively validate it
+    if len(word_lower) >= 8:
+        print(f"⚠️ POSSIBLY COMPOUND: '{word}' (long enough, not in blacklist, couldn't split)")
         return True
     
-    # For shorter words (4-5 chars), be cautious
-    print(f"⚠️ REJECTED: '{word}' too short to reliably validate as compound")
+    print(f"❌ REJECTED: '{word}' - couldn't validate as compound word")
     return False
+
+def is_phrase(text):
+    """
+    Validate if text is truly a phrase (2-4 words) rather than a single word.
+    """
+    if not text:
+        return False
+    
+    # Clean the text
+    text_clean = text.strip()
+    
+    # Count words (split by spaces)
+    words = text_clean.split()
+    word_count = len(words)
+    
+    # Must have 2-4 words to be a phrase
+    if word_count < 2:
+        print(f"❌ PHRASE REJECTED: '{text}' is a single word, not a phrase")
+        return False
+    
+    if word_count > 4:
+        print(f"⚠️ PHRASE WARNING: '{text}' has {word_count} words (might be a sentence)")
+        return True  # Accept but warn
+    
+    # Check that each word is at least 2 characters (avoid "a b c" type phrases)
+    if any(len(word.strip()) < 2 for word in words):
+        print(f"❌ PHRASE REJECTED: '{text}' contains very short words")
+        return False
+    
+    print(f"✅ PHRASE ACCEPTED: '{text}' ({word_count} words)")
+    return True
 
 
 
@@ -736,6 +792,26 @@ CHECK YOUR WORK:
     - Examples: "big blue car", "happy little dog"
     - Keep syllable breakdown as the full phrase
         """
+    # Add this right after the phrase description
+        prompt += """
+
+        🚨 PHRASE VALIDATION RULES 🚨
+
+        A phrase MUST have 2-4 words that work together naturally.
+
+        VALID phrase examples:
+        ✅ "big red car" (3 words, descriptive)
+        ✅ "happy dog" (2 words, descriptive)
+        ✅ "run fast" (2 words, action)
+        ✅ "hot sun" (2 words, descriptive)
+
+        INVALID examples (DO NOT GENERATE):
+        ❌ "car" (single word - not a phrase!)
+        ❌ "running" (single word)
+        ❌ "a b c d e" (too many short words)
+
+        BEFORE SUBMITTING: Count the words! If it's 1 word → NOT A PHRASE!
+        """
         if challenge_level == 'compound_words':
             prompt += f"""
 
@@ -924,6 +1000,31 @@ ONLY GENERATE: Compound words (two words joined) that contain digraphs!
 
 GENERATE: True compound words featuring digraphs
             '''
+        # Add this right after the closing ''' of the digraph section
+    prompt += """
+
+    🚨 FINAL COMPOUND WORD VALIDATION 🚨
+
+    Before submitting each compound word, verify:
+    1. Can you split it into TWO separate words? (e.g., "hot" + "dog" = "hotdog")
+    2. Are BOTH parts real English words that kids know?
+    3. Does it make logical sense? (e.g., "hotdog" makes sense, "catbook" doesn't)
+
+    IF ANY ANSWER IS NO → REJECT THAT WORD AND GENERATE A DIFFERENT ONE!
+
+    Examples of VALID compound words:
+    ✅ "hotdog" = hot + dog (both real words)
+    ✅ "sandbox" = sand + box (both real words)
+    ✅ "backpack" = back + pack (both real words)
+    ✅ "sunflower" = sun + flower (both real words)
+
+    Examples of INVALID (DO NOT GENERATE):
+    ❌ "catfish" if it's just the animal name (teach only common kid meanings)
+    ❌ Single words like "tree", "house", "friend"
+    ❌ Made-up words like "catbook", "dogpen" (unless it's pigpen)
+
+    REMEMBER: A compound word MUST be two real words joined together!
+    """
     if challenge_level == 'simple_sentences':
         prompt += """
 ‼️ CRITICAL: GENERATE COMPLETE SENTENCES, NOT SINGLE WORDS! ‼️
@@ -1228,17 +1329,17 @@ def validate_pattern_isolation(words, learning_focus, challenge_level='simple_wo
         word = word_obj.get('word', '').lower()
         target = word_obj.get('targetLetter', '').lower()
         should_accept = True
-        if challenge_level == 'compound_words':
-            if not is_compound_word(word):
-                print(f"❌ COMPOUND REJECTED: '{word}' is not a compound word (it's a single word)")
+        if challenge_level == 'phrases':
+            if not is_phrase(word):
+                print(f"❌ PHRASE REJECTED: '{word}' is not a phrase (single word or too short)")
                 rejected_count += 1
                 continue  # Skip this word entirely
             else:
-                # It's compound - accept it! Don't check pattern isolation
-                print(f"✅ COMPOUND ACCEPTED: '{word}' (pattern checks skipped)")
+                # It's a valid phrase - accept it!
+                print(f"✅ PHRASE ACCEPTED: '{word}' (pattern checks skipped)")
                 validated.append(word_obj)
                 continue
-        
+                
         # Short vowels check - reject if contains long vowel patterns
         if learning_focus == 'short_vowels':
             long_patterns = ['a_e', 'ai', 'ay', 'ee', 'ea', 'i_e', 'ie', 'igh', 'o_e', 'oa', 'ow', 'u_e', 'ue', 'ui']
