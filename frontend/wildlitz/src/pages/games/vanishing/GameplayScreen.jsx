@@ -261,6 +261,10 @@ const handleTimeUp = () => {
   
   setEncouragementText('⏰ Time\'s up! Don\'t worry, you\'ll get the next one!');
   setShowEncouragement(true);
+
+    if (config.enableAudio) {
+    vanishingAudioService.playGiveUpSound();
+  }
   
   // Calculate elapsed time
   const elapsedTime = Math.floor((Date.now() - roundStartTime) / 1000);
@@ -331,6 +335,10 @@ setTimeout(() => {
   
   setEncouragementText('💪 Don\'t worry! You\'ll get the next one!');
   setShowEncouragement(true);
+
+  if (config.enableAudio) {
+    vanishingAudioService.playGiveUpSound();
+  }
   
 // Calculate elapsed time
 const elapsedTime = Math.floor((Date.now() - roundStartTime) / 1000);
