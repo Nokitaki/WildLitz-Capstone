@@ -61,6 +61,128 @@
   transform: translateZ(0);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+/* Circular Timer - Unique Design! */
+.circularTimer {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
+}
+
+.timerRing {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.timerRingBg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 8;
+}
+
+.timerRingProgress {
+  fill: none;
+  stroke: #667eea;
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 283;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+}
+
+.timerContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.timerNumber {
+  font-size: 2rem;
+  font-weight: 900;
+  color: white;
+  line-height: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.timerLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+/* Warning state (10 seconds) - Orange */
+.circularTimer.timerWarning .timerRingProgress {
+  stroke: #ff9800;
+}
+
+.circularTimer.timerWarning .timerContent {
+  background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+  animation: timerPulse 1s ease-in-out infinite;
+}
+
+/* Urgent state (5 seconds) - Red & Bigger */
+.circularTimer.timerUrgent {
+  width: 120px;
+  height: 120px;
+}
+
+.circularTimer.timerUrgent .timerRingProgress {
+  stroke: #f44336;
+  animation: progressPulse 0.5s ease-in-out infinite;
+}
+
+.circularTimer.timerUrgent .timerContent {
+  background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+  width: 95px;
+  height: 95px;
+  animation: urgentBounce 0.5s ease-in-out infinite;
+}
+
+.circularTimer.timerUrgent .timerNumber {
+  font-size: 2.5rem;
+}
+
+@keyframes timerPulse {
+  0%, 100% { 
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(255, 152, 0, 0.4);
+  }
+  50% { 
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2), 0 0 0 10px rgba(255, 152, 0, 0);
+  }
+}
+
+@keyframes urgentBounce {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(244, 67, 54, 0.4);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2), 0 0 0 15px rgba(244, 67, 54, 0);
+  }
+}
+
+@keyframes progressPulse {
+  0%, 100% { stroke-width: 8; }
+  50% { stroke-width: 10; }
+}
 
 .roundInfo:hover,
 .scoreInfo:hover,

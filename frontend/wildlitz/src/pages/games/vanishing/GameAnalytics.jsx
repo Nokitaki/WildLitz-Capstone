@@ -445,6 +445,19 @@ const GameAnalytics = ({ onBack }) => {
                           {Math.floor((session.time_spent || 0) / 1000 / 60)}m {Math.floor((session.time_spent || 0) / 1000 % 60)}s
                         </span>
                       </div>
+                      <div className={styles.expandedStat}>
+                      <span className={styles.expandedLabel}>⏰ Time Limit</span>
+                      <span className={styles.expandedValue}>
+                        {session.difficulty === 'easy' ? '30s' : 
+                        session.difficulty === 'medium' ? '25s' : '20s'}
+                      </span>
+                    </div>
+                    <div className={styles.expandedStat}>
+                      <span className={styles.expandedLabel}>⏱️ Timeouts</span>
+                      <span className={styles.expandedValue}>
+                        {(session.words_attempted || 0) - (session.words_recognized || 0)}
+                      </span>
+                    </div>
                     </div>
                   </motion.div>
                 )}

@@ -116,16 +116,15 @@ const ConfigScreen = ({
   };
 
   // Get difficulty info
-  const getDifficultyInfo = (level) => {
-    const info = {
-      easy: { name: 'Easy', icon: '🟢', description: '6 seconds to read', time: '6s' },
-      medium: { name: 'Medium', icon: '🟡', description: '4 seconds to read', time: '4s' },
-      hard: { name: 'Hard', icon: '🔴', description: '3 seconds to read', time: '3s' }
-    };
-    
-    return info[level] || { name: level, icon: '⚪', description: '', time: '' };
+ const getDifficultyInfo = (level) => {
+  const info = {
+    easy: { name: 'Easy', icon: '🟢', description: '30 seconds to read', time: '30s' },
+    medium: { name: 'Medium', icon: '🟡', description: '25 seconds to read', time: '25s' },
+    hard: { name: 'Hard', icon: '🔴', description: '20 seconds to read', time: '20s' }
   };
-
+  
+  return info[level] || { name: level, icon: '⚪', description: '', time: '' };
+};
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },

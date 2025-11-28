@@ -24,9 +24,19 @@ const GameplayScreen = ({
   teamNames = { teamA: 'Team A', teamB: 'Team B' }
 }) => {
   const { word, pattern, patternPosition, targetLetter } = wordData;
+
+  const TIMER_VALUES = {
+  easy: 30,
+  medium: 25,
+  hard: 20
+};
+
+// Get initial time based on difficulty
+const initialTime = TIMER_VALUES[config.difficulty] || 30;
   
   // Game states
-  const [timeRemaining, setTimeRemaining] = useState(5);
+  const [timeRemaining, setTimeRemaining] = useState(initialTime);
+const [roundStartTime, setRoundStartTime] = useState(Date.now());
   const [vanishState, setVanishState] = useState('visible');
   const [hasAnswered, setHasAnswered] = useState(false);
   const [preVanishPhase, setPreVanishPhase] = useState('initial');
@@ -165,15 +175,25 @@ useEffect(() => {
   }
 }, [preVanishPhase, word, config]);
 
+useEffect(() => {
+  setTimeRemaining(initialTime);
+  setHasAnswered(false);
+  setRoundStartTime(Date.now());
+}, [wordData, initialTime]);
+
   // Timer countdown
-  useEffect(() => {
-    if (preVanishPhase === 'vanishing' && vanishState === 'vanished' && !hasAnswered) {
-      if (timeRemaining > 0) {
-        const timer = setTimeout(() => setTimeRemaining(timeRemaining - 1), 1000);
-        return () => clearTimeout(timer);
-      }
+// Timer countdown - Auto give up when time runs out
+useEffect(() => {
+  if (preVanishPhase === 'vanishing' && vanishState === 'vanished' && !hasAnswered) {
+    if (timeRemaining > 0) {
+      const timer = setTimeout(() => setTimeRemaining(timeRemaining - 1), 1000);
+      return () => clearTimeout(timer);
+    } else {
+      // TIME'S UP! Auto give up
+      handleTimeUp();
     }
-  }, [timeRemaining, preVanishPhase, vanishState, hasAnswered]);
+  }
+}, [timeRemaining, preVanishPhase, vanishState, hasAnswered]);
 
   // Cleanup peek timeout on unmount
 useEffect(() => {
@@ -230,6 +250,26 @@ useEffect(() => {
   }
 };
 
+// Handle time up (auto give up)
+const handleTimeUp = () => {
+  if (hasAnswered) return;
+  setHasAnswered(true);
+  
+  // Show the word again
+  setVanishState('visible');
+  setPreVanishPhase('preview');
+  
+  setEncouragementText('⏰ Time\'s up! Don\'t worry, you\'ll get the next one!');
+  setShowEncouragement(true);
+  
+  // Calculate elapsed time
+  const elapsedTime = Math.floor((Date.now() - roundStartTime) / 1000);
+  
+  setTimeout(() => {
+    onResult('giveup', word, elapsedTime);
+  }, 1500);
+};
+
   const handleIKnowIt = () => {
   if (hasAnswered) return;
   setHasAnswered(true);
@@ -247,9 +287,12 @@ useEffect(() => {
     vanishingAudioService.playSuccessSound();
   }
   
-  setTimeout(() => {
-    onResult(true, word, 5 - timeRemaining);
-  }, 1500);
+// Calculate elapsed time
+const elapsedTime = Math.floor((Date.now() - roundStartTime) / 1000);
+
+setTimeout(() => {
+  onResult(true, word, elapsedTime);
+}, 1500);
 };
 
   const handleShowWord = () => {
@@ -289,9 +332,12 @@ useEffect(() => {
   setEncouragementText('💪 Don\'t worry! You\'ll get the next one!');
   setShowEncouragement(true);
   
-  setTimeout(() => {
-    onResult('giveup', word, 5 - timeRemaining);
-  }, 1500);
+// Calculate elapsed time
+const elapsedTime = Math.floor((Date.now() - roundStartTime) / 1000);
+
+setTimeout(() => {
+  onResult('giveup', word, elapsedTime);
+}, 1500);
 };
 
   const handleSkip = () => {
@@ -452,7 +498,6 @@ const renderWord = () => {
     <span className={styles.roundEmoji}>🎯</span>
     <span className={styles.roundText}>Round {round}/{totalRounds}</span>
   </motion.div>
-  
   {/* Show solo score OR team scoreboard */}
   {!teamPlay ? (
     <motion.div 
@@ -512,6 +557,40 @@ const renderWord = () => {
     </div>
   )}
 </div>
+{/* ⏰ PUT THE TIMER HERE - RIGHT AFTER THE CLOSING </div> ABOVE ⬇️⬇️⬇️ */}
+<motion.div 
+  className={`${styles.circularTimer} ${timeRemaining <= 10 ? styles.timerWarning : ''} ${timeRemaining <= 5 ? styles.timerUrgent : ''}`}
+  animate={timeRemaining <= 5 ? { 
+    scale: [1, 1.15, 1],
+    rotate: [0, 5, -5, 0]
+  } : {}}
+  transition={{ 
+    duration: 0.5, 
+    repeat: timeRemaining <= 5 ? Infinity : 0 
+  }}
+>
+  <svg className={styles.timerRing} viewBox="0 0 100 100">
+    <circle 
+      className={styles.timerRingBg} 
+      cx="50" 
+      cy="50" 
+      r="45" 
+    />
+    <circle 
+      className={styles.timerRingProgress} 
+      cx="50" 
+      cy="50" 
+      r="45"
+      style={{
+        strokeDashoffset: 283 - (283 * timeRemaining) / initialTime
+      }}
+    />
+  </svg>
+  <div className={styles.timerContent}>
+    <span className={styles.timerNumber}>{timeRemaining}</span>
+    <span className={styles.timerLabel}>sec</span>
+  </div>
+</motion.div>
 
       {/* 🎮 Main Game Area */}
       <div className={styles.mainGameArea}>
@@ -560,20 +639,6 @@ const renderWord = () => {
         <div className={styles.wordArea}>
           {renderWord()}
           
-          {/* Timer Display */}
-          {preVanishPhase === 'vanishing' && vanishState === 'vanished' && !hasAnswered && (
-            <motion.div
-              className={styles.timerDisplay}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', bounce: 0.6 }}
-            >
-              <div className={styles.timerCircle}>
-                <span className={styles.timerNumber}>{timeRemaining}</span>
-              </div>
-              <span className={styles.timerLabel}>seconds left!</span>
-            </motion.div>
-          )}
         </div>
 
         {/* Success Stars Animation */}
