@@ -15,7 +15,7 @@ import { StoryLoadingScreen } from '../../../components/common/LoadingStates';
 import CrosswordAnalyticsDashboard from './analytics/CrosswordAnalyticsDashboard';
 import { API_ENDPOINTS } from '../../../config/api';
 import BackToHomeButton from '../../games/crossword/BackToHomeButton';
-
+import storyMusic from '../../../assets/music/story-generator-music.mp3';
 // Memoized Theme Option Component
 const ThemeOption = memo(({ themeOption, isSelected, onSelect }) => {
   return (
@@ -79,7 +79,46 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
   const [error, setError] = useState(null);
   const [timeoutWarning, setTimeoutWarning] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Creating your adventure...');
+
+
+  const audioRef = useRef(null);
+  const [volume, setVolume] = useState(0.5);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   
+
+  useEffect(() => {
+  if (audioRef.current) {
+    audioRef.current.volume = volume;
+    audioRef.current.loop = true;
+    audioRef.current.play().catch(err => console.log('Audio autoplay blocked:', err));
+  }
+  return () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  };
+}, []);
+
+useEffect(() => {
+  if (audioRef.current) {
+    audioRef.current.volume = isMuted ? 0 : volume;
+  }
+}, [volume, isMuted]);
+
+
+
+
+
+const handleVolumeChange = (e) => {
+  const newVolume = parseFloat(e.target.value);
+  setVolume(newVolume);
+  if (newVolume > 0) setIsMuted(false);
+};
+
+const toggleMute = () => setIsMuted(!isMuted);
+
   // Timeout handling
   const timeoutRef = useRef(null);
   const progressIntervalRef = useRef(null);
@@ -266,6 +305,47 @@ const StoryGeneratorScreen = ({ onStoryGenerated, onCancel }) => {
 
   return (
     <div className={styles.generatorContainer}>
+      <audio ref={audioRef} src={storyMusic} />
+
+      <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
+      <button
+        onClick={() => setShowVolumeSlider(!showVolumeSlider)}
+        style={{
+          width: '50px', height: '50px', borderRadius: '50%', border: 'none',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white', fontSize: '24px', cursor: 'pointer',
+          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', transition: 'transform 0.2s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+      >
+        {isMuted ? '🔇' : volume > 0.5 ? '🔊' : volume > 0 ? '🔉' : '🔈'}
+      </button>
+
+      {showVolumeSlider && (
+        <div style={{
+          position: 'absolute', bottom: '60px', right: '0', background: 'white',
+          padding: '15px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+          display: 'flex', flexDirection: 'column', gap: '10px', minWidth: '150px'
+        }}>
+          <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333' }}>
+            Volume: {Math.round(volume * 100)}%
+          </div>
+          <input type="range" min="0" max="1" step="0.1" value={volume}
+            onChange={handleVolumeChange} style={{ width: '100%', cursor: 'pointer' }} />
+          <button onClick={toggleMute} style={{
+            padding: '8px', border: 'none', borderRadius: '8px',
+            background: isMuted ? '#e74c3c' : '#27ae60', color: 'white',
+            cursor: 'pointer', fontWeight: 'bold', fontSize: '13px'
+          }}>
+            {isMuted ? 'Unmute' : 'Mute'}
+          </button>
+        </div>
+      )}
+    </div>
+
+    
       <BackToHomeButton position="top-left" />
       <div className={styles.generatorCard}>
         <div className={styles.titleContainer}>
