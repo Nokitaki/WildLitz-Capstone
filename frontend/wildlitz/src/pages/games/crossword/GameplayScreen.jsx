@@ -439,7 +439,7 @@ const handleSkipGuide = () => {
   // Handle answer selection WITH AUDIO
   const handleSelectAnswer = useCallback((choice) => {
     if (feedback || isCurrentWordSolved) return;
-    if (window.playClickSound) window.playClickSound();
+    
     
     // Read the choice aloud
     readChoice(choice);
@@ -468,8 +468,7 @@ const handleSubmitAnswer = useCallback(async () => {
     onAnswerAttempt(correctAnswer, isCorrect, attemptNumber);
   }
   
-  if (isCorrect && window.playCorrectSound) window.playCorrectSound();
-  else if (!isCorrect && window.playWrongSound) window.playWrongSound();
+ 
   
   setFeedback({ 
     type: isCorrect ? 'success' : 'error',
@@ -544,7 +543,7 @@ const handleSubmitAnswer = useCallback(async () => {
   }, [currentWordIndex, puzzle.words]);
 
   const handleJumpToWord = useCallback((index) => {
-    if (window.playClickSound) window.playClickSound();
+    
     setCurrentWordIndex(index);
     setSelectedClue(puzzle.words[index]);
     setSelectedAnswer(null);
@@ -554,7 +553,7 @@ const handleSubmitAnswer = useCallback(async () => {
   // MODIFIED: Hint now reveals one letter instead of the whole answer
   const handleUseHint = useCallback(() => {
     if (hintsRemaining > 0 && !isCurrentWordSolved) {
-      if (window.playClickSound) window.playClickSound();
+    
       setHintsRemaining(prev => prev - 1);
       hintsUsedForCurrentWordRef.current += 1;
       

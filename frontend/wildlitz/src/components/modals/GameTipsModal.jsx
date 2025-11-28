@@ -1,5 +1,5 @@
-// src/components/common/GameTipsModal.jsx - OPTIMIZED VERSION
-import React, { useState, useCallback, useMemo } from 'react';
+// src/components/common/GameTipsModal.jsx - COMPACT VERSION
+import React, { useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,9 +11,7 @@ import SyllableClappingAnimation from '../animations/SyllableClappingAnimation';
 
 const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
   const navigate = useNavigate();
-  const [audioEnabled, setAudioEnabled] = useState(false);
 
-  // 🔥 OPTIMIZATION: Memoize game info to prevent recreation
   const gameInfo = useMemo(() => ({
     'syllable-clapping': {
       title: 'Syllable Clapping Game',
@@ -62,10 +60,9 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
       emoji: '🧩',
       howToPlay: [
         'Read the clues carefully to understand what word you need to find',
-        'Select a clue from the list to see the available answer choices',
-        'Choose the correct answer from the multiple choice options',
-        'Watch as the word fills into the crossword grid when you get it right',
-        'Use hints wisely if you get stuck on a difficult clue'
+        'Select a clue to see the available answer choices',
+        'Choose the correct answer from the options',
+        'Use hints wisely if you get stuck'
       ]
     }
   }), []);
@@ -73,9 +70,8 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
   const currentGame = gameInfo[game] || gameInfo['crossword-puzzle'];
   const isCrosswordGame = game === 'crossword-puzzle';
 
-  // 🔥 OPTIMIZATION: Memoize handlers to prevent recreation
   const handleStartGame = useCallback(() => {
-    if (window.playClickSound) window.playClickSound();
+    
     onClose();
     if (onStartGame) {
       onStartGame();
@@ -84,33 +80,13 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
     }
   }, [onClose, onStartGame, navigate, game]);
 
-  const handleEnableAudio = useCallback(async () => {
-    if (typeof window.enableGameAudio === 'function') {
-      window.enableGameAudio();
-    }
-
-    if (typeof window.initAudioSystem === 'function') {
-      const success = await window.initAudioSystem();
-      
-      if (success) {
-        setAudioEnabled(true);
-        setTimeout(() => {
-          if (window.playClickSound) window.playClickSound();
-        }, 300);
-      } else {
-        alert('Failed to initialize audio. Please try again.');
-      }
-    }
-  }, []);
-
   const handleAnalyticsClick = useCallback(() => {
-    if (window.playClickSound) window.playClickSound();
+   
     navigate('/analytics/crossword');
   }, [navigate]);
 
   if (!isOpen) return null;
 
-  // Unified Modal Design for All Games
   return (
     <AnimatePresence>
       <motion.div
@@ -142,18 +118,16 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
           style={{
             background: 'white',
             borderRadius: '20px',
-            padding: '40px',
-            maxWidth: '600px',
+            padding: '30px',
+            maxWidth: '520px',
             width: '100%',
-            maxHeight: '90vh',
-            overflowY: 'auto',
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
           }}
         >
           <h2 style={{
             color: '#2c3e50',
-            fontSize: '28px',
-            marginBottom: '20px',
+            fontSize: '24px',
+            marginBottom: '10px',
             textAlign: 'center'
           }}>
             {currentGame.emoji} {currentGame.title}
@@ -161,98 +135,50 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
           
           <p style={{
             color: '#7f8c8d',
-            fontSize: '16px',
-            marginBottom: '30px',
+            fontSize: '14px',
+            marginBottom: '20px',
             textAlign: 'center',
-            lineHeight: '1.6'
+            lineHeight: '1.5'
           }}>
             {currentGame.description}
           </p>
 
-          {/* Audio Enable Section - For Crossword */}
-          {isCrosswordGame && !audioEnabled && (
-            <div style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              borderRadius: '15px',
-              padding: '20px',
-              marginBottom: '25px',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '36px', marginBottom: '10px' }}>🎵</div>
-              <p style={{ color: 'white', margin: '0 0 15px 0', fontSize: '15px' }}>
-                <strong>Enable audio</strong> to enjoy background music and sound effects!
-              </p>
-              <button
-                onClick={handleEnableAudio}
-                style={{
-                  padding: '10px 20px',
-                  fontSize: '15px',
-                  fontWeight: 'bold',
-                  background: 'white',
-                  color: '#667eea',
-                  border: 'none',
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-                  transition: 'transform 0.2s ease'
-                }}
-              >
-                Enable Audio
-              </button>
-            </div>
-          )}
-
-          {/* Audio Enabled Confirmation - For Crossword */}
-          {isCrosswordGame && audioEnabled && (
-            <div style={{
-              background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
-              borderRadius: '15px',
-              padding: '20px',
-              marginBottom: '25px',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔊</div>
-              <p style={{ color: 'white', margin: 0, fontSize: '15px', fontWeight: 'bold' }}>
-                Audio Enabled! Enjoy the music and sounds!
-              </p>
-            </div>
-          )}
-
           <div style={{
             background: '#f8f9fa',
             borderRadius: '15px',
-            padding: '25px',
-            marginBottom: '30px'
+            padding: '20px',
+            marginBottom: '20px'
           }}>
             <h3 style={{
               color: '#2c3e50',
-              fontSize: '20px',
-              marginBottom: '15px'
+              fontSize: '17px',
+              marginBottom: '12px'
             }}>
               📖 How to Play:
             </h3>
             <ul style={{
               color: '#555',
-              lineHeight: '1.8',
-              paddingLeft: '20px'
+              fontSize: '14px',
+              lineHeight: '1.6',
+              paddingLeft: '20px',
+              margin: 0
             }}>
               {currentGame.howToPlay.map((step, index) => (
-                <li key={index} style={{ marginBottom: '10px' }}>
+                <li key={index} style={{ marginBottom: '8px' }}>
                   {step}
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <button
               onClick={onClose}
               style={{
                 flex: '1 1 auto',
-                minWidth: '120px',
-                padding: '15px',
-                fontSize: '16px',
+                minWidth: '100px',
+                padding: '12px',
+                fontSize: '15px',
                 fontWeight: 'bold',
                 background: '#e0e0e0',
                 color: '#555',
@@ -265,15 +191,14 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
               Close
             </button>
 
-            {/* Analytics Button - Only for Crossword */}
             {isCrosswordGame && (
               <button
                 onClick={handleAnalyticsClick}
                 style={{
                   flex: '1 1 auto',
-                  minWidth: '120px',
-                  padding: '15px',
-                  fontSize: '16px',
+                  minWidth: '110px',
+                  padding: '12px',
+                  fontSize: '15px',
                   fontWeight: 'bold',
                   background: 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
                   color: 'white',
@@ -285,10 +210,10 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '8px'
+                  gap: '6px'
                 }}
               >
-                <span style={{ fontSize: '18px' }}>📊</span>
+                <span style={{ fontSize: '16px' }}>📊</span>
                 Analytics
               </button>
             )}
@@ -297,9 +222,9 @@ const GameTipsModal = ({ isOpen, onClose, game, onStartGame }) => {
               onClick={handleStartGame}
               style={{
                 flex: '2 1 auto',
-                minWidth: '180px',
-                padding: '15px',
-                fontSize: '16px',
+                minWidth: '150px',
+                padding: '12px',
+                fontSize: '15px',
                 fontWeight: 'bold',
                 background: currentGame.color,
                 color: 'white',
