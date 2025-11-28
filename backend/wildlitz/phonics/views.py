@@ -438,13 +438,21 @@ def generate_vanishing_words(request):
             # Generate words using OpenAI
             new_words = generate_phonics_words_with_ai(challenge_level, learning_focus, difficulty, generate_count)
             
-            # Validate pattern isolation
-            print(f"🔍 VALIDATING PATTERN ISOLATION for {learning_focus}...")
-            new_words = validate_pattern_isolation(new_words, learning_focus, challenge_level)
-            print(f"✅ Pattern validation: {len(new_words)}/{generate_count} words passed")
+            # ⚡ CONDITIONAL VALIDATION - Strict for compound_words/phrases, lenient for simple_words
+            if challenge_level in ['compound_words', 'phrases']:
+                # STRICT validation for compound_words and phrases (KEEP THIS)
+                print(f"🔍 STRICT VALIDATION for {challenge_level}/{learning_focus}...")
+                new_words = validate_pattern_isolation(new_words, learning_focus, challenge_level)
+                print(f"✅ Pattern validation: {len(new_words)}/{generate_count} words passed")
+            else:
+                # LENIENT validation for simple_words and simple_sentences
+                print(f"✅ LENIENT mode for {challenge_level} - accepting AI words with basic checks")
+                # Just do basic structure validation, no pattern checking
+                new_words = [w for w in new_words if validate_word_structure(w)]
+                print(f"✅ Basic validation: {len(new_words)}/{generate_count} words passed")
             
-            # Long vowel specific validation
-            if learning_focus == 'long_vowels':
+            # Long vowel specific validation (ONLY for compound_words/phrases)
+            if learning_focus == 'long_vowels' and challenge_level in ['compound_words', 'phrases']:
                 new_words = regenerate_if_invalid(new_words, learning_focus)
             
             # Challenge-specific filtering
@@ -570,13 +578,26 @@ def generate_phonics_words_with_ai(challenge_level, learning_focus, difficulty, 
     if challenge_level == 'simple_sentences':
         MAX_PER_CALL = 15  # 15 sentences × 250 tokens = 3750 tokens (safe)
     elif challenge_level == 'phrases':
-        MAX_PER_CALL = 20  # 20 phrases × 180 tokens = 3600 tokens
+        MAX_PER_CALL = 25  # ⚡ Generate max 25 in ONE call (no batching!)
     elif challenge_level == 'compound_words':
-        MAX_PER_CALL = 25  # 25 compounds × 140 tokens = 3500 tokens
+        MAX_PER_CALL = 25  # ⚡ Generate max 25 in ONE call (no batching!)
     else:  # simple_words
         MAX_PER_CALL = 34  # 34 words × 100 tokens = 3400 tokens
     
-    # If request is within limit, generate in one call
+    # ⚡ FOR COMPOUND_WORDS & PHRASES: Generate max 25, use fallback for rest
+    if challenge_level in ['compound_words', 'phrases']:
+        if word_count <= 25:
+            # Generate all words with AI (single call)
+            print(f"✅ Single call: generating {word_count} items")
+            return generate_single_batch(challenge_level, learning_focus, difficulty, word_count)
+        else:
+            # Generate 25 with AI, rest with fallback
+            print(f"⚡ HYBRID: Generating 25 with AI, {word_count - 25} with fallback")
+            ai_words = generate_single_batch(challenge_level, learning_focus, difficulty, 25)
+            fallback_words = generate_static_fallback_words(challenge_level, learning_focus, word_count - 25)
+            return ai_words + fallback_words
+    
+    # For simple_words and simple_sentences (keep original behavior)
     if word_count <= MAX_PER_CALL:
         print(f"✅ Single call: generating {word_count} items")
         return generate_single_batch(challenge_level, learning_focus, difficulty, word_count)
@@ -2226,9 +2247,9 @@ def generate_static_fallback_words(challenge_level, learning_focus, word_count):
             ]
         },
         
-        'compound_words': {
+'compound_words': {
     'short_vowels': [
-        # Short A compound words
+        # Compound words with short vowels - 25 total
         {'word': 'hotdog', 'syllableBreakdown': 'hot-dog', 'targetLetter': 'o', 'definition': 'A sausage in a bun', 'pattern': 'short_o', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'o' makes the sound like in 'octopus'"},
         {'word': 'sandbox', 'syllableBreakdown': 'sand-box', 'targetLetter': 'a', 'definition': 'Box filled with sand for play', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
         {'word': 'catfish', 'syllableBreakdown': 'cat-fish', 'targetLetter': 'a', 'definition': 'A type of fish with whiskers', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
@@ -2241,65 +2262,111 @@ def generate_static_fallback_words(challenge_level, learning_focus, word_count):
         {'word': 'sunhat', 'syllableBreakdown': 'sun-hat', 'targetLetter': 'u', 'definition': 'Hat to protect from sun', 'pattern': 'short_u', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'u' makes the sound like in 'umbrella'"},
         {'word': 'hotpot', 'syllableBreakdown': 'hot-pot', 'targetLetter': 'o', 'definition': 'A cooking pot that stays hot', 'pattern': 'short_o', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'o' makes the sound like in 'octopus'"},
         {'word': 'bathtub', 'syllableBreakdown': 'bath-tub', 'targetLetter': 'a', 'definition': 'Tub for taking a bath', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
-        {'word': 'anthill', 'syllableBreakdown': 'ant-hill', 'targetLetter': 'a', 'definition': 'Small hill made by ants', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
-        {'word': 'madman', 'syllableBreakdown': 'mad-man', 'targetLetter': 'a', 'definition': 'A very angry person', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
-        {'word': 'redcap', 'syllableBreakdown': 'red-cap', 'targetLetter': 'e', 'definition': 'A cap that is red', 'pattern': 'short_e', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'e' makes the sound like in 'egg'"},
-        
-        # Add 25 more for total of 40
         {'word': 'laptop', 'syllableBreakdown': 'lap-top', 'targetLetter': 'a', 'definition': 'Portable computer', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
         {'word': 'catnap', 'syllableBreakdown': 'cat-nap', 'targetLetter': 'a', 'definition': 'A short sleep', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
-        {'word': 'ratpack', 'syllableBreakdown': 'rat-pack', 'targetLetter': 'a', 'definition': 'A group of rats', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
         {'word': 'hatbox', 'syllableBreakdown': 'hat-box', 'targetLetter': 'a', 'definition': 'Box for storing hats', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
-        {'word': 'cattail', 'syllableBreakdown': 'cat-tail', 'targetLetter': 'a', 'definition': 'A type of plant', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
-        {'word': 'cutback', 'syllableBreakdown': 'cut-back', 'targetLetter': 'u', 'definition': 'To reduce something', 'pattern': 'short_u', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'u' makes the sound like in 'umbrella'"},
         {'word': 'suntan', 'syllableBreakdown': 'sun-tan', 'targetLetter': 'u', 'definition': 'Brown skin from sun', 'pattern': 'short_u', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'u' makes the sound like in 'umbrella'"},
         {'word': 'dustpan', 'syllableBreakdown': 'dust-pan', 'targetLetter': 'u', 'definition': 'Pan for sweeping dust', 'pattern': 'short_u', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'u' makes the sound like in 'umbrella'"},
-        {'word': 'potluck', 'syllableBreakdown': 'pot-luck', 'targetLetter': 'o', 'definition': 'Meal where everyone brings food', 'pattern': 'short_o', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'o' makes the sound like in 'octopus'"},
         {'word': 'hotshot', 'syllableBreakdown': 'hot-shot', 'targetLetter': 'o', 'definition': 'Someone very skilled', 'pattern': 'short_o', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'o' makes the sound like in 'octopus'"},
-        {'word': 'topdog', 'syllableBreakdown': 'top-dog', 'targetLetter': 'o', 'definition': 'The leader', 'pattern': 'short_o', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'o' makes the sound like in 'octopus'"},
-        {'word': 'hotdog', 'syllableBreakdown': 'hot-dog', 'targetLetter': 'o', 'definition': 'A sausage in a bun', 'pattern': 'short_o', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'o' makes the sound like in 'octopus'"},
-        {'word': 'bedpan', 'syllableBreakdown': 'bed-pan', 'targetLetter': 'e', 'definition': 'Pan used in bed', 'pattern': 'short_e', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'e' makes the sound like in 'egg'"},
         {'word': 'eggshell', 'syllableBreakdown': 'egg-shell', 'targetLetter': 'e', 'definition': 'Shell of an egg', 'pattern': 'short_e', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'e' makes the sound like in 'egg'"},
         {'word': 'fishnet', 'syllableBreakdown': 'fish-net', 'targetLetter': 'i', 'definition': 'Net for catching fish', 'pattern': 'short_i', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"},
         {'word': 'pinball', 'syllableBreakdown': 'pin-ball', 'targetLetter': 'i', 'definition': 'Game with flippers and ball', 'pattern': 'short_i', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"},
         {'word': 'piglet', 'syllableBreakdown': 'pig-let', 'targetLetter': 'i', 'definition': 'A baby pig', 'pattern': 'short_i', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"},
-        {'word': 'dipstick', 'syllableBreakdown': 'dip-stick', 'targetLetter': 'i', 'definition': 'Stick to check oil', 'pattern': 'short_i', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"},
         {'word': 'lipstick', 'syllableBreakdown': 'lip-stick', 'targetLetter': 'i', 'definition': 'Color for lips', 'pattern': 'short_i', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"},
-        {'word': 'kidnap', 'syllableBreakdown': 'kid-nap', 'targetLetter': 'i', 'definition': 'To take someone by force', 'pattern': 'short_i', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"},
         {'word': 'ragdoll', 'syllableBreakdown': 'rag-doll', 'targetLetter': 'a', 'definition': 'Soft cloth doll', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
-        {'word': 'handbag', 'syllableBreakdown': 'hand-bag', 'targetLetter': 'a', 'definition': 'Bag carried by hand', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
-        {'word': 'sandbag', 'syllableBreakdown': 'sand-bag', 'targetLetter': 'a', 'definition': 'Bag filled with sand', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
-        {'word': 'packrat', 'syllableBreakdown': 'pack-rat', 'targetLetter': 'a', 'definition': 'Person who saves everything', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
-        {'word': 'batcave', 'syllableBreakdown': 'bat-cave', 'targetLetter': 'a', 'definition': 'Cave where bats live', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
+        {'word': 'anthill', 'syllableBreakdown': 'ant-hill', 'targetLetter': 'a', 'definition': 'Small hill made by ants', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
     ],
     'long_vowels': [
-        {'word': 'rainbow', 'syllableBreakdown': 'rain-bow', 'targetLetter': 'ai', 'definition': 'Colors in the sky after rain', 'pattern': 'long_a', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ai' makes the name of the letter, as in 'rain'"},
-        {'word': 'sunshine', 'syllableBreakdown': 'sun-shine', 'targetLetter': 'i_e', 'definition': 'Bright light from the sun', 'pattern': 'long_i', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'i' makes the name of the letter, as in 'shine'"},
-        {'word': 'seaweed', 'syllableBreakdown': 'sea-weed', 'targetLetter': 'ea', 'definition': 'Plant that grows in the ocean', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ea' makes the name of the letter, as in 'sea'"},
-        {'word': 'beehive', 'syllableBreakdown': 'bee-hive', 'targetLetter': 'ee', 'definition': 'Home where bees live', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ee' makes the name of the letter, as in 'bee'"},
-        {'word': 'moonlight', 'syllableBreakdown': 'moon-light', 'targetLetter': 'oo', 'definition': 'Light from the moon', 'pattern': 'long_o', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'oo' makes the /oo/ sound like in 'moon'"},
-        # Add 35 more to reach 40 total
-        {'word': 'mailbox', 'syllableBreakdown': 'mail-box', 'targetLetter': 'ai', 'definition': 'Box for receiving mail', 'pattern': 'long_a', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ai' makes the name of the letter"},
+        # Compound words with long vowels - 25 total
+        {'word': 'rainbow', 'syllableBreakdown': 'rain-bow', 'targetLetter': 'ai', 'definition': 'Colorful arc in the sky', 'pattern': 'long_a', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ai' makes the name of the letter"},
+        {'word': 'seaweed', 'syllableBreakdown': 'sea-weed', 'targetLetter': 'ea', 'definition': 'Plants that grow in ocean', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'beehive', 'syllableBreakdown': 'bee-hive', 'targetLetter': 'ee', 'definition': 'Home where bees live', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'moonlight', 'syllableBreakdown': 'moon-light', 'targetLetter': 'oo', 'definition': 'Light from the moon', 'pattern': 'long_o', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'oo' makes the name of the letter"},
+        {'word': 'daytime', 'syllableBreakdown': 'day-time', 'targetLetter': 'ay', 'definition': 'When sun is out', 'pattern': 'long_a', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ay' makes the name of the letter"},
+        {'word': 'railroad', 'syllableBreakdown': 'rail-road', 'targetLetter': 'ai', 'definition': 'Train track', 'pattern': 'long_a', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ai' makes the name of the letter"},
+        {'word': 'beeline', 'syllableBreakdown': 'bee-line', 'targetLetter': 'ee', 'definition': 'Straight path', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'seashell', 'syllableBreakdown': 'sea-shell', 'targetLetter': 'ea', 'definition': 'Shell from the ocean', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'daybreak', 'syllableBreakdown': 'day-break', 'targetLetter': 'ay', 'definition': 'Time when day begins', 'pattern': 'long_a', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ay' makes the name of the letter"},
+        {'word': 'teaspoon', 'syllableBreakdown': 'tea-spoon', 'targetLetter': 'ea', 'definition': 'Small spoon', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'steamboat', 'syllableBreakdown': 'steam-boat', 'targetLetter': 'ea', 'definition': 'Boat powered by steam', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'coastline', 'syllableBreakdown': 'coast-line', 'targetLetter': 'oa', 'definition': 'Edge of the ocean', 'pattern': 'long_o', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'oa' makes the name of the letter"},
         {'word': 'sailboat', 'syllableBreakdown': 'sail-boat', 'targetLetter': 'ai', 'definition': 'Boat with sails', 'pattern': 'long_a', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ai' makes the name of the letter"},
+        {'word': 'nighttime', 'syllableBreakdown': 'night-time', 'targetLetter': 'igh', 'definition': 'When it is dark', 'pattern': 'long_i', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'igh' makes the name of the letter"},
+        {'word': 'toenail', 'syllableBreakdown': 'toe-nail', 'targetLetter': 'oe', 'definition': 'Nail on your toe', 'pattern': 'long_o', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'oe' makes the name of the letter"},
         {'word': 'raincoat', 'syllableBreakdown': 'rain-coat', 'targetLetter': 'ai', 'definition': 'Coat worn in rain', 'pattern': 'long_a', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ai' makes the name of the letter"},
-        # ... continue with more long vowel compound words
+        {'word': 'speedboat', 'syllableBreakdown': 'speed-boat', 'targetLetter': 'ee', 'definition': 'Fast boat', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'seaplane', 'syllableBreakdown': 'sea-plane', 'targetLetter': 'ea', 'definition': 'Plane that lands on water', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'beefsteak', 'syllableBreakdown': 'beef-steak', 'targetLetter': 'ee', 'definition': 'Cut of beef meat', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'treehouse', 'syllableBreakdown': 'tree-house', 'targetLetter': 'ee', 'definition': 'House built in a tree', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'racetrack', 'syllableBreakdown': 'race-track', 'targetLetter': 'a_e', 'definition': 'Track for racing', 'pattern': 'long_a', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'a_e' makes the name of the letter"},
+        {'word': 'homemade', 'syllableBreakdown': 'home-made', 'targetLetter': 'o_e', 'definition': 'Made at home', 'pattern': 'long_o', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'o_e' makes the name of the letter"},
+        {'word': 'teacake', 'syllableBreakdown': 'tea-cake', 'targetLetter': 'ea', 'definition': 'Small sweet cake', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'seashore', 'syllableBreakdown': 'sea-shore', 'targetLetter': 'ea', 'definition': 'Land by the sea', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'boathouse', 'syllableBreakdown': 'boat-house', 'targetLetter': 'oa', 'definition': 'Building for boats', 'pattern': 'long_o', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'oa' makes the name of the letter"},
     ],
     'blends': [
+        # Compound words with blends - 25 total
         {'word': 'playground', 'syllableBreakdown': 'play-ground', 'targetLetter': 'pl', 'definition': 'Place to play outside', 'pattern': 'pl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'pl' combines the 'p' and 'l' sounds"},
         {'word': 'backpack', 'syllableBreakdown': 'back-pack', 'targetLetter': 'ck', 'definition': 'Bag worn on your back', 'pattern': 'ck_blend', 'patternPosition': 'end', 'phonicsRule': "The blend 'ck' combines at word end"},
-        # Add 38 more to reach 40 total
+        {'word': 'flagpole', 'syllableBreakdown': 'flag-pole', 'targetLetter': 'fl', 'definition': 'Pole for flying a flag', 'pattern': 'fl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'fl' combines the 'f' and 'l' sounds"},
+        {'word': 'classroom', 'syllableBreakdown': 'class-room', 'targetLetter': 'cl', 'definition': 'Room for learning', 'pattern': 'cl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'cl' combines the 'c' and 'l' sounds"},
+        {'word': 'snowflake', 'syllableBreakdown': 'snow-flake', 'targetLetter': 'fl', 'definition': 'Single piece of snow', 'pattern': 'fl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'fl' combines the 'f' and 'l' sounds"},
+        {'word': 'stopwatch', 'syllableBreakdown': 'stop-watch', 'targetLetter': 'st', 'definition': 'Timer for races', 'pattern': 'st_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'st' combines the 's' and 't' sounds"},
+        {'word': 'frogpond', 'syllableBreakdown': 'frog-pond', 'targetLetter': 'fr', 'definition': 'Pond where frogs live', 'pattern': 'fr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'fr' combines the 'f' and 'r' sounds"},
+        {'word': 'grassland', 'syllableBreakdown': 'grass-land', 'targetLetter': 'gr', 'definition': 'Land covered with grass', 'pattern': 'gr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'gr' combines the 'g' and 'r' sounds"},
+        {'word': 'blackboard', 'syllableBreakdown': 'black-board', 'targetLetter': 'bl', 'definition': 'Board for writing with chalk', 'pattern': 'bl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'bl' combines the 'b' and 'l' sounds"},
+        {'word': 'grandstand', 'syllableBreakdown': 'grand-stand', 'targetLetter': 'gr', 'definition': 'Large seating area', 'pattern': 'gr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'gr' combines the 'g' and 'r' sounds"},
+        {'word': 'grapevine', 'syllableBreakdown': 'grape-vine', 'targetLetter': 'gr', 'definition': 'Plant that grows grapes', 'pattern': 'gr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'gr' combines the 'g' and 'r' sounds"},
+        {'word': 'starfish', 'syllableBreakdown': 'star-fish', 'targetLetter': 'st', 'definition': 'Star-shaped sea animal', 'pattern': 'st_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'st' combines the 's' and 't' sounds"},
+        {'word': 'bluebell', 'syllableBreakdown': 'blue-bell', 'targetLetter': 'bl', 'definition': 'Blue colored flower', 'pattern': 'bl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'bl' combines the 'b' and 'l' sounds"},
+        {'word': 'flatland', 'syllableBreakdown': 'flat-land', 'targetLetter': 'fl', 'definition': 'Land that is flat', 'pattern': 'fl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'fl' combines the 'f' and 'l' sounds"},
+        {'word': 'drawbridge', 'syllableBreakdown': 'draw-bridge', 'targetLetter': 'dr', 'definition': 'Bridge that opens', 'pattern': 'dr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'dr' combines the 'd' and 'r' sounds"},
+        {'word': 'clockwork', 'syllableBreakdown': 'clock-work', 'targetLetter': 'cl', 'definition': 'Mechanism of a clock', 'pattern': 'cl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'cl' combines the 'c' and 'l' sounds"},
+        {'word': 'spotlight', 'syllableBreakdown': 'spot-light', 'targetLetter': 'sp', 'definition': 'Strong beam of light', 'pattern': 'sp_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sp' combines the 's' and 'p' sounds"},
+        {'word': 'greenhouse', 'syllableBreakdown': 'green-house', 'targetLetter': 'gr', 'definition': 'Glass building for plants', 'pattern': 'gr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'gr' combines the 'g' and 'r' sounds"},
+        {'word': 'snapshot', 'syllableBreakdown': 'snap-shot', 'targetLetter': 'sn', 'definition': 'Quick photograph', 'pattern': 'sn_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sn' combines the 's' and 'n' sounds"},
+        {'word': 'handspring', 'syllableBreakdown': 'hand-spring', 'targetLetter': 'sp', 'definition': 'Gymnastic move', 'pattern': 'sp_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sp' combines the 's' and 'p' sounds"},
+        {'word': 'shipyard', 'syllableBreakdown': 'ship-yard', 'targetLetter': 'sh', 'definition': 'Place where ships are built', 'pattern': 'sh_blend', 'patternPosition': 'beginning', 'phonicsRule': "Ships are built in a yard"},
+        {'word': 'drumstick', 'syllableBreakdown': 'drum-stick', 'targetLetter': 'dr', 'definition': 'Stick for playing drums', 'pattern': 'dr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'dr' combines the 'd' and 'r' sounds"},
+        {'word': 'blacksmith', 'syllableBreakdown': 'black-smith', 'targetLetter': 'bl', 'definition': 'Person who works with metal', 'pattern': 'bl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'bl' combines the 'b' and 'l' sounds"},
+        {'word': 'blueprint', 'syllableBreakdown': 'blue-print', 'targetLetter': 'bl', 'definition': 'Building plan', 'pattern': 'bl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'bl' combines the 'b' and 'l' sounds"},
+        {'word': 'trackside', 'syllableBreakdown': 'track-side', 'targetLetter': 'tr', 'definition': 'Beside the track', 'pattern': 'tr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'tr' combines the 't' and 'r' sounds"},
     ],
     'digraphs': [
+        # Compound words with digraphs - 25 total
         {'word': 'seashell', 'syllableBreakdown': 'sea-shell', 'targetLetter': 'sh', 'definition': 'Shell found by the ocean', 'pattern': 'sh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
         {'word': 'toothbrush', 'syllableBreakdown': 'tooth-brush', 'targetLetter': 'th', 'definition': 'Brush for teeth', 'pattern': 'th_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'th' makes one sound"},
-        # Add 38 more to reach 40 total
+        {'word': 'fishpond', 'syllableBreakdown': 'fish-pond', 'targetLetter': 'sh', 'definition': 'Pond for keeping fish', 'pattern': 'sh_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'shopfront', 'syllableBreakdown': 'shop-front', 'targetLetter': 'sh', 'definition': 'Front of a shop', 'pattern': 'sh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'pathway', 'syllableBreakdown': 'path-way', 'targetLetter': 'th', 'definition': 'Way or path to walk', 'pattern': 'th_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'th' makes one sound"},
+        {'word': 'shipyard', 'syllableBreakdown': 'ship-yard', 'targetLetter': 'sh', 'definition': 'Place where ships are built', 'pattern': 'sh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'checkmark', 'syllableBreakdown': 'check-mark', 'targetLetter': 'ch', 'definition': 'Mark showing something is right', 'pattern': 'ch_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'ch' makes one sound like in 'choo-choo'"},
+        {'word': 'thinktank', 'syllableBreakdown': 'think-tank', 'targetLetter': 'th', 'definition': 'Group of thinkers', 'pattern': 'th_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'th' makes one sound"},
+        {'word': 'whiteboard', 'syllableBreakdown': 'white-board', 'targetLetter': 'wh', 'definition': 'White board for writing', 'pattern': 'wh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'wh' makes a sound like blowing air"},
+        {'word': 'phonebook', 'syllableBreakdown': 'phone-book', 'targetLetter': 'ph', 'definition': 'Book of phone numbers', 'pattern': 'ph_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'ph' makes the 'f' sound"},
+        {'word': 'shellfish', 'syllableBreakdown': 'shell-fish', 'targetLetter': 'sh', 'definition': 'Sea creature with a shell', 'pattern': 'sh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'bathrobe', 'syllableBreakdown': 'bath-robe', 'targetLetter': 'th', 'definition': 'Robe worn after bath', 'pattern': 'th_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'th' makes one sound"},
+        {'word': 'matchbox', 'syllableBreakdown': 'match-box', 'targetLetter': 'ch', 'definition': 'Box for matches', 'pattern': 'ch_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'ch' makes one sound like in 'choo-choo'"},
+        {'word': 'watchtower', 'syllableBreakdown': 'watch-tower', 'targetLetter': 'ch', 'definition': 'Tower for watching', 'pattern': 'ch_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'ch' makes one sound like in 'choo-choo'"},
+        {'word': 'handshake', 'syllableBreakdown': 'hand-shake', 'targetLetter': 'sh', 'definition': 'Greeting with hands', 'pattern': 'sh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'fishhook', 'syllableBreakdown': 'fish-hook', 'targetLetter': 'sh', 'definition': 'Hook for catching fish', 'pattern': 'sh_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'toothpick', 'syllableBreakdown': 'tooth-pick', 'targetLetter': 'th', 'definition': 'Pick for cleaning teeth', 'pattern': 'th_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'th' makes one sound"},
+        {'word': 'wishbone', 'syllableBreakdown': 'wish-bone', 'targetLetter': 'sh', 'definition': 'Bone you make a wish on', 'pattern': 'sh_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'shipwreck', 'syllableBreakdown': 'ship-wreck', 'targetLetter': 'sh', 'definition': 'Destroyed ship', 'pattern': 'sh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'bathmat', 'syllableBreakdown': 'bath-mat', 'targetLetter': 'th', 'definition': 'Mat for bathroom floor', 'pattern': 'th_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'th' makes one sound"},
+        {'word': 'chalkboard', 'syllableBreakdown': 'chalk-board', 'targetLetter': 'ch', 'definition': 'Board for writing with chalk', 'pattern': 'ch_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'ch' makes one sound like in 'choo-choo'"},
+        {'word': 'thumbtack', 'syllableBreakdown': 'thumb-tack', 'targetLetter': 'th', 'definition': 'Pin for bulletin boards', 'pattern': 'th_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'th' makes one sound"},
+        {'word': 'sheepdog', 'syllableBreakdown': 'sheep-dog', 'targetLetter': 'sh', 'definition': 'Dog that herds sheep', 'pattern': 'sh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'washcloth', 'syllableBreakdown': 'wash-cloth', 'targetLetter': 'sh', 'definition': 'Cloth for washing', 'pattern': 'sh_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'checkbook', 'syllableBreakdown': 'check-book', 'targetLetter': 'ch', 'definition': 'Book of bank checks', 'pattern': 'ch_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'ch' makes one sound like in 'choo-choo'"},
     ]
 },
 
 'phrases': {
     'short_vowels': [
+        # Phrases with short vowels - 25 total
         {'word': 'big red hat', 'syllableBreakdown': 'big red hat', 'targetLetter': 'e', 'definition': 'A large hat that is red', 'pattern': 'short_e', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'e' makes the sound like in 'egg'"},
-        {'word': 'hot cup', 'syllableBreakdown': 'hot cup', 'targetLetter': 'o', 'definition': 'A warm cup for drinks', 'pattern': 'short_o', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'o' makes the sound like in 'octopus'"},
+        {'word': 'hot dog', 'syllableBreakdown': 'hot dog', 'targetLetter': 'o', 'definition': 'A warm pet', 'pattern': 'short_o', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'o' makes the sound like in 'octopus'"},
         {'word': 'run fast', 'syllableBreakdown': 'run fast', 'targetLetter': 'u', 'definition': 'To move very quickly', 'pattern': 'short_u', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'u' makes the sound like in 'umbrella'"},
         {'word': 'sit down', 'syllableBreakdown': 'sit down', 'targetLetter': 'i', 'definition': 'To take a seat', 'pattern': 'short_i', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"},
         {'word': 'big dog', 'syllableBreakdown': 'big dog', 'targetLetter': 'i', 'definition': 'A large pet dog', 'pattern': 'short_i', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"},
@@ -2308,21 +2375,106 @@ def generate_static_fallback_words(challenge_level, learning_focus, word_count):
         {'word': 'fat pig', 'syllableBreakdown': 'fat pig', 'targetLetter': 'a', 'definition': 'A chubby pig', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
         {'word': 'wet pen', 'syllableBreakdown': 'wet pen', 'targetLetter': 'e', 'definition': 'A pen covered with water', 'pattern': 'short_e', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'e' makes the sound like in 'egg'"},
         {'word': 'hot sun', 'syllableBreakdown': 'hot sun', 'targetLetter': 'o', 'definition': 'The warm star in the sky', 'pattern': 'short_o', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'o' makes the sound like in 'octopus'"},
-        
-        # Add 30 more for total of 40
         {'word': 'sad man', 'syllableBreakdown': 'sad man', 'targetLetter': 'a', 'definition': 'A man who feels unhappy', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
         {'word': 'mad dad', 'syllableBreakdown': 'mad dad', 'targetLetter': 'a', 'definition': 'An angry father', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
         {'word': 'tan van', 'syllableBreakdown': 'tan van', 'targetLetter': 'a', 'definition': 'A brown colored van', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
         {'word': 'top cop', 'syllableBreakdown': 'top cop', 'targetLetter': 'o', 'definition': 'Best police officer', 'pattern': 'short_o', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'o' makes the sound like in 'octopus'"},
         {'word': 'hot pot', 'syllableBreakdown': 'hot pot', 'targetLetter': 'o', 'definition': 'A cooking pot that is hot', 'pattern': 'short_o', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'o' makes the sound like in 'octopus'"},
-        # ... continue with more phrases to reach 40
+        {'word': 'big bus', 'syllableBreakdown': 'big bus', 'targetLetter': 'u', 'definition': 'A large vehicle', 'pattern': 'short_u', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'u' makes the sound like in 'umbrella'"},
+        {'word': 'wet hen', 'syllableBreakdown': 'wet hen', 'targetLetter': 'e', 'definition': 'A chicken covered in water', 'pattern': 'short_e', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'e' makes the sound like in 'egg'"},
+        {'word': 'quick fox', 'syllableBreakdown': 'quick fox', 'targetLetter': 'i', 'definition': 'A fast fox', 'pattern': 'short_i', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"},
+        {'word': 'black cat', 'syllableBreakdown': 'black cat', 'targetLetter': 'a', 'definition': 'A dark colored cat', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
+        {'word': 'red bed', 'syllableBreakdown': 'red bed', 'targetLetter': 'e', 'definition': 'A bed that is red', 'pattern': 'short_e', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'e' makes the sound like in 'egg'"},
+        {'word': 'thin bat', 'syllableBreakdown': 'thin bat', 'targetLetter': 'i', 'definition': 'A skinny bat', 'pattern': 'short_i', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"},
+        {'word': 'jump up', 'syllableBreakdown': 'jump up', 'targetLetter': 'u', 'definition': 'To leap upward', 'pattern': 'short_u', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'u' makes the sound like in 'umbrella'"},
+        {'word': 'ten cats', 'syllableBreakdown': 'ten cats', 'targetLetter': 'e', 'definition': 'Number of cats', 'pattern': 'short_e', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'e' makes the sound like in 'egg'"},
+        {'word': 'fat rat', 'syllableBreakdown': 'fat rat', 'targetLetter': 'a', 'definition': 'A chubby rat', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
+        {'word': 'hot sand', 'syllableBreakdown': 'hot sand', 'targetLetter': 'o', 'definition': 'Warm sand at the beach', 'pattern': 'short_o', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'o' makes the sound like in 'octopus'"},
     ],
     'long_vowels': [
-        {'word': 'nice game', 'syllableBreakdown': 'nice game', 'targetLetter': 'i_e', 'definition': 'A fun and enjoyable game', 'pattern': 'long_i', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'i' makes the name of the letter"},
-        {'word': 'take time', 'syllableBreakdown': 'take time', 'targetLetter': 'a_e', 'definition': 'To not rush', 'pattern': 'long_a', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'a' makes the name of the letter"},
-        # Add 38 more to reach 40 total
+        # Phrases with long vowels - 25 total
+        {'word': 'blue sky', 'syllableBreakdown': 'blue sky', 'targetLetter': 'u_e', 'definition': 'Sky that is blue', 'pattern': 'long_u', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'u_e' makes the name of the letter"},
+        {'word': 'green tree', 'syllableBreakdown': 'green tree', 'targetLetter': 'ee', 'definition': 'Tree with green leaves', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'nice day', 'syllableBreakdown': 'nice day', 'targetLetter': 'i_e', 'definition': 'A pleasant day', 'pattern': 'long_i', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'i_e' makes the name of the letter"},
+        {'word': 'home base', 'syllableBreakdown': 'home base', 'targetLetter': 'o_e', 'definition': 'Starting point in baseball', 'pattern': 'long_o', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'o_e' makes the name of the letter"},
+        {'word': 'cute face', 'syllableBreakdown': 'cute face', 'targetLetter': 'u_e', 'definition': 'A pretty face', 'pattern': 'long_u', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'u_e' makes the name of the letter"},
+        {'word': 'white snow', 'syllableBreakdown': 'white snow', 'targetLetter': 'i_e', 'definition': 'Snow that is white', 'pattern': 'long_i', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'i_e' makes the name of the letter"},
+        {'word': 'long road', 'syllableBreakdown': 'long road', 'targetLetter': 'oa', 'definition': 'A road that is long', 'pattern': 'long_o', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'oa' makes the name of the letter"},
+        {'word': 'deep sea', 'syllableBreakdown': 'deep sea', 'targetLetter': 'ee', 'definition': 'Ocean that is deep', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'sweet cake', 'syllableBreakdown': 'sweet cake', 'targetLetter': 'ee', 'definition': 'Cake that tastes sweet', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'clean plate', 'syllableBreakdown': 'clean plate', 'targetLetter': 'ea', 'definition': 'Plate that is clean', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'high kite', 'syllableBreakdown': 'high kite', 'targetLetter': 'i_e', 'definition': 'Kite flying up high', 'pattern': 'long_i', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'i_e' makes the name of the letter"},
+        {'word': 'wide gate', 'syllableBreakdown': 'wide gate', 'targetLetter': 'i_e', 'definition': 'Gate that is wide', 'pattern': 'long_i', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'i_e' makes the name of the letter"},
+        {'word': 'green bean', 'syllableBreakdown': 'green bean', 'targetLetter': 'ee', 'definition': 'Bean that is green', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'mean queen', 'syllableBreakdown': 'mean queen', 'targetLetter': 'ea', 'definition': 'A queen who is mean', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'sleep deep', 'syllableBreakdown': 'sleep deep', 'targetLetter': 'ee', 'definition': 'To sleep very deeply', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'free time', 'syllableBreakdown': 'free time', 'targetLetter': 'ee', 'definition': 'Time when you are free', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'three bees', 'syllableBreakdown': 'three bees', 'targetLetter': 'ee', 'definition': 'Number of bees', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'bake pie', 'syllableBreakdown': 'bake pie', 'targetLetter': 'a_e', 'definition': 'To make a pie', 'pattern': 'long_a', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'a_e' makes the name of the letter"},
+        {'word': 'nice prize', 'syllableBreakdown': 'nice prize', 'targetLetter': 'i_e', 'definition': 'A good prize', 'pattern': 'long_i', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'i_e' makes the name of the letter"},
+        {'word': 'clean slate', 'syllableBreakdown': 'clean slate', 'targetLetter': 'ea', 'definition': 'A fresh start', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'blue lake', 'syllableBreakdown': 'blue lake', 'targetLetter': 'u_e', 'definition': 'Lake that is blue', 'pattern': 'long_u', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'u_e' makes the name of the letter"},
+        {'word': 'bright smile', 'syllableBreakdown': 'bright smile', 'targetLetter': 'i_e', 'definition': 'A big happy smile', 'pattern': 'long_i', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'i_e' makes the name of the letter"},
+        {'word': 'sweet treat', 'syllableBreakdown': 'sweet treat', 'targetLetter': 'ee', 'definition': 'A tasty snack', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'great day', 'syllableBreakdown': 'great day', 'targetLetter': 'ea', 'definition': 'A wonderful day', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'bike ride', 'syllableBreakdown': 'bike ride', 'targetLetter': 'i_e', 'definition': 'Riding a bicycle', 'pattern': 'long_i', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'i_e' makes the name of the letter"},
     ],
-    # ... continue with blends and digraphs
+    'blends': [
+        # Phrases with blends - 25 total
+        {'word': 'stop sign', 'syllableBreakdown': 'stop sign', 'targetLetter': 'st', 'definition': 'Sign that says stop', 'pattern': 'st_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'st' combines the 's' and 't' sounds"},
+        {'word': 'flag pole', 'syllableBreakdown': 'flag pole', 'targetLetter': 'fl', 'definition': 'Pole for flying a flag', 'pattern': 'fl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'fl' combines the 'f' and 'l' sounds"},
+        {'word': 'drop zone', 'syllableBreakdown': 'drop zone', 'targetLetter': 'dr', 'definition': 'Area for dropping', 'pattern': 'dr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'dr' combines the 'd' and 'r' sounds"},
+        {'word': 'swim fast', 'syllableBreakdown': 'swim fast', 'targetLetter': 'sw', 'definition': 'To swim quickly', 'pattern': 'sw_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sw' combines the 's' and 'w' sounds"},
+        {'word': 'step up', 'syllableBreakdown': 'step up', 'targetLetter': 'st', 'definition': 'To move upward', 'pattern': 'st_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'st' combines the 's' and 't' sounds"},
+        {'word': 'black flag', 'syllableBreakdown': 'black flag', 'targetLetter': 'bl', 'definition': 'Flag that is black', 'pattern': 'bl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'bl' combines the 'b' and 'l' sounds"},
+        {'word': 'green frog', 'syllableBreakdown': 'green frog', 'targetLetter': 'gr', 'definition': 'Frog that is green', 'pattern': 'gr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'gr' combines the 'g' and 'r' sounds"},
+        {'word': 'clean plate', 'syllableBreakdown': 'clean plate', 'targetLetter': 'cl', 'definition': 'Plate that is clean', 'pattern': 'cl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'cl' combines the 'c' and 'l' sounds"},
+        {'word': 'great plan', 'syllableBreakdown': 'great plan', 'targetLetter': 'gr', 'definition': 'A very good plan', 'pattern': 'gr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'gr' combines the 'g' and 'r' sounds"},
+        {'word': 'strong tree', 'syllableBreakdown': 'strong tree', 'targetLetter': 'str', 'definition': 'Tree that is strong', 'pattern': 'str_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'str' combines three sounds"},
+        {'word': 'fresh bread', 'syllableBreakdown': 'fresh bread', 'targetLetter': 'fr', 'definition': 'Bread that is fresh', 'pattern': 'fr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'fr' combines the 'f' and 'r' sounds"},
+        {'word': 'bring toys', 'syllableBreakdown': 'bring toys', 'targetLetter': 'br', 'definition': 'To carry toys', 'pattern': 'br_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'br' combines the 'b' and 'r' sounds"},
+        {'word': 'flip coin', 'syllableBreakdown': 'flip coin', 'targetLetter': 'fl', 'definition': 'To toss a coin', 'pattern': 'fl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'fl' combines the 'f' and 'l' sounds"},
+        {'word': 'grill meat', 'syllableBreakdown': 'grill meat', 'targetLetter': 'gr', 'definition': 'To cook meat', 'pattern': 'gr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'gr' combines the 'g' and 'r' sounds"},
+        {'word': 'track star', 'syllableBreakdown': 'track star', 'targetLetter': 'tr', 'definition': 'Star runner', 'pattern': 'tr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'tr' combines the 't' and 'r' sounds"},
+        {'word': 'blue crab', 'syllableBreakdown': 'blue crab', 'targetLetter': 'bl', 'definition': 'Crab that is blue', 'pattern': 'bl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'bl' combines the 'b' and 'l' sounds"},
+        {'word': 'dress up', 'syllableBreakdown': 'dress up', 'targetLetter': 'dr', 'definition': 'To wear nice clothes', 'pattern': 'dr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'dr' combines the 'd' and 'r' sounds"},
+        {'word': 'spill milk', 'syllableBreakdown': 'spill milk', 'targetLetter': 'sp', 'definition': 'To accidentally pour milk', 'pattern': 'sp_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sp' combines the 's' and 'p' sounds"},
+        {'word': 'great spot', 'syllableBreakdown': 'great spot', 'targetLetter': 'gr', 'definition': 'A very good place', 'pattern': 'gr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'gr' combines the 'g' and 'r' sounds"},
+        {'word': 'slick trick', 'syllableBreakdown': 'slick trick', 'targetLetter': 'sl', 'definition': 'A clever trick', 'pattern': 'sl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sl' combines the 's' and 'l' sounds"},
+        {'word': 'grand slam', 'syllableBreakdown': 'grand slam', 'targetLetter': 'gr', 'definition': 'Big baseball hit', 'pattern': 'gr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'gr' combines the 'g' and 'r' sounds"},
+        {'word': 'crisp air', 'syllableBreakdown': 'crisp air', 'targetLetter': 'cr', 'definition': 'Fresh cool air', 'pattern': 'cr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'cr' combines the 'c' and 'r' sounds"},
+        {'word': 'brown grass', 'syllableBreakdown': 'brown grass', 'targetLetter': 'br', 'definition': 'Grass that is brown', 'pattern': 'br_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'br' combines the 'b' and 'r' sounds"},
+        {'word': 'fresh fruit', 'syllableBreakdown': 'fresh fruit', 'targetLetter': 'fr', 'definition': 'Fruit that is fresh', 'pattern': 'fr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'fr' combines the 'f' and 'r' sounds"},
+        {'word': 'steel frame', 'syllableBreakdown': 'steel frame', 'targetLetter': 'st', 'definition': 'Frame made of steel', 'pattern': 'st_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'st' combines the 's' and 't' sounds"},
+    ],
+    'digraphs': [
+        # Phrases with digraphs - 25 total
+        {'word': 'fish tank', 'syllableBreakdown': 'fish tank', 'targetLetter': 'sh', 'definition': 'Tank for keeping fish', 'pattern': 'sh_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'ship sail', 'syllableBreakdown': 'ship sail', 'targetLetter': 'sh', 'definition': 'Sail on a ship', 'pattern': 'sh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'thick rope', 'syllableBreakdown': 'thick rope', 'targetLetter': 'th', 'definition': 'Rope that is thick', 'pattern': 'th_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'th' makes one sound"},
+        {'word': 'phone call', 'syllableBreakdown': 'phone call', 'targetLetter': 'ph', 'definition': 'Call on the phone', 'pattern': 'ph_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'ph' makes the 'f' sound"},
+        {'word': 'shop cart', 'syllableBreakdown': 'shop cart', 'targetLetter': 'sh', 'definition': 'Cart for shopping', 'pattern': 'sh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'white sheep', 'syllableBreakdown': 'white sheep', 'targetLetter': 'wh', 'definition': 'Sheep that is white', 'pattern': 'wh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'wh' makes a sound like blowing air"},
+        {'word': 'fresh cheese', 'syllableBreakdown': 'fresh cheese', 'targetLetter': 'ch', 'definition': 'Cheese that is fresh', 'pattern': 'ch_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'ch' makes one sound like in 'choo-choo'"},
+        {'word': 'push chair', 'syllableBreakdown': 'push chair', 'targetLetter': 'sh', 'definition': 'To move a chair', 'pattern': 'sh_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'bath time', 'syllableBreakdown': 'bath time', 'targetLetter': 'th', 'definition': 'Time for a bath', 'pattern': 'th_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'th' makes one sound"},
+        {'word': 'check out', 'syllableBreakdown': 'check out', 'targetLetter': 'ch', 'definition': 'To leave a place', 'pattern': 'ch_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'ch' makes one sound like in 'choo-choo'"},
+        {'word': 'sharp knife', 'syllableBreakdown': 'sharp knife', 'targetLetter': 'sh', 'definition': 'Knife that is sharp', 'pattern': 'sh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'smooth path', 'syllableBreakdown': 'smooth path', 'targetLetter': 'th', 'definition': 'Path that is smooth', 'pattern': 'th_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'th' makes one sound"},
+        {'word': 'whale song', 'syllableBreakdown': 'whale song', 'targetLetter': 'wh', 'definition': 'Song of a whale', 'pattern': 'wh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'wh' makes a sound like blowing air"},
+        {'word': 'phonics game', 'syllableBreakdown': 'phonics game', 'targetLetter': 'ph', 'definition': 'Game about phonics', 'pattern': 'ph_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'ph' makes the 'f' sound"},
+        {'word': 'three shapes', 'syllableBreakdown': 'three shapes', 'targetLetter': 'th', 'definition': 'Number of shapes', 'pattern': 'th_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'th' makes one sound"},
+        {'word': 'thin thread', 'syllableBreakdown': 'thin thread', 'targetLetter': 'th', 'definition': 'Thread that is thin', 'pattern': 'th_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'th' makes one sound"},
+        {'word': 'catch ball', 'syllableBreakdown': 'catch ball', 'targetLetter': 'ch', 'definition': 'To grab a ball', 'pattern': 'ch_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'ch' makes one sound like in 'choo-choo'"},
+        {'word': 'wash hands', 'syllableBreakdown': 'wash hands', 'targetLetter': 'sh', 'definition': 'To clean your hands', 'pattern': 'sh_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'shut door', 'syllableBreakdown': 'shut door', 'targetLetter': 'sh', 'definition': 'To close a door', 'pattern': 'sh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'choose one', 'syllableBreakdown': 'choose one', 'targetLetter': 'ch', 'definition': 'To pick one', 'pattern': 'ch_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'ch' makes one sound like in 'choo-choo'"},
+        {'word': 'brush teeth', 'syllableBreakdown': 'brush teeth', 'targetLetter': 'sh', 'definition': 'To clean your teeth', 'pattern': 'sh_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'teach math', 'syllableBreakdown': 'teach math', 'targetLetter': 'ch', 'definition': 'To instruct in math', 'pattern': 'ch_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'ch' makes one sound like in 'choo-choo'"},
+        {'word': 'share lunch', 'syllableBreakdown': 'share lunch', 'targetLetter': 'sh', 'definition': 'To divide lunch', 'pattern': 'sh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'short path', 'syllableBreakdown': 'short path', 'targetLetter': 'sh', 'definition': 'Path that is short', 'pattern': 'sh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
+        {'word': 'thick book', 'syllableBreakdown': 'thick book', 'targetLetter': 'th', 'definition': 'Book with many pages', 'pattern': 'th_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'th' makes one sound"},
+    ]
 },
         
         'simple_sentences': {
