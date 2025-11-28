@@ -74,7 +74,7 @@ const GameplayScreen = ({
   const currentWord = puzzle.words[currentWordIndex];
   const totalWords = puzzle.words.length;
   const solvedCount = Object.keys(solvedClues).length;
-  const isCurrentWordSolved = solvedClues[currentWord?.answer];
+ const isCurrentWordSolved = solvedClues[currentWordIndex];
 
   useEffect(() => {
   const hasSeenGuide = localStorage.getItem('wildlitz_crossword_guide_seen');
@@ -272,15 +272,18 @@ const handleSkipGuide = () => {
 
   // Sync solved clues
   useEffect(() => {
-    if (solvedWords?.length > 0) {
-      const solved = {};
-      solvedWords.forEach(sw => {
-        const word = typeof sw === 'string' ? sw : sw.word;
-        if (word) solved[word] = true;
-      });
-      setSolvedClues(solved);
-    }
-  }, [solvedWords]);
+  if (solvedWords?.length > 0) {
+    const solved = {};
+    solvedWords.forEach(sw => {
+      const word = typeof sw === 'string' ? sw : sw.word;
+      const wordIndex = puzzle.words.findIndex(w => w.answer.toUpperCase() === word.toUpperCase());
+      if (wordIndex !== -1) {
+        solved[wordIndex] = true;
+      }
+    });
+    setSolvedClues(solved);
+  }
+}, [solvedWords, puzzle.words]);
 
   // 🔥 OPTIMIZATION: Cleanup timeouts on unmount
   useEffect(() => {
@@ -422,19 +425,19 @@ const handleSkipGuide = () => {
 
   // Move to next word
   const moveToNextWord = useCallback(() => {
-    let nextIndex = currentWordIndex + 1;
+  let nextIndex = currentWordIndex + 1;
+  
+  if (nextIndex >= puzzle.words.length) {
+    const allSolved = puzzle.words.every((_, idx) => solvedClues[idx]);
+    if (allSolved) return;
     
-    if (nextIndex >= puzzle.words.length) {
-      const allSolved = puzzle.words.every(word => solvedClues[word.answer]);
-      if (allSolved) return;
-      
-      nextIndex = puzzle.words.findIndex(word => !solvedClues[word.answer]);
-      if (nextIndex === -1) nextIndex = 0;
-    }
-    
-    setCurrentWordIndex(nextIndex);
-    setSelectedClue(puzzle.words[nextIndex]);
-  }, [currentWordIndex, puzzle.words, solvedClues]);
+    nextIndex = puzzle.words.findIndex((_, idx) => !solvedClues[idx]);
+    if (nextIndex === -1) nextIndex = 0;
+  }
+  
+  setCurrentWordIndex(nextIndex);
+  setSelectedClue(puzzle.words[nextIndex]);
+}, [currentWordIndex, puzzle.words, solvedClues]);
 
   // Handle answer selection WITH AUDIO
   const handleSelectAnswer = useCallback((choice) => {
@@ -475,12 +478,12 @@ const handleSubmitAnswer = useCallback(async () => {
     message: isCorrect ? `Correct! "${correctAnswer}" is the right answer!` : 'Try again!'
   });
 
-  if (isCorrect) {
-    setSolvedClues(prev => ({ ...prev, [correctAnswer]: true }));
+  
+    setSolvedClues(prev => ({ ...prev, [currentWordIndex]: true }));
     updateGridWithWord(currentWord);
     
     const wordTimeSpent = Math.floor((Date.now() - wordStartTime.current) / 1000);
-    
+    if (isCorrect) {
     if (sessionId) {
       try {
         await crosswordAnalyticsService.logWordSolved(
@@ -566,17 +569,17 @@ const handleSubmitAnswer = useCallback(async () => {
   }, [hintsRemaining, isCurrentWordSolved, currentWord, revealOneLetter]);
 
   // 🔥 OPTIMIZATION: Memoized word status
-  const getWordStatus = useCallback((word) => {
-    if (solvedClues[word.answer]) return 'solved';
-    if (currentWord.answer === word.answer) return 'current';
-    return 'pending';
-  }, [solvedClues, currentWord]);
+const getWordStatus = useCallback((word, idx) => {
+  if (solvedClues[idx]) return 'solved';
+  if (idx === currentWordIndex) return 'current';
+  return 'pending';
+}, [solvedClues, currentWordIndex]);
 
   // 🔥 OPTIMIZATION: Memoized grid rendering with larger cells
   const renderedGrid = useMemo(() => {
     return puzzle.words.map((word, idx) => {
       const status = getWordStatus(word);
-      const isSolved = solvedClues[word.answer];
+      const isSolved = solvedClues[idx];
       
       return (
         <div
@@ -734,7 +737,7 @@ const handleSubmitAnswer = useCallback(async () => {
             boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
           }}>
             {puzzle.words.map((word, idx) => {
-              const status = getWordStatus(word);
+                const status = getWordStatus(word, idx);
               return (
                 <button
                   key={idx}
