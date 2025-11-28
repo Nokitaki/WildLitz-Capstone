@@ -11,7 +11,6 @@ from rest_framework.authentication import TokenAuthentication
 import json
 import random
 import time
-from supabase import create_client
 from django.conf import settings
 import logging
 from utils.supabase_client import supabase
@@ -22,9 +21,6 @@ from api.models import UserProgress, UserActivity
 
 logger = logging.getLogger(__name__)
 
-# Create Supabase client using settings
-supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
-
 # ============================================================
 # EXCLUDED COMBINATIONS (Too few animals - only 2 each)
 # ============================================================
@@ -33,6 +29,8 @@ EXCLUDED_COMBINATIONS = [
     ('b', 'ending'),      # b-ending: only 2 animals (Lamb, Cub)
     ('f', 'ending'),      # f-ending: only 2 animals (Wolf, Giraffe)
     ('z', 'beginning'),   # z-beginning: only 2 animals (Zebra, Zebu)
+    ('z', 'ending'),
+    ('c', 'ending'),
 ]
 
 def is_combination_excluded(sound, position):
@@ -678,12 +676,38 @@ def get_safari_animals_by_sound(request):
         # ============================================================
         num_correct = len(animals_found)
         num_incorrect_needed = total_animals - num_correct
-        
+
         logger.info(f"📊 Composition: {num_correct} correct + {num_incorrect_needed} incorrect = {total_animals} total")
-        
+
+        try:
+            all_phonemically_valid_query = supabase.table('safari_animals')\
+                .select('name')\
+                .eq('target_sound', target_sound)
+            
+            # Only apply position filter if not 'anywhere'
+            if sound_position and sound_position != 'anywhere':
+                all_phonemically_valid_query = all_phonemically_valid_query.eq('sound_position', sound_position)
+            
+            all_phonemically_valid_response = all_phonemically_valid_query.execute()
+            
+            if all_phonemically_valid_response.data:
+                phonemically_valid_names = list(set([animal['name'] for animal in all_phonemically_valid_response.data]))
+                logger.info(f"🚫 Excluding phonemically valid animal names from incorrect choices: {phonemically_valid_names}")
+            else:
+                phonemically_valid_names = []
+                logger.warning("⚠️ No phonemically valid animals found in database")
+                
+        except Exception as e:
+            logger.error(f"❌ Error fetching phonemically valid names: {str(e)}")
+            phonemically_valid_names = []
+
         incorrect_query = supabase.table('safari_animals').select('*')
         incorrect_query = incorrect_query.neq('target_sound', target_sound)
-        
+
+        # ✅ FIX: Exclude phonemically valid animals (prevents confusion)
+        if phonemically_valid_names:
+            incorrect_query = incorrect_query.not_.in_('name', phonemically_valid_names)
+
         # Apply same filters based on which strategy worked for correct animals
         if strategy_used.startswith('1_') or strategy_used.startswith('2_'):
             # Attempts 1-2 had environment

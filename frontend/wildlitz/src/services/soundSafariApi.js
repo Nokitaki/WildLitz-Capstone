@@ -32,10 +32,14 @@ export const fetchSafariAnimals = async (params) => {
   }
 };
 
-export const fetchRandomSound = async () => {
+export const fetchRandomSound = async (position = null) => {
   try {
-    // ✅ FIXED: Use PHONEMICS_API instead of API_BASE_URL
-    const response = await fetch(`${PHONEMICS_API}/random-sound/`);
+    // ✅ FIX: Include position parameter to avoid excluded combinations
+    const url = position 
+      ? `${PHONEMICS_API}/random-sound/?position=${position}`
+      : `${PHONEMICS_API}/random-sound/`;
+    
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

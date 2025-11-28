@@ -279,11 +279,13 @@ const SoundSafariGame = () => {
   };
   
   /**
-   * Select a new target sound
+   * Select a new target sound that's valid for the current position
+   * UPDATED: Passes position to backend to avoid excluded combinations
    */
   const selectNewTargetSound = async () => {
     try {
-      const response = await fetchRandomSound();
+      // ✅ FIX: Pass the current position to backend
+      const response = await fetchRandomSound(gameConfig.soundPosition);
       
       if (response.sound && !soundsUsed.includes(response.sound)) {
         setSoundsUsed(prev => [...prev, response.sound]);
@@ -299,13 +301,15 @@ const SoundSafariGame = () => {
         return newSound;
       }
       
+      // All sounds used, reset and pick from available
       setSoundsUsed([]);
       return availableSounds[Math.floor(Math.random() * availableSounds.length)];
       
     } catch (error) {
       console.error('Error getting random sound:', error);
-      const fallbackSounds = Object.keys(SOUND_DESCRIPTIONS);
-      return fallbackSounds[Math.floor(Math.random() * fallbackSounds.length)];
+      // ✅ FIX: Fallback to safe sounds that work for all positions
+      const safeFallbackSounds = ['s', 'm', 't', 'l', 'r', 'h'];
+      return safeFallbackSounds[Math.floor(Math.random() * safeFallbackSounds.length)];
     }
   };
   

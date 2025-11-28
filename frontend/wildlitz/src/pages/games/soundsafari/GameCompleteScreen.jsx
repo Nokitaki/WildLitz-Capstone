@@ -124,6 +124,17 @@ const GameCompleteScreen = ({
   };
   
   const feedback = getFeedbackMessage();
+
+  // Calculate star rating based on success rate (0-5 stars)
+  const getStarRating = () => {
+    if (overallSuccessRate >= 81) return 5;
+    if (overallSuccessRate >= 61) return 4;
+    if (overallSuccessRate >= 41) return 3;
+    if (overallSuccessRate >= 21) return 2;
+    return 1;
+  };
+
+const starCount = getStarRating();
   
   // Get achievement badges based on performance
   const getAchievementBadges = () => {
@@ -219,24 +230,34 @@ const GameCompleteScreen = ({
           <p className={styles.subtitle}>You finished all {totalRounds} rounds!</p>
         </motion.div>
         
-        {/* Score Display - Overall Success Rate Only */}
+        {/* Star Rating Display */}
         <motion.div
-          className={styles.scoreSection}
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.5, type: "spring", stiffness: 150 }}
+          className={styles.starSection}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
         >
-          <div 
-            className={styles.scoreCircle} 
-            style={{ borderColor: feedback.color }}
-          >
-            <div className={styles.scorePercentage} style={{ color: feedback.color }}>
-              {overallSuccessRate}%
-            </div>
-            <div className={styles.scorePoints}>
-              {calculatedCorrect} / {calculatedTotal} correct
-            </div>
-            <div className={styles.scoreLabel}>Success Rate</div>
+          <div className={styles.starsContainer}>
+            {[...Array(starCount)].map((_, index) => (
+              <motion.span
+                key={index}
+                className={styles.star}
+                style={{ animationDelay: `${index * 0.2}s` }}
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{
+                  delay: 0.7 + (index * 0.15),
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 10
+                }}
+              >
+                ⭐
+              </motion.span>
+            ))}
+          </div>
+          <div className={styles.starLabel}>
+            ✅ {calculatedCorrect} correct
           </div>
         </motion.div>
         
