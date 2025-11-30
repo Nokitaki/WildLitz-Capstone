@@ -2,7 +2,7 @@
 import { processAnimalImages } from "../utils/imageUtils";
 import { API_BASE_URL } from "../config/api";
 const PHONEMICS_API = `${API_BASE_URL}/api/phonemics`;
-import { isExcludedCombination } from "../utils/excludedCombinations";
+import { isCombinationExcluded } from "../utils/excludedCombinations";
 
 export const fetchSafariAnimals = async (params) => {
   try {
@@ -13,14 +13,14 @@ export const fetchSafariAnimals = async (params) => {
       position: params.position,
     });
 
-    // ✅ Pre-validate to prevent excluded combinations
-    if (isExcludedCombination(params.sound, params.position)) {
-      console.warn(`⚠️ Blocked excluded combination: ${params.sound}-${params.position}`);
+    // ✅ Pre-validate to prevent excluded combinations (both general and environment-specific)
+    if (isCombinationExcluded(params.sound, params.position, params.environment)) {
+      console.warn(`⚠️ Blocked excluded combination: ${params.sound}-${params.position}-${params.environment}`);
       return {
         success: false,
         animals: [],
         excluded: true,
-        error: `Combination ${params.sound}-${params.position} is excluded`
+        error: `Combination ${params.sound}-${params.position} is excluded for ${params.environment}`
       };
     }
 

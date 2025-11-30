@@ -17,7 +17,7 @@ import GameplayScreen from './GameplayScreen';
 import ResultsScreen from './ResultScreen';
 import GameCompleteScreen from './GameCompleteScreen';
 
-import { getRandomValidSound, isExcludedCombination } from '../../../utils/excludedCombinations';
+import { getRandomValidSound, isCombinationExcluded } from '../../../utils/excludedCombinations';
 
 // Import API functions
 import { 
@@ -241,10 +241,10 @@ const SoundSafariGame = () => {
         targetSound
       }));
 
-      // ✅ Validate combination before fetching
-      if (isExcludedCombination(targetSound, soundPosition)) {
-        console.warn(`⚠️ Excluded combination detected: ${targetSound}-${soundPosition}, selecting new sound`);
-        const validSound = getRandomValidSound(soundPosition, currentTriedSounds);
+      // ✅ Validate combination before fetching (check both general and environment-specific)
+      if (isCombinationExcluded(targetSound, soundPosition, gameConfig.environment)) {
+        console.warn(`⚠️ Excluded combination detected: ${targetSound}-${soundPosition}-${gameConfig.environment}, selecting new sound`);
+        const validSound = getRandomValidSound(soundPosition, currentTriedSounds, gameConfig.environment);
         setGameConfig(prev => ({ ...prev, targetSound: validSound }));
         return prepareNewRound(validSound, difficulty, retryCount, currentTriedSounds);
       }
@@ -300,22 +300,30 @@ const SoundSafariGame = () => {
     try {
       const response = await fetchRandomSound(gameConfig.soundPosition);
       
+      // ✅ UPDATED: Check exclusion with environment
       if (response.sound && 
           !soundsUsed.includes(response.sound) && 
-          !isExcludedCombination(response.sound, gameConfig.soundPosition)) {
+          !isCombinationExcluded(response.sound, gameConfig.soundPosition, gameConfig.environment)) {
         setSoundsUsed(prev => [...prev, response.sound]);
         return response.sound;
       }
       
-      // Get random valid sound for current position
-      const newSound = getRandomValidSound(gameConfig.soundPosition, soundsUsed);
-      setSoundsUsed(prev => [...prev, newSound]);
-      return newSound;
+      // ✅ UPDATED: Fallback uses environment-aware getRandomValidSound
+      const validSound = getRandomValidSound(
+        gameConfig.soundPosition, 
+        soundsUsed,
+        gameConfig.environment  // Pass environment for exclusion check
+      );
       
+      if (validSound) {
+        setSoundsUsed(prev => [...prev, validSound]);
+        return validSound;
+      }
+      
+      return 's'; // Ultimate fallback
     } catch (error) {
-      console.error('Error selecting new sound:', error);
-      // Fallback to safe sound
-      return getRandomValidSound(gameConfig.soundPosition, []);
+      console.error('Error selecting sound:', error);
+      return 's';
     }
   };
   

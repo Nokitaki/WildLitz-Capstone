@@ -27,7 +27,7 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle 401 errors
+// Response interceptor to handle 401 errors with token refresh
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -36,10 +36,32 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      const freshToken = localStorage.getItem('access_token');
-      if (freshToken && freshToken.trim() !== '') {
-        originalRequest.headers.Authorization = `Bearer ${freshToken}`;
-        return api(originalRequest);
+      // Try to refresh the token
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (refreshToken && refreshToken.trim() !== '') {
+        try {
+          console.log('🔄 Attempting to refresh expired token...');
+          
+          const refreshResponse = await axios.post(
+            `${API_URL.replace('/phonemics', '')}/auth/refresh/`,
+            { refresh: refreshToken }
+          );
+          
+          const newAccessToken = refreshResponse.data.access;
+          localStorage.setItem('access_token', newAccessToken);
+          
+          console.log('✅ Token refreshed successfully');
+          
+          // Retry the original request with new token
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return api(originalRequest);
+          
+        } catch (refreshError) {
+          console.error('❌ Token refresh failed:', refreshError);
+          // Clear tokens and let it fall through to anonymous save
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+        }
       }
     }
 

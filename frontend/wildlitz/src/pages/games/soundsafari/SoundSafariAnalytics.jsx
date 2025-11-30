@@ -626,7 +626,7 @@ const SoundSafariAnalytics = () => {
                         {sessionRounds.map((round, index) => {
                           const roundSuccessRate = round.total > 0 
                             ? (round.correct / round.total * 100) 
-                            : 0;
+                            : 100;
                           
                           return (
                             <motion.tr 
