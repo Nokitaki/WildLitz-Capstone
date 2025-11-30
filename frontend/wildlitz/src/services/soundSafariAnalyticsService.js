@@ -133,10 +133,10 @@ export const soundSafariAnalyticsService = {
   },
 
   /**
-   * Get user analytics (sessions list only)
-   * Use getSessionRounds() to get detailed round data for a session
+   * Get user analytics (ALL sessions, no limit)
+   * Frontend handles pagination/display limit
    */
-  async getUserAnalytics(limit = 20) {
+  async getUserAnalytics() {
     try {
       const token = localStorage.getItem('access_token');
       
@@ -145,11 +145,12 @@ export const soundSafariAnalyticsService = {
         return { success: false, error: 'Not authenticated' };
       }
       
-      console.log('📊 Fetching user analytics...');
+      console.log('📊 Fetching ALL user analytics...');
       
-      const response = await api.get(`/get-safari-analytics/?limit=${limit}`);
+      // ✅ UPDATED: No limit parameter - fetch all sessions
+      const response = await api.get(`/get-safari-analytics/`);
       
-      console.log('✅ Analytics fetched successfully');
+      console.log('✅ Analytics fetched successfully:', response.data.sessions?.length || 0, 'sessions');
       return {
         success: true,
         ...response.data

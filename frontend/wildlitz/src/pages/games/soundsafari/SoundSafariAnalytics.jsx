@@ -15,6 +15,10 @@ const SoundSafariAnalytics = () => {
   const [soundPerformance, setSoundPerformance] = useState([]);
   const [aggregateStats, setAggregateStats] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // ✅ NEW: Pagination state
+  const [displayedSessionsCount, setDisplayedSessionsCount] = useState(10);
+  const SESSIONS_PER_PAGE = 10;
   
   // NEW: Session detail modal state
   const [selectedSession, setSelectedSession] = useState(null);
@@ -116,12 +120,16 @@ const SoundSafariAnalytics = () => {
     try {
       setLoading(true);
       
-      const analyticsData = await soundSafariAnalyticsService.getUserAnalytics(20);
+      // ✅ UPDATED: Fetch ALL sessions (no limit parameter)
+      const analyticsData = await soundSafariAnalyticsService.getUserAnalytics();
       
       if (analyticsData && analyticsData.success) {
         setSessions(analyticsData.sessions || []);
         setSoundPerformance(analyticsData.sound_performance || []);
         setAggregateStats(analyticsData.aggregate_stats || null);
+        
+        // ✅ NEW: Log total sessions fetched
+        console.log(`📊 Loaded ${analyticsData.sessions?.length || 0} total sessions`);
       }
       
     } catch (error) {
@@ -130,6 +138,13 @@ const SoundSafariAnalytics = () => {
       setLoading(false);
     }
   };
+
+  /**
+   * NEW: Show more sessions (pagination)
+   */
+  const handleShowMore = () => {
+    setDisplayedSessionsCount(prev => prev + SESSIONS_PER_PAGE);
+  };  
 
   /**
    * NEW: Load rounds for a specific session
@@ -426,7 +441,8 @@ const SoundSafariAnalytics = () => {
               </tr>
             </thead>
             <tbody>
-              {sessions.map((session, index) => (
+              {/* ✅ UPDATED: Display only specified number of sessions */}
+              {sessions.slice(0, displayedSessionsCount).map((session, index) => (
                 <motion.tr
                   key={session.session_id}
                   initial={{ opacity: 0, x: -20 }}
@@ -478,7 +494,49 @@ const SoundSafariAnalytics = () => {
           </table>
         </div>
       </motion.div>
-
+      {/* ✅ NEW: Show More button */}
+      {displayedSessionsCount < sessions.length && (
+        <motion.div
+          className={styles.showMoreContainer}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          style={{
+            textAlign: 'center',
+            marginTop: '2rem',
+            paddingBottom: '2rem'
+          }}
+        >
+          <button
+            onClick={handleShowMore}
+            className={styles.showMoreButton}
+            style={{
+              backgroundColor: '#4caf50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '12px 32px',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(76, 175, 80, 0.3)',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.backgroundColor = '#45a049';
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 6px 16px rgba(76, 175, 80, 0.4)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.backgroundColor = '#4caf50';
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 12px rgba(76, 175, 80, 0.3)';
+            }}
+          >
+              Show More ({Math.min(SESSIONS_PER_PAGE, sessions.length - displayedSessionsCount)} more sessions)
+            </button>
+        </motion.div>
+      )}
       {/* Session Rounds Modal - NEW */}
       <AnimatePresence>
         {showModal && (

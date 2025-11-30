@@ -1192,10 +1192,7 @@ def save_safari_game_session(request):
 def get_safari_user_analytics(request):
     """
     Get Sound Safari analytics for the current user
-    NEW: Returns sessions list (without rounds - use get_session_rounds for that)
-    
-    Query params:
-    - limit: number of sessions to return (default 20)
+    UPDATED: Returns ALL sessions (no limit) - pagination handled by frontend
     """
     try:
         user = request.user
@@ -1206,16 +1203,14 @@ def get_safari_user_analytics(request):
                 'error': 'User must be authenticated'
             }, status=status.HTTP_401_UNAUTHORIZED)
         
-        limit = int(request.GET.get('limit', 20))
+        logger.info(f"📊 Fetching ALL analytics for user: {user.email}")
         
-        logger.info(f"📊 Fetching analytics for user: {user.email}, limit: {limit}")
-        
-        # Get sessions from new table
+        # ✅ UPDATED: Get ALL sessions (no limit)
         sessions_query = supabase.table('sound_safari_sessions')\
             .select('*')\
             .eq('user_email', user.email)\
-            .order('played_at', desc=True)\
-            .limit(limit)
+            .order('played_at', desc=True)
+        # ✅ REMOVED: .limit(limit)
         
         sessions_response = sessions_query.execute()
         sessions = sessions_response.data if sessions_response.data else []
