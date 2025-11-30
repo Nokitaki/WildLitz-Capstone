@@ -2,6 +2,7 @@
 import { processAnimalImages } from "../utils/imageUtils";
 import { API_BASE_URL } from "../config/api";
 const PHONEMICS_API = `${API_BASE_URL}/api/phonemics`;
+import { isExcludedCombination } from "../utils/excludedCombinations";
 
 export const fetchSafariAnimals = async (params) => {
   try {
@@ -12,9 +13,33 @@ export const fetchSafariAnimals = async (params) => {
       position: params.position,
     });
 
+    // ✅ Pre-validate to prevent excluded combinations
+    if (isExcludedCombination(params.sound, params.position)) {
+      console.warn(`⚠️ Blocked excluded combination: ${params.sound}-${params.position}`);
+      return {
+        success: false,
+        animals: [],
+        excluded: true,
+        error: `Combination ${params.sound}-${params.position} is excluded`
+      };
+    }
+
     const response = await fetch(`${PHONEMICS_API}/animals/?${queryParams}`);
 
     if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      
+      // If backend returns excluded combination error, handle gracefully
+      if (response.status === 400 && errorData.excluded) {
+        console.warn(`⚠️ Backend rejected excluded combination: ${params.sound}-${params.position}`);
+        return {
+          success: false,
+          animals: [],
+          excluded: true,
+          error: errorData.error
+        };
+      }
+      
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../../styles/games/safari/SoundSafariConfig.module.css';
 import backgroundMusic from '../../../assets/music/sound-safari-background-music.mp3';
+import { getRandomValidSound } from '../../../utils/excludedCombinations';
 
 /**
  * Configuration screen component for Sound Safari game
@@ -77,12 +78,11 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
   
   // Handle quick start with default settings
   const handleQuickStart = () => {
-    // Generate random sound for first round
-    const allSounds = ['g', 'k', 'w', 'd', 'r', 'c', 'h', 's', 'm', 't', 'b', 'p', 'f', 'l', 'z'];
-    const randomSound = allSounds[Math.floor(Math.random() * allSounds.length)];
+    const quickStartPosition = 'beginning';
+    const randomSound = getRandomValidSound(quickStartPosition, []);
     
     const config = {
-      soundPosition: 'beginning',
+      soundPosition: quickStartPosition,
       targetSound: randomSound,
       environment: 'jungle',
       difficulty: 'easy'
@@ -95,9 +95,7 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
   
   // Handle start game with custom settings
   const handleStartGame = () => {
-    // Generate random sound for first round
-    const allSounds = ['g', 'k', 'w', 'd', 'r', 'c', 'h', 's', 'm', 't', 'b', 'p', 'f', 'l', 'z'];
-    const randomSound = allSounds[Math.floor(Math.random() * allSounds.length)];
+    const randomSound = getRandomValidSound(soundPosition, []);
     
     const config = {
       soundPosition,

@@ -17,6 +17,8 @@ import GameplayScreen from './GameplayScreen';
 import ResultsScreen from './ResultScreen';
 import GameCompleteScreen from './GameCompleteScreen';
 
+import { getRandomValidSound, isExcludedCombination } from '../../../utils/excludedCombinations';
+
 // Import API functions
 import { 
   fetchSafariAnimals, 
@@ -238,6 +240,14 @@ const SoundSafariGame = () => {
         ...prev,
         targetSound
       }));
+
+      // ✅ Validate combination before fetching
+      if (isExcludedCombination(targetSound, soundPosition)) {
+        console.warn(`⚠️ Excluded combination detected: ${targetSound}-${soundPosition}, selecting new sound`);
+        const validSound = getRandomValidSound(soundPosition, currentTriedSounds);
+        setGameConfig(prev => ({ ...prev, targetSound: validSound }));
+        return prepareNewRound(validSound, difficulty, retryCount, currentTriedSounds);
+      }
       
       console.log(`🎯 Fetching animals for sound "${targetSound}" at position "${soundPosition}"`);
       
@@ -282,34 +292,30 @@ const SoundSafariGame = () => {
    * Select a new target sound that's valid for the current position
    * UPDATED: Passes position to backend to avoid excluded combinations
    */
+  /**
+   * Select a new target sound that's valid for the current position
+   * Uses centralized exclusion logic to prevent invalid combinations
+   */
   const selectNewTargetSound = async () => {
     try {
-      // ✅ FIX: Pass the current position to backend
       const response = await fetchRandomSound(gameConfig.soundPosition);
       
-      if (response.sound && !soundsUsed.includes(response.sound)) {
+      if (response.sound && 
+          !soundsUsed.includes(response.sound) && 
+          !isExcludedCombination(response.sound, gameConfig.soundPosition)) {
         setSoundsUsed(prev => [...prev, response.sound]);
         return response.sound;
       }
       
-      const availableSounds = response.available_sounds || Object.keys(SOUND_DESCRIPTIONS);
-      const unusedSounds = availableSounds.filter(sound => !soundsUsed.includes(sound));
-      
-      if (unusedSounds.length > 0) {
-        const newSound = unusedSounds[Math.floor(Math.random() * unusedSounds.length)];
-        setSoundsUsed(prev => [...prev, newSound]);
-        return newSound;
-      }
-      
-      // All sounds used, reset and pick from available
-      setSoundsUsed([]);
-      return availableSounds[Math.floor(Math.random() * availableSounds.length)];
+      // Get random valid sound for current position
+      const newSound = getRandomValidSound(gameConfig.soundPosition, soundsUsed);
+      setSoundsUsed(prev => [...prev, newSound]);
+      return newSound;
       
     } catch (error) {
-      console.error('Error getting random sound:', error);
-      // ✅ FIX: Fallback to safe sounds that work for all positions
-      const safeFallbackSounds = ['s', 'm', 't', 'l', 'r', 'h'];
-      return safeFallbackSounds[Math.floor(Math.random() * safeFallbackSounds.length)];
+      console.error('Error selecting new sound:', error);
+      // Fallback to safe sound
+      return getRandomValidSound(gameConfig.soundPosition, []);
     }
   };
   
