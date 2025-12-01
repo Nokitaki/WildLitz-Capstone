@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import styles from '../../../styles/games/safari/ResultsScreen.module.css';
 import { playCelebrationSound, playSpeech, stopAllSpeech } from '../../../utils/soundUtils';
 
-const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
+const ResultsScreen = ({ results, onNextRound, onTryAgain, currentRound, totalRounds }) => {
   const [isPlaying, setIsPlaying] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [feedbackPlayed, setFeedbackPlayed] = useState(false);
@@ -17,6 +17,8 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
   
   // ✅ Extract results with soundPosition
   const { correctAnimals, incorrectAnimals, selectedAnimals, targetSound, soundPosition } = results;
+  // Check if this is the last round
+  const isLastRound = currentRound === totalRounds;
   
   // Calculate results
   const correctSelected = selectedAnimals.filter(animal => 
@@ -359,7 +361,6 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
             </div>
           )}
         </div>
-        
         {/* Action Buttons */}
         <div className={styles.actionButtons}>
           <motion.button
@@ -373,13 +374,20 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain }) => {
           </motion.button>
           
           <motion.button
-            className={styles.nextButton}
-            whileHover={{ scale: 1.03, boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)" }}
+            className={isLastRound ? styles.completeSafariButton : styles.nextButton}
+            whileHover={{ 
+              scale: 1.03, 
+              boxShadow: isLastRound 
+                ? "0 8px 20px rgba(255, 215, 0, 0.6), 0 0 40px rgba(255, 215, 0, 0.4)" 
+                : "0 6px 12px rgba(0, 0, 0, 0.15)" 
+            }}
             whileTap={{ scale: 0.97 }}
             onClick={handleNextRoundClick}
           >
-            <span className={styles.buttonIcon}>▶️</span>
-            Next Round
+            <span className={styles.buttonIcon}>
+              {isLastRound ? '🏆' : '▶️'}
+            </span>
+            {isLastRound ? 'Complete Safari' : 'Next Round'}
           </motion.button>
         </div>
       </div>

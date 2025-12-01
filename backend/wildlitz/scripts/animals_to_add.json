@@ -54,5 +54,68 @@
     "sound_position": "middle",
     "environment": "jungle",
     "difficulty_level": "hard"
+  },
+  {
+    "name": "Shrimp",
+    "target_sound": "r",
+    "sound_position": "middle",
+    "environment": "ocean",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Dolphin",
+    "target_sound": "f",
+    "sound_position": "middle",
+    "environment": "ocean",
+    "difficulty_level": "easy"
+  },
+  {
+    "name": "Elephant",
+    "target_sound": "f",
+    "sound_position": "middle",
+    "environment": "savanna",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Black Panther",
+    "target_sound": "k",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Black Panther",
+    "target_sound": "p",
+    "sound_position": "middle",
+    "environment": "ocean",
+    "difficulty_level": "easy"
+  },
+  {
+    "name": "Hippo",
+    "target_sound": "p",
+    "sound_position": "middle",
+    "environment": "ocean",
+    "difficulty_level": "easy"
+  },
+  {
+    "name": "Pufferfish",
+    "target_sound": "r",
+    "sound_position": "middle",
+    "environment": "ocean",
+    "difficulty_level": "easy"
+  },
+  {
+    "name": "Caterpillar",
+    "target_sound": "t",
+    "sound_position": "middle",
+    "environment": "ocean",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Magpie",
+    "target_sound": "g",
+    "sound_position": "middle",
+    "environment": "ocean",
+    "difficulty_level": "hard"
   }
 ]

@@ -619,6 +619,108 @@
   border-color: #26A69A;
 }
 
+/* Complete Safari Button - Final Round Special Styling */
+.completeSafariButton {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #5D4037;
+  border: 4px solid #FF8F00;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  flex: 2;
+  max-width: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 
+    0 6px 20px rgba(255, 215, 0, 0.6),
+    0 0 30px rgba(255, 215, 0, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  animation: completeSafariGlow 2s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.completeSafariButton::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 70%
+  );
+  animation: shimmerSweep 3s ease-in-out infinite;
+}
+
+@keyframes completeSafariGlow {
+  0%, 100% {
+    box-shadow: 
+      0 6px 20px rgba(255, 215, 0, 0.6),
+      0 0 30px rgba(255, 215, 0, 0.3),
+      inset 0 2px 0 rgba(255, 255, 255, 0.4),
+      inset 0 -3px 8px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 8px 25px rgba(255, 215, 0, 0.8),
+      0 0 50px rgba(255, 215, 0, 0.5),
+      0 0 80px rgba(255, 165, 0, 0.3),
+      inset 0 2px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -3px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+.completeSafariButton:hover {
+  background: linear-gradient(135deg, #FFED4E 0%, #FFB300 100%);
+  transform: translateY(-3px) scale(1.05);
+  border-color: #FF6F00;
+  box-shadow: 
+    0 10px 30px rgba(255, 215, 0, 0.8),
+    0 0 60px rgba(255, 215, 0, 0.6),
+    0 0 100px rgba(255, 165, 0, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.completeSafariButton:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.completeSafariButton .buttonIcon {
+  font-size: 1.3rem;
+  animation: trophyBounce 1s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes trophyBounce {
+  0%, 100% { 
+    transform: translateY(0) scale(1); 
+  }
+  50% { 
+    transform: translateY(-4px) scale(1.1); 
+  }
+}
+
 .buttonIcon {
   font-size: 1rem;
   animation: buttonIconWiggle 1s ease-in-out infinite;
@@ -753,6 +855,17 @@
     width: 100%;
     padding: 8px 14px;
   }
+
+  .completeSafariButton {
+    max-width: 100%;
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+  }
+  
+  .completeSafariButton .buttonIcon {
+    font-size: 1.2rem;
+  }
 }
 
 /* For large displays */
@@ -824,6 +937,16 @@
   .tryAgainButton, .nextButton {
     padding: 12px 20px;
     font-size: 0.9rem;
+  }
+
+  .completeSafariButton {
+    padding: 14px 26px;
+    font-size: 1.05rem;
+    max-width: 320px;
+  }
+  
+  .completeSafariButton .buttonIcon {
+    font-size: 1.5rem;
   }
 }
 

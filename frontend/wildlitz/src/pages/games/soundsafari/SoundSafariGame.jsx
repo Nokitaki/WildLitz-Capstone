@@ -752,6 +752,8 @@ const SoundSafariGame = () => {
                 results={getGameResults()}
                 onNextRound={handleNextRound}
                 onTryAgain={handleTryAgain}
+                currentRound={currentRound}
+                totalRounds={totalRounds}
               />
             </motion.div>
           )}
