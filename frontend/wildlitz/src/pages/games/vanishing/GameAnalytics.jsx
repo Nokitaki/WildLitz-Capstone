@@ -452,12 +452,17 @@ const GameAnalytics = ({ onBack }) => {
                         session.difficulty === 'medium' ? '25s' : '20s'}
                       </span>
                     </div>
-                    <div className={styles.expandedStat}>
-                      <span className={styles.expandedLabel}>⏱️ Timeouts</span>
-                      <span className={styles.expandedValue}>
-                        {(session.words_attempted || 0) - (session.words_recognized || 0)}
-                      </span>
-                    </div>
+                      <div className={styles.expandedStat}>
+                        <span className={styles.expandedLabel}>⏱️ Timeouts</span>
+                        <span className={styles.expandedValue}>
+                          {(() => {
+                            // Count actual timeouts from difficulty progression
+                            const progression = session.difficulty_progression || [];
+                            const timeouts = progression.filter(p => p.action === 'timeout').length;
+                            return timeouts;
+                          })()}
+                        </span>
+                      </div>
                     </div>
                   </motion.div>
                 )}

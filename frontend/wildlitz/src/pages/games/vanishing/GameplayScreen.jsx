@@ -251,6 +251,7 @@ useEffect(() => {
 };
 
 // Handle time up (auto give up)
+// Handle time up (auto give up)
 const handleTimeUp = () => {
   if (hasAnswered) return;
   setHasAnswered(true);
@@ -262,7 +263,7 @@ const handleTimeUp = () => {
   setEncouragementText('⏰ Time\'s up! Don\'t worry, you\'ll get the next one!');
   setShowEncouragement(true);
 
-    if (config.enableAudio) {
+  if (config.enableAudio) {
     vanishingAudioService.playGiveUpSound();
   }
   
@@ -270,7 +271,7 @@ const handleTimeUp = () => {
   const elapsedTime = Math.floor((Date.now() - roundStartTime) / 1000);
   
   setTimeout(() => {
-    onResult('giveup', word, elapsedTime);
+    onResult('timeout', word, elapsedTime);  // ✅ CORRECT - says 'timeout'
   }, 1500);
 };
 

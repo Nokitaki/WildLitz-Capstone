@@ -367,6 +367,40 @@ const handleStartFromGuide = async () => {
     
     setGameState('feedback');
   }
+  // ⏰ NEW: Handle "Timeout" (when timer reaches 0)
+else if (recognized === 'timeout') {
+  console.log('⏰ Timeout - time ran out');
+  
+  const newStats = { ...gameStats };
+  newStats.wordsAttempted++;
+  newStats.timeSpent = Date.now() - sessionStartTime;
+  newStats.streakCount = 0; // Reset streak
+  
+  const currentPattern = gameConfig.learningFocus;
+  if (!newStats.patternStats[currentPattern]) {
+    newStats.patternStats[currentPattern] = { attempted: 0, correct: 0, averageTime: 0 };
+  }
+  newStats.patternStats[currentPattern].attempted++;
+  
+  newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
+  
+  newStats.difficultyProgression.push({
+    round: currentRound,
+    word: word,
+    recognized: false,
+    responseTime: responseTime || 0,
+    pattern: currentPattern,
+    action: 'timeout'  // ✅ This is now separate from 'gave_up'
+  });
+  
+  setGameStats(newStats);
+  
+  setBubbleMessage('Time\'s up! But that\'s okay - you\'ll get it next time! ⏰');
+  setShowBubble(true);
+  setTimeout(() => setShowBubble(false), 3000);
+  
+  setGameState('feedback');
+}
   
   // 👀 Handle "Show me"
   else if (recognized === false) {
@@ -439,25 +473,30 @@ const handleStartFromGuide = async () => {
 const handleNextWord = (countRound = true) => {
   console.log('➡️ Moving to next word', { countRound, currentRound, totalRounds });
   
-  // Calculate what the next round would be if we increment
   const nextRound = countRound ? currentRound + 1 : currentRound;
+  const nextWordIndex = currentWordIndex + 1;
   
-  // Check if game should be complete based on the next round
+  // ✅ NEW: Check if we've run out of words BEFORE checking rounds
+  if (nextWordIndex >= wordData.length) {
+    console.log('📚 All words have been used!');
+    handleWordsExhausted();
+    return;
+  }
+  
+  // Check if game should be complete based on rounds
   if (nextRound > totalRounds) {
-    // Game complete!
     console.log('🎉 Game complete!');
     handleGameComplete();
   } else {
     // Move to next word
     if (countRound) {
-      // Only increment round if countRound is true
       setCurrentRound(currentRound + 1);
     }
-    setCurrentWordIndex(currentWordIndex + 1);
+    setCurrentWordIndex(nextWordIndex);
     setGameState('gameplay');
     setGameStartTime(Date.now());
   }
-};
+}
 
   /**
    * 🔄 Handle retry (try same word again)
@@ -522,6 +561,25 @@ const handleNextWord = (countRound = true) => {
   backgroundAudioRef.current.play().catch(err => console.log('Music play error:', err));
 }
   };
+
+  const handleWordsExhausted = () => {
+  console.log('📚 Handling words exhausted state');
+  
+  const finalStats = {
+    ...gameStats,
+    timeSpent: Date.now() - sessionStartTime,
+    patternStats: gameStats.patternStats || {},
+    difficultyProgression: gameStats.difficultyProgression || []
+  };
+  
+  setGameStats(finalStats);
+  setGameState('wordsExhausted');
+  
+  setBubbleMessage('Amazing! You practiced all the words! 🌟');
+  setShowBubble(true);
+  setTimeout(() => setShowBubble(false), 3000);
+};
+
 
   /**
    * 🏠 Handle return to menu
@@ -826,6 +884,178 @@ const handlePlayAgain = () => {
   teamNames={teamNames}
 />
     )}
+  </motion.div>
+)}
+{gameState === 'wordsExhausted' && (
+  <motion.div
+    key="wordsExhausted"
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    exit={{ opacity: 0, scale: 0.9 }}
+    style={{
+      width: '100%',
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '20px'
+    }}
+  >
+    <motion.div
+      initial={{ y: 50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ delay: 0.2 }}
+      style={{
+        background: 'white',
+        padding: '50px',
+        borderRadius: '30px',
+        textAlign: 'center',
+        maxWidth: '600px',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+      }}
+    >
+      {/* Star Icon */}
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 0.3, type: 'spring', bounce: 0.5 }}
+        style={{ fontSize: '5rem', marginBottom: '20px' }}
+      >
+        🌟
+      </motion.div>
+      
+      {/* Title */}
+      <h1 style={{ 
+        fontSize: '2.5rem', 
+        marginBottom: '20px',
+        background: 'linear-gradient(135deg, #667eea, #764ba2)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        fontWeight: 'bold'
+      }}>
+        Awesome Job!
+      </h1>
+      
+      {/* Main Message */}
+      <p style={{ 
+        fontSize: '1.3rem', 
+        color: '#666', 
+        marginBottom: '15px',
+        lineHeight: '1.6'
+      }}>
+        You've practiced all {wordData.length} words!
+      </p>
+      
+      {/* Sub Message */}
+      <p style={{ 
+        fontSize: '1.1rem', 
+        color: '#888', 
+        marginBottom: '30px'
+      }}>
+        Keep learning and growing! 📚✨
+      </p>
+      
+      {/* Action Buttons */}
+      <div style={{ 
+        display: 'flex', 
+        gap: '15px', 
+        justifyContent: 'center',
+        flexWrap: 'wrap'
+      }}>
+        {/* Play Again Button */}
+        <button
+          onClick={() => {
+            setGameState('config');
+            setCurrentRound(1);
+            setCurrentWordIndex(0);
+            setScore(0);
+            setWordData([]);
+            setGameStats({
+              wordsAttempted: 0,
+              wordsRecognized: 0,
+              wordsSkipped: 0,
+              wordsShown: 0,
+              averageResponseTime: 0,
+              timeSpent: 0,
+              streakCount: 0,
+              maxStreak: 0,
+              successRate: 0,
+              patternStats: {},
+              difficultyProgression: [],
+              totalWords: 0,
+              correctWords: 0
+            });
+            if (backgroundAudioRef?.current) {
+              backgroundAudioRef.current.currentTime = 0;
+              backgroundAudioRef.current.play().catch(err => console.log(err));
+            }
+          }}
+          style={{
+            padding: '18px 40px',
+            fontSize: '1.3rem',
+            fontWeight: 'bold',
+            background: 'linear-gradient(135deg, #667eea, #764ba2)',
+            color: 'white',
+            border: 'none',
+            borderRadius: '15px',
+            cursor: 'pointer',
+            boxShadow: '0 8px 20px rgba(102, 126, 234, 0.4)',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.transform = 'translateY(-3px)';
+            e.target.style.boxShadow = '0 12px 30px rgba(102, 126, 234, 0.6)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 8px 20px rgba(102, 126, 234, 0.4)';
+          }}
+        >
+          🎮 Play Again
+        </button>
+        
+        {/* Home Button */}
+        <button
+          onClick={() => window.location.href = '/home'}
+          style={{
+            padding: '18px 40px',
+            fontSize: '1.3rem',
+            fontWeight: 'bold',
+            background: 'white',
+            color: '#667eea',
+            border: '3px solid #667eea',
+            borderRadius: '15px',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = '#f8f9ff';
+            e.target.style.transform = 'translateY(-3px)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'white';
+            e.target.style.transform = 'translateY(0)';
+          }}
+        >
+          🏠 Home
+        </button>
+      </div>
+      
+      {/* Stats Summary */}
+      <div style={{
+        marginTop: '30px',
+        padding: '20px',
+        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1))',
+        borderRadius: '15px'
+      }}>
+        <p style={{ fontSize: '1rem', color: '#666', margin: 0 }}>
+          📊 Words Practiced: <strong>{gameStats.wordsAttempted}</strong> | 
+          ✅ Correct: <strong>{gameStats.wordsRecognized}</strong> | 
+          📈 Success Rate: <strong>{gameStats.successRate || 0}%</strong>
+        </p>
+      </div>
+    </motion.div>
   </motion.div>
 )}
 
