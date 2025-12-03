@@ -17,8 +17,8 @@ const useClapDetection = (isEnabled = false, onClapDetected) => {
   const animationFrameRef = useRef(null);
 
   // Configuration constants
-  const CLAP_THRESHOLD = 0.25; // Volume threshold (0-1) for clap detection
-  const DEBOUNCE_TIME = 200; // Minimum milliseconds between claps
+  const CLAP_THRESHOLD = 0.35; // Volume threshold (0-1) for clap detection
+  const DEBOUNCE_TIME = 250; // Minimum milliseconds between claps
   const FFT_SIZE = 2048; // Frequency analysis resolution
   const SMOOTHING = 0.8; // Audio smoothing (0-1)
 
@@ -28,8 +28,8 @@ const useClapDetection = (isEnabled = false, onClapDetected) => {
       // Request microphone permission
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
+          echoCancellation: false,
+          noiseSuppression: flase,
           autoGainControl: false, // Disable AGC to get raw volume
         },
       });
