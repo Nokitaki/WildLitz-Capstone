@@ -18,9 +18,8 @@ const GameplayScreen = ({
   currentEpisode = 1,
   totalEpisodes = 1,
   sessionId,
-  onAnswerAttempt
-  
-  
+  onAnswerAttempt,
+  onPuzzleComplete  // ✅ ADD THIS LINE
 }) => {
   // State management
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -429,7 +428,13 @@ const handleSkipGuide = () => {
   
   if (nextIndex >= puzzle.words.length) {
     const allSolved = puzzle.words.every((_, idx) => solvedClues[idx]);
-    if (allSolved) return;
+    if (allSolved) {
+      // ✅ FIX: Call the completion handler when all words are solved
+      if (onPuzzleComplete) {
+        onPuzzleComplete();
+      }
+      return;
+    }
     
     nextIndex = puzzle.words.findIndex((_, idx) => !solvedClues[idx]);
     if (nextIndex === -1) nextIndex = 0;
@@ -437,7 +442,7 @@ const handleSkipGuide = () => {
   
   setCurrentWordIndex(nextIndex);
   setSelectedClue(puzzle.words[nextIndex]);
-}, [currentWordIndex, puzzle.words, solvedClues]);
+}, [currentWordIndex, puzzle.words, solvedClues, onPuzzleComplete]);  // ✅ Add onPuzzleComplete to dependencies
 
   // Handle answer selection WITH AUDIO
   const handleSelectAnswer = useCallback((choice) => {
@@ -456,7 +461,7 @@ const handleSkipGuide = () => {
   }, [currentWordIndex]);
 
 
-const handleSubmitAnswer = useCallback(async () => {
+ const handleSubmitAnswer = useCallback(async () => {
   if (!selectedAnswer || !currentWord || isCurrentWordSolved) return;
 
   const correctAnswer = currentWord.answer;
@@ -471,19 +476,20 @@ const handleSubmitAnswer = useCallback(async () => {
     onAnswerAttempt(correctAnswer, isCorrect, attemptNumber);
   }
   
- 
-  
+  // Set feedback message
   setFeedback({ 
     type: isCorrect ? 'success' : 'error',
     message: isCorrect ? `Correct! "${correctAnswer}" is the right answer!` : 'Try again!'
   });
 
-  
+  if (isCorrect) {
+    // ✅ ONLY mark as solved if answer is correct
     setSolvedClues(prev => ({ ...prev, [currentWordIndex]: true }));
     updateGridWithWord(currentWord);
     
     const wordTimeSpent = Math.floor((Date.now() - wordStartTime.current) / 1000);
-    if (isCorrect) {
+    
+    // Log analytics
     if (sessionId) {
       try {
         await crosswordAnalyticsService.logWordSolved(
@@ -503,9 +509,13 @@ const handleSubmitAnswer = useCallback(async () => {
       }
     }
     
+    // Call parent's word solved handler
     onWordSolved(correctAnswer, currentWord.definition || '', currentWord.example || '', hintsUsedForCurrentWordRef.current);
+    
+    // Show celebration
     triggerCelebration();
     
+    // Move to next word after delay
     if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
     feedbackTimeoutRef.current = setTimeout(() => {
       setFeedback(null);
@@ -513,14 +523,33 @@ const handleSubmitAnswer = useCallback(async () => {
       moveToNextWord();
     }, 1500);
   } else {
-    // Wrong answer - allow retry
+    // ❌ Wrong answer - DON'T mark as solved, just clear feedback and allow retry
     if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
     feedbackTimeoutRef.current = setTimeout(() => {
       setFeedback(null);
       setSelectedAnswer(null); // Clear selection so they can try again
     }, 2000);
   }
-}, [selectedAnswer, currentWord, isCurrentWordSolved, sessionId, onWordSolved, triggerCelebration, moveToNextWord, updateGridWithWord, currentPuzzleIndex, currentWordAttempts, onAnswerAttempt]);
+}, [
+  selectedAnswer, 
+  currentWord, 
+  isCurrentWordSolved, 
+  sessionId, 
+  onWordSolved, 
+  triggerCelebration, 
+  moveToNextWord, 
+  updateGridWithWord, 
+  currentPuzzleIndex, 
+  currentWordAttempts, 
+  onAnswerAttempt
+]);
+
+
+
+
+
+
+
 
   // Navigation handlers
   const handleNext = useCallback(() => {

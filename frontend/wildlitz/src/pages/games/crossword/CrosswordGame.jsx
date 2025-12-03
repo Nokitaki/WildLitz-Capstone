@@ -689,6 +689,7 @@ const generateNextEpisodeOnDemand = async () => {
             totalEpisodes={totalEpisodes}
             onAnswerAttempt={handleAnswerAttempt}
             calculatedAccuracy={calculateAccuracy()}
+            onPuzzleComplete={handlePuzzleComplete}
           />
         </motion.div>
       );
