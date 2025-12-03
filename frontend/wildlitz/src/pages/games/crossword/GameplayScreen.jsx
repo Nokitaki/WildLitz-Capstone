@@ -50,7 +50,13 @@ const GameplayScreen = ({
 
   const INITIAL_HINTS = 3;
 
-  const [showGuide, setShowGuide] = useState(true);
+ 
+
+  const [showGuide, setShowGuide] = useState(() => {
+  const hasSeenGuide = localStorage.getItem('wildlitz_crossword_guide_seen');
+  // Only show guide on episode 1 if user hasn't seen it before
+  return hasSeenGuide !== 'true' && currentEpisode === 1;
+});
   // Validation
   if (!puzzle || !puzzle.words || !Array.isArray(puzzle.words)) {
     return (
@@ -75,13 +81,13 @@ const GameplayScreen = ({
   const solvedCount = Object.keys(solvedClues).length;
  const isCurrentWordSolved = solvedClues[currentWordIndex];
 
-  useEffect(() => {
+useEffect(() => {
   const hasSeenGuide = localStorage.getItem('wildlitz_crossword_guide_seen');
-  if (hasSeenGuide === 'true') {
+  // Hide guide if already seen OR if not on episode 1
+  if (hasSeenGuide === 'true' || currentEpisode > 1) {
     setShowGuide(false);
-   
   }
-}, []);
+}, [currentEpisode]);
 
 
 
