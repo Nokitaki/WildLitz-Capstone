@@ -1531,9 +1531,50 @@ def validate_pattern_isolation(words, learning_focus, challenge_level='simple_wo
                 print(f"❌ LONG VOWEL REJECTED '{word}': No long vowel pattern in targetLetter '{target}'")
                 should_accept = False
             
-            # 🔥 NEW: Verify the pattern actually exists in the word 🔥
+# 🔥 NEW: Verify the pattern actually exists in the word 🔥
+    else:
+        # 🔥 ENHANCED: For sentences, verify pattern exists in a MEANINGFUL word
+        if challenge_level == 'simple_sentences':
+            # For sentences, check if pattern exists in ANY word (not just function words)
+            sentence_words = word.split()
+            pattern_found = False
+            clean_target = target.replace('long_', '').replace('short_', '')
+            
+            # Skip function words
+            function_words = ['the', 'a', 'an', 'to', 'is', 'was', 'are', 'were', 'of', 'in', 'on', 'at']
+            
+            for sentence_word in sentence_words:
+                # Clean punctuation
+                clean_word = sentence_word.replace('.', '').replace(',', '').replace('!', '').replace('?', '').lower()
+                
+                # Skip if it's a function word
+                if clean_word in function_words:
+                    continue
+                
+                # Check if pattern exists in this word
+                if '_' in clean_target:
+                    # Magic-e pattern
+                    vowel, e = clean_target.split('_')
+                    for i in range(len(clean_word) - 2):
+                        if clean_word[i] == vowel and clean_word[i + 2] == e:
+                            pattern_found = True
+                            print(f"✅ Pattern '{clean_target}' found in word '{sentence_word}'")
+                            break
+                else:
+                    # Regular pattern
+                    if clean_target in clean_word:
+                        pattern_found = True
+                        print(f"✅ Pattern '{clean_target}' found in word '{sentence_word}'")
+                        break
+                
+                if pattern_found:
+                    break
+            
+            if not pattern_found:
+                print(f"❌ LONG VOWEL REJECTED '{word}': Pattern '{target}' not found in any meaningful word")
+                should_accept = False
             else:
-                # Check if the targetLetter pattern actually appears in the word
+                # For single words/compounds/phrases, use the existing validation
                 word_lower = word.replace(' ', '').replace('.', '').replace('!', '').replace('?', '').lower()
                 
                 # For magic-e patterns (a_e, i_e, o_e, u_e, e_e)
@@ -1801,8 +1842,10 @@ def save_game_session(request):
             'time_spent': data.get('timeSpent', 0),
             'pattern_stats': data.get('patternStats', {}),
             'word_list': data.get('wordList', []),
+            'difficulty_progression': data.get('difficultyProgression', []),
             'team_play': data.get('teamPlay', False),
             'team_scores': data.get('teamScores'),
+            'team_names': data.get('teamNames'),
             'completion_rate': data.get('completionRate', 0.0),
             'words_per_minute': data.get('wordsPerMinute', 0.0),
             'learning_efficiency': data.get('learningEfficiency', 0.0)
@@ -2303,6 +2346,26 @@ def generate_static_fallback_words(challenge_level, learning_focus, word_count):
         {'word': 'teacake', 'syllableBreakdown': 'tea-cake', 'targetLetter': 'ea', 'definition': 'Small sweet cake', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
         {'word': 'seashore', 'syllableBreakdown': 'sea-shore', 'targetLetter': 'ea', 'definition': 'Land by the sea', 'pattern': 'long_e', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
         {'word': 'boathouse', 'syllableBreakdown': 'boat-house', 'targetLetter': 'oa', 'definition': 'Building for boats', 'pattern': 'long_o', 'patternPosition': 'middle', 'phonicsRule': "Long vowel 'oa' makes the name of the letter"},
+        {'word': 'highway', 'syllableBreakdown': 'high-way', 'targetLetter': 'igh', 'definition': 'Main road for travel', 'pattern': 'long_i', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'igh' makes the name of the letter"},
+        {'word': 'coastline', 'syllableBreakdown': 'coast-line', 'targetLetter': 'oa', 'definition': 'Edge of the ocean', 'pattern': 'long_o', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'oa' makes the name of the letter"},
+        {'word': 'steamboat', 'syllableBreakdown': 'steam-boat', 'targetLetter': 'ea', 'definition': 'Boat powered by steam', 'pattern': 'long_e', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'airmail', 'syllableBreakdown': 'air-mail', 'targetLetter': 'ai', 'definition': 'Mail sent by plane', 'pattern': 'long_a', 'patternPosition': 'end', 'phonicsRule': "Long vowel 'ai' makes the name of the letter"},
+        {'word': 'payday', 'syllableBreakdown': 'pay-day', 'targetLetter': 'ay', 'definition': 'Day you get paid', 'pattern': 'long_a', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'ay' makes the name of the letter"},
+        {'word': 'treetop', 'syllableBreakdown': 'tree-top', 'targetLetter': 'ee', 'definition': 'Top of a tree', 'pattern': 'long_e', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'oatmeal', 'syllableBreakdown': 'oat-meal', 'targetLetter': 'oa', 'definition': 'Hot breakfast cereal', 'pattern': 'long_o', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'oa' makes the name of the letter"},
+        {'word': 'speedboat', 'syllableBreakdown': 'speed-boat', 'targetLetter': 'ee', 'definition': 'Fast boat', 'pattern': 'long_e', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'racetrack', 'syllableBreakdown': 'race-track', 'targetLetter': 'a_e', 'definition': 'Track for racing', 'pattern': 'long_a', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'a_e' makes the name of the letter"},
+        {'word': 'homemade', 'syllableBreakdown': 'home-made', 'targetLetter': 'o_e', 'definition': 'Made at home', 'pattern': 'long_o', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'o_e' makes the name of the letter"},
+        {'word': 'teacup', 'syllableBreakdown': 'tea-cup', 'targetLetter': 'ea', 'definition': 'Cup for tea', 'pattern': 'long_e', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'peanut', 'syllableBreakdown': 'pea-nut', 'targetLetter': 'ea', 'definition': 'Type of nut', 'pattern': 'long_e', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'cheesecake', 'syllableBreakdown': 'cheese-cake', 'targetLetter': 'ee', 'definition': 'Sweet dessert', 'pattern': 'long_e', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'toenail', 'syllableBreakdown': 'toe-nail', 'targetLetter': 'oe', 'definition': 'Nail on your toe', 'pattern': 'long_o', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'oe' makes the name of the letter"},
+        {'word': 'sidewalk', 'syllableBreakdown': 'side-walk', 'targetLetter': 'i_e', 'definition': 'Path beside the road', 'pattern': 'long_i', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'i_e' makes the name of the letter"},
+        {'word': 'beefsteak', 'syllableBreakdown': 'beef-steak', 'targetLetter': 'ee', 'definition': 'Cut of beef meat', 'pattern': 'long_e', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'ee' makes the name of the letter"},
+        {'word': 'tadpole', 'syllableBreakdown': 'tad-pole', 'targetLetter': 'o_e', 'definition': 'Baby frog', 'pattern': 'long_o', 'patternPosition': 'end', 'phonicsRule': "Long vowel 'o_e' makes the name of the letter"},
+        {'word': 'seashore', 'syllableBreakdown': 'sea-shore', 'targetLetter': 'ea', 'definition': 'Land by the sea', 'pattern': 'long_e', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'boathouse', 'syllableBreakdown': 'boat-house', 'targetLetter': 'oa', 'definition': 'Building for boats', 'pattern': 'long_o', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'oa' makes the name of the letter"},
+        {'word': 'rosebud', 'syllableBreakdown': 'rose-bud', 'targetLetter': 'o_e', 'definition': 'Flower about to bloom', 'pattern': 'long_o', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'o_e' makes the name of the letter"},
     ],
     'blends': [
         # Compound words with blends - 25 total
@@ -2326,11 +2389,32 @@ def generate_static_fallback_words(challenge_level, learning_focus, word_count):
         {'word': 'greenhouse', 'syllableBreakdown': 'green-house', 'targetLetter': 'gr', 'definition': 'Glass building for plants', 'pattern': 'gr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'gr' combines the 'g' and 'r' sounds"},
         {'word': 'snapshot', 'syllableBreakdown': 'snap-shot', 'targetLetter': 'sn', 'definition': 'Quick photograph', 'pattern': 'sn_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sn' combines the 's' and 'n' sounds"},
         {'word': 'handspring', 'syllableBreakdown': 'hand-spring', 'targetLetter': 'sp', 'definition': 'Gymnastic move', 'pattern': 'sp_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sp' combines the 's' and 'p' sounds"},
-        {'word': 'shipyard', 'syllableBreakdown': 'ship-yard', 'targetLetter': 'sh', 'definition': 'Place where ships are built', 'pattern': 'sh_blend', 'patternPosition': 'beginning', 'phonicsRule': "Ships are built in a yard"},
+        {'word': 'backyard', 'syllableBreakdown': 'back-yard', 'targetLetter': 'ck', 'definition': 'Yard behind a house', 'pattern': 'ck_blend', 'patternPosition': 'end', 'phonicsRule': "The blend 'ck' combines the 'c' and 'k' sounds"},
         {'word': 'drumstick', 'syllableBreakdown': 'drum-stick', 'targetLetter': 'dr', 'definition': 'Stick for playing drums', 'pattern': 'dr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'dr' combines the 'd' and 'r' sounds"},
         {'word': 'blacksmith', 'syllableBreakdown': 'black-smith', 'targetLetter': 'bl', 'definition': 'Person who works with metal', 'pattern': 'bl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'bl' combines the 'b' and 'l' sounds"},
         {'word': 'blueprint', 'syllableBreakdown': 'blue-print', 'targetLetter': 'bl', 'definition': 'Building plan', 'pattern': 'bl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'bl' combines the 'b' and 'l' sounds"},
         {'word': 'trackside', 'syllableBreakdown': 'track-side', 'targetLetter': 'tr', 'definition': 'Beside the track', 'pattern': 'tr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'tr' combines the 't' and 'r' sounds"},
+        {'word': 'scarecrow', 'syllableBreakdown': 'scare-crow', 'targetLetter': 'sc', 'definition': 'Dummy to scare birds', 'pattern': 'sc_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sc' combines the 's' and 'c' sounds"},
+        {'word': 'campfire', 'syllableBreakdown': 'camp-fire', 'targetLetter': 'mp', 'definition': 'Fire at a campsite', 'pattern': 'mp_blend', 'patternPosition': 'end', 'phonicsRule': "The blend 'mp' combines the 'm' and 'p' sounds"},
+        {'word': 'frostbite', 'syllableBreakdown': 'frost-bite', 'targetLetter': 'fr', 'definition': 'Injury from cold', 'pattern': 'fr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'fr' combines the 'f' and 'r' sounds"},
+        {'word': 'clockface', 'syllableBreakdown': 'clock-face', 'targetLetter': 'cl', 'definition': 'Front of a clock', 'pattern': 'cl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'cl' combines the 'c' and 'l' sounds"},
+        {'word': 'brickwork', 'syllableBreakdown': 'brick-work', 'targetLetter': 'br', 'definition': 'Work made of bricks', 'pattern': 'br_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'br' combines the 'b' and 'r' sounds"},
+        {'word': 'flatbed', 'syllableBreakdown': 'flat-bed', 'targetLetter': 'fl', 'definition': 'Flat truck bed', 'pattern': 'fl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'fl' combines the 'f' and 'l' sounds"},
+        {'word': 'grandchild', 'syllableBreakdown': 'grand-child', 'targetLetter': 'gr', 'definition': 'Child of your child', 'pattern': 'gr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'gr' combines the 'g' and 'r' sounds"},
+        {'word': 'plywood', 'syllableBreakdown': 'ply-wood', 'targetLetter': 'pl', 'definition': 'Thin sheets of wood', 'pattern': 'pl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'pl' combines the 'p' and 'l' sounds"},
+        {'word': 'traintrack', 'syllableBreakdown': 'train-track', 'targetLetter': 'tr', 'definition': 'Rails for trains', 'pattern': 'tr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'tr' combines the 't' and 'r' sounds"},
+        {'word': 'springtime', 'syllableBreakdown': 'spring-time', 'targetLetter': 'sp', 'definition': 'Season of spring', 'pattern': 'sp_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sp' combines the 's' and 'r' sounds"},
+        {'word': 'crosswalk', 'syllableBreakdown': 'cross-walk', 'targetLetter': 'cr', 'definition': 'Place to cross street', 'pattern': 'cr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'cr' combines the 'c' and 'r' sounds"},
+        {'word': 'skateboard', 'syllableBreakdown': 'skate-board', 'targetLetter': 'sk', 'definition': 'Board with wheels', 'pattern': 'sk_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sk' combines the 's' and 'k' sounds"},
+        {'word': 'slipknot', 'syllableBreakdown': 'slip-knot', 'targetLetter': 'sl', 'definition': 'Knot that slips', 'pattern': 'sl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sl' combines the 's' and 'l' sounds"},
+        {'word': 'grapevine', 'syllableBreakdown': 'grape-vine', 'targetLetter': 'gr', 'definition': 'Plant that grows grapes', 'pattern': 'gr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'gr' combines the 'g' and 'r' sounds"},
+        {'word': 'flatland', 'syllableBreakdown': 'flat-land', 'targetLetter': 'fl', 'definition': 'Land that is flat', 'pattern': 'fl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'fl' combines the 'f' and 'l' sounds"},
+        {'word': 'snapshot', 'syllableBreakdown': 'snap-shot', 'targetLetter': 'sn', 'definition': 'Quick photo', 'pattern': 'sn_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sn' combines the 's' and 'n' sounds"},
+        {'word': 'drawbridge', 'syllableBreakdown': 'draw-bridge', 'targetLetter': 'dr', 'definition': 'Bridge that lifts up', 'pattern': 'dr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'dr' combines the 'd' and 'r' sounds"},
+        {'word': 'cropland', 'syllableBreakdown': 'crop-land', 'targetLetter': 'cr', 'definition': 'Land for growing crops', 'pattern': 'cr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'cr' combines the 'c' and 'r' sounds"},
+        {'word': 'smokestack', 'syllableBreakdown': 'smoke-stack', 'targetLetter': 'sm', 'definition': 'Tall chimney', 'pattern': 'sm_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sm' combines the 's' and 'm' sounds"},
+        {'word': 'sweatshirt', 'syllableBreakdown': 'sweat-shirt', 'targetLetter': 'sw', 'definition': 'Warm shirt', 'pattern': 'sw_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sw' combines the 's' and 'w' sounds"},
+        {'word': 'pricetag', 'syllableBreakdown': 'price-tag', 'targetLetter': 'pr', 'definition': 'Tag showing price', 'pattern': 'pr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'pr' combines the 'p' and 'r' sounds"},
     ],
     'digraphs': [
         # Compound words with digraphs - 25 total

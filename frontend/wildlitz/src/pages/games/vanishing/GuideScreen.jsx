@@ -31,7 +31,8 @@ const GuideScreen = ({ onStartGame, config }) => {
       title: 'Step 3: Say It Out Loud!',
       description: config.teamPlay 
         ? 'Teams take turns saying the complete word or what letters vanished. Speak clearly!'
-        : 'Raise your hand and say the complete word out loud when called on!',
+        : 'Everyone say the complete word out loud together as a class! Speak clearly!',
+
       image: '🎤',
       tip: 'Sound it out slowly if you need help'
     },

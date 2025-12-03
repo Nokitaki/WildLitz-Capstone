@@ -537,6 +537,7 @@ const handleNextWord = (countRound = true) => {
   maxStreak: finalStats.maxStreak || 0,
   timeSpent: Math.round(finalStats.timeSpent || 0),
   patternStats: finalStats.patternStats || {},
+  difficultyProgression: finalStats.difficultyProgression || [],
   wordList: wordData || [],
   teamPlay: gameConfig.teamPlay || false,
   teamScores: gameConfig.teamPlay ? teamScores : null,
