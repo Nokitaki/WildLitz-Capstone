@@ -556,6 +556,20 @@ def generate_vanishing_words(request):
                         filtered_words.append(word_obj)
                 new_words = filtered_words
                 print(f"✅ Phrase filter: {len(new_words)}/{before_count} are valid phrases")
+
+                # NEW: Reject compound words in simple_words mode
+            elif challenge_level == 'simple_words':
+                print(f"🔍 FILTERING SIMPLE WORDS...")
+                before_count = len(new_words)
+                filtered_words = []
+                for word_obj in new_words:
+                    word = word_obj.get('word', '')
+                    if not is_valid_compound_word(word):  # NOT compound = keep it
+                        filtered_words.append(word_obj)
+                    else:
+                        print(f"❌ REJECTED compound: '{word}'")
+                new_words = filtered_words
+                print(f"✅ Simple words filter: {len(new_words)}/{before_count}")
             
             # Add validated words
             validated_words.extend(new_words)
@@ -1381,6 +1395,24 @@ STEP-BY-STEP CHECK:
 
 NEVER use generic values like "long_vowels" or "vowels" in targetLetter!
 ALWAYS use the specific pattern like "ee", "ai", "a_e"!
+
+🚨 CRITICAL: NEVER USE GENERIC VALUES 🚨
+
+❌ FORBIDDEN targetLetter values:
+   - "long_i", "long_a", "long_e", "long_o", "long_u" ← NEVER USE!
+   - "long_vowels", "short_vowels"
+   - "vowels", "sentence", "word"
+
+✅ MUST USE SPECIFIC PATTERNS:
+   - "pie" → targetLetter: "ie" ✅ (NOT "long_i")
+   - "bike" → targetLetter: "i_e" ✅ (NOT "long_i")
+   - "rain" → targetLetter: "ai" ✅ (NOT "long_a")
+
+WRONG:
+{"word": "pie", "targetLetter": "long_i"}  ← REJECTED!
+
+CORRECT:
+{"word": "pie", "targetLetter": "ie"}  ← ACCEPTED!
         """
         if challenge_level == 'simple_sentences':
             prompt += """
@@ -1556,12 +1588,30 @@ def validate_word_structure(word_obj):
             print(f"   EMPTY: {empty_fields}")
         # END OF NEW LINES
         return False
-# Check for generic targetLetter values
-    if word_obj.get('targetLetter') in ['sentence', 'simple_sentence', 'vowels', 'blends', 'digraphs', 'short_vowels', 'long_vowels']:
+    # Reject ALL generic targetLetter values
+    forbidden_targetLetters = [
+        'sentence', 'simple_sentence', 'vowels', 'blends', 'digraphs', 'word', 'simple_words',
+        'short_vowels', 'short_a', 'short_e', 'short_i', 'short_o', 'short_u',
+        'long_vowels', 'long_a', 'long_e', 'long_i', 'long_o', 'long_u',  # ← FIXES "PIE"!
+    ]
+
+    target = word_obj.get('targetLetter', '')
+    if target in forbidden_targetLetters:
         print(f"\n❌ INVALID: '{word_obj.get('word', 'UNKNOWN')}'")
-        print(f"   GENERIC targetLetter: '{word_obj.get('targetLetter')}' (must be specific like 'a', 'sh', 'st', 'a_e')")
+        print(f"   FORBIDDEN targetLetter: '{target}'")
         return False
-    
+
+    # Validate long vowel patterns are specific
+    word = word_obj.get('word', '').lower()
+    pattern = word_obj.get('pattern', '').lower()
+
+    if 'long' in pattern:
+        valid_long_patterns = ['a_e', 'ai', 'ay', 'ea', 'ee', 'e_e', 'ie', 'i_e', 'igh', 'y', 
+                            'o_e', 'oa', 'ow', 'oe', 'u_e', 'ue', 'ui', 'ew']
+        if target not in valid_long_patterns:
+            print(f"\n❌ INVALID: '{word}' - targetLetter '{target}' not valid")
+            return False
+
     return True
 
 def validate_pattern_isolation(words, learning_focus, challenge_level='simple_words'):
@@ -2396,10 +2446,14 @@ def generate_static_fallback_words(challenge_level, learning_focus, word_count):
         {'word': 'eggshell', 'syllableBreakdown': 'egg-shell', 'targetLetter': 'e', 'definition': 'Shell of an egg', 'pattern': 'short_e', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'e' makes the sound like in 'egg'"},
         {'word': 'fishnet', 'syllableBreakdown': 'fish-net', 'targetLetter': 'i', 'definition': 'Net for catching fish', 'pattern': 'short_i', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"},
         {'word': 'pinball', 'syllableBreakdown': 'pin-ball', 'targetLetter': 'i', 'definition': 'Game with flippers and ball', 'pattern': 'short_i', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"},
-        {'word': 'piglet', 'syllableBreakdown': 'pig-let', 'targetLetter': 'i', 'definition': 'A baby pig', 'pattern': 'short_i', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"},
         {'word': 'lipstick', 'syllableBreakdown': 'lip-stick', 'targetLetter': 'i', 'definition': 'Color for lips', 'pattern': 'short_i', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"},
         {'word': 'ragdoll', 'syllableBreakdown': 'rag-doll', 'targetLetter': 'a', 'definition': 'Soft cloth doll', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
         {'word': 'anthill', 'syllableBreakdown': 'ant-hill', 'targetLetter': 'a', 'definition': 'Small hill made by ants', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
+        {'word': 'hubcap', 'syllableBreakdown': 'hub-cap', 'targetLetter': 'u', 'definition': 'Cover for wheel center', 'pattern': 'short_u', 'patternPosition': 'beginning', 'phonicsRule': "Short vowel 'u' makes the sound like in 'umbrella'"},
+        {'word': 'trashcan', 'syllableBreakdown': 'trash-can', 'targetLetter': 'a', 'definition': 'Container for trash', 'pattern': 'short_a', 'patternPosition': 'middle', 'phonicsRule': "Short vowel 'a' makes the sound like in 'apple'"},
+        {'word': 'kidnap', 'syllableBreakdown': 'kid-nap', 'targetLetter': 'i', 'definition': 'To take someone by force', 'pattern': 'short_i', 'patternPosition': 'beginning', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"},
+        {'word': 'nutshell', 'syllableBreakdown': 'nut-shell', 'targetLetter': 'u', 'definition': 'Hard shell of a nut', 'pattern': 'short_u', 'patternPosition': 'beginning', 'phonicsRule': "Short vowel 'u' makes the sound like in 'umbrella'"},
+        {'word': 'inchworm', 'syllableBreakdown': 'inch-worm', 'targetLetter': 'i', 'definition': 'Small worm that measures', 'pattern': 'short_i', 'patternPosition': 'beginning', 'phonicsRule': "Short vowel 'i' makes the sound like in 'igloo'"}
     ],
     'long_vowels': [
         # Compound words with long vowels - 25 total
@@ -2448,6 +2502,11 @@ def generate_static_fallback_words(challenge_level, learning_focus, word_count):
         {'word': 'seashore', 'syllableBreakdown': 'sea-shore', 'targetLetter': 'ea', 'definition': 'Land by the sea', 'pattern': 'long_e', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
         {'word': 'boathouse', 'syllableBreakdown': 'boat-house', 'targetLetter': 'oa', 'definition': 'Building for boats', 'pattern': 'long_o', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'oa' makes the name of the letter"},
         {'word': 'rosebud', 'syllableBreakdown': 'rose-bud', 'targetLetter': 'o_e', 'definition': 'Flower about to bloom', 'pattern': 'long_o', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'o_e' makes the name of the letter"},
+        {'word': 'keychain', 'syllableBreakdown': 'key-chain', 'targetLetter': 'ey', 'definition': 'Ring that holds keys', 'pattern': 'long_e', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'ey' makes the /ē/ sound"},
+        {'word': 'peacoat', 'syllableBreakdown': 'pea-coat', 'targetLetter': 'ea', 'definition': 'Type of heavy coat', 'pattern': 'long_e', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'ea' makes the name of the letter"},
+        {'word': 'toothpaste', 'syllableBreakdown': 'tooth-paste', 'targetLetter': 'oo', 'definition': 'Paste for brushing teeth', 'pattern': 'long_u', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'oo' makes the /oo/ sound"},
+        {'word': 'frostbite', 'syllableBreakdown': 'frost-bite', 'targetLetter': 'i_e', 'definition': 'Injury from extreme cold', 'pattern': 'long_i', 'patternPosition': 'end', 'phonicsRule': "Long vowel 'i_e' makes the name of the letter"},
+        {'word': 'gameplay', 'syllableBreakdown': 'game-play', 'targetLetter': 'a_e', 'definition': 'How a game is played', 'pattern': 'long_a', 'patternPosition': 'beginning', 'phonicsRule': "Long vowel 'a_e' makes the name of the letter"}
     ],
     'blends': [
         # Compound words with blends - 25 total
@@ -2497,6 +2556,11 @@ def generate_static_fallback_words(challenge_level, learning_focus, word_count):
         {'word': 'smokestack', 'syllableBreakdown': 'smoke-stack', 'targetLetter': 'sm', 'definition': 'Tall chimney', 'pattern': 'sm_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sm' combines the 's' and 'm' sounds"},
         {'word': 'sweatshirt', 'syllableBreakdown': 'sweat-shirt', 'targetLetter': 'sw', 'definition': 'Warm shirt', 'pattern': 'sw_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sw' combines the 's' and 'w' sounds"},
         {'word': 'pricetag', 'syllableBreakdown': 'price-tag', 'targetLetter': 'pr', 'definition': 'Tag showing price', 'pattern': 'pr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'pr' combines the 'p' and 'r' sounds"},
+        {'word': 'treetop', 'syllableBreakdown': 'tree-top', 'targetLetter': 'tr', 'definition': 'Top of a tree', 'pattern': 'tr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'tr' combines the 't' and 'r' sounds"},
+        {'word': 'springtime', 'syllableBreakdown': 'spring-time', 'targetLetter': 'spr', 'definition': 'Season of spring', 'pattern': 'spr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'spr' combines the 's', 'p', and 'r' sounds"},
+        {'word': 'flatbed', 'syllableBreakdown': 'flat-bed', 'targetLetter': 'fl', 'definition': 'Truck with flat surface', 'pattern': 'fl_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'fl' combines the 'f' and 'l' sounds"},
+        {'word': 'grapevine', 'syllableBreakdown': 'grape-vine', 'targetLetter': 'gr', 'definition': 'Vine that grows grapes', 'pattern': 'gr_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'gr' combines the 'g' and 'r' sounds"},
+        {'word': 'smokestack', 'syllableBreakdown': 'smoke-stack', 'targetLetter': 'sm', 'definition': 'Tall pipe for smoke', 'pattern': 'sm_blend', 'patternPosition': 'beginning', 'phonicsRule': "The blend 'sm' combines the 's' and 'm' sounds"}
     ],
     'digraphs': [
         # Compound words with digraphs - 25 total
@@ -2525,6 +2589,11 @@ def generate_static_fallback_words(challenge_level, learning_focus, word_count):
         {'word': 'sheepdog', 'syllableBreakdown': 'sheep-dog', 'targetLetter': 'sh', 'definition': 'Dog that herds sheep', 'pattern': 'sh_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
         {'word': 'washcloth', 'syllableBreakdown': 'wash-cloth', 'targetLetter': 'sh', 'definition': 'Cloth for washing', 'pattern': 'sh_digraph', 'patternPosition': 'end', 'phonicsRule': "The digraph 'sh' makes one sound like 'shh'"},
         {'word': 'checkbook', 'syllableBreakdown': 'check-book', 'targetLetter': 'ch', 'definition': 'Book of bank checks', 'pattern': 'ch_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'ch' makes one sound like in 'choo-choo'"},
+        {'word': 'thumbtack', 'syllableBreakdown': 'thumb-tack', 'targetLetter': 'th', 'definition': 'Pin with flat head', 'pattern': 'th_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'th' makes a single sound"},
+        {'word': 'thinkpad', 'syllableBreakdown': 'think-pad', 'targetLetter': 'th', 'definition': 'Pad for writing thoughts', 'pattern': 'th_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'th' makes a single sound"},
+        {'word': 'shoeshine', 'syllableBreakdown': 'shoe-shine', 'targetLetter': 'sh', 'definition': 'Polish for shoes', 'pattern': 'sh_digraph', 'patternPosition': 'middle', 'phonicsRule': "The digraph 'sh' makes a single sound"},
+        {'word': 'checkmark', 'syllableBreakdown': 'check-mark', 'targetLetter': 'ch', 'definition': 'Mark showing correctness', 'pattern': 'ch_digraph', 'patternPosition': 'beginning', 'phonicsRule': "The digraph 'ch' makes a single sound"},
+        {'word': 'wishbone', 'syllableBreakdown': 'wish-bone', 'targetLetter': 'sh', 'definition': 'Lucky bone from bird', 'pattern': 'sh_digraph', 'patternPosition': 'middle', 'phonicsRule': "The digraph 'sh' makes a single sound"}
     ]
 },
 
