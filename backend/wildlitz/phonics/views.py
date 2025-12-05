@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 import json
 import random
+import re
 import logging
 import openai
 from django.conf import settings
@@ -19,6 +20,86 @@ logger = logging.getLogger(__name__)
 # Configure OpenAI API key from settings
 openai.api_key = settings.OPENAI_API_KEY
 supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+
+def fix_long_vowel_target_letter(word_object, challenge_level, learning_focus):
+    """
+    CRITICAL FIX: Validates targetLetter pattern actually exists in sentence.
+    Only applies to simple_sentences + long_vowels.
+    """
+    if challenge_level != 'simple_sentences' or learning_focus != 'long_vowels':
+        return word_object
+    
+    sentence = word_object.get('word', '')
+    current_target = word_object.get('targetLetter', '')
+    
+    long_vowel_patterns = {
+        'a_e': r'\b\w*a[^aeiou]e\b',
+        'ai': r'\b\w*ai\w*\b',
+        'ay': r'\b\w*ay\b',
+        'ee': r'\b\w*ee\w*\b',
+        'ea': r'\b\w*ea\w*\b',
+        'e_e': r'\b\w*e[^aeiou]e\b',
+        'i_e': r'\b\w*i[^aeiou]e\b',
+        'ie': r'\b\w*ie\b',
+        'igh': r'\b\w*igh\w*\b',
+        'o_e': r'\b\w*o[^aeiou]e\b',
+        'oa': r'\b\w*oa\w*\b',
+        'ow': r'\b\w*ow\b',
+        'u_e': r'\b\w*u[^aeiou]e\b',
+        'ue': r'\b\w*ue\w*\b',
+        'ui': r'\b\w*ui\w*\b',
+    }
+    
+    pattern_priority = ['a_e', 'i_e', 'o_e', 'u_e', 'ee', 'ea', 'ai', 'oa', 'igh', 'ay', 'ow', 'ie', 'ue', 'ui', 'e_e']
+    
+    needs_fix = False
+    if current_target in ['sentence', 'simple_sentence', None, ''] or not current_target:
+        needs_fix = True
+    elif current_target in long_vowel_patterns:
+        if not re.search(long_vowel_patterns[current_target], sentence.lower()):
+            needs_fix = True
+            logger.warning(f"🚨 Pattern '{current_target}' NOT in: '{sentence}'")
+    
+    if needs_fix:
+        found_pattern = None
+        for pattern in pattern_priority:
+            if pattern in long_vowel_patterns:
+                if re.search(long_vowel_patterns[pattern], sentence.lower()):
+                    found_pattern = pattern
+                    break
+        
+        if found_pattern:
+            word_object['targetLetter'] = found_pattern
+            vowel_map = {
+                'a_e': 'long_a', 'ai': 'long_a', 'ay': 'long_a',
+                'e_e': 'long_e', 'ee': 'long_e', 'ea': 'long_e',
+                'i_e': 'long_i', 'ie': 'long_i', 'igh': 'long_i',
+                'o_e': 'long_o', 'oa': 'long_o', 'ow': 'long_o',
+                'u_e': 'long_u', 'ue': 'long_u', 'ui': 'long_u'
+            }
+            if found_pattern in vowel_map:
+                word_object['pattern'] = vowel_map[found_pattern]
+            logger.info(f"✅ FIXED: '{sentence}' -> '{found_pattern}'")
+        else:
+            word_object['targetLetter'] = 'a_e'
+            word_object['pattern'] = 'long_a'
+            logger.error(f"❌ No pattern in '{sentence}', using fallback")
+    
+    return word_object
+
+def validate_and_fix_ai_response(words_data, challenge_level, learning_focus):
+    """
+    Validates all AI responses for simple_sentences + long_vowels.
+    """
+    if not words_data:
+        return []
+    
+    fixed_words = []
+    for word_obj in words_data:
+        fixed_obj = fix_long_vowel_target_letter(word_obj, challenge_level, learning_focus)
+        fixed_words.append(fixed_obj)
+    
+    return fixed_words
 
 def validate_long_vowel_pattern(word, target_letter):
     """
@@ -658,6 +739,7 @@ Now generate:"""
             json_str = re.sub(r',(\s*[}\]])', r'\1', json_str)
             
             words = json.loads(json_str)
+            words = validate_and_fix_ai_response(words, challenge_level, learning_focus)
             print(f"📊 AI generated {len(words)} words, needed {word_count} words")
             
             # Validate
