@@ -117,5 +117,19 @@
     "sound_position": "middle",
     "environment": "ocean",
     "difficulty_level": "hard"
+  },
+  {
+    "name": "Woodpecker",
+    "target_sound": "d",
+    "sound_position": "middle",
+    "environment": "savanna",
+    "difficulty_level": "easy"
+  },
+  {
+    "name": "Lamb",
+    "target_sound": "m",
+    "sound_position": "ending",
+    "environment": "savanna",
+    "difficulty_level": "easy"
   }
 ]
