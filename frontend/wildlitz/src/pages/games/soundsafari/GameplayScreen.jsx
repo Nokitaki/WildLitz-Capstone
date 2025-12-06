@@ -16,7 +16,8 @@ const GameplayScreen = ({
   soundPosition, 
   onSubmit, 
   timeLimit,
-  skipIntro = false
+  skipIntro = false,
+  environment = 'jungle'
 }) => {
   // ============ STATE MANAGEMENT ============
   const [gameStarted, setGameStarted] = useState(false);
@@ -427,7 +428,7 @@ const GameplayScreen = ({
   
   // Main game screen
   return (
-    <div className={styles.gameplayContainer}>
+    <div className={`${styles.gameplayContainer} ${styles[`${environment}Background`]}`}>
       <div className={styles.gameplayCard}>
         {/* Game Header */}
         <div className={styles.gameHeader}>

@@ -11,7 +11,23 @@
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
+}
+
+/* Environment-specific backgrounds */
+.gameplayContainer.jungleBackground {
   background: linear-gradient(180deg, #8BC34A 0%, #689F38 40%, #558B2F 100%);
+}
+
+.gameplayContainer.savannaBackground {
+  background: linear-gradient(180deg, #FFD54F 0%, #FFC107 40%, #FF9800 100%);
+}
+
+.gameplayContainer.oceanBackground {
+  background: linear-gradient(180deg, #4FC3F7 0%, #29B6F6 40%, #0288D1 100%);
+}
+
+.gameplayContainer.arcticBackground {
+  background: linear-gradient(180deg, #B3E5FC 0%, #81D4FA 40%, #4FC3F7 100%);
 }
 
 .gameplayContainer::after {
