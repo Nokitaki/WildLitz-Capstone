@@ -14,6 +14,7 @@ export const EXCLUDED_COMBINATIONS = [
 // Environment-specific exclusions (sound, position, environment)
 export const EXCLUDED_ENVIRONMENT_COMBINATIONS = [
   ['g', 'middle', 'ocean'],  // g-middle works fine in jungle/savanna/arctic, just not ocean
+  ['d', 'middle', 'savanna'],
 ];
 
 export const CORE_SOUNDS = ['g', 'k', 'w', 'd', 'r', 'c', 'h', 's', 'm', 't', 'b', 'p', 'f', 'l', 'z'];

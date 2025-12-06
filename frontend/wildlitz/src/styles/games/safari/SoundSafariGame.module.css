@@ -12,21 +12,21 @@
   position: relative;
 }
 
-/* Environment backgrounds */
+/* Environment backgrounds - Dynamic colors matching theme */
 .jungleBackground {
-  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+  background: linear-gradient(180deg, #8BC34A 0%, #689F38 40%, #558B2F 100%);
 }
 
 .savannaBackground {
-  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+  background: linear-gradient(180deg, #FFD54F 0%, #FFC107 40%, #FF9800 100%);
 }
 
 .oceanBackground {
-  background: linear-gradient(135deg, #2196f3 0%, #0d47a1 100%);
+  background: linear-gradient(180deg, #4FC3F7 0%, #29B6F6 40%, #0288D1 100%);
 }
 
 .arcticBackground {
-  background: linear-gradient(135deg, #90caf9 0%, #42a5f5 100%);
+  background: linear-gradient(180deg, #B3E5FC 0%, #81D4FA 40%, #4FC3F7 100%);
 }
 
 .gameContent {

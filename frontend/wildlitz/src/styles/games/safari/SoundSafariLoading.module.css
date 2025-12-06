@@ -8,10 +8,26 @@
   justify-content: center;
   align-items: center;
   padding: 15px;
-  background: linear-gradient(180deg, #8BC34A 0%, #689F38 40%, #558B2F 100%);
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
+}
+
+/* Environment-specific backgrounds */
+.loadingContainer.jungleBackground {
+  background: linear-gradient(180deg, #8BC34A 0%, #689F38 40%, #558B2F 100%);
+}
+
+.loadingContainer.savannaBackground {
+  background: linear-gradient(180deg, #FFD54F 0%, #FFC107 40%, #FF9800 100%);
+}
+
+.loadingContainer.oceanBackground {
+  background: linear-gradient(180deg, #4FC3F7 0%, #29B6F6 40%, #0288D1 100%);
+}
+
+.loadingContainer.arcticBackground {
+  background: linear-gradient(180deg, #B3E5FC 0%, #81D4FA 40%, #4FC3F7 100%);
 }
 
 /* Animated jungle leaves */

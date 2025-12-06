@@ -676,7 +676,7 @@ const SoundSafariGame = () => {
             </motion.div>
           )}
           
-{gameState === 'loading' && (
+          {gameState === 'loading' && (
             <motion.div
               key="loading"
               initial={{ opacity: 0 }}
@@ -696,6 +696,7 @@ const SoundSafariGame = () => {
                 onVolumeChange={handleVolumeChange}
                 onToggleMute={toggleMute}
                 onToggleVolumeControl={toggleVolumeControl}
+                environment={gameConfig.environment}
               />
             </motion.div>
           )}
@@ -717,6 +718,7 @@ const SoundSafariGame = () => {
                 onVolumeChange={handleVolumeChange}
                 onToggleMute={toggleMute}
                 onToggleVolumeControl={toggleVolumeControl}
+                environment={gameConfig.environment}
               />
             </motion.div>
           )}
@@ -735,7 +737,8 @@ const SoundSafariGame = () => {
                 soundPosition={gameConfig.soundPosition}
                 onSubmit={handleSubmitAnswers}
                 timeLimit={DIFFICULTY_LEVELS[gameConfig.difficulty].timeLimit}
-                skipIntro={!fromIntroScreen} // Skip the intro if NOT coming from intro screen
+                skipIntro={!fromIntroScreen}
+                environment={gameConfig.environment}
               />
             </motion.div>
           )}
@@ -754,6 +757,7 @@ const SoundSafariGame = () => {
                 onTryAgain={handleTryAgain}
                 currentRound={currentRound}
                 totalRounds={totalRounds}
+                environment={gameConfig.environment}
               />
             </motion.div>
           )}

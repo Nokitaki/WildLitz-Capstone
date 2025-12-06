@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import styles from '../../../styles/games/safari/ResultsScreen.module.css';
 import { playCelebrationSound, playSpeech, stopAllSpeech } from '../../../utils/soundUtils';
 
-const ResultsScreen = ({ results, onNextRound, onTryAgain, currentRound, totalRounds }) => {
+const ResultsScreen = ({ results, onNextRound, onTryAgain, currentRound, totalRounds, environment = 'jungle' }) => {
   const [isPlaying, setIsPlaying] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [feedbackPlayed, setFeedbackPlayed] = useState(false);
@@ -170,7 +170,7 @@ const ResultsScreen = ({ results, onNextRound, onTryAgain, currentRound, totalRo
   };
   
   return (
-    <div className={styles.resultsContainer}>
+    <div className={`${styles.resultsContainer} ${styles[`${environment}Background`]}`}>
       <div className={styles.resultsCard}>
         {/* Confetti */}
         {showConfetti && (
