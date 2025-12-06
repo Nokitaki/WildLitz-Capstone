@@ -436,7 +436,7 @@ const GameAnalytics = ({ onBack }) => {
                       <div className={styles.expandedStat}>
                         <span className={styles.expandedLabel}>Avg Response</span>
                         <span className={styles.expandedValue}>
-                          {((session.average_response_time || 0) / 1000).toFixed(1)}s
+                          {(session.average_response_time || 0).toFixed(1)}s
                         </span>
                       </div>
                       <div className={styles.expandedStat}>
