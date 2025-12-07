@@ -13,7 +13,12 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState([]);
   const [analytics, setAnalytics] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  // ✅ Read tab from URL on mount
+  const [activeTab, setActiveTab] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    return tabParam || 'overview';
+  });
   const [error, setError] = useState(null);
 
   // Redirect if not authenticated

@@ -100,6 +100,56 @@
   font-size: 0.9rem;
 }
 
+.analyticsButton {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+  color: white;
+  border: 3px solid #B39DDB;
+  border-radius: 25px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 
+    0 4px 12px rgba(102, 126, 234, 0.5),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 10;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.analyticsButton:hover {
+  background: linear-gradient(135deg, #7C4DFF 0%, #651FFF 100%);
+  box-shadow: 
+    0 6px 20px rgba(102, 126, 234, 0.6),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-3px) scale(1.05);
+}
+
+.analyticsIcon {
+  font-size: 1.1rem;
+  font-weight: bold;
+  animation: dataGlow 2s ease-in-out infinite;
+}
+
+@keyframes dataGlow {
+  0%, 100% { 
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
+  }
+  50% { 
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+  }
+}
+
+.analyticsText {
+  font-size: 0.9rem;
+}
+
 /* ===== HEADER SECTION ===== */
 .configHeader {
   text-align: center;
@@ -663,6 +713,11 @@
     padding: 6px 12px;
     font-size: 0.85rem;
   }
+
+    .analyticsButton {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
   
   .configTitle::before {
     left: 8px;
@@ -744,6 +799,17 @@
   .backArrow {
     font-size: 1rem;
   }
+
+    .analyticsButton {
+    top: 12px;
+    right: 12px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .analyticsIcon {
+    font-size: 1rem;
+  }
 }
 
 /* Hide animals on very small screens */
@@ -755,6 +821,11 @@
   
   .configTitle {
     padding: 0 10px;
+  }
+
+    .analyticsButton {
+    top: 56px;
+    right: 12px;
   }
 }
 

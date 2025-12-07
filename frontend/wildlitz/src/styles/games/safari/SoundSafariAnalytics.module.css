@@ -103,6 +103,43 @@
               inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
+.headerButtons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Play Now Button - Green Safari Theme */
+.playButton {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  border: 3px solid #81c784;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.playButton:hover {
+  background: linear-gradient(135deg, #45a049 0%, #388e3c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.5),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.playButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
 /* Summary Grid - Safari Cards */
 .summaryGrid {
   display: grid;

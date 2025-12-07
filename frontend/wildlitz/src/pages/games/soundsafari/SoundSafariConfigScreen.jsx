@@ -11,7 +11,7 @@ import { getRandomValidSound } from '../../../utils/excludedCombinations';
  * Redesigned with horizontal layout and no overflow/scroll
  * Updated with back button navigation
  */
-const SoundSafariConfigScreen = ({ onStartGame }) => {
+const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
   const navigate = useNavigate();
   
   // Game configuration state
@@ -74,6 +74,13 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
   // Handle back button click
   const handleBackClick = () => {
     navigate('/home');
+  };
+
+  // ✅ ADD THIS NEW FUNCTION
+  const handleAnalyticsClick = () => {
+    if (onViewAnalytics) {
+      onViewAnalytics();
+    }
   };
   
   // Handle quick start with default settings
@@ -190,6 +197,16 @@ const SoundSafariConfigScreen = ({ onStartGame }) => {
         >
           <span className={styles.backArrow}>←</span>
           <span className={styles.backText}>Back</span>
+        </motion.button>
+        {/* ✅ ADD THIS ANALYTICS BUTTON */}
+        <motion.button
+          className={styles.analyticsButton}
+          onClick={handleAnalyticsClick}
+          whileHover={{ scale: 1.05, x: 3 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <span className={styles.analyticsIcon}>📊</span>
+          <span className={styles.analyticsText}>Analytics</span>
         </motion.button>
         
         <div className={styles.configHeader}>

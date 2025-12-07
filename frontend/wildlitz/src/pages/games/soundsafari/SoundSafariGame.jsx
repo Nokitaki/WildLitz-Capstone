@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import styles from '../../../styles/games/safari/SoundSafariGame.module.css';
 import backgroundMusic2 from '../../../assets/music/sound-safari-background-music-2.mp3';
 
@@ -37,6 +38,8 @@ import {
 } from '../../../mock/soundSafariData';
 
 const SoundSafariGame = () => {
+  const navigate = useNavigate();
+  
   // Game states
   const [gameState, setGameState] = useState('config');
   // Shared audio state for Loading and Intro screens
@@ -159,6 +162,15 @@ const SoundSafariGame = () => {
       }, 8000);
     }, 2000);
   };
+
+// ✅ ADD THIS NEW FUNCTION HERE
+/**
+ * Handle viewing analytics - navigates to profile/analytics page
+ */
+const handleViewAnalytics = () => {
+  navigate('/profile?tab=soundsafari');  // Change this to your analytics route
+};
+
   
   /**
    * UPDATED: Store round data temporarily (don't add to array yet)
@@ -672,7 +684,49 @@ const SoundSafariGame = () => {
               exit={{ opacity: 0 }}
               className={styles.screenContainer}
             >
-              <SoundSafariConfigScreen onStartGame={handleStartGame} />
+              <SoundSafariConfigScreen 
+                onStartGame={handleStartGame}
+                onViewAnalytics={handleViewAnalytics}
+              />
+            </motion.div>
+          )}
+
+          {gameState === 'analytics' && (
+            <motion.div
+              key="analytics"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={styles.screenContainer}
+            >
+              <div style={{ 
+                background: 'white', 
+                padding: '40px', 
+                borderRadius: '20px',
+                textAlign: 'center',
+                maxWidth: '600px',
+                margin: '0 auto'
+              }}>
+                <h1 style={{ color: '#333', marginBottom: '20px' }}>📊 Analytics</h1>
+                <p style={{ color: '#666', marginBottom: '30px' }}>
+                  Analytics feature coming soon!
+                </p>
+                <button 
+                  onClick={() => setGameState('config')}
+                  style={{
+                    background: 'linear-gradient(135deg, #D84315 0%, #BF360C 100%)',
+                    color: 'white',
+                    border: 'none',
+                    padding: '12px 24px',
+                    borderRadius: '25px',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ← Back to Config
+                </button>
+              </div>
             </motion.div>
           )}
           

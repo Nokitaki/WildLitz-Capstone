@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
   Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell
@@ -11,6 +12,7 @@ import styles from '../../../styles/games/safari/SoundSafariAnalytics.module.css
 import soundSafariAnalyticsService from '../../../services/soundSafariAnalyticsService';
 
 const SoundSafariAnalytics = () => {
+  const navigate = useNavigate();
   const [sessions, setSessions] = useState([]);
   const [soundPerformance, setSoundPerformance] = useState([]);
   const [aggregateStats, setAggregateStats] = useState(null);
@@ -245,11 +247,20 @@ const SoundSafariAnalytics = () => {
         animate={{ opacity: 1, y: 0 }}
       >
         <h2>🦁 Sound Safari Progress</h2>
-        <button onClick={loadAnalytics} className={styles.refreshButton}>
-          🔄 Refresh
-        </button>
+        
+        <div className={styles.headerButtons}>
+          <button 
+            onClick={() => navigate('/games/sound-safari')} 
+            className={styles.playButton}
+          >
+            🎮 Play Now
+          </button>
+          <button onClick={loadAnalytics} className={styles.refreshButton}>
+            🔄 Refresh
+          </button>
+        </div>
       </motion.div>
-
+      
       {/* Summary Cards */}
       <div className={styles.summaryGrid}>
         <motion.div
