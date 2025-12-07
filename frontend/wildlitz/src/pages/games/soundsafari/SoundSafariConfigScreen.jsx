@@ -1,4 +1,4 @@
-// src/pages/games/soundsafari/SoundSafariConfigScreen.jsx <updated on 2025-10-26>
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -6,26 +6,21 @@ import styles from '../../../styles/games/safari/SoundSafariConfig.module.css';
 import backgroundMusic from '../../../assets/music/sound-safari-background-music.mp3';
 import { getRandomValidSound } from '../../../utils/excludedCombinations';
 
-/**
- * Configuration screen component for Sound Safari game
- * Redesigned with horizontal layout and no overflow/scroll
- * Updated with back button navigation
- */
 const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
   const navigate = useNavigate();
   
-  // Game configuration state
+
   const [soundPosition, setSoundPosition] = useState('beginning');
   const [environment, setEnvironment] = useState('jungle');
   const [difficulty, setDifficulty] = useState('easy');
   
-  // Audio control state
+
   const audioRef = useRef(null);
   const [volume, setVolume] = useState(0.5);
   const [isMuted, setIsMuted] = useState(false);
   const [showVolumeControl, setShowVolumeControl] = useState(false);
   
-  // Initialize and play background music
+
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
@@ -71,19 +66,19 @@ const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
     setShowVolumeControl(!showVolumeControl);
   };
   
-  // Handle back button click
+
   const handleBackClick = () => {
     navigate('/home');
   };
 
-  // ✅ ADD THIS NEW FUNCTION
+
   const handleAnalyticsClick = () => {
     if (onViewAnalytics) {
       onViewAnalytics();
     }
   };
   
-  // Handle quick start with default settings
+
   const handleQuickStart = () => {
     const quickStartPosition = 'beginning';
     const randomSound = getRandomValidSound(quickStartPosition, []);
@@ -100,7 +95,7 @@ const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
     }
   };
   
-  // Handle start game with custom settings
+
   const handleStartGame = () => {
     const randomSound = getRandomValidSound(soundPosition, []);
     
@@ -188,8 +183,7 @@ const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
       
       <div className={styles.configCardWrapper}>
 
-        {/* Back Button - Inside the card border */}
-        <motion.button
+                <motion.button
           className={styles.backButton}
           onClick={handleBackClick}
           whileHover={{ scale: 1.05, x: -3 }}
@@ -198,8 +192,7 @@ const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
           <span className={styles.backArrow}>←</span>
           <span className={styles.backText}>Back</span>
         </motion.button>
-        {/* ✅ ADD THIS ANALYTICS BUTTON */}
-        <motion.button
+                <motion.button
           className={styles.analyticsButton}
           onClick={handleAnalyticsClick}
           whileHover={{ scale: 1.05, x: 3 }}
@@ -219,8 +212,7 @@ const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
         </div>
         
         <div className={styles.configContent}>
-          {/* Left Column - Game Info */}
-          <div className={styles.configColumn}>
+                    <div className={styles.configColumn}>
             <div className={styles.gameInfoSection}>
               <div className={styles.infoBox}>
                 <h3>
@@ -248,8 +240,7 @@ const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
             </div>
           </div>
           
-          {/* Center Column - Environment */}
-          <div className={styles.configColumn}>
+                    <div className={styles.configColumn}>
             <div className={styles.configSection}>
               <h2>
                 <span className={styles.sectionEmoji}>🌍</span>
@@ -311,8 +302,7 @@ const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
             </div>
           </div>
           
-          {/* Right Column - Sound Position & Difficulty */}
-          <div className={styles.configColumn}>
+                    <div className={styles.configColumn}>
             <div className={styles.configSection}>
               <h2>
                 <span className={styles.sectionEmoji}>🔍</span>

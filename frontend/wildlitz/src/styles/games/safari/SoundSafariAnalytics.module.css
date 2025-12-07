@@ -1,46 +1,40 @@
-/* ==========================================
-   SOUND SAFARI ANALYTICS - SAFARI THEME
-   Matching the original Sound Safari game design
-   ========================================== */
-
-/* 🌿 Safari Color Palette */
 :root {
   --safari-green-dark: #2d5016;
   --safari-green: #4a7c2d;
   --safari-green-light: #6b9d47;
-  --safari-brown-dark: #5D4037;
+  --safari-brown-dark: #5d4037;
   --safari-brown: #795548;
   --safari-tan: #d4a574;
   --safari-sand: #f5deb3;
-  --safari-gold: #FFD700;
+  --safari-gold: #ffd700;
   --safari-orange: #ff8c42;
   --safari-success: #4caf50;
   --safari-warning: #ff9800;
   --safari-error: #f44336;
 }
 
-/* Main Container - Safari Background */
 .analyticsContainer {
   min-height: 100vh;
-  background: linear-gradient(
-    to bottom,
-    #8db879 0%,
-    #6b9d47 30%,
-    #4a7c2d 100%
-  );
-  background-image: 
-    radial-gradient(circle at 20% 50%, rgba(107, 157, 71, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(74, 124, 45, 0.3) 0%, transparent 50%),
+  background: linear-gradient(to bottom, #8db879 0%, #6b9d47 30%, #4a7c2d 100%);
+  background-image: radial-gradient(
+      circle at 20% 50%,
+      rgba(107, 157, 71, 0.3) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(74, 124, 45, 0.3) 0%,
+      transparent 50%
+    ),
     linear-gradient(to bottom, #8db879 0%, #6b9d47 30%, #4a7c2d 100%);
   padding: 40px 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   position: relative;
   overflow-x: hidden;
 }
 
-/* Safari decorative elements */
 .analyticsContainer::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -54,7 +48,6 @@
   pointer-events: none;
 }
 
-/* Header - Safari Style */
 .header {
   display: flex;
   justify-content: space-between;
@@ -71,7 +64,7 @@
   color: var(--safari-sand);
   font-weight: 700;
   text-shadow: 3px 3px 6px rgba(45, 80, 22, 0.8),
-               0 0 20px rgba(255, 215, 0, 0.3);
+    0 0 20px rgba(255, 215, 0, 0.3);
   margin: 0;
   letter-spacing: 1px;
 }
@@ -87,20 +80,20 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(93, 64, 55, 0.4),
-              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .refreshButton:hover {
   background: var(--safari-brown-dark);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(93, 64, 55, 0.5),
-              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .refreshButton:active {
   transform: translateY(0);
   box-shadow: 0 2px 8px rgba(93, 64, 55, 0.4),
-              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .headerButtons {
@@ -109,7 +102,6 @@
   align-items: center;
 }
 
-/* Play Now Button - Green Safari Theme */
 .playButton {
   background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
   border: 3px solid #81c784;
@@ -121,7 +113,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4),
-              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -131,16 +123,15 @@
   background: linear-gradient(135deg, #45a049 0%, #388e3c 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(76, 175, 80, 0.5),
-              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .playButton:active {
   transform: translateY(0);
   box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4),
-              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-/* Summary Grid - Safari Cards */
 .summaryGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -159,7 +150,7 @@
   align-items: center;
   gap: 20px;
   box-shadow: 0 8px 24px rgba(93, 64, 55, 0.3),
-              inset 0 2px 0 rgba(255, 255, 255, 0.3);
+    inset 0 2px 0 rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
   cursor: pointer;
   position: relative;
@@ -167,7 +158,7 @@
 }
 
 .summaryCard::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -184,7 +175,7 @@
 .summaryCard:hover {
   transform: translateY(-8px) scale(1.02);
   box-shadow: 0 12px 32px rgba(93, 64, 55, 0.4),
-              inset 0 2px 0 rgba(255, 255, 255, 0.3);
+    inset 0 2px 0 rgba(255, 255, 255, 0.3);
   border-color: var(--safari-gold);
 }
 
@@ -219,7 +210,6 @@
   text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
 }
 
-/* Charts Grid - Safari Theme */
 .chartsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
@@ -235,13 +225,13 @@
   border-radius: 20px;
   padding: 32px;
   box-shadow: 0 8px 24px rgba(93, 64, 55, 0.3),
-              inset 0 2px 0 rgba(255, 255, 255, 0.3);
+    inset 0 2px 0 rgba(255, 255, 255, 0.3);
   position: relative;
   overflow: hidden;
 }
 
 .chartCard::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -265,7 +255,6 @@
   z-index: 1;
 }
 
-/* Chart Text Styling - Improved Visibility */
 .chartCard :global(.recharts-text) {
   fill: var(--safari-brown-dark);
   font-weight: 600;
@@ -289,7 +278,6 @@
   stroke-dasharray: 5 5;
 }
 
-/* Sessions Table - Safari Wood Theme */
 .sessionsTable {
   max-width: 1400px;
   margin: 0 auto;
@@ -302,7 +290,7 @@
   font-weight: 700;
   margin: 0 0 24px 0;
   text-shadow: 3px 3px 6px rgba(45, 80, 22, 0.8),
-               0 0 20px rgba(255, 215, 0, 0.3);
+    0 0 20px rgba(255, 215, 0, 0.3);
 }
 
 .tableContainer {
@@ -311,7 +299,7 @@
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(93, 64, 55, 0.3),
-              inset 0 2px 0 rgba(255, 255, 255, 0.3);
+    inset 0 2px 0 rgba(255, 255, 255, 0.3);
 }
 
 .tableContainer table {
@@ -320,7 +308,11 @@
 }
 
 .tableContainer thead {
-  background: linear-gradient(135deg, var(--safari-brown) 0%, var(--safari-brown-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--safari-brown) 0%,
+    var(--safari-brown-dark) 100%
+  );
 }
 
 .tableContainer thead th {
@@ -350,7 +342,11 @@
 }
 
 .tableContainer tbody tr:hover {
-  background: linear-gradient(90deg, rgba(255, 215, 0, 0.3) 0%, rgba(255, 140, 66, 0.3) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 215, 0, 0.3) 0%,
+    rgba(255, 140, 66, 0.3) 100%
+  );
   transform: scale(1.01);
   cursor: pointer;
   box-shadow: inset 0 0 20px rgba(255, 215, 0, 0.2);
@@ -371,7 +367,6 @@
   cursor: pointer;
 }
 
-/* Safari-themed Badges */
 .difficultyBadge {
   padding: 6px 14px;
   border-radius: 20px;
@@ -446,20 +441,19 @@
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
-              inset 0 3px 0 rgba(255, 255, 255, 0.3);
+    inset 0 3px 0 rgba(255, 255, 255, 0.3);
   animation: modalSlideIn 0.3s ease-out;
   position: relative;
 }
 
 .modalContent::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    repeating-linear-gradient(
+  background: repeating-linear-gradient(
       90deg,
       transparent,
       transparent 50px,
@@ -488,7 +482,11 @@
 }
 
 .modalHeader {
-  background: linear-gradient(135deg, var(--safari-brown) 0%, var(--safari-brown-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--safari-brown) 0%,
+    var(--safari-brown-dark) 100%
+  );
   padding: 28px 40px;
   border-radius: 18px 18px 0 0;
   display: flex;
@@ -535,7 +533,6 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* Modal Loading State - Safari Theme */
 .modalLoading {
   padding: 80px 40px;
   text-align: center;
@@ -549,8 +546,12 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .modalLoading p {
@@ -560,13 +561,16 @@
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
 }
 
-/* Session Summary Cards - Safari Theme */
 .sessionSummary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
   padding: 32px 40px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(212, 165, 116, 0.4) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(212, 165, 116, 0.4) 100%
+  );
   border-bottom: 4px solid rgba(121, 85, 72, 0.3);
   position: relative;
   z-index: 1;
@@ -599,7 +603,6 @@
   text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
 }
 
-/* Rounds Table - Safari Wood Theme */
 .roundsTable {
   padding: 40px;
   position: relative;
@@ -618,7 +621,7 @@
 }
 
 .roundsTable h3::before {
-  content: '🎯';
+  content: "🎯";
   font-size: 1.8rem;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
@@ -634,7 +637,11 @@
 }
 
 .roundsTable thead {
-  background: linear-gradient(135deg, var(--safari-brown) 0%, var(--safari-brown-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--safari-brown) 0%,
+    var(--safari-brown-dark) 100%
+  );
 }
 
 .roundsTable thead th {
@@ -664,7 +671,11 @@
 }
 
 .roundsTable tbody tr:hover {
-  background: linear-gradient(90deg, rgba(255, 215, 0, 0.3) 0%, rgba(255, 140, 66, 0.3) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 215, 0, 0.3) 0%,
+    rgba(255, 140, 66, 0.3) 100%
+  );
   transform: scale(1.02);
   box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
 }
@@ -680,23 +691,25 @@
   font-weight: 600;
 }
 
-/* Sound Cell Styling - Safari Badge */
 .soundCell {
   font-weight: 700;
   font-size: 1.2rem;
   color: var(--safari-sand);
-  background: linear-gradient(135deg, var(--safari-brown) 0%, var(--safari-brown-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--safari-brown) 0%,
+    var(--safari-brown-dark) 100%
+  );
   padding: 8px 16px !important;
   border-radius: 12px;
   display: inline-block;
   text-transform: uppercase;
   box-shadow: 0 3px 8px rgba(93, 64, 55, 0.4),
-              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
   border: 2px solid var(--safari-tan);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-/* Round Rate Styling - Safari Theme */
 .roundRate {
   font-weight: 700;
   font-size: 1.1rem;
@@ -708,7 +721,6 @@
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
 }
 
-/* Loading States - Safari Theme */
 .loadingContainer {
   min-height: 60vh;
   display: flex;
@@ -725,8 +737,13 @@
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 .loadingContainer p {
@@ -736,7 +753,6 @@
   text-shadow: 3px 3px 6px rgba(45, 80, 22, 0.8);
 }
 
-/* Empty State - Safari Theme */
 .emptyState {
   min-height: 60vh;
   display: flex;
@@ -769,7 +785,6 @@
   text-shadow: 2px 2px 4px rgba(45, 80, 22, 0.6);
 }
 
-/* Responsive Design */
 @media (max-width: 1200px) {
   .chartsGrid {
     grid-template-columns: 1fr;
@@ -784,54 +799,54 @@
   .header h2 {
     font-size: 2rem;
   }
-  
+
   .summaryGrid {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
+
   .chartsGrid {
     grid-template-columns: 1fr;
     padding: 0 10px;
   }
-  
+
   .chartCard {
     padding: 20px;
   }
-  
+
   .tableContainer {
     overflow-x: auto;
   }
-  
+
   .tableContainer table {
     min-width: 800px;
   }
-  
+
   .modalContent {
     max-width: 95%;
     max-height: 95vh;
     border-width: 4px;
   }
-  
+
   .modalHeader {
     padding: 20px;
   }
-  
+
   .modalHeader h2 {
     font-size: 1.4rem;
   }
-  
+
   .sessionSummary {
     grid-template-columns: 1fr;
     padding: 20px;
     gap: 12px;
   }
-  
+
   .roundsTable {
     padding: 20px;
     overflow-x: auto;
   }
-  
+
   .roundsTable table {
     min-width: 900px;
   }
@@ -842,7 +857,6 @@
   }
 }
 
-/* Scrollbar Styling - Safari Theme */
 .modalContent::-webkit-scrollbar,
 .roundsTable::-webkit-scrollbar,
 .tableContainer::-webkit-scrollbar {
@@ -860,7 +874,11 @@
 .modalContent::-webkit-scrollbar-thumb,
 .roundsTable::-webkit-scrollbar-thumb,
 .tableContainer::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, var(--safari-brown) 0%, var(--safari-brown-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--safari-brown) 0%,
+    var(--safari-brown-dark) 100%
+  );
   border-radius: 10px;
   border: 2px solid var(--safari-tan);
 }
@@ -868,13 +886,20 @@
 .modalContent::-webkit-scrollbar-thumb:hover,
 .roundsTable::-webkit-scrollbar-thumb:hover,
 .tableContainer::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, var(--safari-brown-dark) 0%, var(--safari-brown) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--safari-brown-dark) 0%,
+    var(--safari-brown) 100%
+  );
 }
 
-/* Animations - Safari Theme */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
@@ -894,10 +919,24 @@
   animation: slideUp 0.5s ease-out backwards;
 }
 
-.summaryCard:nth-child(1) { animation-delay: 0.1s; }
-.summaryCard:nth-child(2) { animation-delay: 0.2s; }
-.summaryCard:nth-child(3) { animation-delay: 0.3s; }
-.summaryCard:nth-child(4) { animation-delay: 0.4s; }
-.chartCard:nth-child(1) { animation-delay: 0.5s; }
-.chartCard:nth-child(2) { animation-delay: 0.6s; }
-.sessionsTable { animation-delay: 0.7s; }
+.summaryCard:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.summaryCard:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.summaryCard:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.summaryCard:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.chartCard:nth-child(1) {
+  animation-delay: 0.5s;
+}
+.chartCard:nth-child(2) {
+  animation-delay: 0.6s;
+}
+.sessionsTable {
+  animation-delay: 0.7s;
+}

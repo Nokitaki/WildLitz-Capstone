@@ -1,6 +1,3 @@
-/* src/styles/games/safari/SoundSafariConfig.module.css */
-/* Jungle Safari Theme for Kids - 2025 */
-
 .configContainer {
   width: 100%;
   min-height: 100vh;
@@ -8,13 +5,13 @@
   justify-content: center;
   align-items: center;
   padding: 15px;
-  background: linear-gradient(180deg, #8BC34A 0%, #689F38 40%, #558B2F 100%);
+  background: linear-gradient(180deg, #8bc34a 0%, #689f38 40%, #558b2f 100%);
   position: relative;
   overflow: hidden;
 }
 
 .configContainer::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
@@ -25,20 +22,18 @@
 }
 
 .configCardWrapper {
-  background: linear-gradient(145deg, #FFF9E6 0%, #FFEAA7 100%);
+  background: linear-gradient(145deg, #fff9e6 0%, #ffeaa7 100%);
   border-radius: 25px;
   padding: 16px;
   width: 100%;
   max-width: 1200px;
-  box-shadow: 
-    0 10px 40px rgba(0, 0, 0, 0.3),
-    0 0 0 6px #8D6E63,
-    0 0 0 12px #6D4C41;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 0 0 0 6px #8d6e63,
+    0 0 0 12px #6d4c41;
   display: flex;
   flex-direction: column;
   gap: 12px;
   position: relative;
-  border: 5px solid #5D4037;
+  border: 5px solid #5d4037;
   animation: cardEntrance 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -53,14 +48,13 @@
   }
 }
 
-/* ===== BACK BUTTON STYLES ===== */
 .backButton {
   position: absolute;
   top: 16px;
   left: 16px;
-  background: linear-gradient(135deg, #D84315 0%, #BF360C 100%);
+  background: linear-gradient(135deg, #d84315 0%, #bf360c 100%);
   color: white;
-  border: 3px solid #FFAB91;
+  border: 3px solid #ffab91;
   border-radius: 25px;
   padding: 8px 16px;
   font-size: 0.9rem;
@@ -69,8 +63,7 @@
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  box-shadow: 
-    0 4px 12px rgba(191, 54, 12, 0.5),
+  box-shadow: 0 4px 12px rgba(191, 54, 12, 0.5),
     inset 0 -2px 8px rgba(0, 0, 0, 0.3);
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 10;
@@ -78,9 +71,8 @@
 }
 
 .backButton:hover {
-  background: linear-gradient(135deg, #E64A19 0%, #D84315 100%);
-  box-shadow: 
-    0 6px 20px rgba(191, 54, 12, 0.6),
+  background: linear-gradient(135deg, #e64a19 0%, #d84315 100%);
+  box-shadow: 0 6px 20px rgba(191, 54, 12, 0.6),
     inset 0 -2px 8px rgba(0, 0, 0, 0.2);
   transform: translateY(-3px) scale(1.05);
 }
@@ -92,8 +84,13 @@
 }
 
 @keyframes arrowBounce {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(-4px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-4px);
+  }
 }
 
 .backText {
@@ -104,9 +101,9 @@
   position: absolute;
   top: 16px;
   right: 16px;
-  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  border: 3px solid #B39DDB;
+  border: 3px solid #b39ddb;
   border-radius: 25px;
   padding: 8px 16px;
   font-size: 0.9rem;
@@ -115,8 +112,7 @@
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  box-shadow: 
-    0 4px 12px rgba(102, 126, 234, 0.5),
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5),
     inset 0 -2px 8px rgba(0, 0, 0, 0.3);
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 10;
@@ -124,9 +120,8 @@
 }
 
 .analyticsButton:hover {
-  background: linear-gradient(135deg, #7C4DFF 0%, #651FFF 100%);
-  box-shadow: 
-    0 6px 20px rgba(102, 126, 234, 0.6),
+  background: linear-gradient(135deg, #7c4dff 0%, #651fff 100%);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6),
     inset 0 -2px 8px rgba(0, 0, 0, 0.2);
   transform: translateY(-3px) scale(1.05);
 }
@@ -138,10 +133,11 @@
 }
 
 @keyframes dataGlow {
-  0%, 100% { 
+  0%,
+  100% {
     filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
   }
-  50% { 
+  50% {
     filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
   }
 }
@@ -150,7 +146,6 @@
   font-size: 0.9rem;
 }
 
-/* ===== HEADER SECTION ===== */
 .configHeader {
   text-align: center;
   margin-bottom: 8px;
@@ -162,12 +157,10 @@
 
 .configTitle {
   font-size: 1.8rem;
-  color: #33691E;
+  color: #33691e;
   margin: 0 0 8px 0;
   font-weight: 800;
-  text-shadow: 
-    2px 2px 0 #FDD835,
-    4px 4px 8px rgba(0, 0, 0, 0.2);
+  text-shadow: 2px 2px 0 #fdd835, 4px 4px 8px rgba(0, 0, 0, 0.2);
   animation: titleBounce 1s ease-in-out;
   letter-spacing: 2px;
   position: relative;
@@ -176,7 +169,7 @@
 }
 
 .configTitle::before {
-  content: '🦁';
+  content: "🦁";
   position: absolute;
   left: -10px;
   top: 50%;
@@ -186,7 +179,7 @@
 }
 
 .configTitle::after {
-  content: '🐘';
+  content: "🐘";
   position: absolute;
   right: -10px;
   top: 50%;
@@ -196,44 +189,56 @@
 }
 
 @keyframes animalBounceLeft {
-  0%, 100% { 
+  0%,
+  100% {
     transform: translateY(-50%) translateX(0) rotate(-5deg) scale(1);
   }
-  50% { 
+  50% {
     transform: translateY(-50%) translateX(-8px) rotate(-15deg) scale(1.15);
   }
 }
 
 @keyframes animalBounceRight {
-  0%, 100% { 
+  0%,
+  100% {
     transform: translateY(-50%) translateX(0) rotate(5deg) scale(1);
   }
-  50% { 
+  50% {
     transform: translateY(-50%) translateX(8px) rotate(15deg) scale(1.15);
   }
 }
 
 @keyframes titleBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .configTitle span {
-  color: #F57C00;
-  text-shadow: 
-    2px 2px 0 #FDD835,
-    4px 4px 8px rgba(0, 0, 0, 0.2);
+  color: #f57c00;
+  text-shadow: 2px 2px 0 #fdd835, 4px 4px 8px rgba(0, 0, 0, 0.2);
   animation: sparkle 2s ease-in-out infinite;
 }
 
 @keyframes sparkle {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.9; transform: scale(1.05); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
 }
 
 .configSubtitle {
   font-size: 0.9rem;
-  color: #5D4037;
+  color: #5d4037;
   margin: 0;
   font-weight: 600;
 }
@@ -252,28 +257,36 @@
 }
 
 .configSection {
-  background: linear-gradient(135deg, rgba(255, 248, 225, 0.95) 0%, rgba(255, 235, 205, 0.95) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 248, 225, 0.95) 0%,
+    rgba(255, 235, 205, 0.95) 100%
+  );
   border-radius: 15px;
   padding: 10px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  border: 3px solid #8D6E63;
-  box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.15),
+  border: 3px solid #8d6e63;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15),
     inset 0 1px 3px rgba(255, 255, 255, 0.5);
   transition: transform 0.3s ease;
   position: relative;
 }
 
 .configSection::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -2px;
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(45deg, transparent 30%, rgba(255, 221, 87, 0.3) 50%, transparent 70%);
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 221, 87, 0.3) 50%,
+    transparent 70%
+  );
   border-radius: 15px;
   opacity: 0;
   transition: opacity 0.3s;
@@ -286,14 +299,17 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 .configSection:hover {
   transform: translateY(-3px);
-  box-shadow: 
-    0 6px 20px rgba(0, 0, 0, 0.2),
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2),
     inset 0 1px 3px rgba(255, 255, 255, 0.5);
 }
 
@@ -302,7 +318,7 @@
   align-items: center;
   gap: 6px;
   font-size: 1rem;
-  color: #33691E;
+  color: #33691e;
   margin: 0 0 8px 0;
   font-weight: 700;
   text-shadow: 1px 1px 2px rgba(255, 221, 87, 0.5);
@@ -314,9 +330,16 @@
 }
 
 @keyframes emojiWiggle {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-15deg); }
-  75% { transform: rotate(15deg); }
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-15deg);
+  }
+  75% {
+    transform: rotate(15deg);
+  }
 }
 
 .buttonGrid {
@@ -327,9 +350,9 @@
 }
 
 .optionButton {
-  background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
-  color: #33691E;
-  border: 3px solid #F9A825;
+  background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+  color: #33691e;
+  border: 3px solid #f9a825;
   border-radius: 12px;
   padding: 9px;
   font-size: 0.85rem;
@@ -342,13 +365,17 @@
 }
 
 .optionButton::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
   width: 0;
   height: 0;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.6) 0%,
+    transparent 70%
+  );
   transform: translate(-50%, -50%);
   transition: width 0.6s, height 0.6s;
   border-radius: 50%;
@@ -362,24 +389,29 @@
 .optionButton:hover {
   transform: translateY(-3px) scale(1.03);
   box-shadow: 0 6px 15px rgba(249, 168, 37, 0.4);
-  border-color: #F57C00;
+  border-color: #f57c00;
 }
 
 .optionButton.selected {
-  background: linear-gradient(135deg, #689F38 0%, #558B2F 100%);
+  background: linear-gradient(135deg, #689f38 0%, #558b2f 100%);
   color: white;
-  border-color: #33691E;
-  box-shadow: 
-    0 5px 15px rgba(104, 159, 56, 0.5),
+  border-color: #33691e;
+  box-shadow: 0 5px 15px rgba(104, 159, 56, 0.5),
     inset 0 -2px 8px rgba(0, 0, 0, 0.3);
   animation: buttonPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes buttonPop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .difficultyButtons {
@@ -390,9 +422,9 @@
 }
 
 .difficultyButton {
-  background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
-  color: #33691E;
-  border: 3px solid #F9A825;
+  background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+  color: #33691e;
+  border: 3px solid #f9a825;
   border-radius: 12px;
   padding: 10px;
   text-align: center;
@@ -404,7 +436,7 @@
 }
 
 .difficultyButton::after {
-  content: '🌟';
+  content: "🌟";
   position: absolute;
   top: 5px;
   right: 8px;
@@ -416,7 +448,7 @@
 .difficultyButton:hover {
   transform: translateY(-3px) scale(1.03);
   box-shadow: 0 6px 15px rgba(249, 168, 37, 0.4);
-  border-color: #F57C00;
+  border-color: #f57c00;
 }
 
 .difficultyButton:hover::after {
@@ -424,11 +456,10 @@
 }
 
 .difficultyButton.selected {
-  background: linear-gradient(135deg, #F57C00 0%, #E65100 100%);
+  background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
   color: white;
-  border-color: #BF360C;
-  box-shadow: 
-    0 5px 15px rgba(245, 124, 0, 0.5),
+  border-color: #bf360c;
+  box-shadow: 0 5px 15px rgba(245, 124, 0, 0.5),
     inset 0 -2px 8px rgba(0, 0, 0, 0.3);
   animation: buttonPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   font-weight: 700;
@@ -441,8 +472,13 @@
 }
 
 @keyframes starTwinkle {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  50% { transform: scale(1.3) rotate(180deg); }
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.3) rotate(180deg);
+  }
 }
 
 .difficultyTitle {
@@ -485,13 +521,18 @@
 }
 
 .environmentButton::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.5),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -505,8 +546,7 @@
 }
 
 .environmentButton.selected {
-  box-shadow: 
-    0 6px 20px rgba(0, 0, 0, 0.3),
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3),
     inset 0 -3px 10px rgba(0, 0, 0, 0.2);
   font-weight: 700;
   border-width: 4px;
@@ -514,59 +554,64 @@
 }
 
 @keyframes envPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
 }
 
 .jungleEnv {
-  background: linear-gradient(135deg, #A5D6A7 0%, #81C784 100%);
-  color: #1B5E20;
-  border-color: #66BB6A;
+  background: linear-gradient(135deg, #a5d6a7 0%, #81c784 100%);
+  color: #1b5e20;
+  border-color: #66bb6a;
 }
 
 .jungleEnv.selected {
-  background: linear-gradient(135deg, #66BB6A 0%, #43A047 100%);
+  background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%);
   color: white;
-  border-color: #2E7D32;
+  border-color: #2e7d32;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .savannaEnv {
-  background: linear-gradient(135deg, #FFE082 0%, #FFD54F 100%);
-  color: #E65100;
-  border-color: #FFB300;
+  background: linear-gradient(135deg, #ffe082 0%, #ffd54f 100%);
+  color: #e65100;
+  border-color: #ffb300;
 }
 
 .savannaEnv.selected {
-  background: linear-gradient(135deg, #FFB300 0%, #FF8F00 100%);
+  background: linear-gradient(135deg, #ffb300 0%, #ff8f00 100%);
   color: white;
-  border-color: #E65100;
+  border-color: #e65100;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .oceanEnv {
-  background: linear-gradient(135deg, #81D4FA 0%, #4FC3F7 100%);
-  color: #01579B;
-  border-color: #29B6F6;
+  background: linear-gradient(135deg, #81d4fa 0%, #4fc3f7 100%);
+  color: #01579b;
+  border-color: #29b6f6;
 }
 
 .oceanEnv.selected {
-  background: linear-gradient(135deg, #29B6F6 0%, #0288D1 100%);
+  background: linear-gradient(135deg, #29b6f6 0%, #0288d1 100%);
   color: white;
-  border-color: #01579B;
+  border-color: #01579b;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .arcticEnv {
-  background: linear-gradient(135deg, #B3E5FC 0%, #81D4FA 100%);
-  color: #0D47A1;
-  border-color: #4FC3F7;
+  background: linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%);
+  color: #0d47a1;
+  border-color: #4fc3f7;
 }
 
 .arcticEnv.selected {
-  background: linear-gradient(135deg, #4FC3F7 0%, #29B6F6 100%);
+  background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
   color: white;
-  border-color: #0277BD;
+  border-color: #0277bd;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
@@ -576,8 +621,13 @@
 }
 
 @keyframes emojiFloat {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-8px) rotate(5deg); }
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(5deg);
+  }
 }
 
 .startButtonContainer {
@@ -588,9 +638,9 @@
 }
 
 .startButton {
-  background: linear-gradient(135deg, #F57C00 0%, #E65100 100%);
+  background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
   color: white;
-  border: 4px solid #FFCC80;
+  border: 4px solid #ffcc80;
   border-radius: 50px;
   padding: 10px 20px;
   font-size: 0.95rem;
@@ -600,8 +650,7 @@
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: 
-    0 5px 20px rgba(245, 124, 0, 0.5),
+  box-shadow: 0 5px 20px rgba(245, 124, 0, 0.5),
     inset 0 -3px 10px rgba(0, 0, 0, 0.3);
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   width: auto;
@@ -612,24 +661,20 @@
 }
 
 @keyframes buttonGlow {
-  0%, 100% { 
-    box-shadow: 
-      0 5px 20px rgba(245, 124, 0, 0.5),
+  0%,
+  100% {
+    box-shadow: 0 5px 20px rgba(245, 124, 0, 0.5),
       inset 0 -3px 10px rgba(0, 0, 0, 0.3);
   }
-  50% { 
-    box-shadow: 
-      0 5px 30px rgba(245, 124, 0, 0.7),
-      0 0 40px rgba(255, 193, 7, 0.3),
-      inset 0 -3px 10px rgba(0, 0, 0, 0.3);
+  50% {
+    box-shadow: 0 5px 30px rgba(245, 124, 0, 0.7),
+      0 0 40px rgba(255, 193, 7, 0.3), inset 0 -3px 10px rgba(0, 0, 0, 0.3);
   }
 }
 
 .startButton:hover {
-  background: linear-gradient(135deg, #FB8C00 0%, #F57C00 100%);
-  box-shadow: 
-    0 8px 30px rgba(245, 124, 0, 0.6),
-    0 0 50px rgba(255, 193, 7, 0.4),
+  background: linear-gradient(135deg, #fb8c00 0%, #f57c00 100%);
+  box-shadow: 0 8px 30px rgba(245, 124, 0, 0.6), 0 0 50px rgba(255, 193, 7, 0.4),
     inset 0 -3px 10px rgba(0, 0, 0, 0.2);
   transform: translateY(-4px) scale(1.05);
 }
@@ -642,11 +687,15 @@
 }
 
 .infoBox {
-  background: linear-gradient(135deg, rgba(255, 249, 196, 0.9) 0%, rgba(255, 245, 157, 0.9) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 249, 196, 0.9) 0%,
+    rgba(255, 245, 157, 0.9) 100%
+  );
   border-radius: 12px;
   padding: 10px;
   flex: 1;
-  border: 2px solid #8D6E63;
+  border: 2px solid #8d6e63;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
@@ -654,7 +703,7 @@
 .infoBox:hover {
   transform: translateX(5px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border-color: #689F38;
+  border-color: #689f38;
 }
 
 .infoBox h3 {
@@ -662,7 +711,7 @@
   align-items: center;
   gap: 6px;
   font-size: 0.95rem;
-  color: #33691E;
+  color: #33691e;
   margin: 0 0 5px 0;
   font-weight: 700;
 }
@@ -670,7 +719,7 @@
 .infoBox p {
   margin: 0;
   font-size: 0.8rem;
-  color: #5D4037;
+  color: #5d4037;
   line-height: 1.3;
 }
 
@@ -680,8 +729,12 @@
 }
 
 @keyframes emojiSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .buttonEmoji {
@@ -690,40 +743,46 @@
 }
 
 @keyframes rocketShake {
-  0%, 100% { transform: translateX(0) rotate(-5deg); }
-  25% { transform: translateX(-2px) rotate(-10deg); }
-  75% { transform: translateX(2px) rotate(0deg); }
+  0%,
+  100% {
+    transform: translateX(0) rotate(-5deg);
+  }
+  25% {
+    transform: translateX(-2px) rotate(-10deg);
+  }
+  75% {
+    transform: translateX(2px) rotate(0deg);
+  }
 }
 
-/* Media queries for responsive design */
 @media (max-width: 1024px) {
   .configContent {
     gap: 10px;
   }
-  
+
   .environmentGrid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .infoBox p {
     font-size: 0.75rem;
   }
-  
+
   .backButton {
     padding: 6px 12px;
     font-size: 0.85rem;
   }
 
-    .analyticsButton {
+  .analyticsButton {
     padding: 6px 12px;
     font-size: 0.85rem;
   }
-  
+
   .configTitle::before {
     left: 8px;
     font-size: 2rem;
   }
-  
+
   .configTitle::after {
     right: 8px;
     font-size: 2rem;
@@ -735,115 +794,116 @@
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .configCardWrapper {
     padding: 12px;
   }
-  
+
   .configHeader {
     margin-top: 40px;
   }
-  
+
   .configTitle {
     font-size: 1.5rem;
     padding: 0 50px;
   }
-  
+
   .configTitle::before {
     left: 5px;
     font-size: 1.8rem;
   }
-  
+
   .configTitle::after {
     right: 5px;
     font-size: 1.8rem;
   }
-  
+
   .configSubtitle {
     font-size: 0.8rem;
   }
-  
+
   .configSection {
     padding: 8px;
   }
-  
+
   .configSection h2 {
     font-size: 1rem;
   }
-  
-  .buttonGrid, .environmentGrid {
+
+  .buttonGrid,
+  .environmentGrid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
-  .optionButton, .difficultyButton, .environmentButton {
+
+  .optionButton,
+  .difficultyButton,
+  .environmentButton {
     padding: 6px;
     font-size: 0.75rem;
   }
-  
+
   .envEmoji {
     font-size: 1.2rem;
   }
-  
+
   .startButton {
     padding: 8px 15px;
     font-size: 0.85rem;
   }
-  
+
   .backButton {
     top: 12px;
     left: 12px;
     padding: 6px 12px;
     font-size: 0.8rem;
   }
-  
+
   .backArrow {
     font-size: 1rem;
   }
 
-    .analyticsButton {
+  .analyticsButton {
     top: 12px;
     right: 12px;
     padding: 6px 12px;
     font-size: 0.8rem;
   }
-  
+
   .analyticsIcon {
     font-size: 1rem;
   }
 }
 
-/* Hide animals on very small screens */
 @media (max-width: 600px) {
   .configTitle::before,
   .configTitle::after {
     display: none;
   }
-  
+
   .configTitle {
     padding: 0 10px;
   }
 
-    .analyticsButton {
+  .analyticsButton {
     top: 56px;
     right: 12px;
   }
 }
 
-/* For large displays */
 @media (min-width: 1440px) {
   .configCardWrapper {
     max-width: 1400px;
     padding: 20px;
   }
-  
+
   .configTitle {
     font-size: 2.2rem;
   }
-  
+
   .configSubtitle {
     font-size: 1rem;
   }
-  
+
   .backButton {
     top: 20px;
     left: 20px;
@@ -852,14 +912,12 @@
   }
 }
 
-/* For extra wide displays */
 @media (min-width: 1800px) {
   .configCardWrapper {
     max-width: 1600px;
   }
 }
 
-/* ===== SOUND CONTROL STYLES ===== */
 .soundControlWrapper {
   position: fixed;
   bottom: 30px;
@@ -875,9 +933,10 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #689F38 0%, #558B2F 100%);
-  border: 4px solid #FFF9E6;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), inset 0 2px 5px rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, #689f38 0%, #558b2f 100%);
+  border: 4px solid #fff9e6;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3),
+    inset 0 2px 5px rgba(255, 255, 255, 0.3);
   font-size: 1.8rem;
   cursor: pointer;
   display: flex;
@@ -888,20 +947,24 @@
 }
 
 @keyframes soundPulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), inset 0 2px 5px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3),
+      inset 0 2px 5px rgba(255, 255, 255, 0.3);
   }
   50% {
     transform: scale(1.05);
-    box-shadow: 0 8px 25px rgba(104, 159, 56, 0.5), inset 0 2px 5px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 25px rgba(104, 159, 56, 0.5),
+      inset 0 2px 5px rgba(255, 255, 255, 0.3);
   }
 }
 
 .soundButton:hover {
-  background: linear-gradient(135deg, #7CB342 0%, #689F38 100%);
+  background: linear-gradient(135deg, #7cb342 0%, #689f38 100%);
   transform: scale(1.1) rotate(10deg);
-  box-shadow: 0 8px 30px rgba(104, 159, 56, 0.6), inset 0 2px 5px rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 30px rgba(104, 159, 56, 0.6),
+    inset 0 2px 5px rgba(255, 255, 255, 0.4);
 }
 
 .soundButton:active {
@@ -909,11 +972,16 @@
 }
 
 .volumeControlPanel {
-  background: linear-gradient(135deg, rgba(255, 249, 230, 0.98) 0%, rgba(255, 235, 205, 0.98) 100%);
-  border: 4px solid #8D6E63;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 249, 230, 0.98) 0%,
+    rgba(255, 235, 205, 0.98) 100%
+  );
+  border: 4px solid #8d6e63;
   border-radius: 15px;
   padding: 15px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), inset 0 1px 3px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4),
+    inset 0 1px 3px rgba(255, 255, 255, 0.6);
   width: 280px;
   backdrop-filter: blur(10px);
 }
@@ -921,13 +989,13 @@
 .volumeHeader {
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 2px solid #D7CCC8;
+  border-bottom: 2px solid #d7ccc8;
 }
 
 .volumeTitle {
   font-size: 1rem;
   font-weight: 700;
-  color: #5D4037;
+  color: #5d4037;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -955,7 +1023,7 @@
   flex: 1;
   height: 8px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #E0E0E0 0%, #BDBDBD 100%);
+  background: linear-gradient(90deg, #e0e0e0 0%, #bdbdbd 100%);
   outline: none;
   cursor: pointer;
   -webkit-appearance: none;
@@ -967,8 +1035,8 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #689F38 0%, #558B2F 100%);
-  border: 3px solid #FFF9E6;
+  background: linear-gradient(135deg, #689f38 0%, #558b2f 100%);
+  border: 3px solid #fff9e6;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: all 0.2s;
@@ -983,8 +1051,8 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #689F38 0%, #558B2F 100%);
-  border: 3px solid #FFF9E6;
+  background: linear-gradient(135deg, #689f38 0%, #558b2f 100%);
+  border: 3px solid #fff9e6;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: all 0.2s;
@@ -999,18 +1067,18 @@
   text-align: center;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #33691E;
-  background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
-  border: 2px solid #F9A825;
+  color: #33691e;
+  background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+  border: 2px solid #f9a825;
   border-radius: 8px;
   padding: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .muteButton {
-  background: linear-gradient(135deg, #FF8A65 0%, #FF7043 100%);
+  background: linear-gradient(135deg, #ff8a65 0%, #ff7043 100%);
   color: white;
-  border: 3px solid #FFAB91;
+  border: 3px solid #ffab91;
   border-radius: 10px;
   padding: 10px 15px;
   font-size: 0.9rem;
@@ -1025,7 +1093,7 @@
 }
 
 .muteButton:hover {
-  background: linear-gradient(135deg, #FF7043 0%, #F4511E 100%);
+  background: linear-gradient(135deg, #ff7043 0%, #f4511e 100%);
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(255, 112, 67, 0.5);
 }
@@ -1035,13 +1103,13 @@
 }
 
 .muteButton.muted {
-  background: linear-gradient(135deg, #78909C 0%, #607D8B 100%);
-  border-color: #B0BEC5;
+  background: linear-gradient(135deg, #78909c 0%, #607d8b 100%);
+  border-color: #b0bec5;
   box-shadow: 0 3px 10px rgba(96, 125, 139, 0.4);
 }
 
 .muteButton.muted:hover {
-  background: linear-gradient(135deg, #607D8B 0%, #546E7A 100%);
+  background: linear-gradient(135deg, #607d8b 0%, #546e7a 100%);
   box-shadow: 0 5px 15px rgba(96, 125, 139, 0.5);
 }
 
@@ -1050,13 +1118,13 @@
     bottom: 20px;
     right: 20px;
   }
-  
+
   .soundButton {
     width: 50px;
     height: 50px;
     font-size: 1.5rem;
   }
-  
+
   .volumeControlPanel {
     width: 250px;
     padding: 12px;
@@ -1068,13 +1136,13 @@
     bottom: 15px;
     right: 15px;
   }
-  
+
   .soundButton {
     width: 45px;
     height: 45px;
     font-size: 1.3rem;
   }
-  
+
   .volumeControlPanel {
     width: 220px;
     padding: 10px;

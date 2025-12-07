@@ -1,6 +1,3 @@
-/* src/styles/games/safari/SoundSafariLoading.module.css */
-/* Jungle Safari Theme for Kids - 2025 */
-
 .loadingContainer {
   width: 100%;
   min-height: 100vh;
@@ -13,24 +10,22 @@
   box-sizing: border-box;
 }
 
-/* Environment-specific backgrounds */
 .loadingContainer.jungleBackground {
-  background: linear-gradient(180deg, #8BC34A 0%, #689F38 40%, #558B2F 100%);
+  background: linear-gradient(180deg, #8bc34a 0%, #689f38 40%, #558b2f 100%);
 }
 
 .loadingContainer.savannaBackground {
-  background: linear-gradient(180deg, #FFD54F 0%, #FFC107 40%, #FF9800 100%);
+  background: linear-gradient(180deg, #ffd54f 0%, #ffc107 40%, #ff9800 100%);
 }
 
 .loadingContainer.oceanBackground {
-  background: linear-gradient(180deg, #4FC3F7 0%, #29B6F6 40%, #0288D1 100%);
+  background: linear-gradient(180deg, #4fc3f7 0%, #29b6f6 40%, #0288d1 100%);
 }
 
 .loadingContainer.arcticBackground {
-  background: linear-gradient(180deg, #B3E5FC 0%, #81D4FA 40%, #4FC3F7 100%);
+  background: linear-gradient(180deg, #b3e5fc 0%, #81d4fa 40%, #4fc3f7 100%);
 }
 
-/* Animated jungle leaves */
 .leavesBackground {
   position: absolute;
   top: 0;
@@ -46,21 +41,23 @@
 }
 
 @keyframes leavesFloat {
-  0% { transform: translateY(-100px) rotate(0deg); }
-  100% { transform: translateY(100vh) rotate(360deg); }
+  0% {
+    transform: translateY(-100px) rotate(0deg);
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+  }
 }
 
 .loadingCard {
-  background: linear-gradient(145deg, #FFF9E6 0%, #FFEAA7 100%);
+  background: linear-gradient(145deg, #fff9e6 0%, #ffeaa7 100%);
   border-radius: 25px;
   padding: 20px;
   width: 100%;
   max-width: 1600px;
-  box-shadow: 
-    0 10px 40px rgba(0, 0, 0, 0.3),
-    0 0 0 6px #8D6E63,
-    0 0 0 12px #6D4C41;
-  border: 5px solid #5D4037;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 0 0 0 6px #8d6e63,
+    0 0 0 12px #6d4c41;
+  border: 5px solid #5d4037;
   position: relative;
   z-index: 1;
   animation: cardEntrance 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -77,7 +74,6 @@
   }
 }
 
-/* Jungle vines decorations */
 .vineLeft {
   position: absolute;
   top: -5px;
@@ -105,17 +101,19 @@
   flex-direction: column;
 }
 
-/* Left Column - Target Sound */
 .targetSoundSection {
-  background: linear-gradient(135deg, rgba(255, 248, 225, 0.95) 0%, rgba(255, 235, 205, 0.95) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 248, 225, 0.95) 0%,
+    rgba(255, 235, 205, 0.95) 100%
+  );
   border-radius: 16px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 3px solid #8D6E63;
-  box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.15),
+  border: 3px solid #8d6e63;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15),
     inset 0 1px 3px rgba(255, 255, 255, 0.5);
   height: 100%;
   transition: transform 0.3s ease;
@@ -123,13 +121,18 @@
 }
 
 .targetSoundSection::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -2px;
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(45deg, transparent 30%, rgba(255, 221, 87, 0.3) 50%, transparent 70%);
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 221, 87, 0.3) 50%,
+    transparent 70%
+  );
   border-radius: 16px;
   opacity: 0;
   transition: opacity 0.3s;
@@ -142,19 +145,22 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 .targetSoundSection:hover {
   transform: translateY(-3px);
-  box-shadow: 
-    0 6px 20px rgba(0, 0, 0, 0.2),
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2),
     inset 0 1px 3px rgba(255, 255, 255, 0.5);
 }
 
 .sectionTitle {
-  color: #33691E;
+  color: #33691e;
   font-size: 1.2rem;
   margin: 0 0 15px 0;
   text-align: center;
@@ -165,15 +171,14 @@
 .targetSoundCircle {
   width: 140px;
   height: 140px;
-  background: linear-gradient(135deg, #689F38 0%, #558B2F 100%);
+  background: linear-gradient(135deg, #689f38 0%, #558b2f 100%);
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   margin-bottom: 15px;
-  border: 4px solid #33691E;
-  box-shadow: 
-    0 6px 20px rgba(104, 159, 56, 0.4),
+  border: 4px solid #33691e;
+  box-shadow: 0 6px 20px rgba(104, 159, 56, 0.4),
     inset 0 -3px 10px rgba(0, 0, 0, 0.2);
 }
 
@@ -186,23 +191,23 @@
 
 .targetDescription {
   text-align: center;
-  color: #5D4037;
+  color: #5d4037;
   margin: 0 0 20px 0;
   font-weight: 600;
   font-size: 1rem;
 }
 
 .examplesBox {
-  background: #E8F5E9;
+  background: #e8f5e9;
   border-radius: 12px;
   padding: 15px;
   width: 100%;
   margin-top: auto;
-  border: 2px solid #81C784;
+  border: 2px solid #81c784;
 }
 
 .examplesTitle {
-  color: #2E7D32;
+  color: #2e7d32;
   margin: 0 0 8px 0;
   font-size: 1rem;
   font-weight: 700;
@@ -210,12 +215,11 @@
 
 .examplesText {
   margin: 0;
-  color: #33691E;
+  color: #33691e;
   text-align: left;
   font-weight: 500;
 }
 
-/* Center Column - Progress & Info */
 .loadingHeader {
   display: flex;
   justify-content: space-between;
@@ -224,22 +228,25 @@
 }
 
 .loadingTitle {
-  color: #33691E;
+  color: #33691e;
   font-size: 1.6rem;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 800;
-  text-shadow: 
-    2px 2px 0 #FDD835,
-    4px 4px 8px rgba(0, 0, 0, 0.2);
+  text-shadow: 2px 2px 0 #fdd835, 4px 4px 8px rgba(0, 0, 0, 0.2);
   animation: titleBounce 1s ease-in-out;
 }
 
 @keyframes titleBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .headerEmoji {
@@ -248,22 +255,28 @@
 }
 
 @keyframes emojiWiggle {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-15deg); }
-  75% { transform: rotate(15deg); }
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-15deg);
+  }
+  75% {
+    transform: rotate(15deg);
+  }
 }
 
 .roundInfo {
-  background: linear-gradient(135deg, #F57C00 0%, #E65100 100%);
+  background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
   color: white;
   border-radius: 50px;
   padding: 8px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 3px solid #FFCC80;
-  box-shadow: 
-    0 4px 12px rgba(245, 124, 0, 0.4),
+  border: 3px solid #ffcc80;
+  box-shadow: 0 4px 12px rgba(245, 124, 0, 0.4),
     inset 0 -2px 6px rgba(0, 0, 0, 0.3);
 }
 
@@ -298,13 +311,13 @@
   border-radius: 7px;
   overflow: hidden;
   margin-bottom: 8px;
-  border: 2px solid #8D6E63;
+  border: 2px solid #8d6e63;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .progressBar {
   height: 100%;
-  background: linear-gradient(to right, #689F38, #8BC34A, #AED581);
+  background: linear-gradient(to right, #689f38, #8bc34a, #aed581);
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(139, 195, 74, 0.6);
 }
@@ -312,7 +325,7 @@
 .progressLabel {
   text-align: center;
   font-size: 1rem;
-  color: #33691E;
+  color: #33691e;
   font-weight: 700;
 }
 
@@ -327,13 +340,13 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
+  background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
   padding: 14px;
   border-radius: 12px;
-  color: #33691E;
+  color: #33691e;
   font-weight: 700;
   font-size: 1.1rem;
-  border: 3px solid #F9A825;
+  border: 3px solid #f9a825;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
 }
@@ -349,19 +362,24 @@
 }
 
 @keyframes iconPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 .funFactBox {
-  background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
   border-radius: 12px;
   padding: 16px;
   min-height: 120px;
   display: flex;
   flex-direction: column;
-  border-left: 5px solid #2196F3;
-  border: 3px solid #64B5F6;
+  border-left: 5px solid #2196f3;
+  border: 3px solid #64b5f6;
   box-shadow: 0 3px 10px rgba(33, 150, 243, 0.2);
 }
 
@@ -369,7 +387,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #1565C0;
+  color: #1565c0;
   font-weight: 700;
   font-size: 1.1rem;
   margin-bottom: 10px;
@@ -381,26 +399,32 @@
 }
 
 @keyframes emojiSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .funFactText {
   margin: 0;
-  color: #01579B;
+  color: #01579b;
   font-size: 1rem;
   line-height: 1.5;
   font-weight: 500;
 }
 
-/* Right Column - Tips */
 .tipsSection {
-  background: linear-gradient(135deg, rgba(255, 248, 225, 0.95) 0%, rgba(255, 235, 205, 0.95) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 248, 225, 0.95) 0%,
+    rgba(255, 235, 205, 0.95) 100%
+  );
   border-radius: 16px;
   padding: 20px;
-  border: 3px solid #8D6E63;
-  box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.15),
+  border: 3px solid #8d6e63;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15),
     inset 0 1px 3px rgba(255, 255, 255, 0.5);
   display: flex;
   flex-direction: column;
@@ -411,8 +435,7 @@
 
 .tipsSection:hover {
   transform: translateY(-3px);
-  box-shadow: 
-    0 6px 20px rgba(0, 0, 0, 0.2),
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2),
     inset 0 1px 3px rgba(255, 255, 255, 0.5);
 }
 
@@ -420,10 +443,10 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  background: #F5F9F8;
+  background: #f5f9f8;
   padding: 14px;
   border-radius: 12px;
-  border: 2px solid #AED581;
+  border: 2px solid #aed581;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
@@ -431,7 +454,7 @@
 .tipBox:hover {
   transform: translateX(5px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  border-color: #689F38;
+  border-color: #689f38;
 }
 
 .tipIcon {
@@ -441,7 +464,7 @@
 
 .tipText {
   margin: 0;
-  color: #33691E;
+  color: #33691e;
   font-size: 0.95rem;
   line-height: 1.5;
   font-weight: 500;
@@ -449,10 +472,10 @@
 
 .soundExamplesWrapper {
   margin-top: auto;
-  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
   border-radius: 12px;
   padding: 16px;
-  border: 3px solid #81C784;
+  border: 3px solid #81c784;
   box-shadow: 0 3px 10px rgba(46, 125, 50, 0.2);
 }
 
@@ -468,7 +491,7 @@
 }
 
 .soundExamplesTitle {
-  color: #2E7D32;
+  color: #2e7d32;
   margin: 0;
   font-size: 1.1rem;
   font-weight: 700;
@@ -481,13 +504,13 @@
 }
 
 .soundExample {
-  background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
+  background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 0.9rem;
-  color: #33691E;
+  color: #33691e;
   font-weight: 600;
-  border: 2px solid #F9A825;
+  border: 2px solid #f9a825;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
 }
@@ -497,27 +520,27 @@
   box-shadow: 0 4px 8px rgba(249, 168, 37, 0.3);
 }
 
-/* Media queries for responsive design */
 @media (max-width: 1200px) {
   .loadingContent {
     flex-direction: column;
   }
-  
+
   .targetSoundCircle {
     width: 120px;
     height: 120px;
   }
-  
+
   .targetSoundDisplay {
     font-size: 3.5rem;
   }
-  
+
   .infoGrid {
     flex-direction: row;
     gap: 12px;
   }
-  
-  .difficultyBadge, .funFactBox {
+
+  .difficultyBadge,
+  .funFactBox {
     flex: 1;
   }
 }
@@ -526,72 +549,71 @@
   .loadingCard {
     padding: 15px;
   }
-  
+
   .loadingHeader {
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .loadingTitle {
     font-size: 1.3rem;
   }
-  
+
   .targetSoundCircle {
     width: 100px;
     height: 100px;
   }
-  
+
   .targetSoundDisplay {
     font-size: 3rem;
   }
-  
+
   .infoGrid {
     flex-direction: column;
   }
-  
+
   .tipBox {
     padding: 10px;
   }
-  
+
   .tipIcon {
     font-size: 1.5rem;
   }
-  
+
   .tipText {
     font-size: 0.85rem;
   }
-  
+
   .soundExample {
     font-size: 0.8rem;
     padding: 5px 10px;
   }
 }
 
-/* For very large screens */
 @media (min-width: 1800px) {
   .loadingCard {
     max-width: 1800px;
   }
-  
+
   .targetSoundCircle {
     width: 160px;
     height: 160px;
   }
-  
+
   .targetSoundDisplay {
     font-size: 4.5rem;
   }
-  
+
   .loadingTitle {
     font-size: 1.8rem;
   }
-  
-  .tipText, .funFactText {
+
+  .tipText,
+  .funFactText {
     font-size: 1.1rem;
   }
 }
 
-/* ===== SOUND CONTROL STYLES ===== */
 .soundControlWrapper {
   position: fixed;
   bottom: 30px;
@@ -607,9 +629,10 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #689F38 0%, #558B2F 100%);
-  border: 4px solid #FFF9E6;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), inset 0 2px 5px rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, #689f38 0%, #558b2f 100%);
+  border: 4px solid #fff9e6;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3),
+    inset 0 2px 5px rgba(255, 255, 255, 0.3);
   font-size: 1.8rem;
   cursor: pointer;
   display: flex;
@@ -620,20 +643,24 @@
 }
 
 @keyframes soundPulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), inset 0 2px 5px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3),
+      inset 0 2px 5px rgba(255, 255, 255, 0.3);
   }
   50% {
     transform: scale(1.05);
-    box-shadow: 0 8px 25px rgba(104, 159, 56, 0.5), inset 0 2px 5px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 25px rgba(104, 159, 56, 0.5),
+      inset 0 2px 5px rgba(255, 255, 255, 0.3);
   }
 }
 
 .soundButton:hover {
-  background: linear-gradient(135deg, #7CB342 0%, #689F38 100%);
+  background: linear-gradient(135deg, #7cb342 0%, #689f38 100%);
   transform: scale(1.1) rotate(10deg);
-  box-shadow: 0 8px 30px rgba(104, 159, 56, 0.6), inset 0 2px 5px rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 30px rgba(104, 159, 56, 0.6),
+    inset 0 2px 5px rgba(255, 255, 255, 0.4);
 }
 
 .soundButton:active {
@@ -641,11 +668,16 @@
 }
 
 .volumeControlPanel {
-  background: linear-gradient(135deg, rgba(255, 249, 230, 0.98) 0%, rgba(255, 235, 205, 0.98) 100%);
-  border: 4px solid #8D6E63;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 249, 230, 0.98) 0%,
+    rgba(255, 235, 205, 0.98) 100%
+  );
+  border: 4px solid #8d6e63;
   border-radius: 15px;
   padding: 15px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), inset 0 1px 3px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4),
+    inset 0 1px 3px rgba(255, 255, 255, 0.6);
   width: 280px;
   backdrop-filter: blur(10px);
 }
@@ -653,13 +685,13 @@
 .volumeHeader {
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 2px solid #D7CCC8;
+  border-bottom: 2px solid #d7ccc8;
 }
 
 .volumeTitle {
   font-size: 1rem;
   font-weight: 700;
-  color: #5D4037;
+  color: #5d4037;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -687,7 +719,7 @@
   flex: 1;
   height: 8px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #E0E0E0 0%, #BDBDBD 100%);
+  background: linear-gradient(90deg, #e0e0e0 0%, #bdbdbd 100%);
   outline: none;
   cursor: pointer;
   -webkit-appearance: none;
@@ -699,8 +731,8 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #689F38 0%, #558B2F 100%);
-  border: 3px solid #FFF9E6;
+  background: linear-gradient(135deg, #689f38 0%, #558b2f 100%);
+  border: 3px solid #fff9e6;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: all 0.2s;
@@ -715,8 +747,8 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #689F38 0%, #558B2F 100%);
-  border: 3px solid #FFF9E6;
+  background: linear-gradient(135deg, #689f38 0%, #558b2f 100%);
+  border: 3px solid #fff9e6;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: all 0.2s;
@@ -731,18 +763,18 @@
   text-align: center;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #33691E;
-  background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
-  border: 2px solid #F9A825;
+  color: #33691e;
+  background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+  border: 2px solid #f9a825;
   border-radius: 8px;
   padding: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .muteButton {
-  background: linear-gradient(135deg, #FF8A65 0%, #FF7043 100%);
+  background: linear-gradient(135deg, #ff8a65 0%, #ff7043 100%);
   color: white;
-  border: 3px solid #FFAB91;
+  border: 3px solid #ffab91;
   border-radius: 10px;
   padding: 10px 15px;
   font-size: 0.9rem;
@@ -757,7 +789,7 @@
 }
 
 .muteButton:hover {
-  background: linear-gradient(135deg, #FF7043 0%, #F4511E 100%);
+  background: linear-gradient(135deg, #ff7043 0%, #f4511e 100%);
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(255, 112, 67, 0.5);
 }
@@ -767,13 +799,13 @@
 }
 
 .muteButton.muted {
-  background: linear-gradient(135deg, #78909C 0%, #607D8B 100%);
-  border-color: #B0BEC5;
+  background: linear-gradient(135deg, #78909c 0%, #607d8b 100%);
+  border-color: #b0bec5;
   box-shadow: 0 3px 10px rgba(96, 125, 139, 0.4);
 }
 
 .muteButton.muted:hover {
-  background: linear-gradient(135deg, #607D8B 0%, #546E7A 100%);
+  background: linear-gradient(135deg, #607d8b 0%, #546e7a 100%);
   box-shadow: 0 5px 15px rgba(96, 125, 139, 0.5);
 }
 
@@ -782,13 +814,13 @@
     bottom: 20px;
     right: 20px;
   }
-  
+
   .soundButton {
     width: 50px;
     height: 50px;
     font-size: 1.5rem;
   }
-  
+
   .volumeControlPanel {
     width: 250px;
     padding: 12px;
@@ -800,13 +832,13 @@
     bottom: 15px;
     right: 15px;
   }
-  
+
   .soundButton {
     width: 45px;
     height: 45px;
     font-size: 1.3rem;
   }
-  
+
   .volumeControlPanel {
     width: 220px;
     padding: 10px;

@@ -1,4 +1,3 @@
-// frontend/wildlitz/src/services/soundSafariApi.js
 import { processAnimalImages } from "../utils/imageUtils";
 import { API_BASE_URL } from "../config/api";
 const PHONEMICS_API = `${API_BASE_URL}/api/phonemics`;
@@ -13,14 +12,17 @@ export const fetchSafariAnimals = async (params) => {
       position: params.position,
     });
 
-    // ✅ Pre-validate to prevent excluded combinations (both general and environment-specific)
-    if (isCombinationExcluded(params.sound, params.position, params.environment)) {
-      console.warn(`⚠️ Blocked excluded combination: ${params.sound}-${params.position}-${params.environment}`);
+    if (
+      isCombinationExcluded(params.sound, params.position, params.environment)
+    ) {
+      console.warn(
+        `⚠️ Blocked excluded combination: ${params.sound}-${params.position}-${params.environment}`
+      );
       return {
         success: false,
         animals: [],
         excluded: true,
-        error: `Combination ${params.sound}-${params.position} is excluded for ${params.environment}`
+        error: `Combination ${params.sound}-${params.position} is excluded for ${params.environment}`,
       };
     }
 
@@ -28,24 +30,24 @@ export const fetchSafariAnimals = async (params) => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      
-      // If backend returns excluded combination error, handle gracefully
+
       if (response.status === 400 && errorData.excluded) {
-        console.warn(`⚠️ Backend rejected excluded combination: ${params.sound}-${params.position}`);
+        console.warn(
+          `⚠️ Backend rejected excluded combination: ${params.sound}-${params.position}`
+        );
         return {
           success: false,
           animals: [],
           excluded: true,
-          error: errorData.error
+          error: errorData.error,
         };
       }
-      
+
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
 
-    // Process animal images to ensure correct URLs
     if (data.animals) {
       data.animals = processAnimalImages(data.animals);
     }
@@ -59,11 +61,10 @@ export const fetchSafariAnimals = async (params) => {
 
 export const fetchRandomSound = async (position = null) => {
   try {
-    // ✅ FIX: Include position parameter to avoid excluded combinations
-    const url = position 
+    const url = position
       ? `${PHONEMICS_API}/random-sound/?position=${position}`
       : `${PHONEMICS_API}/random-sound/`;
-    
+
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -79,7 +80,6 @@ export const fetchRandomSound = async (position = null) => {
 
 export const fetchSoundExamples = async (sound) => {
   try {
-    // ✅ FIXED: Use PHONEMICS_API instead of API_BASE_URL
     const response = await fetch(
       `${PHONEMICS_API}/sound-examples/?sound=${sound}`
     );
@@ -97,7 +97,6 @@ export const fetchSoundExamples = async (sound) => {
 
 export const submitGameResults = async (results) => {
   try {
-    // ✅ FIXED: Use PHONEMICS_API instead of API_BASE_URL
     const response = await fetch(`${PHONEMICS_API}/submit-results/`, {
       method: "POST",
       headers: {

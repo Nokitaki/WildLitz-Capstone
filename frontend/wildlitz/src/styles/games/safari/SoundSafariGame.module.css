@@ -1,32 +1,28 @@
-/* src/styles/games/safari/SoundSafariGame.module.css */
-/* Redesigned for horizontal layout with no overflow/scroll */
-
 .gameContainer {
   width: 100%;
   height: 100vh;
   overflow: hidden;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
 }
 
-/* Environment backgrounds - Dynamic colors matching theme */
 .jungleBackground {
-  background: linear-gradient(180deg, #8BC34A 0%, #689F38 40%, #558B2F 100%);
+  background: linear-gradient(180deg, #8bc34a 0%, #689f38 40%, #558b2f 100%);
 }
 
 .savannaBackground {
-  background: linear-gradient(180deg, #FFD54F 0%, #FFC107 40%, #FF9800 100%);
+  background: linear-gradient(180deg, #ffd54f 0%, #ffc107 40%, #ff9800 100%);
 }
 
 .oceanBackground {
-  background: linear-gradient(180deg, #4FC3F7 0%, #29B6F6 40%, #0288D1 100%);
+  background: linear-gradient(180deg, #4fc3f7 0%, #29b6f6 40%, #0288d1 100%);
 }
 
 .arcticBackground {
-  background: linear-gradient(180deg, #B3E5FC 0%, #81D4FA 40%, #4FC3F7 100%);
+  background: linear-gradient(180deg, #b3e5fc 0%, #81d4fa 40%, #4fc3f7 100%);
 }
 
 .gameContent {
@@ -45,19 +41,18 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden; /* Ensure no scrolling */
+  overflow: hidden;
 }
 
-/* Fox Mascot Styling */
 .foxMascot {
-  position: fixed; /* Fixed position instead of absolute */
+  position: fixed;
   bottom: 20px;
   left: 20px;
   width: 120px;
   height: 120px;
-  z-index: 100; /* High z-index to appear on top */
-  pointer-events: none; /* Make sure it doesn't interfere with clicks */
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2)); /* Add drop shadow for better visibility */
+  z-index: 100;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 }
 
 .foxImage {
@@ -65,10 +60,9 @@
   height: auto;
 }
 
-/* Speech bubble styling */
 .speechBubble {
   position: absolute;
-  top: -70px; /* Positioned above the fox */
+  top: -70px;
   left: 60px;
   background-color: white;
   border-radius: 15px;
@@ -80,20 +74,19 @@
   color: #333;
   text-align: center;
   z-index: 101;
-  pointer-events: none; /* So clicks pass through */
+  pointer-events: none;
 }
 
 .speechBubble:after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -8px;
-  left: 30px; /* Position the speech tail to point at the fox */
+  left: 30px;
   border-top: 10px solid white;
   border-left: 7px solid transparent;
   border-right: 7px solid transparent;
 }
 
-/* Progress indicator */
 .progressIndicator {
   position: absolute;
   top: 15px;
@@ -138,19 +131,18 @@
   transition: width 0.5s ease;
 }
 
-/* Media queries for responsive design */
 @media (max-width: 1200px) {
   .gameContent {
     width: 85%;
   }
-  
+
   .foxMascot {
     width: 100px;
     height: 100px;
     bottom: 15px;
     left: 15px;
   }
-  
+
   .speechBubble {
     top: -60px;
     left: 50px;
@@ -166,23 +158,23 @@
     width: 92%;
     height: 95%;
   }
-  
+
   .progressIndicator {
     width: 90px;
     padding: 6px 10px;
   }
-  
+
   .progressNumbers {
     font-size: 0.9rem;
   }
-  
+
   .foxMascot {
     width: 80px;
     height: 80px;
     bottom: 10px;
     left: 10px;
   }
-  
+
   .speechBubble {
     top: -50px;
     left: 40px;
@@ -193,20 +185,19 @@
   }
 }
 
-/* For TV screens with different aspect ratios */
 @media (min-aspect-ratio: 16/9) {
   .gameContent {
     width: 75%;
     height: 85%;
   }
-  
+
   .foxMascot {
     width: 130px;
     height: 130px;
     bottom: 30px;
     left: 30px;
   }
-  
+
   .speechBubble {
     top: -80px;
     left: 65px;
