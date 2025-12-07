@@ -146,7 +146,7 @@ const SoundSafariGame = () => {
     setFromIntroScreen(false);
     setError(null);
     
-    await prepareNewRound(config.targetSound, config.difficulty, 0, []);
+    await prepareNewRound(config.targetSound, config.difficulty, 0, [], config.environment);
     
     setTimeout(() => {
       setGameState('intro');
@@ -228,7 +228,7 @@ const SoundSafariGame = () => {
   /**
    * Prepare a new round
    */
-  const prepareNewRound = async (targetSound = gameConfig.targetSound, difficulty = gameConfig.difficulty, retryCount = 0, triedSounds = []) => {
+  const prepareNewRound = async (targetSound = gameConfig.targetSound, difficulty = gameConfig.difficulty, retryCount = 0, triedSounds = [], environment = gameConfig.environment) => {
     setIsLoading(true);
     setError(null);
     
@@ -246,7 +246,7 @@ const SoundSafariGame = () => {
         console.warn(`⚠️ Excluded combination detected: ${targetSound}-${soundPosition}-${gameConfig.environment}, selecting new sound`);
         const validSound = getRandomValidSound(soundPosition, currentTriedSounds, gameConfig.environment);
         setGameConfig(prev => ({ ...prev, targetSound: validSound }));
-        return prepareNewRound(validSound, difficulty, retryCount, currentTriedSounds);
+        return prepareNewRound(validSound, difficulty, retryCount, currentTriedSounds, environment);
       }
       
       console.log(`🎯 Fetching animals for sound "${targetSound}" at position "${soundPosition}"`);
@@ -254,7 +254,7 @@ const SoundSafariGame = () => {
       const response = await fetchSafariAnimals({
         sound: targetSound,
         difficulty: difficulty,
-        environment: gameConfig.environment,
+        environment: environment,
         position: soundPosition
       });
       
@@ -272,7 +272,7 @@ const SoundSafariGame = () => {
         
         if (availableSounds.length > 0) {
           const newSound = availableSounds[Math.floor(Math.random() * availableSounds.length)];
-          return prepareNewRound(newSound, difficulty, retryCount + 1, currentTriedSounds);
+          return prepareNewRound(newSound, difficulty, retryCount + 1, currentTriedSounds, environment);
         }
       }
       
@@ -480,7 +480,7 @@ const SoundSafariGame = () => {
     // Reset round timer
     setRoundStartTime(Date.now());
     
-    await prepareNewRound(newSound, gameConfig.difficulty, 0, []);
+    await prepareNewRound(newSound, gameConfig.difficulty, 0, [], gameConfig.environment);
     
     setTimeout(() => {
       setGameState('intro');
@@ -496,7 +496,7 @@ const SoundSafariGame = () => {
     // currentRoundData will be overwritten when they complete this retry
     // Don't clear it here - let saveRoundData overwrite it
     
-    await prepareNewRound(gameConfig.targetSound, gameConfig.difficulty, 0, []);
+    await prepareNewRound(gameConfig.targetSound, gameConfig.difficulty, 0, [], gameConfig.environment);
     
     // Reset round timer
     setRoundStartTime(Date.now());
@@ -528,7 +528,7 @@ const SoundSafariGame = () => {
     setFromIntroScreen(false);
     
     const newSound = await selectNewTargetSound();
-    await prepareNewRound(newSound, gameConfig.difficulty, 0, []);
+    await prepareNewRound(newSound, gameConfig.difficulty, 0, [], gameConfig.environment);
     
     setGameState('loading');
     

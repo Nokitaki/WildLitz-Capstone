@@ -131,5 +131,54 @@
     "sound_position": "ending",
     "environment": "savanna",
     "difficulty_level": "easy"
+  },
+  {
+    "name": "Caterpillar",
+    "target_sound": "t",
+    "sound_position": "middle",
+    "environment": "savanna",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Giraffe",
+    "target_sound": "r",
+    "sound_position": "middle",
+    "environment": "savanna",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Baboon",
+    "target_sound": "b",
+    "sound_position": "middle",
+    "environment": "savanna",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Rabbit",
+    "target_sound": "b",
+    "sound_position": "middle",
+    "environment": "savanna",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Worm",
+    "target_sound": "m",
+    "sound_position": "middle",
+    "environment": "savanna",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Hummingbird",
+    "target_sound": "r",
+    "sound_position": "ending",
+    "environment": "savanna",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "bat",
+    "target_sound": "t",
+    "sound_position": "ending",
+    "environment": "savanna",
+    "difficulty_level": "hard"
   }
 ]
