@@ -175,10 +175,38 @@
     "difficulty_level": "hard"
   },
   {
-    "name": "bat",
+    "name": "Bat",
     "target_sound": "t",
     "sound_position": "ending",
     "environment": "savanna",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Mandrill",
+    "target_sound": "r",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Salamander",
+    "target_sound": "m",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Ocelot",
+    "target_sound": "s",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Crocodile",
+    "target_sound": "l",
+    "sound_position": "ending",
+    "environment": "jungle",
     "difficulty_level": "hard"
   }
 ]
