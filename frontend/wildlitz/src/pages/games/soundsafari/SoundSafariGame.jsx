@@ -399,27 +399,29 @@ const SoundSafariGame = () => {
     setSelectedAnimals(selected);
 
     const correctAnimals = roundAnimals.filter((animal) => {
-      if (animal.target_sound !== gameConfig.targetSound) {
-        return false;
-      }
-
+      // In "anywhere" mode, only check if target_sound matches
       if (gameConfig.soundPosition === "anywhere") {
-        return true;
+        return animal.target_sound === gameConfig.targetSound;
       }
 
-      return animal.sound_position === gameConfig.soundPosition;
+      // In specific position modes, check both target_sound AND sound_position
+      return (
+        animal.target_sound === gameConfig.targetSound &&
+        animal.sound_position === gameConfig.soundPosition
+      );
     });
 
     const correctSelections = selected.filter((animal) => {
-      if (animal.target_sound !== gameConfig.targetSound) {
-        return false;
-      }
-
+      // In "anywhere" mode, only check if target_sound matches
       if (gameConfig.soundPosition === "anywhere") {
-        return true;
+        return animal.target_sound === gameConfig.targetSound;
       }
 
-      return animal.sound_position === gameConfig.soundPosition;
+      // In specific position modes, check both target_sound AND sound_position
+      return (
+        animal.target_sound === gameConfig.targetSound &&
+        animal.sound_position === gameConfig.soundPosition
+      );
     }).length;
 
     const incorrectSelections = selected.length - correctSelections;
@@ -578,27 +580,29 @@ const SoundSafariGame = () => {
 
   const getGameResults = () => {
     const correctAnimals = roundAnimals.filter((animal) => {
-      if (animal.target_sound !== gameConfig.targetSound) {
-        return false;
-      }
-
+      // In "anywhere" mode, only check if target_sound matches
       if (gameConfig.soundPosition === "anywhere") {
-        return true;
+        return animal.target_sound === gameConfig.targetSound;
       }
 
-      return animal.sound_position === gameConfig.soundPosition;
+      // In specific position modes, check both target_sound AND sound_position
+      return (
+        animal.target_sound === gameConfig.targetSound &&
+        animal.sound_position === gameConfig.soundPosition
+      );
     });
 
     const incorrectAnimals = roundAnimals.filter((animal) => {
-      if (animal.target_sound !== gameConfig.targetSound) {
-        return true;
-      }
-
+      // In "anywhere" mode, incorrect = does NOT have matching target_sound
       if (gameConfig.soundPosition === "anywhere") {
-        return false;
+        return animal.target_sound !== gameConfig.targetSound;
       }
 
-      return animal.sound_position !== gameConfig.soundPosition;
+      // In specific position modes, incorrect = wrong target_sound OR wrong position
+      return (
+        animal.target_sound !== gameConfig.targetSound ||
+        animal.sound_position !== gameConfig.soundPosition
+      );
     });
 
     return {

@@ -208,5 +208,19 @@
     "sound_position": "ending",
     "environment": "jungle",
     "difficulty_level": "hard"
+  },
+  {
+    "name": "Ferret",
+    "target_sound": "r",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Gecko",
+    "target_sound": "k",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "easy"
   }
 ]
