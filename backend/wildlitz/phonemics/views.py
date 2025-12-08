@@ -145,17 +145,46 @@ def get_safari_animals_by_sound(request):
         target_sound = 's'
     
     try:
-
-
-
-
+        
+        # ============================================
+        # 🎯 SPECIAL HANDLING FOR "ANYWHERE" POSITION
+        # ============================================
+        # When user explicitly selects "anywhere" mode, we should query
+        # for animals with the target sound WITHOUT filtering by sound_position
+        # This ensures "anywhere" is treated as a first-class option, not a fallback
         
         animals_found = []
         strategy_used = ""
         
+        # 🆕 ATTEMPT 0: DEDICATED "ANYWHERE" QUERY
+        if len(animals_found) == 0 and sound_position == 'anywhere':
+            logger.info(f"🎯 ANYWHERE MODE: Fetching all animals with sound '{target_sound}' regardless of position")
+            
+            query = supabase.table('safari_animals').select('*')
+            query = query.eq('target_sound', target_sound)
+            
+            # Apply environment filter if provided
+            if environment:
+                query = query.eq('environment', environment)
+            
+            # Apply difficulty filter (except for hard mode)
+            if difficulty != 'hard':
+                query = query.eq('difficulty_level', difficulty)
+            
+            # Exclude specific IDs if provided
+            if exclude_ids:
+                query = query.not_.in_('id', exclude_ids)
+            
+            response = query.execute()
+            animals_found = response.data or []
+            
+            if len(animals_found) > 0:
+                strategy_used = "0_anywhere_mode_primary"
+                logger.info(f"✅ ANYWHERE MODE SUCCESS: Found {len(animals_found)} animals with sound '{target_sound}' at any position")
+        
+        
 
-
-
+        # ATTEMPT 1: Exact match for specific positions
         if len(animals_found) == 0 and sound_position and sound_position != 'anywhere' and environment:
             query = supabase.table('safari_animals').select('*')
             query = query.eq('target_sound', target_sound)
@@ -174,7 +203,7 @@ def get_safari_animals_by_sound(request):
         
 
 
-
+        # ATTEMPT 2: No difficulty filter
         if len(animals_found) == 0 and sound_position and sound_position != 'anywhere' and environment:
             query = supabase.table('safari_animals').select('*')
             query = query.eq('target_sound', target_sound)

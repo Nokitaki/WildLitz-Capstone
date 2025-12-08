@@ -229,5 +229,19 @@
     "sound_position": "middle",
     "environment": "jungle",
     "difficulty_level": "hard"
+  },
+  {
+    "name": "Narwhal",
+    "target_sound": "w",
+    "sound_position": "middle",
+    "environment": "arctic",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Kiwi",
+    "target_sound": "w",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "medium"
   }
 ]
