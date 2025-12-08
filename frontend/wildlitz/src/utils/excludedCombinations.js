@@ -21,6 +21,7 @@ export const EXCLUDED_ENVIRONMENT_COMBINATIONS = [
   ['c', 'middle', 'savanna'],
   ['d', 'anywhere', 'jungle'],
   ['k', 'anywhere', 'jungle'],
+  ['p', 'anywhere', 'jungle'],
 ];
 
 export const CORE_SOUNDS = ['g', 'k', 'w', 'd', 'r', 'c', 'h', 's', 'm', 't', 'b', 'p', 'f', 'l', 'z'];
