@@ -133,6 +133,8 @@ def call_openai_for_story(prompt, max_tokens):
         cleaned_content = re.sub(r'^```\s*$', '', cleaned_content, flags=re.MULTILINE)
         cleaned_content = re.sub(r'```', '', cleaned_content)
         cleaned_content = cleaned_content.strip()
+
+        cleaned_content = re.sub(r',(\s*[}\]])', r'\1', cleaned_content)
         
         return cleaned_content
         
