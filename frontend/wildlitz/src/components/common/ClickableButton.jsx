@@ -1,5 +1,3 @@
-// src/components/common/ClickableButton.jsx
-// A button component that automatically plays click sounds
 
 import React from 'react';
 
@@ -14,12 +12,12 @@ const ClickableButton = ({
 }) => {
   
   const handleClick = (e) => {
-    // Play click sound if available
+    
     if (window.playClickSound && !disabled) {
       window.playClickSound();
     }
     
-    // Call the original onClick handler
+   
     if (onClick && !disabled) {
       onClick(e);
     }

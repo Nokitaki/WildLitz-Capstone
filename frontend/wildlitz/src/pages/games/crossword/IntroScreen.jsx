@@ -1,22 +1,19 @@
-// src/pages/games/crossword/IntroScreen.jsx
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/crossword/IntroScreen.module.css';
 import BackToHomeButton from '../../../components/common/BackToHomeButton';
-/**
- * Introduction screen for Story-Based Crossword Adventures
- * Allows selection of adventure stories
- */
+
 const IntroScreen = ({ onStartGame, storyAdventures, onStartStoryGeneration }) => {
-  // Game options
+ 
   const [selectedAdventure, setSelectedAdventure] = useState('jungle_quest');
   
-  // Handle adventure selection
+  
   const handleAdventureSelect = (adventureId) => {
     setSelectedAdventure(adventureId);
   };
   
-  // Handle start game
+ 
   const handleStartGame = () => {
     const config = {
       storyMode: true,
@@ -26,7 +23,7 @@ const IntroScreen = ({ onStartGame, storyAdventures, onStartStoryGeneration }) =
     onStartGame(config);
   };
   
-  // Handle create new adventure
+ 
   const handleCreateNewAdventure = () => {
     if (onStartStoryGeneration) {
       onStartStoryGeneration();

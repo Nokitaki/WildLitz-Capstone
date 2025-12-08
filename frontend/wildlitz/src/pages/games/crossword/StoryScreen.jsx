@@ -1,12 +1,10 @@
-// src/pages/games/crossword/StoryScreen.jsx
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Volume2 } from 'lucide-react';
 import styles from '../../../styles/games/crossword/StoryScreen.module.css';
 
-/**
- * Enhanced Story Screen with Auto-Scroll and Individual Sentence Speakers
- */
+
 const StoryScreen = ({ 
   storySegment, 
   onContinue, 
@@ -34,7 +32,7 @@ const StoryScreen = ({
   const hasSpeech = typeof window !== 'undefined' && 'speechSynthesis' in window;
   const speechSynth = hasSpeech ? window.speechSynthesis : null;
   
-  // Load voices (they load asynchronously in Chrome)
+ 
   useEffect(() => {
     if (hasSpeech) {
       const loadVoices = () => {
@@ -59,18 +57,18 @@ const StoryScreen = ({
     }
   }, [hasSpeech, speechSynth]);
   
-  // Process the story text to extract sentences and filter vocabulary
+ 
   useEffect(() => {
     if (storySegment && storySegment.text) {
-      // Split text into sentences
+     
       const sentenceRegex = /[^.!?]+[.!?]+/g;
       const extractedSentences = storySegment.text.match(sentenceRegex) || [];
       setSentences(extractedSentences.map(s => s.trim()));
       
-      // Initialize sentence refs
+      
       sentenceRefs.current = extractedSentences.map(() => React.createRef());
       
-      // Filter vocabulary words to only include those that appear in the story
+      
       if (vocabularyWords && vocabularyWords.length > 0) {
         const storyTextLower = storySegment.text.toLowerCase();
         const wordsInStory = vocabularyWords.filter(word => {
@@ -79,7 +77,7 @@ const StoryScreen = ({
           return regex.test(storyTextLower);
         });
         
-        // Remove duplicates (case-insensitive)
+        
         const uniqueWords = [];
         const seenWords = new Set();
         wordsInStory.forEach(word => {
@@ -97,20 +95,18 @@ const StoryScreen = ({
     }
   }, [storySegment, vocabularyWords]);
   
-  // ============================================
-  // IMPROVED AUTO-SCROLL - Only when reading aloud
-  // ============================================
+
   useEffect(() => {
-    // 🔥 ONLY auto-scroll when actively reading aloud
+   
     if (isReading && currentSentenceIndex !== null && sentences.length > 0) {
-      // Small delay to ensure DOM is updated
+      
       const scrollTimer = setTimeout(() => {
         const sentenceRef = sentenceRefs.current[currentSentenceIndex];
         
         if (sentenceRef && sentenceRef.current) {
           const sentenceElement = sentenceRef.current;
           
-          // Method 1: Direct scrollIntoView (most reliable)
+         
           try {
             sentenceElement.scrollIntoView({
               behavior: 'smooth',
@@ -122,7 +118,7 @@ const StoryScreen = ({
             console.error('ScrollIntoView failed:', error);
           }
           
-          // Method 2: Backup scroll using parent container
+        
           setTimeout(() => {
             const storyScrollContainer = storyTextRef.current?.parentElement;
             
@@ -131,12 +127,12 @@ const StoryScreen = ({
                 const containerRect = storyScrollContainer.getBoundingClientRect();
                 const sentenceRect = sentenceElement.getBoundingClientRect();
                 
-                // Calculate if sentence is out of view
+              
                 const isAboveView = sentenceRect.top < containerRect.top;
                 const isBelowView = sentenceRect.bottom > containerRect.bottom;
                 
                 if (isAboveView || isBelowView) {
-                  // Calculate scroll position to center the sentence
+                
                   const scrollOffset = sentenceElement.offsetTop - (storyScrollContainer.clientHeight / 2) + (sentenceElement.clientHeight / 2);
                   
                   storyScrollContainer.scrollTo({
@@ -151,14 +147,13 @@ const StoryScreen = ({
             }
           }, 200);
         }
-      }, 150); // Delay to ensure animation/state updates complete
-      
+      }, 150); 
       return () => clearTimeout(scrollTimer);
     }
-    // If NOT reading, do nothing - allow manual scrolling
+    
   }, [isReading, currentSentenceIndex, sentences.length]);
   
-  // Highlight vocabulary words in text
+
   const highlightVocabularyWords = useCallback((text) => {
     if (!filteredVocabWords || filteredVocabWords.length === 0) {
       return <span>{text}</span>;
@@ -221,19 +216,19 @@ const StoryScreen = ({
     );
   }, [filteredVocabWords]);
   
-  // Get preferred voice - UK BRITISH
+ 
   const getReadingVoice = useCallback(() => {
     if (!hasSpeech || !speechSynth) return null;
     
     const voices = speechSynth.getVoices();
     
-    // Try to find UK British voices first
+   
     const ukVoice = voices.find(voice => 
       voice.lang === 'en-GB' || 
       voice.name.includes('UK') || 
       voice.name.includes('British') ||
-      voice.name.includes('Daniel') || // Common UK voice name
-      voice.name.includes('Kate')      // Common UK voice name
+      voice.name.includes('Daniel') || 
+      voice.name.includes('Kate')      
     );
     
     if (ukVoice) {
@@ -241,20 +236,20 @@ const StoryScreen = ({
       return ukVoice;
     }
     
-    // Fallback to any English voice
+   
     const fallbackVoice = voices.find(voice => voice.lang.startsWith('en'));
     console.log('Using fallback voice:', fallbackVoice?.name);
     return fallbackVoice;
   }, [hasSpeech, speechSynth]);
   
-  // Read single sentence
+
   const readSingleSentence = useCallback((index) => {
     if (!hasSpeech || !speechSynth || readingSingleSentence || isReading) return;
     
     setReadingSingleSentence(true);
     setCurrentSentenceIndex(index);
     
-    // Mark as visited
+ 
     setVisitedSentences(prev => {
       if (!prev.includes(index)) {
         return [...prev, index];
@@ -286,14 +281,14 @@ const StoryScreen = ({
     speechSynth.speak(utterance);
   }, [hasSpeech, speechSynth, sentences, readingSingleSentence, isReading, getReadingVoice]);
   
-  // Read story aloud with improved auto-scroll
+ 
   const readStoryAloud = useCallback(() => {
     if (!hasSpeech || !speechSynth || sentences.length === 0) return;
     
-    // Cancel any ongoing speech
+   
     speechSynth.cancel();
     
-    // Scroll to top FIRST before starting
+   
     const storyScrollContainer = storyTextRef.current?.parentElement;
     if (storyScrollContainer) {
       storyScrollContainer.scrollTo({
@@ -317,10 +312,10 @@ const StoryScreen = ({
       
       console.log(`📖 Reading sentence ${currentIndex + 1}/${sentences.length}`);
       
-      // Set current sentence FIRST (triggers scroll)
+     
       setCurrentSentenceIndex(currentIndex);
       
-      // Mark as visited
+     
       setVisitedSentences(prev => {
         if (!prev.includes(currentIndex)) {
           return [...prev, currentIndex];
@@ -328,11 +323,11 @@ const StoryScreen = ({
         return prev;
       });
       
-      // Small delay before speaking to ensure scroll completes
+    
       setTimeout(() => {
         const utterance = new SpeechSynthesisUtterance(sentences[currentIndex]);
         
-        utterance.rate = 0.85; // Slightly slower for better comprehension
+        utterance.rate = 0.85;
         utterance.pitch = 1.1;
         utterance.volume = 1.0;
         
@@ -357,18 +352,17 @@ const StoryScreen = ({
           setCurrentSentenceIndex(null);
         };
         
-        // Speak the sentence
+        
         speechSynth.speak(utterance);
-      }, 300); // Wait for scroll to complete
+      }, 300); 
     };
     
-    // Start reading after initial scroll completes
+ 
     setTimeout(() => {
       readNextSentence();
     }, 500);
   }, [hasSpeech, speechSynth, sentences, getReadingVoice]);
   
-  // Stop reading
   const stopReading = useCallback(() => {
     if (hasSpeech && speechSynth) {
       speechSynth.cancel();
@@ -388,7 +382,7 @@ const StoryScreen = ({
     }
   };
   
-  // Cleanup on unmount
+  
   useEffect(() => {
     return () => {
       if (hasSpeech) {
@@ -397,7 +391,7 @@ const StoryScreen = ({
     };
   }, [hasSpeech, speechSynth]);
   
-  // Render sentences with highlights and speaker buttons
+
   const renderStoryText = () => {
     return (
       <div className={styles.sentencesContainer}>
@@ -406,7 +400,7 @@ const StoryScreen = ({
           const isVisited = visitedSentences.includes(index);
           const highlightedSentence = highlightVocabularyWords(sentence);
           
-          // Make sure the ref is created if it doesn't exist
+        
           if (!sentenceRefs.current[index]) {
             sentenceRefs.current[index] = React.createRef();
           }

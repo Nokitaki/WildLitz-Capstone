@@ -1,7 +1,3 @@
-// SummaryScreen.jsx - FINAL FIXED VERSION 🎨
-// ✅ Buttons in ONE LINE
-// ✅ Animation error FIXED
-// ✅ Episode-based completion FIXED
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -60,10 +56,10 @@ const SummaryScreen = ({
               episodesCompleted: currentEpisode,
               completionPercentage: Math.round((currentEpisode / totalEpisodes) * 100),
               isFullyCompleted: currentEpisode >= totalEpisodes,
-              questionStats: questionStats,  // âœ… Ensure this exists
+              questionStats: questionStats,  
               totalAttempts: Object.values(questionStats).reduce((sum, q) => sum + q.attempts, 0),
               correctAttempts: Object.values(questionStats).filter(q => q.finalAttempt).length,
-              accuracy: calculatedAccuracy  // âœ… Make sure this is passed
+              accuracy: calculatedAccuracy  
             },
             solvedWords,
             totalHints
@@ -188,7 +184,7 @@ const SummaryScreen = ({
             duration: 2,
             repeat: Infinity,
             repeatDelay: 3,
-            ease: "easeInOut"  // ✅ FIXED: Added ease for smooth animation
+            ease: "easeInOut"  
           }}
         >
           🏆
@@ -263,7 +259,7 @@ const SummaryScreen = ({
               }}
               whileHover={{ 
                 scale: 1.05,
-                transition: { duration: 0.2 }  // ✅ FIXED: Simplified hover animation
+                transition: { duration: 0.2 }  
               }}
               style={{ 
                 background: achievement.gradient,
@@ -324,7 +320,7 @@ const SummaryScreen = ({
                 whileHover={{ 
                   scale: 1.05,
                   boxShadow: "0 15px 30px rgba(0,0,0,0.2)",
-                  transition: { duration: 0.2 }  // ✅ FIXED: Simplified hover
+                  transition: { duration: 0.2 }  
                 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setSelectedWord(isSelected ? null : word)}

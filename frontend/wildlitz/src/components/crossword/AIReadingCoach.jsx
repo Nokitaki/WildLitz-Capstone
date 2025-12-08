@@ -1,9 +1,9 @@
-// src/components/crossword/AIReadingCoach.jsx - Ultimate Reading Helper
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/components/AIReadingCoach.module.css';
 import { API_ENDPOINTS } from '../../config/api';
-// Sentence Writing Practice Component
+
 const SentenceWritingPractice = ({ vocabularyWords, wordDictionary, onSpeak, isSpeaking }) => {
   const [selectedWord, setSelectedWord] = useState(vocabularyWords[0] || '');
   const [sentence, setSentence] = useState('');
@@ -12,7 +12,7 @@ const SentenceWritingPractice = ({ vocabularyWords, wordDictionary, onSpeak, isS
   const [showHint, setShowHint] = useState(false);
   const sentenceInputRef = useRef(null);
   
-  // Check sentence
+
   const checkSentence = () => {
     if (!sentence.trim()) {
       setFeedback({
@@ -22,7 +22,7 @@ const SentenceWritingPractice = ({ vocabularyWords, wordDictionary, onSpeak, isS
       return;
     }
     
-    // Check if sentence contains the word AND ends with punctuation
+
     const containsWord = sentence.toLowerCase().includes(selectedWord.toLowerCase());
     const endsWithPunctuation = /[.!?]$/.test(sentence);
     
@@ -32,12 +32,12 @@ const SentenceWritingPractice = ({ vocabularyWords, wordDictionary, onSpeak, isS
         message: `Perfect! Your sentence uses the word "${selectedWord}"! 🎉`
       });
       
-      // Mark word as completed
+  
       if (!completedWords.includes(selectedWord)) {
         setCompletedWords([...completedWords, selectedWord]);
       }
       
-      // Auto-move to next word after 2 seconds
+     
       setTimeout(() => {
         const currentIndex = vocabularyWords.indexOf(selectedWord);
         const nextIndex = (currentIndex + 1) % vocabularyWords.length;
@@ -58,7 +58,7 @@ const SentenceWritingPractice = ({ vocabularyWords, wordDictionary, onSpeak, isS
     }
   };
   
-  // Get sentence starters
+ 
   const getSentenceStarters = () => {
     return [
       `The ${selectedWord?.toLowerCase()} `,
@@ -76,7 +76,7 @@ const SentenceWritingPractice = ({ vocabularyWords, wordDictionary, onSpeak, isS
   
   return (
     <div className={styles.sentenceWriting}>
-      {/* Header */}
+     
       <div className={styles.practiceHeader}>
         <span className={styles.practiceIcon}>✍️</span>
         <h3>Sentence Writing Practice</h3>
@@ -231,7 +231,7 @@ const AIReadingCoach = ({
   vocabularyWords = [],
   grade = 3
 }) => {
-  // State management
+ 
   const [selectedWord, setSelectedWord] = useState('');
   const [wordData, setWordData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -240,23 +240,23 @@ const AIReadingCoach = ({
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentSubtitle, setCurrentSubtitle] = useState('');
   
-  // Refs
+ 
   const coachRef = useRef(null);
   
-  // Character configuration
+
   const character = {
     name: 'Professor Hoot',
     emoji: '🦉',
     gradient: 'linear-gradient(135deg, #7b1fa2, #9c27b0)'
   };
   
-  // Speech synthesis
+ 
   const hasSpeech = typeof window !== 'undefined' && 'speechSynthesis' in window;
   const speechSynth = hasSpeech ? window.speechSynthesis : null;
   
-  // Enhanced word dictionary with detailed information
+
   const wordDictionary = {
-    // Episode 1: Lost in the Jungle
+   
     jungle: {
       definition: "A dense forest in a tropical area with lots of trees, vines, and wild animals.",
       example: "The explorers walked carefully through the thick jungle.",
@@ -314,7 +314,7 @@ const AIReadingCoach = ({
       emoji: "⚠️"
     },
     
-    // Episode 2: The Mysterious Temple
+    
     temple: {
       definition: "A building used for worship or religious ceremonies, often very old and special.",
       example: "The ancient temple was covered with beautiful carvings and symbols.",
@@ -356,7 +356,7 @@ const AIReadingCoach = ({
       emoji: "✨"
     },
     
-    // Common Words
+   
     adventure: {
       definition: "An exciting or unusual experience, often involving some risk or danger.",
       example: "Their journey through the jungle was a thrilling adventure.",
@@ -479,7 +479,7 @@ const AIReadingCoach = ({
     }
   };
   
-  // Get voice for speech synthesis
+
   const getVoice = () => {
     if (!hasSpeech) return null;
     const voices = speechSynth.getVoices();
@@ -488,7 +488,7 @@ const AIReadingCoach = ({
            voices[0];
   };
   
-  // Speak text with subtitles
+
   const speak = (text) => {
     if (!hasSpeech) return;
     
@@ -515,16 +515,16 @@ const AIReadingCoach = ({
     speechSynth.speak(utterance);
   };
   
-  // Generate definition for words
+
   const generateDefinition = (word) => {
     const lowerWord = word.toLowerCase();
     
-    // Check dictionary first
+   
     if (wordDictionary[lowerWord]) {
       return wordDictionary[lowerWord];
     }
     
-    // Generate smart definition
+  
     let partOfSpeech = "word";
     let syllables = word;
     let emoji = "📝";
@@ -557,7 +557,7 @@ const AIReadingCoach = ({
       };
     }
     
-    // Default
+   
     return {
       definition: `This word "${word}" has special meaning in the story.`,
       example: `"${word}" helps us understand what's happening.`,
@@ -568,10 +568,10 @@ const AIReadingCoach = ({
     };
   };
   
-  // Fetch definition from GPT API - CORRECTED ENDPOINT
+
   const fetchGPTDefinition = async (word) => {
     try {
-      // IMPORTANT: Using sentence_formation endpoint, not syllabification
+     
       
         const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/explain-word/`, {
         method: 'POST',
@@ -595,7 +595,7 @@ const AIReadingCoach = ({
       const data = await response.json();
       
       if (data.success) {
-        // Transform API response to our format
+       
         return {
           definition: data.definition || `A word that means "${word}".`,
           example: data.example || `The word "${word}" is used in the story.`,
@@ -609,12 +609,12 @@ const AIReadingCoach = ({
       }
     } catch (error) {
       console.error('Error fetching definition:', error);
-      // Return fallback definition
+     
       return generateDefinition(word);
     }
   };
   
-  // Get emoji based on part of speech
+ 
   const getEmojiForPartOfSpeech = (partOfSpeech) => {
     const emojiMap = {
       'noun': '📝',
@@ -629,7 +629,7 @@ const AIReadingCoach = ({
     return emojiMap[partOfSpeech?.toLowerCase()] || '📖';
   };
   
-  // Handle word selection from vocabulary list
+  
   const handleWordSelect = async (word) => {
     if (word === selectedWord) {
       setSelectedWord('');
@@ -642,12 +642,12 @@ const AIReadingCoach = ({
     setWordData(null);
     
     try {
-      // First check local dictionary
+     
       let data;
       if (wordDictionary[word.toLowerCase()]) {
         data = wordDictionary[word.toLowerCase()];
       } else {
-        // Fetch from GPT API
+        
         data = await fetchGPTDefinition(word);
       }
       
@@ -663,7 +663,7 @@ const AIReadingCoach = ({
     }
   };
   
-  // Reading tips
+
   const readingTips = [
     {
       icon: "👀",
@@ -708,7 +708,7 @@ const AIReadingCoach = ({
         exit={{ scale: 0.9, opacity: 0, y: 20 }}
         ref={coachRef}
       >
-        {/* Header */}
+       
         <div className={styles.coachHeader} style={{ background: character.gradient }}>
           <div className={styles.characterInfo}>
             <span className={styles.characterEmoji}>{character.emoji}</span>
@@ -722,7 +722,7 @@ const AIReadingCoach = ({
           </button>
         </div>
         
-        {/* Subtitle Display */}
+      
         <AnimatePresence>
           {currentSubtitle && (
             <motion.div 
@@ -739,9 +739,9 @@ const AIReadingCoach = ({
           )}
         </AnimatePresence>
         
-        {/* Content */}
+      
         <div className={styles.coachContent}>
-          {/* Tab Navigation */}
+       
           <div className={styles.tabNav}>
             <button
               className={`${styles.tabButton} ${activeTab === 'vocabulary' ? styles.activeTab : ''}`}
@@ -766,9 +766,9 @@ const AIReadingCoach = ({
             </button>
           </div>
           
-          {/* Tab Content */}
+         
           <div className={styles.tabContent}>
-            {/* Vocabulary Tab */}
+         
             {activeTab === 'vocabulary' && (
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -781,7 +781,7 @@ const AIReadingCoach = ({
                   <p><strong>Click on any vocabulary word</strong> to hear its pronunciation, see its meaning, and learn how to use it!</p>
                 </div>
                 
-                {/* Reading Speed Control */}
+               
                 <div className={styles.speedControl}>
                   <label>
                     <span className={styles.speedLabel}>🎙️ Speaking Speed:</span>
@@ -800,7 +800,7 @@ const AIReadingCoach = ({
                   </label>
                 </div>
                 
-                {/* Vocabulary Grid */}
+              
                 <div className={styles.vocabularyGrid}>
                   {vocabularyWords.map((word, index) => {
                     const wordInfo = wordDictionary[word.toLowerCase()] || {};
@@ -820,7 +820,7 @@ const AIReadingCoach = ({
                   })}
                 </div>
                 
-                {/* Loading State */}
+               
                 {isLoading && selectedWord && (
                   <motion.div 
                     className={styles.loadingPanel}
@@ -832,7 +832,7 @@ const AIReadingCoach = ({
                   </motion.div>
                 )}
                 
-                {/* Word Details Panel */}
+              
                 <AnimatePresence>
                   {selectedWord && wordData && !isLoading && (
                     <motion.div 
@@ -903,7 +903,7 @@ const AIReadingCoach = ({
               </motion.div>
             )}
             
-            {/* Reading Tips Tab */}
+           
             {activeTab === 'tips' && (
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -935,7 +935,7 @@ const AIReadingCoach = ({
               </motion.div>
             )}
             
-            {/* Practice Tab */}
+            
             {activeTab === 'practice' && (
               <motion.div
                 initial={{ opacity: 0, x: -20 }}

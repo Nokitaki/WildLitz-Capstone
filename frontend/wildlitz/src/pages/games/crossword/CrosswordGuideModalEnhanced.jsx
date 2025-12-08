@@ -1,5 +1,3 @@
-// src/pages/games/crossword/CrosswordGuideModalEnhanced.jsx
-// OVERLAY VERSION - Appears on top of gameplay screen
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,11 +7,11 @@ import styles from '../../../styles/games/crossword/CrosswordGuideModal.module.c
 const CrosswordGuideModalEnhanced = ({ onStart, onSkip, isVisible = true }) => {
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
-  // Check if guide should be shown
+  
   useEffect(() => {
     const hasSeenGuide = localStorage.getItem('wildlitz_crossword_guide_seen');
     if (hasSeenGuide === 'true' && isVisible) {
-      // Auto-skip if they've seen it before
+      
       onStart();
     }
   }, [isVisible, onStart]);
@@ -59,13 +57,13 @@ const CrosswordGuideModalEnhanced = ({ onStart, onSkip, isVisible = true }) => {
     }
   };
 
-  // Don't render if not visible or already seen
+ 
   const hasSeenGuide = localStorage.getItem('wildlitz_crossword_guide_seen');
   if (!isVisible || hasSeenGuide === 'true') return null;
 
   return (
     <AnimatePresence>
-      {/* Dark Overlay Backdrop */}
+     
       <motion.div
         className={styles.modalOverlay}
         initial={{ opacity: 0 }}
@@ -73,7 +71,7 @@ const CrosswordGuideModalEnhanced = ({ onStart, onSkip, isVisible = true }) => {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
       >
-        {/* Modal Container */}
+       
         <motion.div 
           className={styles.modalContainer}
           initial={{ scale: 0.8, opacity: 0, y: 50 }}
@@ -135,7 +133,7 @@ const CrosswordGuideModalEnhanced = ({ onStart, onSkip, isVisible = true }) => {
             ))}
           </div>
 
-          {/* Don't show again checkbox */}
+         
           <motion.div 
             className={styles.checkboxSection}
             initial={{ opacity: 0 }}

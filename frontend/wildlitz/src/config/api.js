@@ -1,10 +1,7 @@
-// src/config/api.js
-// Centralized API configuration for frontend
 
-// Get API base URL from environment variable or use localhost as fallback
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-// Export specific API endpoints
+
 export const API_ENDPOINTS = {
   API_BASE_URL: `${API_BASE_URL}/api`,
   AUTH: `${API_BASE_URL}/api/auth`,
@@ -15,12 +12,12 @@ export const API_ENDPOINTS = {
   STORY: `${API_BASE_URL}/api/sentence_formation/story`,
 };
 
-// Helper function to check if we're in development mode
+
 export const isDevelopment = () => {
   return import.meta.env.MODE === 'development';
 };
 
-// Log API configuration in development
+
 if (isDevelopment()) {
   console.log('API Configuration:', {
     baseUrl: API_BASE_URL,

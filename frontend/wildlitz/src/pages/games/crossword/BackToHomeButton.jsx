@@ -1,11 +1,11 @@
-// src/components/common/BackToHomeButton.jsx
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/crossword/BackToHomeButton.module.css';
 
 const BackToHomeButton = ({ 
-  position = 'top-left', // 'top-left', 'top-right', 'bottom-left', 'bottom-right'
+  position = 'top-left', 
   showIcon = true,
   customMessage = null
 }) => {
@@ -18,11 +18,9 @@ const BackToHomeButton = ({
 
  const handleConfirmExit = () => {
   
-  
-  // 🔥 ADD THIS LINE - Stop audio when exiting
   if (window.disableGameAudio) window.disableGameAudio();
   
-  setShowModal(false);  // ✅ CORRECT: Use setShowModal instead
+  setShowModal(false);
   navigate('/home');
 };
 

@@ -1,4 +1,4 @@
-// src/components/crossword/AdaptiveHintSystem.jsx
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/components/AdaptiveHintSystem.module.css';
@@ -13,36 +13,36 @@ const AdaptiveHintSystem = ({
   onClose,
   onUseHint
 }) => {
-  // State management
+ 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [hints, setHints] = useState([]);
   const [currentHintIndex, setCurrentHintIndex] = useState(0);
   const [availableHints, setAvailableHints] = useState(3);
   
-  // Generate hints when component mounts
+  
   useEffect(() => {
     if (word && availableHints > 0) {
       generateHints();
     }
   }, [word]);
   
-  // Generate adaptive hints based on word and context
+ 
   const generateHints = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // Create hints that reveal random letters in the word
-      let unrevealedIndices = [...Array(word.length).keys()]; // indices 0 to word.length-1
+     
+      let unrevealedIndices = [...Array(word.length).keys()]; 
       let generatedHints = [];
       
-      // First hint - reveal one random letter
+     
       if (unrevealedIndices.length > 0) {
         const randomIndex = Math.floor(Math.random() * unrevealedIndices.length);
         const letterIndex = unrevealedIndices[randomIndex];
         
-        // Create hint text that shows the position of the letter
+       
         let hintDisplay = '';
         for (let i = 0; i < word.length; i++) {
           if (i === letterIndex) {
@@ -60,16 +60,16 @@ const AdaptiveHintSystem = ({
           letter: word[letterIndex]
         });
         
-        // Remove the revealed index
+        
         unrevealedIndices.splice(randomIndex, 1);
       }
       
-      // Second hint - reveal another random letter
+     
       if (unrevealedIndices.length > 0) {
         const randomIndex = Math.floor(Math.random() * unrevealedIndices.length);
         const letterIndex = unrevealedIndices[randomIndex];
         
-        // Create hint text that shows all revealed letters so far
+       
         let hintDisplay = '';
         for (let i = 0; i < word.length; i++) {
           if (i === letterIndex || word[i] === generatedHints[0].letter) {
@@ -87,11 +87,11 @@ const AdaptiveHintSystem = ({
           letter: word[letterIndex]
         });
         
-        // Remove the revealed index
+        
         unrevealedIndices.splice(randomIndex, 1);
       }
       
-      // Third hint - reveal the whole word
+      
       generatedHints.push({
         level: 3,
         text: `The answer is "${word}": ${word.split('').join(' ')}`,
@@ -108,33 +108,33 @@ const AdaptiveHintSystem = ({
     }
   };
   
-  // Use a hint
+ 
   const useHint = () => {
     if (hints.length === 0 || currentHintIndex >= hints.length || availableHints <= 0) {
       return;
     }
     
-    // Get the current hint
+   
     const hint = hints[currentHintIndex];
     
-    // Update state
+   
     setAvailableHints(prev => prev - 1);
     setCurrentHintIndex(prev => prev + 1);
     
-    // Call the parent callback
+   
     if (onUseHint) {
       onUseHint(hint);
     }
   };
   
-  // Close the hint system
+
   const handleClose = () => {
     if (onClose) {
       onClose();
     }
   };
   
-  // Determine if more hints are available
+ 
   const canUseMoreHints = availableHints > 0 && currentHintIndex < hints.length;
   
   return (

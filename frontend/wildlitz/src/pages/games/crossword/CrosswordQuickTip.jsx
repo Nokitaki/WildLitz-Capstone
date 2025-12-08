@@ -1,5 +1,3 @@
-// src/pages/games/crossword/CrosswordQuickTip.jsx
-// Compact tip component for gameplay screen
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,10 +8,10 @@ const CrosswordQuickTip = ({ onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Check if tip has been seen before
+    
     const tipSeen = localStorage.getItem('wildlitz_crossword_quick_tip_seen');
     if (!tipSeen) {
-      // Show tip after a short delay
+     
       const timer = setTimeout(() => {
         setIsVisible(true);
       }, 500);

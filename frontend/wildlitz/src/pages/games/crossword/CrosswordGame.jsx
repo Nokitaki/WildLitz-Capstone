@@ -1,5 +1,3 @@
-// src/pages/games/crossword/CrosswordGame.jsx
-// COMPLETE VERSION WITH CROSSWORD GUIDE MODAL INTEGRATION
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,75 +5,73 @@ import styles from '../../../styles/games/crossword/CrosswordGame.module.css';
 import { GameLoadingScreen, CrosswordGridLoader } from '../../../components/common/LoadingStates';
 import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
 
-// Import game screens
+
 import StoryScreen from './StoryScreen';
 import GameplayScreen from './GameplayScreen';
 import SummaryScreen from './SummaryScreen';
 import SentenceBuilderScreen from './SentenceBuilderScreen';
 import StoryGeneratorScreen from './StoryGeneratorScreen';
 
-// âœ… NEW: Import the CrosswordGuideModal
+
 import CrosswordGuideModal from '../crossword/CrosswordGuideModalEnhanced';
 
-// Import AI components
+
 import AIReadingCoach from '../../../components/crossword/AIReadingCoach';
 import AdaptiveHintSystem from '../../../components/crossword/AdaptiveHintSystem';
 import { useAuth } from '../../../context/AuthContext';
 
-// Import mock data
+
 import { STORY_ADVENTURES, STORY_PUZZLES } from '../../../mock/storyData';
 import { API_ENDPOINTS } from '../../../config/api';
-/**
- * Main Crossword Puzzle Game component that manages game state and flow
- */
+
 const CrosswordGame = () => {
   
   const [questionStats, setQuestionStats] = React.useState({});
   
-  // Game states
+  
   const [gameState, setGameState] = useState('generate-story');
   
   const { user, isAuthenticated } = useAuth();
 
-  // Game configuration
+ 
   const [gameConfig, setGameConfig] = useState({
     storyMode: true,
     adventureId: 'jungle_quest'
   });
   
-  // Story tracking
+
 
   
   const [storyProgress, setStoryProgress] = useState({});
   
-  // Story and puzzle data
+
   const [gameStories, setGameStories] = useState(STORY_ADVENTURES);
   const [gamePuzzles, setGamePuzzles] = useState(STORY_PUZZLES);
   
-  // Current game data
+
   const [currentStorySegment, setCurrentStorySegment] = useState(null);
   const [currentPuzzle, setCurrentPuzzle] = useState(null);
   
 
-  // Add new state for progressive generation
+ 
   const [isGeneratingNextEpisode, setIsGeneratingNextEpisode] = useState(false);
   const [generationError, setGenerationError] = useState(null);
 
-  // Game progress
+
   const [solvedWords, setSolvedWords] = useState([]);
   const [timeSpent, setTimeSpent] = useState(0);
   const [totalHints, setTotalHints] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   
-  // Available puzzles in current episode
+ 
   const [availablePuzzles, setAvailablePuzzles] = useState([]);
   const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(0);
   
-  // Reading coach
+ 
   const [showReadingCoach, setShowReadingCoach] = useState(false);
   const [currentEpisode, setCurrentEpisode] = useState(1);
-  const [totalEpisodes, setTotalEpisodes] = useState(1); // ✅ ADD THIS
+  const [totalEpisodes, setTotalEpisodes] = useState(1); 
   
  
   
@@ -83,7 +79,7 @@ const CrosswordGame = () => {
   
 }, [showReadingCoach]);
 
-  // Timer for tracking time spent
+  
   useEffect(() => {
     let interval;
     if (timerActive) {
@@ -94,14 +90,14 @@ const CrosswordGame = () => {
     return () => clearInterval(interval);
   }, [timerActive]);
 
-  // Format time for display
+  
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  // Initialize available puzzles when story segment changes
+ 
   useEffect(() => {
     if (currentStorySegment && gamePuzzles) {
       const mainPuzzleId = currentStorySegment.crosswordPuzzleId;
@@ -128,13 +124,13 @@ const CrosswordGame = () => {
   setQuestionStats(prev => {
     const existing = prev[word] || { attempts: 0, score: 0, finalAttempt: false };
     
-    // If already finalized, don't update
+    
     if (existing.finalAttempt) {
       return prev;
     }
     
     if (isCorrect) {
-      // Calculate score based on attempt number
+     
       let score = 0;
       if (attemptNumber === 1) score = 100;
       else if (attemptNumber === 2) score = 50;
@@ -146,11 +142,11 @@ const CrosswordGame = () => {
         [word]: { 
           attempts: attemptNumber, 
           score,
-          finalAttempt: true // Mark as finalized
+          finalAttempt: true 
         }
       };
     } else {
-      // Wrong attempt - just update attempt count
+      
       return {
         ...prev,
         [word]: { 
@@ -167,7 +163,7 @@ const CrosswordGame = () => {
    const calculateAccuracy = React.useCallback(() => {
   const questions = Object.values(questionStats);
   
-  // Only count finalized questions (where student got it correct eventually)
+  
   const finalizedQuestions = questions.filter(q => q.finalAttempt);
   
   if (finalizedQuestions.length === 0) return 0;
@@ -176,7 +172,7 @@ const CrosswordGame = () => {
   const maxPossibleScore = finalizedQuestions.length * 100;
   const accuracy = (totalScore / maxPossibleScore) * 100;
   
-  return Math.round(accuracy * 10) / 10; // Round to 1 decimal
+  return Math.round(accuracy * 10) / 10;
 }, [questionStats]);
 
 
@@ -327,7 +323,7 @@ const sessionData = {
   
  const handleContinueToPuzzle = () => {
   setGameState('gameplay');
-  setTimerActive(true); // âœ… START TIMER
+  setTimerActive(true); 
 };
   
   
@@ -345,11 +341,11 @@ const sessionData = {
         definition,
         example,
         timestamp: new Date(),
-        hintsUsed: hintsUsedForWord  // âœ… STORE hints with the word
+        hintsUsed: hintsUsedForWord  
       }
     ]);
     
-    // âœ… FIX: Make sure hints are accumulated correctly
+   
     if (hintsUsedForWord > 0) {
       setTotalHints(prev => {
         const newTotal = prev + hintsUsedForWord;
@@ -383,11 +379,11 @@ const sessionData = {
     return;
   }
   
-  const nextEpisodeIndex = currentEpisode; // Next episode (currentEpisode is 0-indexed for array)
+  const nextEpisodeIndex = currentEpisode; 
   
-  // Check if we've already generated this episode
+ 
   if (nextEpisodeIndex < adventure.episodes.length) {
-    // Episode already exists, just load it
+    
     const nextEpisode = adventure.episodes[nextEpisodeIndex];
     setCurrentStorySegment(nextEpisode);
     setCurrentEpisode(currentEpisode + 1);
@@ -404,18 +400,18 @@ const sessionData = {
     
     setGameState('story');
   } 
-  // Check if we need to generate the next episode
+  
   else if (adventure.generatedEpisodes < adventure.totalEpisodes) {
-    // â­ GENERATE NEXT EPISODE ON-DEMAND
+   
     await generateNextEpisodeOnDemand();
   } 
   else {
-    // All episodes completed
+   
     setGameState('generate-story');
   }
 };
 
-// â­ NEW FUNCTION: Generate next episode on demand
+
 const generateNextEpisodeOnDemand = async () => {
   const adventure = gameStories[gameConfig.adventureId];
   const nextEpisodeNumber = adventure.generatedEpisodes + 1;
@@ -424,7 +420,7 @@ const generateNextEpisodeOnDemand = async () => {
   setGenerationError(null);
   
   try {
-    // Gather previous episodes for context
+   
     const previousEpisodes = adventure.episodes.map(ep => ({
       title: ep.title,
       text: ep.text,
@@ -452,7 +448,7 @@ const generateNextEpisodeOnDemand = async () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(requestBody),
-        signal: AbortSignal.timeout(28000) // 28-second timeout
+        signal: AbortSignal.timeout(28000) 
       }
     );
     
@@ -466,32 +462,31 @@ const generateNextEpisodeOnDemand = async () => {
       throw new Error('Invalid response from server');
     }
     
-    // Add new episode to story
     const updatedStory = {
       ...adventure,
       episodes: [...adventure.episodes, data.episode],
       generatedEpisodes: nextEpisodeNumber
     };
     
-    // Add new puzzle
+
     const updatedPuzzles = {
       ...gamePuzzles,
       ...data.puzzle
     };
     
-    // Update state
+    
     setGameStories({
       ...gameStories,
       [gameConfig.adventureId]: updatedStory
     });
     setGamePuzzles(updatedPuzzles);
     
-    // Set new episode as current
+    
     setCurrentStorySegment(data.episode);
     setCurrentEpisode(currentEpisode + 1);
     setCurrentPuzzle(data.puzzle[data.episode.crosswordPuzzleId]);
     
-    // Reset game state
+   
     setSolvedWords([]);
     setTimeSpent(0);
     setTotalHints(0);
@@ -524,7 +519,7 @@ const generateNextEpisodeOnDemand = async () => {
     <div className={styles.container}>
    <AnimatePresence mode="wait">
   {(() => {
-    // âœ… ONLY RENDER ONE CHILD AT A TIME
+   
     if (isGeneratingNextEpisode) {
       return (
         <motion.div
@@ -718,8 +713,8 @@ const generateNextEpisodeOnDemand = async () => {
         totalEpisodes={gameStories[gameConfig.adventureId]?.totalEpisodes || 1}
         hasNextEpisode={currentEpisode < (gameStories[gameConfig.adventureId]?.totalEpisodes || 0)}
         sessionId={sessionId}
-        questionStats={questionStats}  // ✅ ADD THIS LINE
-        calculatedAccuracy={calculateAccuracy()}  // ✅ ADD THIS LINE
+        questionStats={questionStats}  
+        calculatedAccuracy={calculateAccuracy()}  
       />
     </motion.div>
   );

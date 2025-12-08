@@ -1,4 +1,4 @@
-// src/pages/games/crossword/GameplayScreen.jsx - WITH AUDIO FEATURES
+
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BackToHomeButton from '../crossword/BackToHomeButton';
@@ -19,9 +19,9 @@ const GameplayScreen = ({
   totalEpisodes = 1,
   sessionId,
   onAnswerAttempt,
-  onPuzzleComplete  // ✅ ADD THIS LINE
+  onPuzzleComplete  
 }) => {
-  // State management
+  
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [selectedClue, setSelectedClue] = useState(null);
   const [hintsRemaining, setHintsRemaining] = useState(3);
@@ -37,16 +37,16 @@ const GameplayScreen = ({
 
   const [currentWordAttempts, setCurrentWordAttempts] = React.useState(0);
   
-  // NEW: Audio state for reading questions and choices
+  
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [revealedLetters, setRevealedLetters] = useState({}); // Track revealed letters per word
+  const [revealedLetters, setRevealedLetters] = useState({}); 
 
   const gridInitializedRef = useRef(false);
   const wordStartTime = useRef(Date.now());
   const hintsUsedForCurrentWordRef = useRef(0);
   const celebrationTimeoutRef = useRef(null);
   const feedbackTimeoutRef = useRef(null);
-  const speechSynthRef = useRef(null); // For speech synthesis
+  const speechSynthRef = useRef(null); 
 
   const INITIAL_HINTS = 3;
 
@@ -54,10 +54,10 @@ const GameplayScreen = ({
 
   const [showGuide, setShowGuide] = useState(() => {
   const hasSeenGuide = localStorage.getItem('wildlitz_crossword_guide_seen');
-  // Only show guide on episode 1 if user hasn't seen it before
+ 
   return hasSeenGuide !== 'true' && currentEpisode === 1;
 });
-  // Validation
+  
   if (!puzzle || !puzzle.words || !Array.isArray(puzzle.words)) {
     return (
       <div style={{ 
@@ -75,7 +75,7 @@ const GameplayScreen = ({
     );
   }
 
-  // Define currentWord early, before functions that use it
+
   const currentWord = puzzle.words[currentWordIndex];
   const totalWords = puzzle.words.length;
   const solvedCount = Object.keys(solvedClues).length;
@@ -83,7 +83,7 @@ const GameplayScreen = ({
 
 useEffect(() => {
   const hasSeenGuide = localStorage.getItem('wildlitz_crossword_guide_seen');
-  // Hide guide if already seen OR if not on episode 1
+ 
   if (hasSeenGuide === 'true' || currentEpisode > 1) {
     setShowGuide(false);
   }
@@ -99,7 +99,7 @@ const handleAnswerSelection = useCallback((choiceIndex) => {
 
     const isCorrect = selectedChoice === currentWord.answer;
     
-    // ✅ TRACK ATTEMPT:
+  
     if (onAnswerAttempt) {
       onAnswerAttempt({
         word: currentWord.answer,
@@ -110,11 +110,11 @@ const handleAnswerSelection = useCallback((choiceIndex) => {
     }
 
     if (isCorrect) {
-      // Handle correct answer
+     
       setFeedback({ type: 'correct', message: 'Correct! 🎉' });
-      // ... rest of correct logic ...
+      
     } else {
-      // Handle wrong answer
+     
       setFeedback({ type: 'incorrect', message: 'Try again!' });
       
       setTimeout(() => {
@@ -126,7 +126,7 @@ const handleAnswerSelection = useCallback((choiceIndex) => {
 
   
 
-// Add these handlers
+
 const handleStartFromGuide = () => {
   setShowGuide(false);
   
@@ -137,40 +137,40 @@ const handleSkipGuide = () => {
  
 };
 
-  // Initialize speech synthesis and load voices
+ 
   useEffect(() => {
     if ('speechSynthesis' in window) {
       speechSynthRef.current = window.speechSynthesis;
       
-      // Load voices - some browsers load them asynchronously
+     
       const loadVoices = () => {
         const voices = speechSynthRef.current.getVoices();
         
       };
       
-      // Try loading voices immediately
+   
       loadVoices();
       
-      // Also listen for voiceschanged event (for Chrome)
+     
       if (speechSynthRef.current.onvoiceschanged !== undefined) {
         speechSynthRef.current.onvoiceschanged = loadVoices;
       }
     }
   }, []);
 
-  // NEW: Function to speak text using Web Speech API with British UK voice
+ 
   const speakText = useCallback((text) => {
     if (!speechSynthRef.current) return;
     
-    // Cancel any ongoing speech
+   
     speechSynthRef.current.cancel();
     
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9; // Slightly slower for kids
-    utterance.pitch = 1.0; // Normal pitch for UK voice
+    utterance.rate = 0.9; 
+    utterance.pitch = 1.0; 
     utterance.volume = 1;
     
-    // Get British English voice
+  
     const voices = speechSynthRef.current.getVoices();
     const ukVoice = voices.find(voice => 
       voice.lang === 'en-GB' || 
@@ -180,7 +180,7 @@ const handleSkipGuide = () => {
     if (ukVoice) {
       utterance.voice = ukVoice;
     } else {
-      utterance.lang = 'en-GB'; // Fallback to British English
+      utterance.lang = 'en-GB'; 
     }
     
     utterance.onstart = () => setIsPlayingAudio(true);
@@ -190,19 +190,19 @@ const handleSkipGuide = () => {
     speechSynthRef.current.speak(utterance);
   }, []);
 
-  // NEW: Function to read the current question/clue
+ 
   const readQuestion = useCallback(() => {
     if (currentWord?.clue) {
       speakText(currentWord.clue);
     }
   }, [currentWord, speakText]);
 
-  // NEW: Function to read a choice when clicked
+ 
   const readChoice = useCallback((choice) => {
     speakText(choice);
   }, [speakText]);
 
-  // 🔥 OPTIMIZATION: Memoize computed values
+ 
   const gridWidth = useMemo(() => {
     const maxLength = Math.max(...puzzle.words.map(w => w.answer.length));
     return maxLength + 2;
@@ -210,7 +210,7 @@ const handleSkipGuide = () => {
 
   const gridHeight = useMemo(() => puzzle.words.length * 2, [puzzle.words.length]);
 
-  // 🔥 OPTIMIZATION: Memoized grid creation
+ 
   const createSimpleGrid = useCallback(() => {
     const cells = [];
     for (let row = 0; row < gridHeight; row++) {
@@ -249,7 +249,7 @@ const handleSkipGuide = () => {
     setGridCells(cells);
   }, [puzzle.words, gridWidth, gridHeight]);
 
-  // Initialize grid once
+ 
   useEffect(() => {
     if (!gridInitializedRef.current) {
       createSimpleGrid();
@@ -257,14 +257,14 @@ const handleSkipGuide = () => {
     }
   }, [createSimpleGrid]);
 
-  // Set initial selected clue
+
   useEffect(() => {
     if (puzzle?.words?.length > 0 && !selectedClue) {
       setSelectedClue(puzzle.words[0]);
     }
   }, [puzzle, selectedClue]);
 
-  // 🔥 OPTIMIZATION: Debounced choice generation
+ 
   useEffect(() => {
     if (currentWord && !solvedClues[currentWord.answer]) {
       generateChoicesForClue(currentWord);
@@ -275,7 +275,7 @@ const handleSkipGuide = () => {
     }
   }, [currentWordIndex, currentWord?.answer]);
 
-  // Sync solved clues
+ 
   useEffect(() => {
   if (solvedWords?.length > 0) {
     const solved = {};
@@ -290,7 +290,7 @@ const handleSkipGuide = () => {
   }
 }, [solvedWords, puzzle.words]);
 
-  // 🔥 OPTIMIZATION: Cleanup timeouts on unmount
+ 
   useEffect(() => {
     return () => {
       if (celebrationTimeoutRef.current) clearTimeout(celebrationTimeoutRef.current);
@@ -301,7 +301,7 @@ const handleSkipGuide = () => {
     };
   }, []);
 
-  // 🔥 OPTIMIZATION: Memoized update grid function
+ 
   const updateGridWithWord = useCallback((word) => {
     if (!word) return;
     
@@ -323,18 +323,17 @@ const handleSkipGuide = () => {
     });
   }, [puzzle.words]);
 
-  // NEW: Function to reveal one letter in the grid (for hints)
+ 
   const revealOneLetter = useCallback((word) => {
     if (!word) return;
     
     const wordIdx = puzzle.words.findIndex(w => w.answer === word.answer);
     if (wordIdx === -1) return;
 
-    // Get already revealed letters for this word
+  
     const wordKey = `${wordIdx}-${word.answer}`;
     const revealed = revealedLetters[wordKey] || [];
-    
-    // Find unrevealed letter indices
+   
     const unrevealedIndices = [];
     for (let i = 0; i < word.answer.length; i++) {
       if (!revealed.includes(i)) {
@@ -342,18 +341,18 @@ const handleSkipGuide = () => {
       }
     }
     
-    if (unrevealedIndices.length === 0) return; // All letters already revealed
+    if (unrevealedIndices.length === 0) return; 
     
-    // Pick a random unrevealed letter
+  
     const randomIdx = unrevealedIndices[Math.floor(Math.random() * unrevealedIndices.length)];
     
-    // Update revealed letters tracking
+   
     setRevealedLetters(prev => ({
       ...prev,
       [wordKey]: [...(prev[wordKey] || []), randomIdx]
     }));
     
-    // Update grid to show the letter
+   
     setGridCells(prevCells => {
       const newCells = [...prevCells];
       const row = wordIdx * 2;
@@ -372,7 +371,7 @@ const handleSkipGuide = () => {
     });
   }, [puzzle.words, revealedLetters, gridWidth]);
 
-  // Generate answer choices
+ 
   const generateChoicesForClue = useCallback((clue) => {
     if (!clue?.answer) return;
 
@@ -407,11 +406,10 @@ const handleSkipGuide = () => {
     setAnswerChoices(choices.sort(() => Math.random() - 0.5));
   }, [puzzle.words]);
 
-  // 🔥 OPTIMIZATION: Memoized celebration trigger with enhanced confetti
   const triggerCelebration = useCallback(() => {
     setShowCelebration(true);
     
-    // Create more confetti pieces with better distribution
+    
     const pieces = Array.from({ length: 50 }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
@@ -428,14 +426,14 @@ const handleSkipGuide = () => {
     }, 3000);
   }, []);
 
-  // Move to next word
+
   const moveToNextWord = useCallback(() => {
   let nextIndex = currentWordIndex + 1;
   
   if (nextIndex >= puzzle.words.length) {
     const allSolved = puzzle.words.every((_, idx) => solvedClues[idx]);
     if (allSolved) {
-      // ✅ FIX: Call the completion handler when all words are solved
+    
       if (onPuzzleComplete) {
         onPuzzleComplete();
       }
@@ -448,14 +446,11 @@ const handleSkipGuide = () => {
   
   setCurrentWordIndex(nextIndex);
   setSelectedClue(puzzle.words[nextIndex]);
-}, [currentWordIndex, puzzle.words, solvedClues, onPuzzleComplete]);  // ✅ Add onPuzzleComplete to dependencies
+}, [currentWordIndex, puzzle.words, solvedClues, onPuzzleComplete]); 
 
-  // Handle answer selection WITH AUDIO
   const handleSelectAnswer = useCallback((choice) => {
     if (feedback || isCurrentWordSolved) return;
     
-    
-    // Read the choice aloud
     readChoice(choice);
     
     setSelectedAnswer(choice);
@@ -473,29 +468,28 @@ const handleSkipGuide = () => {
   const correctAnswer = currentWord.answer;
   const isCorrect = selectedAnswer.toUpperCase() === correctAnswer.toUpperCase();
   
-  // Increment attempt counter
+
   const attemptNumber = currentWordAttempts + 1;
   setCurrentWordAttempts(attemptNumber);
   
-  // ✅ LOG EVERY ATTEMPT (correct or wrong)
+ 
   if (onAnswerAttempt) {
     onAnswerAttempt(correctAnswer, isCorrect, attemptNumber);
   }
   
-  // Set feedback message
   setFeedback({ 
     type: isCorrect ? 'success' : 'error',
     message: isCorrect ? `Correct! "${correctAnswer}" is the right answer!` : 'Try again!'
   });
 
   if (isCorrect) {
-    // ✅ ONLY mark as solved if answer is correct
+   
     setSolvedClues(prev => ({ ...prev, [currentWordIndex]: true }));
     updateGridWithWord(currentWord);
     
     const wordTimeSpent = Math.floor((Date.now() - wordStartTime.current) / 1000);
     
-    // Log analytics
+  
     if (sessionId) {
       try {
         await crosswordAnalyticsService.logWordSolved(
@@ -515,13 +509,13 @@ const handleSkipGuide = () => {
       }
     }
     
-    // Call parent's word solved handler
+  
     onWordSolved(correctAnswer, currentWord.definition || '', currentWord.example || '', hintsUsedForCurrentWordRef.current);
     
-    // Show celebration
+   
     triggerCelebration();
     
-    // Move to next word after delay
+   
     if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
     feedbackTimeoutRef.current = setTimeout(() => {
       setFeedback(null);
@@ -529,11 +523,11 @@ const handleSkipGuide = () => {
       moveToNextWord();
     }, 1500);
   } else {
-    // ❌ Wrong answer - DON'T mark as solved, just clear feedback and allow retry
+   
     if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
     feedbackTimeoutRef.current = setTimeout(() => {
       setFeedback(null);
-      setSelectedAnswer(null); // Clear selection so they can try again
+      setSelectedAnswer(null); 
     }, 2000);
   }
 }, [
@@ -551,13 +545,6 @@ const handleSkipGuide = () => {
 ]);
 
 
-
-
-
-
-
-
-  // Navigation handlers
   const handleNext = useCallback(() => {
     if (currentWordIndex < totalWords - 1) {
       setCurrentWordIndex(prev => prev + 1);
@@ -588,14 +575,14 @@ const handleSkipGuide = () => {
     setFeedback(null);
   }, [puzzle.words]);
 
-  // MODIFIED: Hint now reveals one letter instead of the whole answer
+ 
   const handleUseHint = useCallback(() => {
     if (hintsRemaining > 0 && !isCurrentWordSolved) {
     
       setHintsRemaining(prev => prev - 1);
       hintsUsedForCurrentWordRef.current += 1;
       
-      // Reveal one letter in the grid
+   
       revealOneLetter(currentWord);
       
       setShowHintTooltip(true);
@@ -603,14 +590,14 @@ const handleSkipGuide = () => {
     }
   }, [hintsRemaining, isCurrentWordSolved, currentWord, revealOneLetter]);
 
-  // 🔥 OPTIMIZATION: Memoized word status
+  
 const getWordStatus = useCallback((word, idx) => {
   if (solvedClues[idx]) return 'solved';
   if (idx === currentWordIndex) return 'current';
   return 'pending';
 }, [solvedClues, currentWordIndex]);
 
-  // 🔥 OPTIMIZATION: Memoized grid rendering with larger cells
+ 
   const renderedGrid = useMemo(() => {
     return puzzle.words.map((word, idx) => {
       const status = getWordStatus(word);

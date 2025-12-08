@@ -1,9 +1,9 @@
-// src/components/common/LoadingStates.jsx - COMPLETE WITH ALL EXPORTS
+
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/components/LoadingStates.module.css';
 
-// Generic loading spinner
+
 export const LoadingSpinner = ({ size = 'medium', message = 'Loading...' }) => {
   const sizeClasses = {
     small: styles.small,
@@ -25,16 +25,15 @@ export const LoadingSpinner = ({ size = 'medium', message = 'Loading...' }) => {
   );
 };
 
-// ⭐ FULL SCREEN IMMERSIVE Story Loading Screen with REALISTIC Progress
-// ✅ FIXED: Changed icon from ugly symbol to beautiful book/story icon
+
 export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adventure...', showWarning = false }) => {
-  // ✅ LOCAL STATE for smooth realistic progress animation
+  
   const [displayProgress, setDisplayProgress] = useState(0);
   
-  // ✅ Animate progress smoothly when prop changes
+  
   useEffect(() => {
-    const animationDuration = 800; // 800ms for smooth transition
-    const steps = 60; // 60 frames
+    const animationDuration = 800; 
+    const steps = 60; 
     const stepDuration = animationDuration / steps;
     const progressDiff = progress - displayProgress;
     const progressStep = progressDiff / steps;
@@ -46,7 +45,7 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
         const newProgress = prev + progressStep;
         if (currentStep >= steps) {
           clearInterval(interval);
-          return progress; // Ensure we end exactly at target
+          return progress;
         }
         return newProgress;
       });
@@ -69,7 +68,7 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
     progressMessages.length - 1
   )];
   
-  // ✅ Floating particles (emojis)
+ 
   const particles = ['📚', '✏️', '🎨', '⭐', '🌈', '🦋', '🎭', '🎪'];
   const [particlePositions, setParticlePositions] = useState([]);
   
@@ -85,10 +84,10 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
   
   return (
     <div className={styles.fullscreenLoadingContainer}>
-      {/* Gradient Background */}
+     
       <div className={styles.gradientBackground} />
       
-      {/* Floating Particles */}
+     
       <div className={styles.particlesContainer}>
         {particles.map((emoji, index) => (
           <motion.div
@@ -118,7 +117,7 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
       
       {/* Main Content */}
       <div className={styles.fullscreenContent}>
-        {/* ✅ FIXED: Hero Icon - Changed to beautiful story/magic book icon */}
+       
         <motion.div
           className={styles.heroIcon}
           animate={{ 
@@ -230,7 +229,7 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
   );
 };
 
-// Game loading screen
+
 export const GameLoadingScreen = ({ message = 'Loading your game...', subMessage = '' }) => {
   return (
     <div className={styles.gameLoadingContainer}>
@@ -240,7 +239,7 @@ export const GameLoadingScreen = ({ message = 'Loading your game...', subMessage
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Puzzle pieces animation */}
+       
         <div className={styles.puzzleContainer}>
           {[...Array(4)].map((_, i) => (
             <motion.div
@@ -275,7 +274,7 @@ export const GameLoadingScreen = ({ message = 'Loading your game...', subMessage
   );
 };
 
-// ✅ ADD: CrosswordGridLoader - Missing export that was causing the error
+
 export const CrosswordGridLoader = ({ message = 'Preparing your crossword...' }) => {
   return (
     <div className={styles.gameLoadingContainer}>
@@ -285,7 +284,7 @@ export const CrosswordGridLoader = ({ message = 'Preparing your crossword...' })
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Crossword grid animation */}
+      
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(5, 40px)', 
@@ -316,7 +315,7 @@ export const CrosswordGridLoader = ({ message = 'Preparing your crossword...' })
 
         <h2 className={styles.gameLoadingTitle}>{message}</h2>
         
-        {/* Pulsing loader */}
+       
         <motion.div 
           className={styles.pulseLoader}
           animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
@@ -327,7 +326,7 @@ export const CrosswordGridLoader = ({ message = 'Preparing your crossword...' })
   );
 };
 
-// Word loading animation
+
 export const WordLoadingAnimation = ({ word = 'LOADING' }) => {
   return (
     <div className={styles.wordLoadingContainer}>
@@ -352,7 +351,7 @@ export const WordLoadingAnimation = ({ word = 'LOADING' }) => {
   );
 };
 
-// Skeleton loading for content
+
 export const SkeletonLoader = ({ lines = 3, width = '100%', height = '20px' }) => {
   return (
     <div className={styles.skeletonContainer}>

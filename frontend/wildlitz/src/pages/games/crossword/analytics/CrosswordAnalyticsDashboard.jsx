@@ -1,4 +1,4 @@
-// CrosswordAnalyticsDashboard.jsx - UPDATED to use modular components
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -6,12 +6,12 @@ import { useAuth } from '../../../../context/AuthContext';
 import crosswordAnalyticsService from '../../../../services/crosswordAnalyticsService';
 import { API_ENDPOINTS } from '../../../../config/api';
 
-// Import modular components
+
 import StatsCards from './StatsCards';
 import ChallengingWordsSection from './ChallengingWordsSection';
 import GameSessionsList from './GameSessionsList';
 
-// Import CSS
+
 import styles from '../../../../styles/games/crossword/analytics/CrosswordAnalyticsDashboard.module.css';
 
 const CrosswordAnalyticsDashboard = () => {
@@ -29,7 +29,7 @@ const CrosswordAnalyticsDashboard = () => {
         setLoading(true);
         const userEmail = user?.email || 'guest@wildlitz.com';
         
-        // Fetch analytics from past year
+       
         const analyticsData = await crosswordAnalyticsService.getAnalytics({
           user_email: userEmail,
           days: 365
@@ -42,7 +42,7 @@ const CrosswordAnalyticsDashboard = () => {
   setGameSessions(analyticsData.analytics.recent_sessions || []);
 }
 
-        // Fetch word performance
+       
         const wordResponse = await fetch(
           `${API_ENDPOINTS.SENTENCE_FORMATION}/story/word-performance/?user_email=${userEmail}`
         );
@@ -93,13 +93,13 @@ const CrosswordAnalyticsDashboard = () => {
         <p className={styles.dashboardSubtitle}>Track student progress at a glance</p>
       </div>
 
-      {/* Stats Overview Cards */}
+    
       <StatsCards analytics={analytics} />
 
-      {/* Challenging Words Section */}
+      
       <ChallengingWordsSection wordPerformance={wordPerformance} />
 
-      {/* Game Sessions List - Now uses separate modular component */}
+     
       <GameSessionsList gameSessions={gameSessions} />
     </div>
   );

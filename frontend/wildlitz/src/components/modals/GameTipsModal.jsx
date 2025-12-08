@@ -1,9 +1,9 @@
-// src/components/common/GameTipsModal.jsx - COMPACT VERSION
+
 import React, { useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
-// Import animation components
+
 import VanishingGameAnimation from '../animations/VanishingGameAnimation';
 import SoundSafariAnimation from '../animations/SoundSafariAnimation';
 import CrosswordAnimation from '../animations/CrosswordAnimation';

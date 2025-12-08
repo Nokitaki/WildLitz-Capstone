@@ -1,4 +1,4 @@
-// src/components/common/GameErrorBoundary.jsx
+
 import React from 'react';
 import styles from '../../styles/components/GameErrorBoundary.module.css';
 
@@ -13,12 +13,12 @@ class GameErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    // Update state so the next render will show the fallback UI
+   
     return { hasError: true };
   }
 
   componentDidCatch(error, errorInfo) {
-    // Log the error for debugging
+   
     console.error('Game Error Caught by Boundary:', error, errorInfo);
     
     this.setState({
@@ -26,8 +26,7 @@ class GameErrorBoundary extends React.Component {
       errorInfo: errorInfo
     });
 
-    // You can also log the error to an error reporting service here
-    // logErrorToService(error, errorInfo);
+   
   }
 
   handleRetry = () => {
@@ -64,7 +63,7 @@ class GameErrorBoundary extends React.Component {
               </button>
             </div>
 
-            {/* Show error details in development mode */}
+          
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className={styles.errorDetails}>
                 <summary>Error Details (Development Only)</summary>

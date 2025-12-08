@@ -1,29 +1,27 @@
-// src/pages/games/crossword/SentenceBuilderScreen.jsx
+
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../../../styles/games/crossword/SentenceBuilderScreen.module.css';
 import BackToHomeButton from '../crossword/BackToHomeButton';
-/**
- * SentenceBuilderScreen allows students to create sentences using words they've learned
- */
+
 const SentenceBuilderScreen = ({ words, onReturnToSummary, onReturnToMenu }) => {
-  // Active word to build a sentence for
+ 
   const [activeWord, setActiveWord] = useState(words.length > 0 ? words[0].word : '');
-  // Current sentence being written
+  
   const [sentence, setSentence] = useState('');
-  // Feedback on sentence
+  
   const [feedback, setFeedback] = useState(null);
-  // Completed sentences
+  
   const [completedSentences, setCompletedSentences] = useState(0);
-  // Total sentences required
+  
   const totalSentences = 3;
-  // Audio play state
+  
   const [isPlaying, setIsPlaying] = useState(false);
   
-  // Reference to sentence input
+  
   const sentenceInputRef = useRef(null);
   
-  // Get active word details
+ 
   const getActiveWordDetails = () => {
     const wordObj = words.find(w => w.word.toLowerCase() === activeWord.toLowerCase());
     return wordObj || { 
@@ -33,13 +31,13 @@ const SentenceBuilderScreen = ({ words, onReturnToSummary, onReturnToMenu }) => 
     };
   };
   
-  // Handle word selection
+ 
   const handleWordSelect = (word) => {
     setActiveWord(word);
     setSentence('');
     setFeedback(null);
     
-    // Focus the input field
+    
     setTimeout(() => {
       if (sentenceInputRef.current) {
         sentenceInputRef.current.focus();
@@ -47,48 +45,48 @@ const SentenceBuilderScreen = ({ words, onReturnToSummary, onReturnToMenu }) => 
     }, 100);
   };
   
-  // Handle sentence input change
+  
   const handleSentenceChange = (e) => {
     setSentence(e.target.value);
   };
   
-  // Handle sentence check
+
   const handleCheckSentence = () => {
     if (!sentence.trim()) return;
     
-    // Very basic check: sentence contains the word and starts with capital letter
+   
     const containsWord = sentence.toLowerCase().includes(activeWord.toLowerCase());
     const startsWithCapital = /^[A-Z]/.test(sentence);
     const endsWithPunctuation = /[.!?]$/.test(sentence);
     
     if (containsWord && startsWithCapital && endsWithPunctuation) {
-      // Success!
+     
       setFeedback({
         isCorrect: true,
         message: "Great job! Your sentence correctly uses the word."
       });
       
-      // Increment completed sentences
+     
       setCompletedSentences(prev => prev + 1);
       
-      // If we've reached our goal, pause before automatic return
+      
       if (completedSentences + 1 >= totalSentences) {
         setTimeout(() => {
-          // Return to summary or menu
+         
           onReturnToSummary();
         }, 2000);
       }
       
-      // Prepare for next word
+     
       setTimeout(() => {
-        // Find the next unused word
+        
         const currentIndex = words.findIndex(w => w.word.toLowerCase() === activeWord.toLowerCase());
         const nextIndex = (currentIndex + 1) % words.length;
         
         handleWordSelect(words[nextIndex].word);
       }, 1500);
     } else {
-      // Feedback on what's wrong
+      
       let message = "Your sentence needs improvement: ";
       if (!containsWord) message += "It should include the word '" + activeWord + "'. ";
       if (!startsWithCapital) message += "It should start with a capital letter. ";
@@ -101,28 +99,28 @@ const SentenceBuilderScreen = ({ words, onReturnToSummary, onReturnToMenu }) => 
     }
   };
   
-  // Handle clear button
+ 
   const handleClear = () => {
     setSentence('');
     setFeedback(null);
     
-    // Focus the input field
+    
     if (sentenceInputRef.current) {
       sentenceInputRef.current.focus();
     }
   };
   
-  // Handle play audio (simulation)
+ 
   const handlePlayAudio = () => {
     setIsPlaying(true);
     
-    // Simulate audio playing for 2 seconds
+   
     setTimeout(() => {
       setIsPlaying(false);
     }, 2000);
   };
   
-  // Handle sentence starter
+ 
   const handleSentenceStarter = () => {
     const starters = [
       `The ${activeWord.toLowerCase()} `,
@@ -131,17 +129,17 @@ const SentenceBuilderScreen = ({ words, onReturnToSummary, onReturnToMenu }) => 
       `This ${activeWord.toLowerCase()} `
     ];
     
-    // Pick a random starter
+   
     const starter = starters[Math.floor(Math.random() * starters.length)];
     setSentence(starter);
     
-    // Focus the input field
+   
     if (sentenceInputRef.current) {
       sentenceInputRef.current.focus();
     }
   };
   
-  // Get active word details
+ 
   const activeWordDetails = getActiveWordDetails();
   
   return (

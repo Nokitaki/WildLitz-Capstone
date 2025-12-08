@@ -1,10 +1,3 @@
-// src/pages/games/crossword/StoryGeneratorScreen.jsx
-// OPTIMIZED VERSION - Progressive Episode Generation (FIXED)
-// 
-// KEY CHANGES:
-// 1. generateStoryProgressively now ONLY generates the FIRST episode
-// 2. Stores totalEpisodes and generatedEpisodes in story metadata
-// 3. Subsequent episodes are generated on-demand when user clicks "Continue to Next Episode"
 
 import React, { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,7 +9,7 @@ import CrosswordAnalyticsDashboard from './analytics/CrosswordAnalyticsDashboard
 import { API_ENDPOINTS } from '../../../config/api';
 import BackToHomeButton from '../../games/crossword/BackToHomeButton';
 import storyMusic from '../../../assets/music/story-generator-music.mp3';
-// Memoized Theme Option Component
+
 const ThemeOption = memo(({ themeOption, isSelected, onSelect }) => {
   return (
     <div 
@@ -34,7 +27,7 @@ const ThemeOption = memo(({ themeOption, isSelected, onSelect }) => {
 
 ThemeOption.displayName = 'ThemeOption';
 
-// Memoized Skill Option Component with Audio
+
 const SkillOption = memo(({ skill, isSelected, onToggle, onPlayAudio, disabled }) => {
   const handleAudioClick = (e) => {
     e.stopPropagation();
@@ -119,14 +112,14 @@ const handleVolumeChange = (e) => {
 
 const toggleMute = () => setIsMuted(!isMuted);
 
-  // Timeout handling
+
   const timeoutRef = useRef(null);
   const progressIntervalRef = useRef(null);
   
-  // Speech synthesis reference
+
   const speechSynthRef = useRef(null);
   
-  // Initialize speech synthesis
+
   useEffect(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       speechSynthRef.current = window.speechSynthesis;
@@ -151,7 +144,7 @@ const toggleMute = () => setIsMuted(!isMuted);
     { id: 'action-verbs', name: 'Action Verbs', icon: '🏃‍♂️' }
   ], []);
   
-  // Audio playback function
+
   const playSkillAudio = useCallback((skillName) => {
     if (speechSynthRef.current) {
       speechSynthRef.current.cancel();
@@ -174,14 +167,14 @@ const toggleMute = () => setIsMuted(!isMuted);
     }
   }, []);
 
-  // ⭐ FIXED: Generate ONLY the first episode, not all episodes
+  
   const generateStoryProgressively = useCallback(async () => {
     setIsGenerating(true);
     setGenerationProgress(0);
     setError(null);
     
     try {
-      // Generate ONLY the FIRST episode
+     
       setGenerationProgress(50);
       
       const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/generate-story/`, {
@@ -191,10 +184,10 @@ const toggleMute = () => setIsMuted(!isMuted);
           theme,
           focusSkills: focusSkills.slice(0, 3),
           characterNames: characterNames || undefined,
-          episodeCount: 1, // ⭐ Only generate first episode
-          episodeNumber: 1, // This is episode 1
+          episodeCount: 1, 
+          episodeNumber: 1, 
           gradeLevel: 3,
-          totalEpisodes: episodeCount // ⭐ Store total requested for later
+          totalEpisodes: episodeCount 
         }),
         signal: AbortSignal.timeout(25000)
       });
@@ -207,7 +200,7 @@ const toggleMute = () => setIsMuted(!isMuted);
       
       setGenerationProgress(100);
       
-      // ⭐ Create story with ONLY the first episode
+     
       const storyData = {
         story: {
           id: `story_${Date.now()}`,
@@ -218,8 +211,8 @@ const toggleMute = () => setIsMuted(!isMuted);
           characterNames: characterNames || '',
           gradeLevel: 3,
           episodes: data.story?.episodes || [],
-          totalEpisodes: episodeCount, // ⭐ Total episodes user requested
-          generatedEpisodes: 1 // ⭐ Only 1 episode generated so far
+          totalEpisodes: episodeCount, 
+          generatedEpisodes: 1 
         },
         puzzles: data.puzzles || {}
       };

@@ -1,4 +1,4 @@
-// src/context/AuthContext.jsx
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
 
@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check if user is logged in on app start
+ 
   useEffect(() => {
     checkAuthStatus();
   }, []);

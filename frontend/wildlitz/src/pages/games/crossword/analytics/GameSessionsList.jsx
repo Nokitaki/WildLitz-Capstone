@@ -1,12 +1,10 @@
-// GameSessionsList.jsx - FIXED with Separate Episode Filter
-// ✅ Episode filter now independent from grouping/sorting
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_ENDPOINTS } from '../../../../config/api';
 import styles from '../../../../styles/games/crossword/analytics/GameSessionsList.module.css';
 
-// ✅ Episode Filter Component (Separate from sorting)
+
 const EpisodeFilter = ({ episodes, selectedEpisode, onEpisodeChange }) => {
   return (
     <div style={{
@@ -69,7 +67,7 @@ const EpisodeFilter = ({ episodes, selectedEpisode, onEpisodeChange }) => {
   );
 };
 
-// ✅ Word Performance Filters (word-based filters + sorting)
+
 const WordPerformanceFilters = ({ onFilterChange, onSortChange, activeFilter, sortBy }) => {
   return (
     <div style={{
@@ -190,7 +188,7 @@ const GameSessionsList = ({ gameSessions }) => {
   const [sessionWordPerformance, setSessionWordPerformance] = useState({});
   const [loadingWordPerf, setLoadingWordPerf] = useState({});
   
-  // ✅ STEP 1: Add separate state for episode filtering
+ 
   const [selectedEpisodeFilter, setSelectedEpisodeFilter] = useState({});
   const [wordFilterMode, setWordFilterMode] = useState({});
   const [sortSettings, setSortSettings] = useState({});
@@ -233,19 +231,19 @@ const GameSessionsList = ({ gameSessions }) => {
     }));
   };
 
-  // ✅ Get unique episodes for a session
+ 
   const getSessionEpisodes = (sessionId) => {
     const words = sessionWordPerformance[sessionId] || [];
     const episodes = [...new Set(words.map(w => w.episode_number || 1))].sort((a, b) => a - b);
     return episodes;
   };
 
-  // ✅ STEP 3: Updated filtering logic - Episode filter first, then word filters, then sort
+ 
   const getFilteredAndSortedWords = (sessionId) => {
     const allWords = sessionWordPerformance[sessionId] || [];
     if (allWords.length === 0) return [];
     
-    // ✅ FILTER BY EPISODE FIRST
+  
     const episodeFilter = selectedEpisodeFilter[sessionId];
     let filtered = allWords;
     
@@ -253,7 +251,7 @@ const GameSessionsList = ({ gameSessions }) => {
       filtered = allWords.filter(w => (w.episode_number || 1) === Number(episodeFilter));
     }
     
-    // Then apply word-based filters (hints, slow, fast)
+   
     const filterMode = wordFilterMode[sessionId] || 'all';
     
     switch (filterMode) {
@@ -267,10 +265,10 @@ const GameSessionsList = ({ gameSessions }) => {
         filtered = filtered.filter(w => (w.time_spent || 0) < 5);
         break;
       default:
-        // 'all' - no additional filter
+       
     }
     
-    // Finally apply sorting
+   
     const sort = sortSettings[sessionId] || 'episode';
     
     if (sort === 'time-asc') {
@@ -290,7 +288,7 @@ const GameSessionsList = ({ gameSessions }) => {
     return filtered;
   };
 
-  // ✅ Group words by episode (for display when "Group by Episode" is selected)
+ 
   const getWordsByEpisode = (sessionId) => {
     const words = getFilteredAndSortedWords(sessionId);
     const grouped = words.reduce((groups, word) => {
@@ -303,7 +301,7 @@ const GameSessionsList = ({ gameSessions }) => {
     return Object.entries(grouped).sort(([a], [b]) => Number(a) - Number(b));
   };
 
-  // ✅ Calculate stats per episode
+
   const getEpisodeStats = (sessionId, episodeNumber) => {
     const words = sessionWordPerformance[sessionId] || [];
     const episodeWords = words.filter(w => (w.episode_number || 1) === episodeNumber);
@@ -509,7 +507,7 @@ const GameSessionsList = ({ gameSessions }) => {
                                 </div>
                               ) : wordPerfData.length > 0 ? (
                                 <>
-                                  {/* ✅ STEP 2: Episode Filter (independent from sorting) */}
+                                  
                                   {sessionEpisodes.length > 1 && (
                                     <EpisodeFilter
                                       episodes={sessionEpisodes}
@@ -523,7 +521,7 @@ const GameSessionsList = ({ gameSessions }) => {
                                     />
                                   )}
 
-                                  {/* Word Filters and Sorting */}
+                              
                                   <WordPerformanceFilters
                                     activeFilter={wordFilterMode[sessionId] || 'all'}
                                     sortBy={sortSettings[sessionId] || 'episode'}
@@ -535,9 +533,9 @@ const GameSessionsList = ({ gameSessions }) => {
                                     }}
                                   />
 
-                                  {/* ✅ Display words: grouped by episode OR flat list */}
+                                 
                                   {shouldGroupByEpisode ? (
-                                    // Grouped by episode view
+                                   
                                     wordsByEpisode.map(([episodeNum, episodeWords]) => {
                                       const stats = getEpisodeStats(sessionId, Number(episodeNum));
                                       return (
@@ -628,7 +626,7 @@ const GameSessionsList = ({ gameSessions }) => {
                                       );
                                     })
                                   ) : (
-                                    // Flat list view (sorted but not grouped)
+                                   
                                     <div className={styles.wordPerformanceGrid}>
                                       {filteredWords.map((wordData, idx) => (
                                         <motion.div

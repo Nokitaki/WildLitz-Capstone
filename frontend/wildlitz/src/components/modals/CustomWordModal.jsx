@@ -9,18 +9,18 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
   const [currentWord, setCurrentWord] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');
-  const [addMethod, setAddMethod] = useState('type'); // 'type' or 'voice'
+  const [addMethod, setAddMethod] = useState('type'); 
   
-  // Initialize words from existing words if provided
+ 
   useEffect(() => {
     if (existingWords.length > 0) {
       setWords(existingWords);
     }
   }, [existingWords]);
 
-  // Function to add a new typed word - will automatically analyze with AI
+ 
   const handleAddTypedWord = async () => {
-    // Validate input
+   
     if (!currentWord.trim()) {
       setError('Please enter a word');
       return;
@@ -30,23 +30,23 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
     setError('');
     
     try {
-      // Call API to analyze the word (without audio)
+      
       const response = await axios.post('/api/syllabification/analyze-word/', {
         word: currentWord.trim()
       });
       
       if (response.data) {
-        // Add word with AI analysis
+       
         const newWord = {
           word: response.data.word || currentWord.trim(),
           syllableBreakdown: response.data.syllable_breakdown || currentWord.trim(),
           syllableCount: response.data.syllable_count || 1,
           category: response.data.category || 'General',
-          usesCustomAudio: false // This will use AI voice
+          usesCustomAudio: false 
         };
         
         setWords(prevWords => [...prevWords, newWord]);
-        setCurrentWord(''); // Reset input field
+        setCurrentWord(''); 
       }
     } catch (error) {
       console.error('Error analyzing word:', error);
@@ -56,41 +56,41 @@ const CustomWordModal = ({ isOpen, onClose, onSave, existingWords = [] }) => {
     }
   };
 
-  // Handle word recognized from voice input
+ 
   const handleWordRecognized = (wordData) => {
-    // Add the recognized word to the list
+   
     const newWord = {
       word: wordData.word,
       syllableBreakdown: wordData.syllableBreakdown,
       syllableCount: wordData.syllableCount,
       category: wordData.category,
       customAudio: wordData.customAudio,
-      usesCustomAudio: true // This will use teacher's voice
+      usesCustomAudio: true 
     };
     
     setWords(prevWords => [...prevWords, newWord]);
   };
 
-  // Function to remove a word
+ 
   const handleRemoveWord = (index) => {
     const newWords = [...words];
     newWords.splice(index, 1);
     setWords(newWords);
   };
 
-  // Function to save all words
+ 
   const handleSaveWords = () => {
     onSave(words);
   };
 
-  // Handle switching between typing and voice input methods
+  
   const handleSwitchAddMethod = (method) => {
     setAddMethod(method);
     setCurrentWord('');
     setError('');
   };
 
-  // Animation variants
+ 
   const backdropVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1 }

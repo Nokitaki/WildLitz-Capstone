@@ -1,5 +1,4 @@
-// StatsCards.jsx - Statistics overview cards
-// ✅ UPDATED: Added accuracy card display
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { formatDuration } from './analyticsUtils';

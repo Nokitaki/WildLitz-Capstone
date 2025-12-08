@@ -1,4 +1,4 @@
-// ChallengingWordsSection.jsx - Top 10 challenging words with filters
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -256,7 +256,7 @@ const ChallengingWordsSection = ({ wordPerformance }) => {
               Sorted by: <strong>{getFilterLabel()}</strong>
             </p>
 
-            {/* Word Cards Grid */}
+            
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',

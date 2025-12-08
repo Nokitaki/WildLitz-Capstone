@@ -140,17 +140,7 @@ def call_openai_for_story(prompt, max_tokens):
         logger.error(f"OpenAI API call failed: {e}")
         return None
 
-# ============================================
-# UPDATED generate_next_episode FUNCTION
-# ============================================
-# This replaces the existing function in backend/wildlitz/sentence_formation/views.py
-# 
-# KEY CHANGES:
-# 1. Enforces 80% new words minimum (max 20% repetition)
-# 2. Adds retry logic if too many words are repeated
-# 3. Strengthens the AI prompt to avoid repetition
-# 4. Adds validation that rejects episodes with excessive repetition
-# ============================================
+
 
 @csrf_exempt
 @api_view(['POST'])
