@@ -367,11 +367,6 @@ const GameplayScreen = ({
           >
             <div className={styles.startContent}>
               <h2 className={styles.startTitle}>🔍 Sound Safari Hunt</h2>
-              <p className={styles.startSubtitle}>
-                Find animals with the{" "}
-                <span className={styles.targetSoundText}>"{targetSound}"</span>{" "}
-                sound!
-              </p>
 
               <div className={styles.startInstructions}>
                 <div className={styles.startInstruction}>
@@ -423,11 +418,6 @@ const GameplayScreen = ({
               <span className={styles.titleEmoji}>🔍</span>
               Sound Safari Hunt
             </h2>
-            <p className={styles.gameSubtitle}>
-              Find animals with the{" "}
-              <span className={styles.targetSoundText}>"{targetSound}"</span>{" "}
-              sound!
-            </p>
           </div>
 
           <div className={styles.gameControls}>
