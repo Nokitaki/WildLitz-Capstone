@@ -669,6 +669,15 @@ def generate_phonics_words_with_ai(challenge_level, learning_focus, difficulty, 
     print(f"🎯 Requested word_count: {word_count}")
     print(f"📋 Challenge level: {challenge_level}")
 
+    MAX_WORDS_TOTAL = 50
+    
+    if word_count > MAX_WORDS_TOTAL:
+        print(f"⚠️ Request for {word_count} words exceeds limit. Using hybrid approach.")
+        ai_words = generate_phonics_words_with_ai(challenge_level, learning_focus, difficulty, MAX_WORDS_TOTAL)
+        fallback_needed = word_count - MAX_WORDS_TOTAL
+        fallback_words = generate_static_fallback_words(challenge_level, learning_focus, fallback_needed)
+        return ai_words + fallback_words
+
     # 🔥 SMART LIMITS: Max per single API call based on token limits
     if challenge_level == 'simple_sentences':
         MAX_PER_CALL = 15  # 15 sentences × 250 tokens = 3750 tokens (safe)

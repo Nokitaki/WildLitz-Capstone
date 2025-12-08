@@ -109,7 +109,7 @@ def call_openai_for_story(prompt, max_tokens):
     """Make OpenAI API call with proper error handling"""
     try:
         response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-16k",
             messages=[
                 {
                     "role": "system", 
@@ -337,7 +337,7 @@ REMEMBER: Words MUST be simple for 8-9 year olds AND completely new!"""
             try:
                 logger.info(f"🤖 Attempt {attempt + 1}/{max_retries} - Generating Episode {episode_number}")
                 
-                max_tokens = 1800
+                max_tokens = 3000
                 cleaned_content = call_openai_for_story(prompt, max_tokens)
                 
                 if not cleaned_content:
@@ -518,7 +518,7 @@ def generate_story(request):
             )
             
         story_id = f"{theme}_generated_{int(datetime.now().timestamp())}"
-        max_tokens = 1800
+        max_tokens = 3000
         
         # Get vocabulary guidance (without exclude_words for first episode)
         vocab_guidance = get_vocabulary_guidance(focus_skills)

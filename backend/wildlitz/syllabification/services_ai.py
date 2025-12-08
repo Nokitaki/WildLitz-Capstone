@@ -12,7 +12,7 @@ class AIContentGenerator:
     
     def __init__(self):
         self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
-        self.model = "gpt-4o"  # You can use gpt-4 for better results if available
+        self.model = "gpt-3.5-turbo"
     
     def generate_fun_fact(self, word, category):
         """Generate a fun, educational fact about a word"""
