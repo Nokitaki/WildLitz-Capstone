@@ -251,10 +251,10 @@ const handleStartFromGuide = async () => {
   }
 };
 
-  /**
-   * 🎯 Handle word result from gameplay
-   */
-  const handleWordResult = (recognized, word, responseTime) => {
+/**
+ * 🎯 Handle word result from gameplay
+ */
+const handleWordResult = (recognized, word, responseTime) => {
   console.log('🔍 handleWordResult:', { recognized, word, responseTime });
   
   const result = { recognized, word, responseTime };
@@ -330,6 +330,7 @@ const handleStartFromGuide = async () => {
     setTimeout(() => setShowBubble(false), 3000);
     
     setGameState('feedback');
+    return; // NO team switch here - will switch when "Next Word" is clicked
   }
   
   // 👋 Handle "Give up"
@@ -366,41 +367,44 @@ const handleStartFromGuide = async () => {
     setTimeout(() => setShowBubble(false), 3000);
     
     setGameState('feedback');
+    return; // NO team switch here - will switch when "Next Word" is clicked
   }
-  // ⏰ NEW: Handle "Timeout" (when timer reaches 0)
-else if (recognized === 'timeout') {
-  console.log('⏰ Timeout - time ran out');
   
-  const newStats = { ...gameStats };
-  newStats.wordsAttempted++;
-  newStats.timeSpent = Date.now() - sessionStartTime;
-  newStats.streakCount = 0; // Reset streak
-  
-  const currentPattern = gameConfig.learningFocus;
-  if (!newStats.patternStats[currentPattern]) {
-    newStats.patternStats[currentPattern] = { attempted: 0, correct: 0, averageTime: 0 };
+  // ⏰ Handle "Timeout" (when timer reaches 0)
+  else if (recognized === 'timeout') {
+    console.log('⏰ Timeout - time ran out');
+    
+    const newStats = { ...gameStats };
+    newStats.wordsAttempted++;
+    newStats.timeSpent = Date.now() - sessionStartTime;
+    newStats.streakCount = 0; // Reset streak
+    
+    const currentPattern = gameConfig.learningFocus;
+    if (!newStats.patternStats[currentPattern]) {
+      newStats.patternStats[currentPattern] = { attempted: 0, correct: 0, averageTime: 0 };
+    }
+    newStats.patternStats[currentPattern].attempted++;
+    
+    newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
+    
+    newStats.difficultyProgression.push({
+      round: currentRound,
+      word: word,
+      recognized: false,
+      responseTime: responseTime || 0,
+      pattern: currentPattern,
+      action: 'timeout'
+    });
+    
+    setGameStats(newStats);
+    
+    setBubbleMessage('Time\'s up! But that\'s okay - you\'ll get it next time! ⏰');
+    setShowBubble(true);
+    setTimeout(() => setShowBubble(false), 3000);
+    
+    setGameState('feedback');
+    return; // NO team switch here - will switch when "Next Word" is clicked
   }
-  newStats.patternStats[currentPattern].attempted++;
-  
-  newStats.successRate = Math.round((newStats.wordsRecognized / newStats.wordsAttempted) * 100);
-  
-  newStats.difficultyProgression.push({
-    round: currentRound,
-    word: word,
-    recognized: false,
-    responseTime: responseTime || 0,
-    pattern: currentPattern,
-    action: 'timeout'  // ✅ This is now separate from 'gave_up'
-  });
-  
-  setGameStats(newStats);
-  
-  setBubbleMessage('Time\'s up! But that\'s okay - you\'ll get it next time! ⏰');
-  setShowBubble(true);
-  setTimeout(() => setShowBubble(false), 3000);
-  
-  setGameState('feedback');
-}
   
   // 👀 Handle "Show me"
   else if (recognized === false) {
@@ -437,6 +441,7 @@ else if (recognized === 'timeout') {
     setTimeout(() => setShowBubble(false), 3000);
     
     setGameState('feedback');
+    return; // NO team switch here - will switch when "Next Word" is clicked
   }
   
   // ⏭️ Handle "Skip" - doesn't count as a round
@@ -457,26 +462,23 @@ else if (recognized === 'timeout') {
     });
     
     setGameStats(newStats);
-    handleNextWord(false);
-    return; // Skip exits early, no team switch
-  }
-  
-  // 🎯 Team switching logic (runs for all actions except skip)
-  if (gameConfig.teamPlay) {
-    setCurrentTeam(prev => prev === 'teamA' ? 'teamB' : 'teamA');
+    
+    // ⏭️ Skip goes directly to next word with NO team switch
+    handleNextWord(false); // Pass false to prevent team switch
+    return;
   }
 };
 
-  /**
-   * 📝 Handle next word
-   */
+/**
+ * 📝 Handle next word
+ */
 const handleNextWord = (countRound = true) => {
   console.log('➡️ Moving to next word', { countRound, currentRound, totalRounds });
   
   const nextRound = countRound ? currentRound + 1 : currentRound;
   const nextWordIndex = currentWordIndex + 1;
   
-  // ✅ NEW: Check if we've run out of words BEFORE checking rounds
+  // ✅ Check if we've run out of words BEFORE checking rounds
   if (nextWordIndex >= wordData.length) {
     console.log('📚 All words have been used!');
     handleWordsExhausted();
@@ -495,8 +497,13 @@ const handleNextWord = (countRound = true) => {
     setCurrentWordIndex(nextWordIndex);
     setGameState('gameplay');
     setGameStartTime(Date.now());
+    
+    // 🎯 Team switching logic - ONLY when moving to next word (countRound = true)
+    if (countRound && gameConfig.teamPlay) {
+      setCurrentTeam(prev => prev === 'teamA' ? 'teamB' : 'teamA');
+    }
   }
-}
+};
 
   /**
    * 🔄 Handle retry (try same word again)
