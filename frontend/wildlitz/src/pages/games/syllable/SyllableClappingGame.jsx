@@ -362,6 +362,8 @@ const SyllableClappingGame = () => {
     // Disable the check button to prevent multiple clicks
     setCheckButtonDisabled(true);
 
+    setMicEnabled(false);
+
     // ✅ ADD THIS CONFIG OBJECT
     const config = {
       headers: {
@@ -1001,6 +1003,8 @@ const SyllableClappingGame = () => {
 
     // Wait 1.5 seconds with the transition screen
     setTimeout(() => {
+      // 🎤 RESUME MICROPHONE for next word
+      setMicEnabled(true);
       // Advance to the next word index
       const newWordIndex = wordIndex + 1;
       setWordIndex(newWordIndex);
@@ -1142,7 +1146,9 @@ const SyllableClappingGame = () => {
             image_url: word.image_url || null,
             full_word_audio_url: word.full_word_audio_url || null,
             syllable_audio_urls: word.syllable_audio_urls || [],
-            fun_fact: word.fun_fact || `This is a custom word with ${word.syllable_count} syllables!`,
+            fun_fact:
+              word.fun_fact ||
+              `This is a custom word with ${word.syllable_count} syllables!`,
             intro_message: `Let's practice "${word.word}"!`,
           }));
         } catch (error) {

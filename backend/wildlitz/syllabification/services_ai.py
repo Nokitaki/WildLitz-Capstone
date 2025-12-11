@@ -421,20 +421,13 @@ class AIContentGenerator:
 
     YOU MUST follow this EXACT structure with DOUBLE LINE BREAKS between sections:
 
-    1. PRAISE LINE (15-20 words):
     - Start with enthusiastic praise
     - State the word and syllable count
     - Add 1 emoji (🎉, ⭐, 🏆, ✨)
 
-    [ADD \\n\\n HERE - DOUBLE LINE BREAK]
-
-    2. EDUCATIONAL INSIGHT (15-20 words):
     - Explain the skill they're building
     - Be specific to {syllable_count}-syllable words
 
-    [ADD \\n\\n HERE - DOUBLE LINE BREAK]
-
-    3. LEARNING TIP with 💡 (20-25 words):
     - Start with "💡 Tip:"
     - Concrete technique: {tip}
 
@@ -451,20 +444,13 @@ class AIContentGenerator:
 
     YOU MUST follow this EXACT structure with DOUBLE LINE BREAKS between sections:
 
-    1. GENTLE CORRECTION (12-15 words):
     - Start warmly ("Nice try!", "Almost there!")
     - State correct syllable count
     - Add 1 emoji (💙, 🌟, 🎯)
 
-    [ADD \\n\\n HERE - DOUBLE LINE BREAK]
-
-    2. WHY IT'S TRICKY (12-15 words):
     - Explain the challenge
     - Validate difficulty
 
-    [ADD \\n\\n HERE - DOUBLE LINE BREAK]
-
-    3. HELPFUL STRATEGY with 💡 (20-25 words):
     - Start with "💡 Strategy:"
     - Actionable technique: {tip}
 

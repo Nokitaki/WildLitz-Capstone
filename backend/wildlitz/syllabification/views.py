@@ -158,7 +158,7 @@ def check_syllable_answer(request):
         feedback_context = 'correct' if is_correct else 'incorrect'
         feedback_message = ai_gen.generate_character_message(word_str, feedback_context, difficulty)
 
-        # Generate AI learning feedback
+        # Generate feedback
         learning_feedback = ai_gen.generate_learning_feedback(word_str, is_correct, correct_count, difficulty)
 
         end_time = time.time()
