@@ -243,5 +243,26 @@
     "sound_position": "middle",
     "environment": "jungle",
     "difficulty_level": "medium"
+  },
+  {
+    "name": "Hedgehog",
+    "target_sound": "h",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Armadillo",
+    "target_sound": "m",
+    "sound_position": "middle",
+    "environment": "savanna",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "Starfish",
+    "target_sound": "f",
+    "sound_position": "middle",
+    "environment": "ocean",
+    "difficulty_level": "hard"
   }
 ]

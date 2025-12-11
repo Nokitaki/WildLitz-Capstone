@@ -3,10 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import styles from "../../../styles/games/safari/GameplayScreen.module.css";
 import { playSpeech, stopAllSpeech } from "../../../utils/soundUtils";
 
-/**
- * Component for the main gameplay screen
- * FIXED: Requires user click to start speech (browser requirement)
- */
 const GameplayScreen = ({
   animals,
   targetSound,
