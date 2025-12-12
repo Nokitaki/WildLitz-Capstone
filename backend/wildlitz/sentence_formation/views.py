@@ -151,8 +151,8 @@ def call_openai_for_story(prompt, max_tokens):
 @permission_classes([AllowAny])
 def generate_next_episode(request):
     """
-    Generate the next episode on-demand when user clicks 'Continue'
-    ✅ UPDATED: Dynamic word reuse based on episode number
+    Generate the next episode on-demand with DYNAMIC vocabulary generation
+    ✅ NEW: Uses AI to generate fresh vocabulary words every episode
     """
     try:
         data = request.data
@@ -170,101 +170,124 @@ def generate_next_episode(request):
         
         logger.info(f"📚 Generating episode {episode_number}")
         logger.info(f"   Theme: {theme}, Skills: {focus_skills}")
+        logger.info(f"   Excluding {len(excluded_words_lower)} previously used words")
         
         # LIMIT TO MAX 2 SKILLS
         if len(focus_skills) > 2:
             focus_skills = focus_skills[:2]
             logger.warning(f"⚠️ Too many skills selected, limiting to first 2: {focus_skills}")
         
-        # Get ALL vocabulary examples for selected skills
-        vocab_examples = []
-        for skill in focus_skills:
-            if skill in FOCUS_SKILL_VOCABULARY:
-                vocab_examples.extend(FOCUS_SKILL_VOCABULARY[skill]['examples'])
+        # ✅ TRY DYNAMIC GENERATION FIRST
+        logger.info(f"🎨 Attempting dynamic vocabulary generation for episode {episode_number}")
         
-        # Remove duplicates
-        vocab_examples = list(set(vocab_examples))
+        dynamic_vocab = generate_dynamic_vocabulary(
+            focus_skills=focus_skills,
+            grade_level=grade_level,
+            exclude_words=excluded_words_lower,
+            episode_number=episode_number
+        )
         
-        # Filter out excluded words to get NEW words only
-        vocab_examples_new = [
-            w for w in vocab_examples 
-            if w.lower() not in excluded_words_lower
-        ]
-        
-        # ✅ DYNAMIC: Adjust requirements based on episode number
-        if episode_number <= 2:
-            # Early episodes: require more new words
-            min_new_words = 3
-            max_reuse = 2
-        elif episode_number <= 3:
-            # Mid episodes: allow more reuse
-            min_new_words = 2
-            max_reuse = 3
-        else:
-            # Late episodes: maximum flexibility
-            min_new_words = 1
-            max_reuse = 4
-        
-        logger.info(f"📖 Episode {episode_number} requirements: min_new={min_new_words}, max_reuse={max_reuse}")
-        logger.info(f"📖 Available NEW vocabulary: {len(vocab_examples_new)} words")
-        logger.info(f"📖 Already used: {len(excluded_words_lower)} words")
-        logger.info(f"📖 Total skill vocabulary pool: {len(vocab_examples)} words")
-        
-        # ✅ NEW: Smart vocabulary pool building based on availability
-        if len(vocab_examples_new) < 5:
-            logger.warning(f"⚠️ Only {len(vocab_examples_new)} new words available")
+        if dynamic_vocab and len(dynamic_vocab) >= 5:
+            logger.info(f"✅ Using dynamically generated vocabulary")
             
-            if len(vocab_examples_new) >= min_new_words:
-                # We have enough for minimum new words, allow reuse for the rest
-                needed_reuse = 5 - len(vocab_examples_new)
-                actual_reuse = min(needed_reuse, max_reuse)
-                
-                logger.info(f"✅ Allowing {actual_reuse} word reuse (need {needed_reuse})")
-                
-                # Get reusable words (previously used but valid for skills)
-                reusable_words = [w for w in vocab_examples if w.lower() in excluded_words_lower]
-                
-                # Add reusable words to the pool
-                vocab_examples_final = vocab_examples_new + reusable_words[:actual_reuse]
-                
-                logger.info(f"📖 Expanded pool to {len(vocab_examples_final)} words ({len(vocab_examples_new)} new + {min(actual_reuse, len(reusable_words))} reused)")
-                
-                reuse_note = f"\n✅ You MUST use at least {len(vocab_examples_new)} NEW words. You may reuse up to {actual_reuse} words from the 'previously used' list for the remaining slots."
-            else:
-                # Not enough words even with maximum reuse - allow full repetition for late episodes
-                if episode_number > 3:
-                    logger.warning(f"⚠️ Very limited vocabulary (only {len(vocab_examples_new)} new). Allowing full word pool including repetitions.")
-                    
-                    # Use all available skill words (both new and used)
-                    vocab_examples_final = vocab_examples
-                    reuse_note = f"\n⚠️ Limited vocabulary pool. You may reuse words from previous episodes as needed, but try to include {len(vocab_examples_new)} new word(s) if possible."
-                    
-                    logger.info(f"📖 Using full vocabulary pool: {len(vocab_examples_final)} words (including previously used)")
-                else:
-                    # Early episodes should fail if not enough words
-                    logger.error(f"❌ Insufficient vocabulary: Need at least {min_new_words} new words, only {len(vocab_examples_new)} available")
-                    return Response({
-                        'error': f'Not enough vocabulary words. Need at least {min_new_words} new words, only {len(vocab_examples_new)} available. Please select different focus skills or reduce episode count.'
-                    }, status=400)
+            # Build vocab list for prompt
+            vocab_list_text = ', '.join([w['word'] for w in dynamic_vocab])
+            vocab_examples_final = [w['word'] for w in dynamic_vocab]
+            
+            vocab_instruction = f"""
+🎨 DYNAMIC VOCABULARY (Generated specifically for this episode):
+Words to use: {vocab_list_text}
+
+Each word has been custom-generated to match: {', '.join(focus_skills)}
+
+✅ REQUIREMENTS:
+- Use ALL 5 of these words in your story
+- Each word should appear naturally in the text
+- All words are NEW (not used in previous episodes)
+- Words are optimized for crossword puzzles (4-8 letters)
+"""
+            
+            previous_words_warning = "ℹ️ All vocabulary words are freshly generated for this episode."
+            
         else:
-            # We have enough new words, no reuse needed
-            vocab_examples_final = vocab_examples_new
-            reuse_note = ""
-            logger.info(f"✅ Sufficient new vocabulary: {len(vocab_examples_final)} words available")
-        
-        # Build vocabulary list for prompt (limit to 50 words for readability)
-        vocab_list_text = ', '.join(vocab_examples_final[:50])
-        if len(vocab_examples_final) > 50:
-            vocab_list_text += f" ... and {len(vocab_examples_final) - 50} more"
-        
-        # Build exclusion warning
-        previous_words_warning = ""
-        if excluded_words_lower and len(vocab_examples_new) > 0:
-            prev_words_list = ', '.join(sorted(list(excluded_words_lower))[:30])
-            previous_words_warning = f"""
+            logger.warning(f"⚠️ Dynamic generation failed, falling back to hardcoded vocabulary")
+            
+            # FALLBACK: Use original hardcoded logic
+            vocab_examples = []
+            for skill in focus_skills:
+                if skill in FOCUS_SKILL_VOCABULARY:
+                    vocab_examples.extend(FOCUS_SKILL_VOCABULARY[skill]['examples'])
+            
+            vocab_examples = list(set(vocab_examples))
+            vocab_examples_new = [w for w in vocab_examples if w.lower() not in excluded_words_lower]
+            
+            # Dynamic requirements based on episode number
+            if episode_number <= 2:
+                min_new_words = 3
+                max_reuse = 2
+            elif episode_number <= 3:
+                min_new_words = 2
+                max_reuse = 3
+            else:
+                min_new_words = 1
+                max_reuse = 4
+            
+            logger.info(f"📖 Episode {episode_number} fallback requirements: min_new={min_new_words}, max_reuse={max_reuse}")
+            logger.info(f"📖 Available NEW vocabulary: {len(vocab_examples_new)} words")
+            
+            if len(vocab_examples_new) < 5:
+                logger.warning(f"⚠️ Only {len(vocab_examples_new)} new words available")
+                
+                if len(vocab_examples_new) >= min_new_words:
+                    needed_reuse = 5 - len(vocab_examples_new)
+                    actual_reuse = min(needed_reuse, max_reuse)
+                    
+                    logger.info(f"✅ Allowing {actual_reuse} word reuse")
+                    
+                    reusable_words = [w for w in vocab_examples if w.lower() in excluded_words_lower]
+                    vocab_examples_final = vocab_examples_new + reusable_words[:actual_reuse]
+                    
+                    logger.info(f"📖 Expanded pool to {len(vocab_examples_final)} words")
+                    
+                    reuse_note = f"\n✅ You MUST use at least {len(vocab_examples_new)} NEW words. You may reuse up to {actual_reuse} words from the 'previously used' list."
+                    
+                elif episode_number > 3:
+                    logger.warning(f"⚠️ Very limited vocabulary. Allowing full word pool.")
+                    vocab_examples_final = vocab_examples
+                    reuse_note = f"\n⚠️ Limited vocabulary pool. You may reuse words as needed."
+                else:
+                    logger.error(f"❌ Insufficient vocabulary")
+                    return Response({
+                        'error': f'Not enough vocabulary words. Need at least {min_new_words} new words, only {len(vocab_examples_new)} available.'
+                    }, status=400)
+            else:
+                vocab_examples_final = vocab_examples_new
+                reuse_note = ""
+            
+            vocab_list_text = ', '.join(vocab_examples_final[:50])
+            
+            previous_words_warning = ""
+            if excluded_words_lower and len(vocab_examples_new) > 0:
+                prev_words_list = ', '.join(sorted(list(excluded_words_lower))[:30])
+                previous_words_warning = f"""
 ⚠️ PREVIOUSLY USED WORDS (avoid when possible):
 {prev_words_list}
 {reuse_note}
+"""
+            
+            vocab_instruction = f"""
+🚨 VOCABULARY RULES (Episode {episode_number}/5):
+Selected Skills: {', '.join(focus_skills)}
+
+Available words: {vocab_list_text}
+
+{previous_words_warning}
+
+✅ REQUIREMENTS:
+- {"Use at least " + str(min_new_words) + " NEW words (not in previously used list)" if min_new_words > 0 else "You may reuse words as needed"}
+- All words MUST match the sound patterns from selected skills
+- Words must appear naturally in the story text
+- Total: exactly 5 vocabulary words
 """
         
         # Build story context
@@ -276,22 +299,7 @@ def generate_next_episode(request):
         else:
             recent_context = "This is the first episode."
         
-        vocab_instruction = f"""
-🚨 VOCABULARY RULES (Episode {episode_number}/5):
-Selected Skills: {', '.join(focus_skills)}
-
-Available words to choose from: {vocab_list_text}
-
-{previous_words_warning}
-
-✅ REQUIREMENTS:
-- {"Use at least " + str(min_new_words) + " NEW words (not in previously used list)" if min_new_words > 0 else "You may reuse words as needed"}
-- {"You may reuse previously used words for the remaining slots" if episode_number > 3 and len(vocab_examples_new) < 5 else ""}
-- All words MUST match the sound patterns from selected skills
-- Words must appear naturally in the story text
-- Total: exactly 5 vocabulary words
-"""
-        
+        # Build the main prompt
         prompt = f"""Create Episode {episode_number} for a continuing story about {theme}.
 {"Character names: " + character_names if character_names else ""}
 
@@ -301,7 +309,7 @@ STORY CONTINUATION:
 {recent_context}
 
 REQUIREMENTS:
-1. Use EXACTLY 5 vocabulary words from the available list above
+1. Use EXACTLY 5 vocabulary words from the list above
 2. Episode must be 150-200 words long
 3. Each vocabulary word must appear naturally in the story text
 4. {"Mix words from BOTH skills" if len(focus_skills) > 1 else f"Focus on {focus_skills[0]} words"}
@@ -373,6 +381,15 @@ Return ONLY valid JSON (NO markdown, NO code blocks):
                             'error': 'Generated episode does not have enough vocabulary words'
                         }, status=500)
                 
+                # ✅ If using dynamic vocab, inject the pre-generated definitions/clues
+                if dynamic_vocab:
+                    for i, word in enumerate(vocab_words[:5]):
+                        if i < len(dynamic_vocab):
+                            # Use AI-generated word data if available
+                            word['clue'] = word.get('clue', dynamic_vocab[i]['clue'])
+                            word['definition'] = word.get('definition', dynamic_vocab[i]['definition'])
+                            word['example'] = word.get('example', dynamic_vocab[i]['example'])
+                
                 logger.info(f"✅ Episode generated successfully with {len(vocab_words)} words")
                 
                 # Log which words are new vs reused
@@ -380,7 +397,8 @@ Return ONLY valid JSON (NO markdown, NO code blocks):
                 new_words = [w for w in generated_words if w not in excluded_words_lower]
                 reused_words = [w for w in generated_words if w in excluded_words_lower]
                 logger.info(f"   New words: {new_words}")
-                logger.info(f"   Reused words: {reused_words}")
+                if reused_words:
+                    logger.info(f"   Reused words: {reused_words}")
                 
                 break
                 
@@ -428,11 +446,13 @@ Return ONLY valid JSON (NO markdown, NO code blocks):
         }
         
         logger.info(f"✅ Episode {episode_number} generation complete")
+        logger.info(f"   Method: {'DYNAMIC' if dynamic_vocab else 'HARDCODED'}")
         
         return Response({
             'success': True,
             'episode': episode,
-            'puzzle': puzzle
+            'puzzle': puzzle,
+            'generation_method': 'dynamic' if dynamic_vocab else 'hardcoded'
         })
         
     except Exception as e:
@@ -2050,3 +2070,124 @@ Rules:
             'success': False,
             'error': str(e)
         }, status=500)
+    
+
+def generate_dynamic_vocabulary(focus_skills, grade_level, exclude_words, episode_number):
+    """
+                Generate NEW vocabulary words dynamically using AI
+                Returns list of words with definitions and clues
+                """
+    logger.info(f"🎨 Generating dynamic vocabulary for episode {episode_number}")
+    
+    # Build skill pattern descriptions
+    skill_descriptions = []
+    for skill in focus_skills:
+        if skill in FOCUS_SKILL_VOCABULARY:
+            skill_descriptions.append(
+                f"{skill}: {FOCUS_SKILL_VOCABULARY[skill]['description']}"
+            )
+    
+    skills_text = "\n".join(skill_descriptions)
+    exclude_text = ", ".join(list(exclude_words)[:20]) if exclude_words else "none"
+    
+    prompt = f"""Generate 5 NEW vocabulary words for a grade {grade_level} story.
+
+SKILL REQUIREMENTS:
+{skills_text}
+
+WORD CONSTRAINTS:
+✅ Length: 4-8 letters (REQUIRED for good crossword puzzles)
+✅ Common, kid-friendly words
+✅ Mix of lengths (2 short 4-5 letters, 3 medium 6-8 letters)
+✅ Must match the skill sound patterns
+✅ Avoid rare letters (X, Z, Q, J)
+✅ Include common vowels (A, E, I, O) for crossword intersections
+❌ DO NOT use: {exclude_text}
+
+Example GOOD words for phonics-sh:
+- FISH (4) ✅
+- BRUSH (5) ✅
+- DISHES (6) ✅
+- WASHING (7) ✅
+
+Example BAD words:
+- AXE (has X) ❌
+- XYLOPHONE (too long, has X) ❌
+- IT (too short) ❌
+
+Return ONLY valid JSON:
+{{
+  "words": [
+    {{
+      "word": "word1",
+      "definition": "Simple grade {grade_level} definition",
+      "clue": "Brief crossword clue",
+      "example": "Example sentence using the word",
+      "length": 5,
+      "skill": "{focus_skills[0]}"
+    }},
+    ... 5 words total ...
+  ]
+}}
+"""
+    
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an expert educational content creator specializing in grade-appropriate vocabulary. Generate only words that match the specified phonics patterns and constraints. Return ONLY valid JSON without markdown."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            max_tokens=1000,
+            temperature=0.8
+        )
+        
+        response_text = response.choices[0].message.content.strip()
+        
+        # Clean response
+        import re
+        response_text = re.sub(r'^```json\s*', '', response_text, flags=re.MULTILINE)
+        response_text = re.sub(r'^```\s*$', '', response_text, flags=re.MULTILINE)
+        response_text = response_text.strip()
+        
+        vocab_data = json.loads(response_text)
+        words = vocab_data.get('words', [])
+        
+        # Validate words
+        validated_words = []
+        for word in words:
+            word_text = word['word'].upper()
+            
+            # Check length (4-8 letters)
+            if len(word_text) < 4 or len(word_text) > 8:
+                logger.warning(f"⚠️ Skipping {word_text} (length {len(word_text)})")
+                continue
+            
+            # Check for difficult letters
+            if any(c in 'XZQJ' for c in word_text):
+                logger.warning(f"⚠️ Skipping {word_text} (has difficult letters)")
+                continue
+            
+            # Check if already used
+            if word_text.lower() in exclude_words:
+                logger.warning(f"⚠️ Skipping {word_text} (already used)")
+                continue
+            
+            validated_words.append(word)
+        
+        if len(validated_words) < 5:
+            logger.error(f"❌ Only {len(validated_words)} valid words generated")
+            return None
+        
+        logger.info(f"✅ Generated {len(validated_words)} valid words: {[w['word'] for w in validated_words]}")
+        return validated_words[:5]
+        
+    except Exception as e:
+        logger.error(f"❌ Error generating dynamic vocabulary: {str(e)}")
+        return None
