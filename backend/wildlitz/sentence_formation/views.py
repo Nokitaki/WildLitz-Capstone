@@ -144,7 +144,7 @@ def call_openai_for_story(prompt, max_tokens):
 
 
 
-# In views.py - Update generate_next_episode function
+
 
 @csrf_exempt
 @api_view(['POST'])
@@ -152,7 +152,7 @@ def call_openai_for_story(prompt, max_tokens):
 def generate_next_episode(request):
     """
     Generate the next episode on-demand when user clicks 'Continue'
-    ✅ UPDATED: Allows controlled word reuse when vocabulary pool is exhausted
+    ✅ UPDATED: Dynamic word reuse based on episode number
     """
     try:
         data = request.data
@@ -169,7 +169,7 @@ def generate_next_episode(request):
         excluded_words_lower = set(word.lower().strip() for word in exclude_words if word)
         
         logger.info(f"📚 Generating episode {episode_number}")
-        logger.info(f"   Excluding {len(excluded_words_lower)} words: {list(excluded_words_lower)[:10]}")
+        logger.info(f"   Theme: {theme}, Skills: {focus_skills}")
         
         # LIMIT TO MAX 2 SKILLS
         if len(focus_skills) > 2:
@@ -182,65 +182,87 @@ def generate_next_episode(request):
             if skill in FOCUS_SKILL_VOCABULARY:
                 vocab_examples.extend(FOCUS_SKILL_VOCABULARY[skill]['examples'])
         
-        # Filter out excluded words
+        # Remove duplicates
+        vocab_examples = list(set(vocab_examples))
+        
+        # Filter out excluded words to get NEW words only
         vocab_examples_new = [
             w for w in vocab_examples 
             if w.lower() not in excluded_words_lower
         ]
         
-        # ✅ NEW: Calculate reuse parameters
-        required_new_words = 5
-        min_new_words = 3  # At least 3 must be new
-        max_reuse = 2      # Maximum 2 can be repeated
+        # ✅ DYNAMIC: Adjust requirements based on episode number
+        if episode_number <= 2:
+            # Early episodes: require more new words
+            min_new_words = 3
+            max_reuse = 2
+        elif episode_number <= 3:
+            # Mid episodes: allow more reuse
+            min_new_words = 2
+            max_reuse = 3
+        else:
+            # Late episodes: maximum flexibility
+            min_new_words = 1
+            max_reuse = 4
         
+        logger.info(f"📖 Episode {episode_number} requirements: min_new={min_new_words}, max_reuse={max_reuse}")
         logger.info(f"📖 Available NEW vocabulary: {len(vocab_examples_new)} words")
         logger.info(f"📖 Already used: {len(excluded_words_lower)} words")
+        logger.info(f"📖 Total skill vocabulary pool: {len(vocab_examples)} words")
         
-        # ✅ NEW: If we don't have enough new words, allow controlled reuse
-        if len(vocab_examples_new) < required_new_words:
+        # ✅ NEW: Smart vocabulary pool building based on availability
+        if len(vocab_examples_new) < 5:
             logger.warning(f"⚠️ Only {len(vocab_examples_new)} new words available")
             
             if len(vocab_examples_new) >= min_new_words:
                 # We have enough for minimum new words, allow reuse for the rest
-                logger.info(f"✅ Allowing up to {max_reuse} word reuse")
+                needed_reuse = 5 - len(vocab_examples_new)
+                actual_reuse = min(needed_reuse, max_reuse)
                 
-                # Add back some previously used words to the pool
-                all_skill_words = []
-                for skill in focus_skills:
-                    if skill in FOCUS_SKILL_VOCABULARY:
-                        all_skill_words.extend(FOCUS_SKILL_VOCABULARY[skill]['examples'])
+                logger.info(f"✅ Allowing {actual_reuse} word reuse (need {needed_reuse})")
                 
                 # Get reusable words (previously used but valid for skills)
-                reusable_words = [w for w in all_skill_words if w.lower() in excluded_words_lower]
-                reuse_count = min(max_reuse, len(reusable_words))
+                reusable_words = [w for w in vocab_examples if w.lower() in excluded_words_lower]
                 
                 # Add reusable words to the pool
-                vocab_examples_final = vocab_examples_new + reusable_words[:reuse_count]
+                vocab_examples_final = vocab_examples_new + reusable_words[:actual_reuse]
                 
-                logger.info(f"📖 Expanded pool to {len(vocab_examples_final)} words (including {reuse_count} reusable)")
+                logger.info(f"📖 Expanded pool to {len(vocab_examples_final)} words ({len(vocab_examples_new)} new + {min(actual_reuse, len(reusable_words))} reused)")
                 
-                reuse_note = f"\n⚠️ NOTE: You may reuse up to {reuse_count} words from the 'previously used' list if needed, but prioritize new words."
+                reuse_note = f"\n✅ You MUST use at least {len(vocab_examples_new)} NEW words. You may reuse up to {actual_reuse} words from the 'previously used' list for the remaining slots."
             else:
-                # Not enough words even with reuse
-                logger.error(f"❌ Insufficient vocabulary: Need at least {min_new_words} new words, only {len(vocab_examples_new)} available")
-                return Response({
-                    'error': f'Not enough vocabulary words. Need at least {min_new_words} new words, only {len(vocab_examples_new)} available.'
-                }, status=400)
+                # Not enough words even with maximum reuse - allow full repetition for late episodes
+                if episode_number > 3:
+                    logger.warning(f"⚠️ Very limited vocabulary (only {len(vocab_examples_new)} new). Allowing full word pool including repetitions.")
+                    
+                    # Use all available skill words (both new and used)
+                    vocab_examples_final = vocab_examples
+                    reuse_note = f"\n⚠️ Limited vocabulary pool. You may reuse words from previous episodes as needed, but try to include {len(vocab_examples_new)} new word(s) if possible."
+                    
+                    logger.info(f"📖 Using full vocabulary pool: {len(vocab_examples_final)} words (including previously used)")
+                else:
+                    # Early episodes should fail if not enough words
+                    logger.error(f"❌ Insufficient vocabulary: Need at least {min_new_words} new words, only {len(vocab_examples_new)} available")
+                    return Response({
+                        'error': f'Not enough vocabulary words. Need at least {min_new_words} new words, only {len(vocab_examples_new)} available. Please select different focus skills or reduce episode count.'
+                    }, status=400)
         else:
             # We have enough new words, no reuse needed
             vocab_examples_final = vocab_examples_new
             reuse_note = ""
             logger.info(f"✅ Sufficient new vocabulary: {len(vocab_examples_final)} words available")
         
-        # Build vocabulary list for prompt
-        vocab_list_text = ', '.join(vocab_examples_final[:40])
+        # Build vocabulary list for prompt (limit to 50 words for readability)
+        vocab_list_text = ', '.join(vocab_examples_final[:50])
+        if len(vocab_examples_final) > 50:
+            vocab_list_text += f" ... and {len(vocab_examples_final) - 50} more"
         
         # Build exclusion warning
         previous_words_warning = ""
-        if excluded_words_lower:
-            prev_words_list = ', '.join(sorted(list(excluded_words_lower))[:25])
+        if excluded_words_lower and len(vocab_examples_new) > 0:
+            prev_words_list = ', '.join(sorted(list(excluded_words_lower))[:30])
             previous_words_warning = f"""
-⚠️ PREVIOUSLY USED WORDS (avoid if possible):
+⚠️ PREVIOUSLY USED WORDS (avoid when possible):
 {prev_words_list}
 {reuse_note}
 """
@@ -255,17 +277,19 @@ def generate_next_episode(request):
             recent_context = "This is the first episode."
         
         vocab_instruction = f"""
-🚨 VOCABULARY RULES:
+🚨 VOCABULARY RULES (Episode {episode_number}/5):
 Selected Skills: {', '.join(focus_skills)}
 
-Available words: {vocab_list_text}
+Available words to choose from: {vocab_list_text}
 
 {previous_words_warning}
 
 ✅ REQUIREMENTS:
-- Use at least {min_new_words} NEW words (not in previously used list)
+- {"Use at least " + str(min_new_words) + " NEW words (not in previously used list)" if min_new_words > 0 else "You may reuse words as needed"}
+- {"You may reuse previously used words for the remaining slots" if episode_number > 3 and len(vocab_examples_new) < 5 else ""}
 - All words MUST match the sound patterns from selected skills
 - Words must appear naturally in the story text
+- Total: exactly 5 vocabulary words
 """
         
         prompt = f"""Create Episode {episode_number} for a continuing story about {theme}.
@@ -277,18 +301,19 @@ STORY CONTINUATION:
 {recent_context}
 
 REQUIREMENTS:
-1. Use EXACTLY 5 vocabulary words from the available list
-2. Episode must be 150-200 words
-3. Each vocabulary word appears naturally in text
+1. Use EXACTLY 5 vocabulary words from the available list above
+2. Episode must be 150-200 words long
+3. Each vocabulary word must appear naturally in the story text
 4. {"Mix words from BOTH skills" if len(focus_skills) > 1 else f"Focus on {focus_skills[0]} words"}
 5. Make the story engaging and age-appropriate for grade {grade_level}
+6. Continue the story naturally from the previous episode
 
-Return ONLY valid JSON (NO markdown):
+Return ONLY valid JSON (NO markdown, NO code blocks):
 {{
   "episode": {{
     "episodeNumber": {episode_number},
     "title": "Episode {episode_number} Title",
-    "text": "Story text here...",
+    "text": "Story text here (150-200 words)...",
     "recap": "One sentence summary of this episode",
     "discussionQuestions": ["Question 1?", "Question 2?", "Question 3?"],
     "vocabularyWords": [
@@ -318,7 +343,7 @@ Return ONLY valid JSON (NO markdown):
                 else:
                     logger.error(f"❌ All OpenAI retry attempts failed")
                     return Response({
-                        'error': 'Failed to generate episode content'
+                        'error': 'Failed to generate episode content. Please try again.'
                     }, status=500)
             
             try:
@@ -329,6 +354,7 @@ Return ONLY valid JSON (NO markdown):
                 if not episode or 'vocabularyWords' not in episode:
                     logger.error(f"❌ Invalid episode structure")
                     if attempt < max_retries - 1:
+                        prompt += "\n\n❌ REJECTED: Invalid JSON structure. Ensure you include all required fields."
                         continue
                     else:
                         return Response({
@@ -342,14 +368,26 @@ Return ONLY valid JSON (NO markdown):
                     if attempt < max_retries - 1:
                         prompt += f"\n\n❌ REJECTED: You only provided {len(vocab_words)} words. You MUST provide exactly 5 words!"
                         continue
+                    else:
+                        return Response({
+                            'error': 'Generated episode does not have enough vocabulary words'
+                        }, status=500)
                 
                 logger.info(f"✅ Episode generated successfully with {len(vocab_words)} words")
+                
+                # Log which words are new vs reused
+                generated_words = [w['word'].lower() for w in vocab_words]
+                new_words = [w for w in generated_words if w not in excluded_words_lower]
+                reused_words = [w for w in generated_words if w in excluded_words_lower]
+                logger.info(f"   New words: {new_words}")
+                logger.info(f"   Reused words: {reused_words}")
+                
                 break
                 
             except json.JSONDecodeError as e:
                 logger.error(f"❌ JSON parsing error: {e}")
                 if attempt < max_retries - 1:
-                    prompt += "\n\n❌ REJECTED: Your response was not valid JSON. Return ONLY valid JSON without markdown!"
+                    prompt += "\n\n❌ REJECTED: Your response was not valid JSON. Return ONLY valid JSON without markdown or code blocks!"
                     continue
                 else:
                     return Response({
@@ -359,7 +397,7 @@ Return ONLY valid JSON (NO markdown):
         if not episode:
             logger.error(f"❌ Failed to generate valid episode after {max_retries} attempts")
             return Response({
-                'error': 'Failed to generate valid episode'
+                'error': 'Failed to generate valid episode. Please try again.'
             }, status=500)
         
         # Add missing fields

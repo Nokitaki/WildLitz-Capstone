@@ -89,27 +89,41 @@ class CrosswordAnalyticsService {
    * Log a game activity
    */
   async logActivity(activityData) {
-    try {
-      const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/story/activity/log/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(activityData)
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to log activity');
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('❌ Error logging activity:', error);
-      throw error;
+  try {
+    const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/log-crossword-activity/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(activityData),
+      signal: AbortSignal.timeout(5000) // 5 second timeout
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
+
+    return await response.json();
+  } catch (error) {
+    // Silently fail on socket/network errors - don't block user
+    if (error.name === 'AbortError' || error.message.includes('socket') || error.message.includes('10035')) {
+      console.warn('⚠️ Analytics logging skipped (network issue)');
+      return { success: false, skipped: true };
+    }
+    console.error('❌ Error logging activity:', error);
+    return { success: false, error: error.message };
   }
+}
+
+async logGameCompleted(sessionData) {
+  try {
+    await this.logActivity({
+      ...sessionData,
+      activity_type: 'game_completed'
+    });
+  } catch (error) {
+    // Don't throw - just log
+    console.warn('⚠️ Game completion logging failed, continuing anyway');
+  }
+}
 
   /**
    * Log when a word is solved (used by GameplayScreen)
