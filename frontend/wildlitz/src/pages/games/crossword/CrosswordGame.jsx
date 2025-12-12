@@ -371,46 +371,62 @@ const sessionData = {
     setTimerActive(false);
   };
   
-  const handleNextEpisode = async () => {
+ const handleNextEpisode = async () => {
   const adventure = gameStories[gameConfig.adventureId];
   
   if (!adventure || !adventure.episodes) {
-    console.log('No adventure found, returning to story selection');
+    console.log('❌ No adventure found, returning to story selection');
     setGameState('generate-story');
     return;
   }
   
-  const nextEpisodeNumber = currentEpisode + 1; // Next episode number (1-indexed)
-  const nextEpisodeIndex = currentEpisode; // Array index (0-indexed)
+  const nextEpisodeNumber = currentEpisode + 1;
+  const nextEpisodeIndex = currentEpisode; // Array is 0-indexed, episodes are 1-indexed
   
   console.log(`📚 Moving to episode ${nextEpisodeNumber}/${adventure.totalEpisodes}`);
-  console.log(`   Current episodes generated: ${adventure.generatedEpisodes || adventure.episodes.length}`);
-  console.log(`   Episodes in array: ${adventure.episodes.length}`);
+  console.log(`   Current episodes in array: ${adventure.episodes.length}`);
+  console.log(`   Generated episodes count: ${adventure.generatedEpisodes || adventure.episodes.length}`);
   
-  // Check if episode already exists
+  // ✅ CHECK 1: Does episode already exist in the array?
   if (nextEpisodeIndex < adventure.episodes.length) {
     console.log(`✅ Episode ${nextEpisodeNumber} already exists, loading it`);
     
     const nextEpisode = adventure.episodes[nextEpisodeIndex];
-    setCurrentStorySegment(nextEpisode);
-    setCurrentEpisode(nextEpisodeNumber);
     
-    const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
-    if (puzzleData) {
-      setCurrentPuzzle(puzzleData);
-    }
-    
-    // Reset game state
+    // ✅ CRITICAL: Reset ALL game state before loading new episode
     setSolvedWords([]);
     setTimeSpent(0);
     setTotalHints(0);
     setTimerActive(false);
+    setQuestionStats({});  // ✅ Reset accuracy tracking for new episode
     
-    setGameState('story');
+    // Set the new episode data
+    setCurrentStorySegment(nextEpisode);
+    setCurrentEpisode(nextEpisodeNumber);
+    
+    // Load the puzzle for this episode
+    const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
+    if (puzzleData) {
+      setCurrentPuzzle(puzzleData);
+    } else {
+      console.warn(`⚠️ Puzzle not found for episode ${nextEpisodeNumber}`);
+    }
+    
+    // ✅ SHORT DELAY to ensure all state updates complete before transition
+    setTimeout(() => {
+      setGameState('story');
+    }, 150);
     return;
   }
   
-  // Check if we need to generate next episode
+  // ✅ CHECK 2: Have we completed all episodes?
+  if (nextEpisodeNumber > adventure.totalEpisodes) {
+    console.log('🎉 All episodes completed! Returning to menu');
+    setGameState('generate-story');
+    return;
+  }
+  
+  // ✅ CHECK 3: Need to generate the next episode
   const generatedCount = adventure.generatedEpisodes || adventure.episodes.length;
   
   if (nextEpisodeNumber <= adventure.totalEpisodes && generatedCount < adventure.totalEpisodes) {
@@ -419,8 +435,12 @@ const sessionData = {
     return;
   }
   
-  // All episodes completed
-  console.log('🎉 All episodes completed!');
+  // ✅ Fallback: Something went wrong
+  console.error('❌ Unexpected state in handleNextEpisode');
+  console.error(`   nextEpisodeNumber: ${nextEpisodeNumber}`);
+  console.error(`   totalEpisodes: ${adventure.totalEpisodes}`);
+  console.error(`   generatedCount: ${generatedCount}`);
+  console.error(`   episodes.length: ${adventure.episodes.length}`);
   setGameState('generate-story');
 };
 
@@ -435,9 +455,33 @@ const generateNextEpisodeOnDemand = async () => {
   setGenerationError(null);
   
   try {
-    // Gather previous episodes for context
+    // ✅ FIXED: Collect ALL previously used words from ALL episodes
+    const previouslyUsedWords = new Set();
+    adventure.episodes.forEach(ep => {
+      // Get words from vocabularyFocus
+      if (ep.vocabularyFocus && Array.isArray(ep.vocabularyFocus)) {
+        ep.vocabularyFocus.forEach(word => {
+          if (word) previouslyUsedWords.add(word.toLowerCase().trim());
+        });
+      }
+      // Get words from vocabularyWords
+      if (ep.vocabularyWords && Array.isArray(ep.vocabularyWords)) {
+        ep.vocabularyWords.forEach(wordObj => {
+          if (typeof wordObj === 'object' && wordObj.word) {
+            previouslyUsedWords.add(wordObj.word.toLowerCase().trim());
+          } else if (typeof wordObj === 'string') {
+            previouslyUsedWords.add(wordObj.toLowerCase().trim());
+          }
+        });
+      }
+    });
+    
+    console.log(`📝 Excluding ${previouslyUsedWords.size} previously used words:`, Array.from(previouslyUsedWords));
+    
+    // ✅ FIXED: Send complete episode data for context
     const previousEpisodes = adventure.episodes.map(ep => ({
       episodeNumber: ep.episodeNumber,
+      title: ep.title,
       text: ep.text,
       recap: ep.recap,
       vocabularyWords: ep.vocabularyWords,
@@ -454,9 +498,10 @@ const generateNextEpisodeOnDemand = async () => {
         focusSkills: adventure.focusSkills,
         characterNames: adventure.characterNames,
         gradeLevel: typeof adventure.gradeLevel === 'string' 
-        ? parseInt(adventure.gradeLevel.replace('Grade ', '')) 
-        : (adventure.gradeLevel || 3),
-        previousEpisodes: previousEpisodes
+          ? parseInt(adventure.gradeLevel.replace('Grade ', '')) 
+          : (adventure.gradeLevel || 3),
+        previousEpisodes: previousEpisodes,  // ✅ SEND ALL EPISODES
+        excludeWords: Array.from(previouslyUsedWords)  // ✅ EXPLICIT EXCLUSION LIST
       })
     });
     
@@ -468,37 +513,37 @@ const generateNextEpisodeOnDemand = async () => {
     const data = await response.json();
     console.log(`✅ Episode ${nextEpisodeNumber} generated successfully`);
     
-    // Update game stories
+    // ✅ FIXED: Update stories immutably
     setGameStories(prev => {
       const updated = { ...prev };
       const updatedAdventure = { ...updated[gameConfig.adventureId] };
       
-      updatedAdventure.episodes.push(data.episode);
+      updatedAdventure.episodes = [...updatedAdventure.episodes, data.episode];
       updatedAdventure.generatedEpisodes = updatedAdventure.episodes.length;
       
       updated[gameConfig.adventureId] = updatedAdventure;
       return updated;
     });
     
-    // Update puzzles
     setGamePuzzles(prev => ({
       ...prev,
       [data.episode.crosswordPuzzleId]: data.puzzle
     }));
     
-    // Set up the new episode
-    setCurrentStorySegment(data.episode);
-    setCurrentEpisode(nextEpisodeNumber);
-    setCurrentPuzzle(data.puzzle);
-    
-    // Reset game state
-    setSolvedWords([]);
-    setTimeSpent(0);
-    setTotalHints(0);
-    setTimerActive(false);
-    
-    setIsGeneratingNextEpisode(false);
-    setGameState('story');
+    // ✅ FIXED: Set episode state AFTER stories are updated
+    setTimeout(() => {
+      setCurrentStorySegment(data.episode);
+      setCurrentEpisode(nextEpisodeNumber);
+      setCurrentPuzzle(data.puzzle);
+      
+      setSolvedWords([]);
+      setTimeSpent(0);
+      setTotalHints(0);
+      setTimerActive(false);
+      
+      setIsGeneratingNextEpisode(false);
+      setGameState('story');
+    }, 100);
     
   } catch (error) {
     console.error('❌ Error generating episode:', error);
