@@ -753,3 +753,32 @@
   transform: scale(1.08);
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
+
+.grid {
+  width: 100%;
+  max-width: min(90vw, 650px);
+  max-height: min(70vh, 650px);
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    max-width: 95vw;
+    max-height: 60vh;
+  }
+  
+  .cell {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .cellValue {
+    font-size: 18px;
+  }
+  
+  .cellNumber {
+    font-size: 10px;
+    width: 14px;
+    height: 14px;
+  }
+}
