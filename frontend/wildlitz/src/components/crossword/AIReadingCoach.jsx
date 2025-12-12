@@ -686,38 +686,7 @@ const AIReadingCoach = ({
   };
   
 
-  const readingTips = [
-    {
-      icon: "👀",
-      title: "Look for Context Clues",
-      description: "If you don't know a word, read the sentence around it to guess its meaning."
-    },
-    {
-      icon: "🔊",
-      title: "Sound it Out",
-      description: "Break long words into smaller parts (syllables) and say each part slowly."
-    },
-    {
-      icon: "📝",
-      title: "Visualize the Story",
-      description: "Create pictures in your mind as you read to help you understand and remember."
-    },
-    {
-      icon: "🔄",
-      title: "Reread if Confused",
-      description: "It's okay to read a sentence again if you didn't understand it the first time."
-    },
-    {
-      icon: "❓",
-      title: "Ask Questions",
-      description: "Think about what might happen next or why characters do certain things."
-    },
-    {
-      icon: "⭐",
-      title: "Take Your Time",
-      description: "Reading is not a race! Go at a comfortable pace for you."
-    }
-  ];
+ 
   
   if (!isVisible) return null;
   
@@ -758,13 +727,7 @@ const AIReadingCoach = ({
               <span className={styles.tabIcon}>📚</span>
               <span>Vocabulary</span>
             </button>
-            <button
-              className={`${styles.tabButton} ${activeTab === 'tips' ? styles.activeTab : ''}`}
-              onClick={() => setActiveTab('tips')}
-            >
-              <span className={styles.tabIcon}>💡</span>
-              <span>Reading Tips</span>
-            </button>
+            
             <button
               className={`${styles.tabButton} ${activeTab === 'practice' ? styles.activeTab : ''}`}
               onClick={() => setActiveTab('practice')}
@@ -897,36 +860,7 @@ const AIReadingCoach = ({
             )}
             
            
-            {activeTab === 'tips' && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className={styles.tipsTab}
-              >
-                <div className={styles.tipsHeader}>
-                  <h3>📖 Helpful Reading Strategies</h3>
-                  <p>Use these tips to become a better reader!</p>
-                </div>
-                
-                <div className={styles.tipsGrid}>
-                  {readingTips.map((tip, index) => (
-                    <motion.div
-                      key={index}
-                      className={styles.tipCard}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      whileHover={{ scale: 1.03, y: -5 }}
-                    >
-                      <span className={styles.tipIcon}>{tip.icon}</span>
-                      <h4 className={styles.tipTitle}>{tip.title}</h4>
-                      <p className={styles.tipDescription}>{tip.description}</p>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+            
             
             
             {activeTab === 'practice' && (
