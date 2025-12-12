@@ -264,5 +264,19 @@
     "sound_position": "middle",
     "environment": "ocean",
     "difficulty_level": "hard"
+  },
+  {
+    "name": "Walrus",
+    "target_sound": "l",
+    "sound_position": "middle",
+    "environment": "arctic",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Polar bear",
+    "target_sound": "l",
+    "sound_position": "middle",
+    "environment": "arctic",
+    "difficulty_level": "medium"
   }
 ]
