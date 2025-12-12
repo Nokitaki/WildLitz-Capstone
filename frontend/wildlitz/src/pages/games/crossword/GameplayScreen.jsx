@@ -1,10 +1,10 @@
-
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+// src/pages/games/crossword/GameplayScreen.jsx - FIXED CROSSWORD WITH PROPER INTERSECTIONS
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BackToHomeButton from '../crossword/BackToHomeButton';
 import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
-import CrosswordQuickTip from './CrosswordQuickTip';
-import CrosswordGuideModal from './CrosswordGuideModalEnhanced';
+import styles from '../../../styles/games/crossword/GameplayScreenDragDrop.module.css';
+
 const GameplayScreen = ({ 
   puzzle, 
   theme, 
@@ -26,237 +26,365 @@ const GameplayScreen = ({
   const [selectedClue, setSelectedClue] = useState(null);
   const [hintsRemaining, setHintsRemaining] = useState(3);
   const [gridCells, setGridCells] = useState([]);
-  const [answerChoices, setAnswerChoices] = useState([]);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [feedback, setFeedback] = useState(null);
   const [solvedClues, setSolvedClues] = useState({});
   const [showCelebration, setShowCelebration] = useState(false);
   const [confettiPieces, setConfettiPieces] = useState([]);
-  const [showHintTooltip, setShowHintTooltip] = useState(false);
-
-
-  const [currentWordAttempts, setCurrentWordAttempts] = React.useState(0);
   
+  const [scrambledLetters, setScrambledLetters] = useState([]);
+  const [answerSlots, setAnswerSlots] = useState([]);
+  const [draggedLetter, setDraggedLetter] = useState(null);
+  const [feedback, setFeedback] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [revealedLetters, setRevealedLetters] = useState({}); 
-
+  const [gridLayout, setGridLayout] = useState({ width: 0, height: 0, cells: [] });
+  const [wordPositions, setWordPositions] = useState([]);
+  
   const gridInitializedRef = useRef(false);
   const wordStartTime = useRef(Date.now());
   const hintsUsedForCurrentWordRef = useRef(0);
   const celebrationTimeoutRef = useRef(null);
   const feedbackTimeoutRef = useRef(null);
-  const speechSynthRef = useRef(null); 
-
+  
   const INITIAL_HINTS = 3;
 
- 
-
-  const [showGuide, setShowGuide] = useState(() => {
-  const hasSeenGuide = localStorage.getItem('wildlitz_crossword_guide_seen');
- 
-  return hasSeenGuide !== 'true' && currentEpisode === 1;
-});
-  
   if (!puzzle || !puzzle.words || !Array.isArray(puzzle.words)) {
     return (
-      <div style={{ 
-        width: '100vw', 
-        height: '100vh', 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        fontSize: '24px'
-      }}>
-        Loading puzzle data...
+      <div className={styles.errorContainer}>
+        <div className={styles.errorMessage}>
+          <h2>⚠️ Oops!</h2>
+          <p>Unable to load the puzzle. Please try again!</p>
+        </div>
       </div>
     );
   }
 
-
   const currentWord = puzzle.words[currentWordIndex];
   const totalWords = puzzle.words.length;
-  const solvedCount = Object.keys(solvedClues).length;
- const isCurrentWordSolved = solvedClues[currentWordIndex];
+  const solvedCount = Object.keys(solvedClues).filter(key => solvedClues[key]).length;
 
-useEffect(() => {
-  const hasSeenGuide = localStorage.getItem('wildlitz_crossword_guide_seen');
- 
-  if (hasSeenGuide === 'true' || currentEpisode > 1) {
-    setShowGuide(false);
+  // Generate proper crossword with letter intersections
+const generateCrosswordLayout = useCallback(() => {
+  const words = puzzle.words.map((word, idx) => ({
+    ...word,
+    index: idx,
+    answer: word.answer.toUpperCase()
+  }));
+
+  // Sort words by length (longest first) for better connections
+  const sortedWords = [...words].sort((a, b) => b.answer.length - a.answer.length);
+  
+  const gridSize = 30;
+  const grid = [];
+  for (let i = 0; i < gridSize; i++) {
+    grid[i] = [];
+    for (let j = 0; j < gridSize; j++) {
+      grid[i][j] = null;
+    }
   }
-}, [currentEpisode]);
 
+  const placements = [];
+  const centerRow = Math.floor(gridSize / 2);
+  const centerCol = Math.floor(gridSize / 2);
 
-
-const handleAnswerSelection = useCallback((choiceIndex) => {
-    if (isCurrentWordSolved || feedback) return;
-
-    const selectedChoice = answerChoices[choiceIndex];
-    setSelectedAnswer(choiceIndex);
-
-    const isCorrect = selectedChoice === currentWord.answer;
-    
+  // Place longest word first (horizontally)
+  const firstWord = sortedWords[0];
+  const firstStartCol = centerCol - Math.floor(firstWord.answer.length / 2);
   
-    if (onAnswerAttempt) {
-      onAnswerAttempt({
-        word: currentWord.answer,
-        isCorrect: isCorrect,
-        timeSpent: (Date.now() - wordStartTime.current) / 1000,
-        hintsUsed: hintsUsedForCurrentWordRef.current
+  placements.push({
+    word: firstWord,
+    row: centerRow,
+    col: firstStartCol,
+    direction: 'across',
+    wordIndex: firstWord.index
+  });
+
+  for (let i = 0; i < firstWord.answer.length; i++) {
+    grid[centerRow][firstStartCol + i] = {
+      letter: firstWord.answer[i],
+      wordIndices: [firstWord.index],
+      positions: [i]
+    };
+  }
+
+  // Place remaining words - FORCE CONNECTIONS
+  for (let i = 1; i < sortedWords.length; i++) {
+    const word = sortedWords[i];
+    let placed = false;
+    const attempts = [];
+
+    // Try EVERY possible intersection with EVERY placed word
+    for (const placement of placements) {
+      const placedWord = placement.word.answer;
+      
+      // Try both directions
+      for (const tryDirection of ['across', 'down']) {
+        // Skip if same direction as placed word (we want perpendicular)
+        if (tryDirection === placement.direction) continue;
+
+        // Find ALL letter matches
+        for (let wordIdx = 0; wordIdx < word.answer.length; wordIdx++) {
+          for (let placedIdx = 0; placedIdx < placedWord.length; placedIdx++) {
+            
+            if (word.answer[wordIdx] === placedWord[placedIdx]) {
+              let newRow, newCol;
+
+              if (tryDirection === 'down') {
+                newRow = placement.row - wordIdx;
+                newCol = placement.col + placedIdx;
+              } else {
+                newRow = placement.row + placedIdx;
+                newCol = placement.col - wordIdx;
+              }
+
+              // Check if valid
+              const isValid = checkPlacement(
+                grid, 
+                word.answer, 
+                newRow, 
+                newCol, 
+                tryDirection, 
+                gridSize,
+                wordIdx
+              );
+
+              if (isValid) {
+                attempts.push({
+                  row: newRow,
+                  col: newCol,
+                  direction: tryDirection,
+                  intersections: countIntersections(grid, word.answer, newRow, newCol, tryDirection),
+                  distance: Math.abs(newRow - centerRow) + Math.abs(newCol - centerCol)
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Choose best placement (most intersections, closest to center)
+    if (attempts.length > 0) {
+      attempts.sort((a, b) => {
+        if (b.intersections !== a.intersections) {
+          return b.intersections - a.intersections;
+        }
+        return a.distance - b.distance;
       });
-    }
 
-    if (isCorrect) {
-     
-      setFeedback({ type: 'correct', message: 'Correct! 🎉' });
+      const best = attempts[0];
       
-    } else {
-     
-      setFeedback({ type: 'incorrect', message: 'Try again!' });
-      
-      setTimeout(() => {
-        setFeedback(null);
-        setSelectedAnswer(null);
-      }, 1500);
-    }
-  }, [currentWord, answerChoices, isCurrentWordSolved, feedback, onAnswerAttempt]);
+      placements.push({
+        word: word,
+        row: best.row,
+        col: best.col,
+        direction: best.direction,
+        wordIndex: word.index
+      });
 
-  
-
-
-const handleStartFromGuide = () => {
-  setShowGuide(false);
-  
-};
-
-const handleSkipGuide = () => {
-  setShowGuide(false);
- 
-};
-
- 
-  useEffect(() => {
-    if ('speechSynthesis' in window) {
-      speechSynthRef.current = window.speechSynthesis;
-      
-     
-      const loadVoices = () => {
-        const voices = speechSynthRef.current.getVoices();
-        
-      };
-      
-   
-      loadVoices();
-      
-     
-      if (speechSynthRef.current.onvoiceschanged !== undefined) {
-        speechSynthRef.current.onvoiceschanged = loadVoices;
+      // Place in grid
+      if (best.direction === 'down') {
+        for (let k = 0; k < word.answer.length; k++) {
+          const r = best.row + k;
+          const c = best.col;
+          
+          if (grid[r][c] === null) {
+            grid[r][c] = {
+              letter: word.answer[k],
+              wordIndices: [word.index],
+              positions: [k]
+            };
+          } else {
+            grid[r][c].wordIndices.push(word.index);
+            grid[r][c].positions.push(k);
+          }
+        }
+      } else {
+        for (let k = 0; k < word.answer.length; k++) {
+          const r = best.row;
+          const c = best.col + k;
+          
+          if (grid[r][c] === null) {
+            grid[r][c] = {
+              letter: word.answer[k],
+              wordIndices: [word.index],
+              positions: [k]
+            };
+          } else {
+            grid[r][c].wordIndices.push(word.index);
+            grid[r][c].positions.push(k);
+          }
+        }
       }
-    }
-  }, []);
-
- 
-  const speakText = useCallback((text) => {
-    if (!speechSynthRef.current) return;
-    
-   
-    speechSynthRef.current.cancel();
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9; 
-    utterance.pitch = 1.0; 
-    utterance.volume = 1;
-    
-  
-    const voices = speechSynthRef.current.getVoices();
-    const ukVoice = voices.find(voice => 
-      voice.lang === 'en-GB' || 
-      voice.name.includes('UK') || 
-      voice.name.includes('British')
-    );
-    if (ukVoice) {
-      utterance.voice = ukVoice;
-    } else {
-      utterance.lang = 'en-GB'; 
-    }
-    
-    utterance.onstart = () => setIsPlayingAudio(true);
-    utterance.onend = () => setIsPlayingAudio(false);
-    utterance.onerror = () => setIsPlayingAudio(false);
-    
-    speechSynthRef.current.speak(utterance);
-  }, []);
-
- 
-  const readQuestion = useCallback(() => {
-    if (currentWord?.clue) {
-      speakText(currentWord.clue);
-    }
-  }, [currentWord, speakText]);
-
- 
-  const readChoice = useCallback((choice) => {
-    speakText(choice);
-  }, [speakText]);
-
- 
-  const gridWidth = useMemo(() => {
-    const maxLength = Math.max(...puzzle.words.map(w => w.answer.length));
-    return maxLength + 2;
-  }, [puzzle.words]);
-
-  const gridHeight = useMemo(() => puzzle.words.length * 2, [puzzle.words.length]);
-
- 
-  const createSimpleGrid = useCallback(() => {
-    const cells = [];
-    for (let row = 0; row < gridHeight; row++) {
-      for (let col = 0; col < gridWidth; col++) {
-        cells.push({
-          row,
-          col,
-          value: '',
-          revealed: false,
-          number: null,
-          isEmpty: true,
-          letter: '',
-          wordIndex: -1
-        });
-      }
+      
+      placed = true;
     }
 
-    puzzle.words.forEach((word, wordIdx) => {
-      const row = wordIdx * 2;
-      for (let i = 0; i < word.answer.length; i++) {
-        const col = i + 1;
-        const cellIndex = row * gridWidth + col;
-        cells[cellIndex] = {
-          row,
-          col,
-          value: '',
-          revealed: false,
-          number: i === 0 ? word.number : null,
-          isEmpty: false,
-          letter: word.answer[i],
-          wordIndex: wordIdx
+    // Last resort: stack vertically
+    if (!placed) {
+      const lastPlacement = placements[placements.length - 1];
+      const fallbackRow = lastPlacement.row + 2;
+      const fallbackCol = centerCol - Math.floor(word.answer.length / 2);
+      
+      placements.push({
+        word: word,
+        row: fallbackRow,
+        col: fallbackCol,
+        direction: 'across',
+        wordIndex: word.index
+      });
+
+      for (let k = 0; k < word.answer.length; k++) {
+        grid[fallbackRow][fallbackCol + k] = {
+          letter: word.answer[k],
+          wordIndices: [word.index],
+          positions: [k]
         };
       }
-    });
+    }
+  }
 
-    setGridCells(cells);
-  }, [puzzle.words, gridWidth, gridHeight]);
+  function checkPlacement(grid, word, row, col, direction, gridSize, intersectIdx) {
+  const length = word.length;
+  
+  // Bounds check
+  if (direction === 'down') {
+    if (row < 2 || row + length >= gridSize - 2) return false;
+    if (col < 2 || col >= gridSize - 2) return false;
+  } else {
+    if (col < 2 || col + length >= gridSize - 2) return false;
+    if (row < 2 || row >= gridSize - 2) return false;
+  }
 
- 
+  let intersectionCount = 0; // Track intersections
+
+  // Check each position
+  for (let i = 0; i < length; i++) {
+    const r = direction === 'down' ? row + i : row;
+    const c = direction === 'across' ? col + i : col;
+
+    const cell = grid[r][c];
+    
+    if (cell !== null) {
+      // Cell occupied - must match letter
+      if (cell.letter !== word[i]) return false;
+      
+      intersectionCount++; // Count this intersection
+      
+      // CRITICAL: Only allow ONE intersection per word
+      if (intersectionCount > 1) {
+        return false; // Reject if trying to intersect at multiple points
+      }
+    } else {
+      // Cell empty - check perpendicular cells (no adjacent words)
+      if (direction === 'down') {
+        // Check left and right
+        if (grid[r][c - 1] !== null || grid[r][c + 1] !== null) return false;
+      } else {
+        // Check above and below
+        if (grid[r - 1]?.[c] !== null || grid[r + 1]?.[c] !== null) return false;
+      }
+    }
+  }
+
+  // MUST have exactly ONE intersection
+  if (intersectionCount !== 1) {
+    return false;
+  }
+
+  // Check before/after word (no adjacent words)
+  if (direction === 'down') {
+    if (grid[row - 1]?.[col] !== null) return false;
+    if (grid[row + length]?.[col] !== null) return false;
+  } else {
+    if (grid[row]?.[col - 1] !== null) return false;
+    if (grid[row]?.[col + length] !== null) return false;
+  }
+
+  return true;
+}
+
+  function countIntersections(grid, word, row, col, direction) {
+    let count = 0;
+    for (let i = 0; i < word.length; i++) {
+      const r = direction === 'down' ? row + i : row;
+      const c = direction === 'across' ? col + i : col;
+      if (grid[r]?.[c] !== null) count++;
+    }
+    return count;
+  }
+
+  // Find bounds and create cells (same as before)
+  let minRow = gridSize, maxRow = 0, minCol = gridSize, maxCol = 0;
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
+      if (grid[r][c] !== null) {
+        minRow = Math.min(minRow, r);
+        maxRow = Math.max(maxRow, r);
+        minCol = Math.min(minCol, c);
+        maxCol = Math.max(maxCol, c);
+      }
+    }
+  }
+
+  minRow = Math.max(0, minRow - 1);
+  maxRow = Math.min(gridSize - 1, maxRow + 1);
+  minCol = Math.max(0, minCol - 1);
+  maxCol = Math.min(gridSize - 1, maxCol + 1);
+
+  const finalWidth = maxCol - minCol + 1;
+  const finalHeight = maxRow - minRow + 1;
+
+  const cells = [];
+  for (let r = minRow; r <= maxRow; r++) {
+    for (let c = minCol; c <= maxCol; c++) {
+      const cellData = grid[r][c];
+      cells.push({
+        row: r - minRow,
+        col: c - minCol,
+        letter: cellData?.letter || '',
+        wordIndices: cellData?.wordIndices || [],
+        positions: cellData?.positions || [],
+        isEmpty: cellData === null,
+        revealed: false,
+        number: null
+      });
+    }
+  }
+
+  // Restore original order for numbering
+ const finalPlacements = placements.map(p => ({
+  ...p,
+  row: p.row - minRow,
+  col: p.col - minCol
+})).sort((a, b) => a.wordIndex - b.wordIndex);
+
+// Assign numbers based on position in array (1-5)
+finalPlacements.forEach((placement, idx) => {
+  const cellIndex = placement.row * finalWidth + placement.col;
+  if (cells[cellIndex]) {
+    cells[cellIndex].number = idx + 1; // THIS CHANGED - use idx instead of wordIndex
+    cells[cellIndex].isWordStart = true;
+    cells[cellIndex].wordIndex = placement.wordIndex;
+  }
+});
+
+// Update placements to match
+finalPlacements.forEach((p, idx) => {
+  p.displayNumber = idx + 1;
+});
+
+  setGridLayout({ width: finalWidth, height: finalHeight, cells });
+  setWordPositions(finalPlacements);
+  setGridCells(cells);
+
+}, [puzzle.words]);
+
   useEffect(() => {
     if (!gridInitializedRef.current) {
-      createSimpleGrid();
+      generateCrosswordLayout();
       gridInitializedRef.current = true;
     }
-  }, [createSimpleGrid]);
-
+  }, [generateCrosswordLayout]);
 
   useEffect(() => {
     if (puzzle?.words?.length > 0 && !selectedClue) {
@@ -264,951 +392,539 @@ const handleSkipGuide = () => {
     }
   }, [puzzle, selectedClue]);
 
- 
   useEffect(() => {
-    if (currentWord && !solvedClues[currentWord.answer]) {
-      generateChoicesForClue(currentWord);
-      setSelectedAnswer(null);
-      setFeedback(null);
-      hintsUsedForCurrentWordRef.current = 0;
+    if (currentWord && !solvedClues[currentWordIndex]) {
+      setupScrambledLetters(currentWord.answer);
       wordStartTime.current = Date.now();
+      hintsUsedForCurrentWordRef.current = 0;
+      setFeedback(null);
     }
   }, [currentWordIndex, currentWord?.answer]);
 
- 
   useEffect(() => {
-  if (solvedWords?.length > 0) {
-    const solved = {};
-    solvedWords.forEach(sw => {
-      const word = typeof sw === 'string' ? sw : sw.word;
-      const wordIndex = puzzle.words.findIndex(w => w.answer.toUpperCase() === word.toUpperCase());
-      if (wordIndex !== -1) {
-        solved[wordIndex] = true;
-      }
-    });
-    setSolvedClues(solved);
-  }
-}, [solvedWords, puzzle.words]);
+    if (solvedWords?.length > 0) {
+      const solved = {};
+      solvedWords.forEach(sw => {
+        const word = typeof sw === 'string' ? sw : sw.word;
+        const wordIndex = puzzle.words.findIndex(w => w.answer.toUpperCase() === word.toUpperCase());
+        if (wordIndex !== -1) {
+          solved[wordIndex] = true;
+        }
+      });
+      setSolvedClues(solved);
+    }
+  }, [solvedWords, puzzle.words]);
 
- 
   useEffect(() => {
     return () => {
       if (celebrationTimeoutRef.current) clearTimeout(celebrationTimeoutRef.current);
       if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
-      if (speechSynthRef.current) speechSynthRef.current.cancel();
-      setShowCelebration(false);
-      setConfettiPieces([]);
     };
   }, []);
 
- 
-  const updateGridWithWord = useCallback((word) => {
-    if (!word) return;
+  const setupScrambledLetters = (answer) => {
+    const letters = answer.toUpperCase().split('');
+    const shuffled = [...letters].sort(() => Math.random() - 0.5);
     
-    const wordIdx = puzzle.words.findIndex(w => w.answer === word.answer);
-    if (wordIdx === -1) return;
+    setScrambledLetters(shuffled.map((letter, idx) => ({
+      id: `scrambled-${idx}`,
+      letter: letter,
+      isPlaced: false
+    })));
     
-    setGridCells(prevCells => {
-      const newCells = [...prevCells];
-      newCells.forEach((cell, idx) => {
-        if (cell.wordIndex === wordIdx) {
-          newCells[idx] = {
-            ...cell,
-            value: cell.letter,
-            revealed: true
-          };
+    setAnswerSlots(letters.map((_, idx) => ({
+      id: `slot-${idx}`,
+      letter: null,
+      letterIndex: null
+    })));
+  };
+
+  const handleShuffle = () => {
+    const availableLetters = scrambledLetters.filter(l => !l.isPlaced);
+    const shuffled = [...availableLetters].sort(() => Math.random() - 0.5);
+    
+    setScrambledLetters(prev => {
+      const newLetters = [...prev];
+      let shuffledIdx = 0;
+      return newLetters.map(letter => {
+        if (!letter.isPlaced) {
+          return { ...shuffled[shuffledIdx++] };
         }
+        return letter;
       });
-      return newCells;
     });
-  }, [puzzle.words]);
+  };
 
- 
-  const revealOneLetter = useCallback((word) => {
-    if (!word) return;
+  const handleClear = () => {
+    setScrambledLetters(prev => prev.map(l => ({ ...l, isPlaced: false })));
+    setAnswerSlots(prev => prev.map(slot => ({ ...slot, letter: null, letterIndex: null })));
+    setFeedback(null);
+  };
+
+  const handleDragStart = (e, letterIndex) => {
+    setDraggedLetter(letterIndex);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDropOnSlot = (e, slotIndex) => {
+    e.preventDefault();
     
-    const wordIdx = puzzle.words.findIndex(w => w.answer === word.answer);
-    if (wordIdx === -1) return;
+    if (draggedLetter === null) return;
 
-  
-    const wordKey = `${wordIdx}-${word.answer}`;
-    const revealed = revealedLetters[wordKey] || [];
-   
-    const unrevealedIndices = [];
-    for (let i = 0; i < word.answer.length; i++) {
-      if (!revealed.includes(i)) {
-        unrevealedIndices.push(i);
-      }
+    const letter = scrambledLetters[draggedLetter];
+    
+    if (answerSlots[slotIndex].letter !== null) {
+      const oldLetterIndex = answerSlots[slotIndex].letterIndex;
+      setScrambledLetters(prev => {
+        const newLetters = [...prev];
+        newLetters[oldLetterIndex] = { ...newLetters[oldLetterIndex], isPlaced: false };
+        return newLetters;
+      });
     }
-    
-    if (unrevealedIndices.length === 0) return; 
-    
-  
-    const randomIdx = unrevealedIndices[Math.floor(Math.random() * unrevealedIndices.length)];
-    
-   
-    setRevealedLetters(prev => ({
-      ...prev,
-      [wordKey]: [...(prev[wordKey] || []), randomIdx]
-    }));
-    
-   
-    setGridCells(prevCells => {
-      const newCells = [...prevCells];
-      const row = wordIdx * 2;
-      const col = randomIdx + 1;
-      const cellIndex = row * gridWidth + col;
+
+    setAnswerSlots(prev => {
+      const newSlots = [...prev];
+      newSlots[slotIndex] = {
+        ...newSlots[slotIndex],
+        letter: letter.letter,
+        letterIndex: draggedLetter
+      };
+      return newSlots;
+    });
+
+    setScrambledLetters(prev => {
+      const newLetters = [...prev];
+      newLetters[draggedLetter] = { ...newLetters[draggedLetter], isPlaced: true };
+      return newLetters;
+    });
+
+    setDraggedLetter(null);
+  };
+
+  const handleLetterClick = (letterIndex) => {
+    const letter = scrambledLetters[letterIndex];
+    if (letter.isPlaced) return;
+
+    const emptySlotIndex = answerSlots.findIndex(slot => slot.letter === null);
+    if (emptySlotIndex !== -1) {
+      setAnswerSlots(prev => {
+        const newSlots = [...prev];
+        newSlots[emptySlotIndex] = {
+          ...newSlots[emptySlotIndex],
+          letter: letter.letter,
+          letterIndex: letterIndex
+        };
+        return newSlots;
+      });
+
+      setScrambledLetters(prev => {
+        const newLetters = [...prev];
+        newLetters[letterIndex] = { ...newLetters[letterIndex], isPlaced: true };
+        return newLetters;
+      });
+    }
+  };
+
+  const handleSlotClick = (slotIndex) => {
+    const slot = answerSlots[slotIndex];
+    if (slot.letter === null) return;
+
+    setScrambledLetters(prev => {
+      const newLetters = [...prev];
+      newLetters[slot.letterIndex] = { ...newLetters[slot.letterIndex], isPlaced: false };
+      return newLetters;
+    });
+
+    setAnswerSlots(prev => {
+      const newSlots = [...prev];
+      newSlots[slotIndex] = { ...newSlots[slotIndex], letter: null, letterIndex: null };
+      return newSlots;
+    });
+  };
+
+  const handleSubmit = async () => {
+    const allFilled = answerSlots.every(slot => slot.letter !== null);
+    if (!allFilled) {
+      alert('Please fill all letters!');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const userAnswer = answerSlots.map(slot => slot.letter).join('');
+    const correctAnswer = currentWord.answer.toUpperCase();
+
+    if (userAnswer === correctAnswer) {
+      setFeedback('correct');
       
-      if (newCells[cellIndex]) {
-        newCells[cellIndex] = {
-          ...newCells[cellIndex],
-          value: newCells[cellIndex].letter,
+      updateGridWithWord(currentWord);
+      
+      setSolvedClues(prev => ({
+        ...prev,
+        [currentWordIndex]: true
+      }));
+
+      if (onWordSolved) {
+        onWordSolved(currentWord.answer, {
+          timeSpent: Date.now() - wordStartTime.current,
+          hintsUsed: hintsUsedForCurrentWordRef.current
+        });
+      }
+
+      triggerCelebration();
+
+      setTimeout(() => {
+        setFeedback(null);
+        setIsSubmitting(false);
+        
+        if (solvedCount + 1 >= totalWords) {
+          if (onPuzzleComplete) {
+            onPuzzleComplete();
+          }
+        } else {
+          moveToNextWord();
+        }
+      }, 2000);
+
+    } else {
+      setFeedback('wrong');
+      
+      setTimeout(() => {
+        handleClear();
+        setFeedback(null);
+        setIsSubmitting(false);
+      }, 1500);
+    }
+  };
+
+  const handleUseHint = () => {
+    if (hintsRemaining <= 0) {
+      alert('No hints remaining!');
+      return;
+    }
+
+    const emptySlotIndex = answerSlots.findIndex(slot => slot.letter === null);
+    if (emptySlotIndex === -1) return;
+
+    const correctLetter = currentWord.answer[emptySlotIndex].toUpperCase();
+    const letterIndex = scrambledLetters.findIndex(l => l.letter === correctLetter && !l.isPlaced);
+    
+    if (letterIndex !== -1) {
+      setAnswerSlots(prev => {
+        const newSlots = [...prev];
+        newSlots[emptySlotIndex] = {
+          ...newSlots[emptySlotIndex],
+          letter: correctLetter,
+          letterIndex: letterIndex
+        };
+        return newSlots;
+      });
+
+      setScrambledLetters(prev => {
+        const newLetters = [...prev];
+        newLetters[letterIndex] = { ...newLetters[letterIndex], isPlaced: true };
+        return newLetters;
+      });
+
+      setHintsRemaining(prev => prev - 1);
+      hintsUsedForCurrentWordRef.current++;
+    }
+  };
+
+ const updateGridWithWord = (word) => {
+  const wordIdx = currentWordIndex;
+  
+  // Update gridCells
+  setGridCells(prevCells => {
+    return prevCells.map(cell => {
+      if (cell.wordIndices.includes(wordIdx)) {
+        return {
+          ...cell,
           revealed: true
         };
       }
-      
-      return newCells;
+      return cell;
     });
-  }, [puzzle.words, revealedLetters, gridWidth]);
-
- 
-  const generateChoicesForClue = useCallback((clue) => {
-    if (!clue?.answer) return;
-
-    const correctAnswer = clue.answer;
-    const choices = [correctAnswer];
-
-    const otherWords = puzzle.words
-      .filter(w => w?.answer && w.answer !== correctAnswer)
-      .map(w => w.answer);
-
-    const similarLength = otherWords.filter(w => 
-      Math.abs(w.length - correctAnswer.length) <= 2
-    );
-
-    while (choices.length < 4 && similarLength.length > 0) {
-      const randomIndex = Math.floor(Math.random() * similarLength.length);
-      if (!choices.includes(similarLength[randomIndex])) {
-        choices.push(similarLength[randomIndex]);
+  });
+  
+  // ALSO update gridLayout at the same time
+  setGridLayout(prev => ({
+    ...prev,
+    cells: prev.cells.map(cell => {
+      if (cell.wordIndices.includes(wordIdx)) {
+        return {
+          ...cell,
+          revealed: true
+        };
       }
-      similarLength.splice(randomIndex, 1);
+      return cell;
+    })
+  }));
+};
+
+  const moveToNextWord = () => {
+    let nextIndex = currentWordIndex + 1;
+    while (nextIndex < totalWords && solvedClues[nextIndex]) {
+      nextIndex++;
     }
-
-    while (choices.length < 4 && otherWords.length > 0) {
-      const randomIndex = Math.floor(Math.random() * otherWords.length);
-      const randomWord = otherWords[randomIndex];
-      if (!choices.includes(randomWord)) {
-        choices.push(randomWord);
-      }
-      otherWords.splice(randomIndex, 1);
-    }
-
-    setAnswerChoices(choices.sort(() => Math.random() - 0.5));
-  }, [puzzle.words]);
-
-  const triggerCelebration = useCallback(() => {
-    setShowCelebration(true);
     
+    if (nextIndex < totalWords) {
+      setCurrentWordIndex(nextIndex);
+      setSelectedClue(puzzle.words[nextIndex]);
+    }
+  };
+
+  const triggerCelebration = () => {
+    setShowCelebration(true);
     
     const pieces = Array.from({ length: 50 }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
-      delay: Math.random() * 0.3,
-      duration: 2 + Math.random() * 1,
-      emoji: ['🎉', '⭐', '✨', '🌟', '🎊', '🎈'][Math.floor(Math.random() * 6)]
+      delay: Math.random() * 0.5,
+      duration: 2 + Math.random() * 2,
+      emoji: ['🎉', '⭐', '✨', '🎊', '💫'][Math.floor(Math.random() * 5)]
     }));
+    
     setConfettiPieces(pieces);
     
-    if (celebrationTimeoutRef.current) clearTimeout(celebrationTimeoutRef.current);
     celebrationTimeoutRef.current = setTimeout(() => {
       setShowCelebration(false);
       setConfettiPieces([]);
     }, 3000);
-  }, []);
+  };
 
-
-  const moveToNextWord = useCallback(() => {
-  let nextIndex = currentWordIndex + 1;
-  
-  if (nextIndex >= puzzle.words.length) {
-    const allSolved = puzzle.words.every((_, idx) => solvedClues[idx]);
-    if (allSolved) {
-    
-      if (onPuzzleComplete) {
-        onPuzzleComplete();
-      }
-      return;
+  const handleJumpToWord = (wordIndex) => {
+    if (!solvedClues[wordIndex]) {
+      setCurrentWordIndex(wordIndex);
+      setSelectedClue(puzzle.words[wordIndex]);
     }
-    
-    nextIndex = puzzle.words.findIndex((_, idx) => !solvedClues[idx]);
-    if (nextIndex === -1) nextIndex = 0;
-  }
-  
-  setCurrentWordIndex(nextIndex);
-  setSelectedClue(puzzle.words[nextIndex]);
-}, [currentWordIndex, puzzle.words, solvedClues, onPuzzleComplete]); 
+  };
 
-  const handleSelectAnswer = useCallback((choice) => {
-    if (feedback || isCurrentWordSolved) return;
-    
-    readChoice(choice);
-    
-    setSelectedAnswer(choice);
-  }, [feedback, isCurrentWordSolved, readChoice]);
-
-
-   React.useEffect(() => {
-    setCurrentWordAttempts(0);
-  }, [currentWordIndex]);
-
-
- const handleSubmitAnswer = useCallback(async () => {
-  if (!selectedAnswer || !currentWord || isCurrentWordSolved) return;
-
-  const correctAnswer = currentWord.answer;
-  const isCorrect = selectedAnswer.toUpperCase() === correctAnswer.toUpperCase();
-  
-
-  const attemptNumber = currentWordAttempts + 1;
-  setCurrentWordAttempts(attemptNumber);
-  
- 
-  if (onAnswerAttempt) {
-    onAnswerAttempt(correctAnswer, isCorrect, attemptNumber);
-  }
-  
-  setFeedback({ 
-    type: isCorrect ? 'success' : 'error',
-    message: isCorrect ? `Correct! "${correctAnswer}" is the right answer!` : 'Try again!'
-  });
-
-  if (isCorrect) {
-   
-    setSolvedClues(prev => ({ ...prev, [currentWordIndex]: true }));
-    updateGridWithWord(currentWord);
-    
-    const wordTimeSpent = Math.floor((Date.now() - wordStartTime.current) / 1000);
-    
-  
-    if (sessionId) {
-      try {
-        await crosswordAnalyticsService.logWordSolved(
-          sessionId,
-          {
-            word: correctAnswer,
-            clue: currentWord.clue,
-            episodeNumber: currentPuzzleIndex + 1 || 1,
-            attempts: attemptNumber,
-            score: attemptNumber === 1 ? 100 : attemptNumber === 2 ? 50 : attemptNumber === 3 ? 25 : 0
-          },
-          wordTimeSpent,
-          hintsUsedForCurrentWordRef.current
-        );
-      } catch (error) {
-        console.error('Analytics failed:', error);
+  // Click on cell number to view that word's clue
+  const handleCellClick = (cell) => {
+    if (cell.isWordStart && cell.wordIndex !== undefined) {
+      if (!solvedClues[cell.wordIndex]) {
+        setCurrentWordIndex(cell.wordIndex);
+        setSelectedClue(puzzle.words[cell.wordIndex]);
       }
     }
-    
-  
-    onWordSolved(correctAnswer, currentWord.definition || '', currentWord.example || '', hintsUsedForCurrentWordRef.current);
-    
-   
-    triggerCelebration();
-    
-   
-    if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
-    feedbackTimeoutRef.current = setTimeout(() => {
-      setFeedback(null);
-      setSelectedAnswer(null);
-      moveToNextWord();
-    }, 1500);
-  } else {
-   
-    if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
-    feedbackTimeoutRef.current = setTimeout(() => {
-      setFeedback(null);
-      setSelectedAnswer(null); 
-    }, 2000);
-  }
-}, [
-  selectedAnswer, 
-  currentWord, 
-  isCurrentWordSolved, 
-  sessionId, 
-  onWordSolved, 
-  triggerCelebration, 
-  moveToNextWord, 
-  updateGridWithWord, 
-  currentPuzzleIndex, 
-  currentWordAttempts, 
-  onAnswerAttempt
-]);
+  };
 
-
-  const handleNext = useCallback(() => {
-    if (currentWordIndex < totalWords - 1) {
-      setCurrentWordIndex(prev => prev + 1);
-      setSelectedClue(puzzle.words[currentWordIndex + 1]);
-      setFeedback(null);
-      setSelectedAnswer(null);
-      hintsUsedForCurrentWordRef.current = 0;
-      wordStartTime.current = Date.now();
-    }
-  }, [currentWordIndex, totalWords, puzzle.words]);
-
-  const handlePrevious = useCallback(() => {
-    if (currentWordIndex > 0) {
-      setCurrentWordIndex(prev => prev - 1);
-      setSelectedClue(puzzle.words[currentWordIndex - 1]);
-      setFeedback(null);
-      setSelectedAnswer(null);
-      hintsUsedForCurrentWordRef.current = 0;
-      wordStartTime.current = Date.now();
-    }
-  }, [currentWordIndex, puzzle.words]);
-
-  const handleJumpToWord = useCallback((index) => {
-    
-    setCurrentWordIndex(index);
-    setSelectedClue(puzzle.words[index]);
-    setSelectedAnswer(null);
-    setFeedback(null);
-  }, [puzzle.words]);
-
- 
-  const handleUseHint = useCallback(() => {
-    if (hintsRemaining > 0 && !isCurrentWordSolved) {
-    
-      setHintsRemaining(prev => prev - 1);
-      hintsUsedForCurrentWordRef.current += 1;
-      
-   
-      revealOneLetter(currentWord);
-      
-      setShowHintTooltip(true);
-      setTimeout(() => setShowHintTooltip(false), 2000);
-    }
-  }, [hintsRemaining, isCurrentWordSolved, currentWord, revealOneLetter]);
-
-  
-const getWordStatus = useCallback((word, idx) => {
-  if (solvedClues[idx]) return 'solved';
-  if (idx === currentWordIndex) return 'current';
-  return 'pending';
-}, [solvedClues, currentWordIndex]);
-
- 
-  const renderedGrid = useMemo(() => {
-    return puzzle.words.map((word, idx) => {
-      const status = getWordStatus(word);
-      const isSolved = solvedClues[idx];
-      
-      return (
-        <div
-          key={idx}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '15px',
-            padding: '12px 20px',
-            background: status === 'solved' ? 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)' : 
-                       status === 'current' ? 'linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%)' : 
-                       '#f8f9fa',
-            borderRadius: '15px',
-            border: status === 'current' ? '3px solid #ffc107' : '2px solid transparent',
-            boxShadow: status === 'current' ? '0 4px 15px rgba(255,193,7,0.3)' : '0 2px 5px rgba(0,0,0,0.1)',
-            transform: status === 'current' ? 'scale(1.02)' : 'scale(1)',
-            transition: 'all 0.2s ease',
-            marginBottom: '12px'
-          }}
-        >
-          <div style={{
-            fontSize: '24px',
-            fontWeight: 'bold',
-            color: status === 'solved' ? '#28a745' : '#667eea',
-            minWidth: '40px'
-          }}>
-            {word.number}.
-          </div>
-          <div style={{
-            display: 'flex',
-            gap: '8px'
-          }}>
-            {word.answer.split('').map((letter, letterIdx) => {
-              const row = idx * 2;
-              const col = letterIdx + 1;
-              const cellIndex = row * gridWidth + col;
-              const cell = gridCells[cellIndex];
-              const isRevealed = cell?.revealed || false;
-              
-              return (
-                <div
-                  key={letterIdx}
-                  style={{
-                    width: '50px',
-                    height: '50px',
-                    border: isRevealed ? '3px solid #28a745' : '3px solid #dee2e6',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '24px',
-                    fontWeight: 'bold',
-                    background: isRevealed ? '#d4edda' : 'white',
-                    color: isRevealed ? '#155724' : '#adb5bd',
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  {isRevealed ? letter.toUpperCase() : ''}
-                </div>
-              );
-            })}
-          </div>
-          {isSolved && (
-            <div style={{
-              marginLeft: 'auto',
-              fontSize: '28px'
-            }}>
-              ✅
-            </div>
-          )}
-        </div>
-      );
-    });
-  }, [puzzle.words, getWordStatus, solvedClues, gridCells, gridWidth]);
+  const getWordStatus = (wordIdx) => {
+    if (solvedClues[wordIdx]) return 'solved';
+    if (wordIdx === currentWordIndex) return 'current';
+    return 'unsolved';
+  };
 
   return (
-    <div style={{
-      width: '100vw',
-      height: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      overflow: 'hidden',
-      position: 'relative'
-    }}>
+    <div className={styles.gameContainer}>
       <BackToHomeButton />
 
-      {/* Header */}
-      <div style={{
-        padding: '15px 30px',
-        background: 'rgba(255,255,255,0.95)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-        position: 'relative'
-      }}>
-        {/* Left spacer for balance */}
-        <div style={{ width: '200px' }}></div>
-        
-        {/* Centered title */}
-        <div style={{ 
-          fontSize: '24px', 
-          fontWeight: 'bold', 
-          color: '#667eea',
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)'
-        }}>
-          
-          📚 Episode {currentEpisode} of {totalEpisodes}
-        </div>
-        
-        {/* Right side stats */}
-        <div style={{
-          display: 'flex',
-          gap: '25px',
-          alignItems: 'center',
-          fontSize: '18px',
-          fontWeight: '600'
-        }}>
-          <div style={{ color: '#667eea' }}>
-            ⏱️ {timeFormatted}
+      <AnimatePresence>
+        {showCelebration && (
+          <div className={styles.confettiContainer}>
+            {confettiPieces.map(piece => (
+              <motion.div
+                key={piece.id}
+                className={styles.confetti}
+                initial={{ top: -20, left: `${piece.left}%`, opacity: 1 }}
+                animate={{ top: '100%', opacity: 0 }}
+                transition={{ duration: piece.duration, delay: piece.delay }}
+              >
+                {piece.emoji}
+              </motion.div>
+            ))}
           </div>
-          <div style={{ color: '#ffc107' }}>
-            💡 {hintsRemaining}
-          </div>
-          <div style={{ color: '#28a745' }}>
-            ✅ {solvedCount}/{totalWords}
-          </div>
-        </div>
-      </div>
+        )}
+      </AnimatePresence>
 
-      {/* Main Content */}
-      <div style={{
-        display: 'flex',
-        height: 'calc(100vh - 70px)',
-        padding: '20px',
-        gap: '20px'
-      }}>
-        {/* LEFT SIDE - Word List and Grid */}
-        <div style={{
-          flex: '0 0 60%',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '15px',
-          overflow: 'hidden'
-        }}>
-          {/* Word Number Buttons */}
-          <div style={{
-            display: 'flex',
-            gap: '8px',
-            flexWrap: 'wrap',
-            padding: '15px',
-            background: 'white',
-            borderRadius: '15px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
-          }}>
+      <header className={styles.header}>
+        <div className={styles.headerContent}>
+          <div className={styles.levelBadge}>
+            📚 Episode {currentPuzzleIndex + 1}
+          </div>
+          <h1 className={styles.title}>🎯 Crossword Puzzle</h1>
+          <div className={styles.stats}>
+            <div className={styles.stat}>⏱️ {timeFormatted}</div>
+            <div className={styles.stat}>💡 {hintsRemaining}</div>
+            <div className={styles.stat}>✅ {solvedCount}/{totalWords} Words</div>
+          </div>
+        </div>
+      </header>
+
+      <div className={styles.mainContent}>
+        
+        <div className={styles.leftPanel}>
+          
+          <div className={styles.wordButtons}>
             {puzzle.words.map((word, idx) => {
-                const status = getWordStatus(word, idx);
+              const status = getWordStatus(idx);
               return (
                 <button
                   key={idx}
                   onClick={() => handleJumpToWord(idx)}
-                  style={{
-                    padding: '10px 16px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    border: status === 'current' ? '3px solid #ffc107' : '2px solid #667eea',
-                    borderRadius: '10px',
-                    background: status === 'solved' ? '#28a745' : status === 'current' ? '#fff3cd' : 'white',
-                    color: status === 'solved' ? 'white' : '#5a3e7e',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    boxShadow: status === 'current' ? '0 3px 10px rgba(255,193,7,0.4)' : 'none'
-                  }}
+                  className={`${styles.wordButton} ${styles[status]}`}
+                  disabled={status === 'solved'}
                 >
-                  {word.number}
+                  {idx + 1}
                 </button>
               );
             })}
           </div>
 
-          {/* Grid - Enhanced with better spacing */}
-          <div style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '15px',
-            background: 'white',
-            borderRadius: '15px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
-          }}>
-            {renderedGrid}
+          <div className={styles.gridWrapper}>
+            <div className={styles.gridContainer}>
+              <div 
+                className={styles.grid}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${gridLayout.width}, 1fr)`,
+                  gridTemplateRows: `repeat(${gridLayout.height}, 1fr)`,
+                  gap: '2px',
+                  width: '100%',
+                  height: '100%',
+                  maxWidth: '650px',
+                  maxHeight: '650px',
+                  aspectRatio: `${gridLayout.width} / ${gridLayout.height}`
+                }}
+              >
+                
+                  {gridLayout.cells.map((cell, idx) => {
+                  if (cell.isEmpty) {
+                    return <div key={idx} className={styles.emptyCell}></div>;
+                  }
+                  
+                  const isCurrent = cell.wordIndices.includes(currentWordIndex);
+                  const isSolved = cell.wordIndices.some(wordIdx => solvedClues[wordIdx]);
+                  const isClickable = cell.isWordStart && !solvedClues[cell.wordIndex];
+                  
+                  return (
+                    <div
+                      key={idx}
+                      className={`${styles.cell} ${isCurrent ? styles.currentCell : ''} ${isSolved ? styles.solvedCell : ''} ${isClickable ? styles.clickableCell : ''}`}
+                      onClick={() => handleCellClick(cell)}
+                    >
+                      {cell.number && (
+                        <span className={styles.cellNumber}>
+                          {cell.number}
+                        </span>
+                      )}
+                     <span className={styles.cellValue}>
+                      {cell.revealed && cell.letter ? cell.letter.toUpperCase() : ''}
+                    </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* RIGHT SIDE - Controls */}
-        <div style={{
-          flex: '0 0 40%',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '15px',
-          overflow: 'hidden',
-          minHeight: 0
-        }}>
-          {/* Current Clue Card WITH AUDIO BUTTON */}
-          <div style={{
-            background: 'white',
-            borderRadius: '18px',
-            padding: '20px',
-            boxShadow: '0 6px 18px rgba(0, 0, 0, 0.3)',
-            flexShrink: 0
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '12px'
-            }}>
-              <div style={{
-                fontSize: '24px',
-                fontWeight: 'bold',
-                color: '#667eea',
-                background: '#f0f4ff',
-                padding: '8px 16px',
-                borderRadius: '12px'
-              }}>
-                #{currentWord.number}
-              </div>
-              <div style={{
-                fontSize: '18px',
-                color: '#6c757d',
-                fontWeight: '600'
-              }}>
-                Question {currentWordIndex + 1} of {totalWords}
-              </div>
+        <div className={styles.rightPanel}>
+          
+          <div className={styles.clueCard}>
+            <div className={styles.clueHeader}>
+              <span className={styles.clueNumber}>#{currentWordIndex + 1}</span>
+              <span className={styles.clueDirection}>
+                {wordPositions[currentWordIndex]?.direction || 'Across'}
+              </span>
             </div>
-            
-            {/* Question with Audio Button */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '12px',
-              background: '#f8f9fa',
-              borderRadius: '10px',
-              borderLeft: '4px solid #667eea'
-            }}>
-              <div style={{
-                fontSize: '20px',
-                color: '#2d3748',
-                lineHeight: '1.4',
-                fontWeight: '600',
-                flex: 1
-              }}>
-                {currentWord.clue || `${currentWord.answer.length}-letter word`}
-              </div>
-              <button
-                onClick={readQuestion}
-                disabled={isPlayingAudio}
-                style={{
-                  background: isPlayingAudio ? '#ffc107' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '45px',
-                  height: '45px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '20px',
-                  cursor: isPlayingAudio ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 3px 10px rgba(0,0,0,0.2)',
-                  transition: 'all 0.2s ease',
-                  flexShrink: 0
-                }}
-                title="Listen to question"
-              >
-                {isPlayingAudio ? '⏸️' : '🔊'}
-              </button>
+            <div className={styles.clueContent}>
+              <div className={styles.clueIcon}>🎯</div>
+              <p className={styles.clueText}>{currentWord?.clue || ''}</p>
             </div>
           </div>
 
-          {/* Answer Choices WITH AUDIO */}
-          <div style={{
-            flex: 1,
-            minHeight: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden'
-          }}>
-            {!isCurrentWordSolved ? (
-              <div style={{
-                background: 'white',
-                borderRadius: '18px',
-                padding: '20px',
-                boxShadow: '0 6px 18px rgba(0, 0, 0, 0.3)',
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%'
-              }}>
-                <h3 style={{
-                  fontSize: '22px',
-                  color: '#5a3e7e',
-                  margin: '0 0 15px 0',
-                  textAlign: 'center',
-                  fontWeight: 'bold',
-                  flexShrink: 0
-                }}>
-                  🎯 Pick the Answer:
-                </h3>
-                
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '12px',
-                  marginBottom: '15px',
-                  flexShrink: 0
-                }}>
-                  {answerChoices.map((choice, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleSelectAnswer(choice)}
-                      disabled={feedback !== null}
-                      style={{
-                        padding: '15px',
-                        fontSize: '18px',
-                        fontWeight: 'bold',
-                        border: selectedAnswer === choice ? '4px solid #667eea' : '3px solid #dee2e6',
-                        borderRadius: '12px',
-                        background: selectedAnswer === choice ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'white',
-                        color: selectedAnswer === choice ? 'white' : '#5a3e7e',
-                        cursor: feedback ? 'not-allowed' : 'pointer',
-                        transition: 'all 0.2s ease',
-                        boxShadow: selectedAnswer === choice ? '0 5px 18px rgba(102,126,234,0.4)' : '0 2px 6px rgba(0,0,0,0.1)',
-                        opacity: feedback ? 0.6 : 1
-                      }}
-                    >
-                      {choice}
-                    </button>
-                  ))}
+          <div className={styles.answerArea}>
+            <h3 className={styles.answerTitle}>📝 Drop Letters Here:</h3>
+            <div className={styles.answerSlots}>
+              {answerSlots.map((slot, idx) => (
+                <div
+                  key={slot.id}
+                  className={`${styles.answerSlot} ${slot.letter ? styles.filled : ''} ${feedback === 'correct' ? styles.correct : ''} ${feedback === 'wrong' ? styles.wrong : ''}`}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDropOnSlot(e, idx)}
+                  onClick={() => handleSlotClick(idx)}
+                >
+                  {slot.letter || ''}
                 </div>
+              ))}
+            </div>
+            <div className={styles.answerInfo}>
+              {currentWord?.answer.length} letters • {wordPositions[currentWordIndex]?.direction}
+            </div>
+          </div>
 
-                {selectedAnswer && !feedback && (
-                  <button
-                    onClick={handleSubmitAnswer}
-                    style={{
-                      padding: '15px',
-                      fontSize: '20px',
-                      fontWeight: 'bold',
-                      background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '12px',
-                      cursor: 'pointer',
-                      boxShadow: '0 5px 18px rgba(40,167,69,0.4)',
-                      flexShrink: 0,
-                      transition: 'transform 0.2s ease'
-                    }}
+          <div className={styles.scrambleArea}>
+            <h3 className={styles.scrambleTitle}>🔤 Available Letters:</h3>
+            <div className={styles.scrambleContainer}>
+              {scrambledLetters.map((letter, idx) => (
+                !letter.isPlaced && (
+                  <div
+                    key={letter.id}
+                    className={styles.letterTile}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, idx)}
+                    onClick={() => handleLetterClick(idx)}
                   >
-                    ✨ Submit Answer
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div style={{
-                background: 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)',
-                borderRadius: '18px',
-                padding: '25px',
-                boxShadow: '0 6px 18px rgba(0, 0, 0, 0.2)',
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100%'
-              }}>
-                <div style={{ fontSize: '56px', marginBottom: '12px' }}>✅</div>
-                <div style={{ fontSize: '26px', fontWeight: 'bold', color: '#155724', marginBottom: '8px' }}>
-                  Already Solved!
-                </div>
-                <div style={{ fontSize: '22px', color: '#155724', fontWeight: '600' }}>
-                  {currentWord.answer}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Teacher Controls */}
-          <div style={{
-            flexShrink: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px'
-          }}>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr',
-              gap: '10px'
-            }}>
-              <button
-                onClick={handlePrevious}
-                disabled={currentWordIndex === 0}
-                style={{
-                  padding: '14px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  background: currentWordIndex === 0 ? '#e0e0e0' : 'white',
-                  color: currentWordIndex === 0 ? '#999' : '#667eea',
-                  border: '2px solid #667eea',
-                  borderRadius: '12px',
-                  cursor: currentWordIndex === 0 ? 'not-allowed' : 'pointer',
-                  opacity: currentWordIndex === 0 ? 0.5 : 1
-                }}
-              >
-                ⬅️ Prev
-              </button>
-              
-              <button
-                onClick={handleNext}
-                disabled={currentWordIndex === totalWords - 1}
-                style={{
-                  padding: '14px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  background: 'white',
-                  color: '#6c757d',
-                  border: '2px solid #6c757d',
-                  borderRadius: '12px',
-                  cursor: currentWordIndex === totalWords - 1 ? 'not-allowed' : 'pointer',
-                  opacity: currentWordIndex === totalWords - 1 ? 0.5 : 1
-                }}
-              >
-                Next ➡️
-              </button>
-            </div>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '10px'
-            }}>
-              <button
-                onClick={handleUseHint}
-                disabled={hintsRemaining === 0 || isCurrentWordSolved}
-                style={{
-                  padding: '14px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  background: hintsRemaining === 0 || isCurrentWordSolved ? '#e0e0e0' : 'linear-gradient(135deg, #ffc107 0%, #ff9800 100%)',
-                  color: hintsRemaining === 0 || isCurrentWordSolved ? '#999' : 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  cursor: hintsRemaining === 0 || isCurrentWordSolved ? 'not-allowed' : 'pointer',
-                  boxShadow: hintsRemaining > 0 && !isCurrentWordSolved ? '0 3px 12px rgba(255,193,7,0.4)' : 'none',
-                  opacity: hintsRemaining === 0 || isCurrentWordSolved ? 0.5 : 1,
-                  position: 'relative'
-                }}
-              >
-                💡 Hint ({hintsRemaining})
-                {showHintTooltip && (
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '110%',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    background: '#333',
-                    color: 'white',
-                    padding: '6px 10px',
-                    borderRadius: '6px',
-                    fontSize: '13px',
-                    whiteSpace: 'nowrap',
-                    zIndex: 1000
-                  }}>
-                    Letter revealed! ✨
+                    {letter.letter}
                   </div>
-                )}
-              </button>
-              
-              <button
-                onClick={handleSubmitAnswer}
-                disabled={isCurrentWordSolved || !selectedAnswer}
-                style={{
-                  padding: '14px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  background: isCurrentWordSolved || !selectedAnswer ? '#e0e0e0' : 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
-                  color: isCurrentWordSolved || !selectedAnswer ? '#999' : 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  cursor: isCurrentWordSolved || !selectedAnswer ? 'not-allowed' : 'pointer',
-                  boxShadow: !isCurrentWordSolved && selectedAnswer ? '0 3px 12px rgba(40,167,69,0.4)' : 'none',
-                  opacity: isCurrentWordSolved || !selectedAnswer ? 0.5 : 1
-                }}
-              >
-                ✅ Submit
-              </button>
+                )
+              ))}
             </div>
+            <button 
+              className={styles.shuffleBtn}
+              onClick={handleShuffle}
+            >
+              🔄 Shuffle
+            </button>
           </div>
+
+          <div className={styles.actionButtons}>
+            <button 
+              className={styles.hintBtn}
+              onClick={handleUseHint}
+              disabled={hintsRemaining <= 0}
+            >
+              💡 Hint ({hintsRemaining})
+            </button>
+            <button 
+              className={styles.clearBtn}
+              onClick={handleClear}
+            >
+              🗑️ Clear
+            </button>
+            <button 
+              className={styles.submitBtn}
+              onClick={handleSubmit}
+              disabled={isSubmitting || answerSlots.some(slot => slot.letter === null)}
+            >
+              ✨ Submit
+            </button>
+          </div>
+
+          {feedback && (
+            <motion.div
+              className={`${styles.feedbackBanner} ${styles[feedback]}`}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0 }}
+            >
+              {feedback === 'correct' ? (
+                <>🎉 Correct! Amazing!</>
+              ) : (
+                <>😊 Try again! You've got this!</>
+              )}
+            </motion.div>
+          )}
+
         </div>
       </div>
-
-      {/* Feedback Overlay */}
-      <AnimatePresence>
-        {feedback && !showCelebration && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.2 }}
-            style={{
-              position: 'fixed',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              background: feedback.type === 'success' ? 
-                'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)' : 
-                'linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%)',
-              color: feedback.type === 'success' ? '#155724' : '#721c24',
-              padding: '30px 50px',
-              borderRadius: '20px',
-              fontSize: '24px',
-              fontWeight: 'bold',
-              boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-              zIndex: 1000,
-              border: feedback.type === 'success' ? '4px solid #28a745' : '4px solid #dc3545'
-            }}
-          >
-            {feedback.message}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Celebration Overlay with Enhanced Confetti */}
-      <AnimatePresence>
-        {showCelebration && (
-          <>
-            {/* Success message overlay */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5 }}
-              transition={{ duration: 0.3 }}
-              style={{
-                position: 'fixed',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
-                color: 'white',
-                padding: '40px 60px',
-                borderRadius: '25px',
-                fontSize: '36px',
-                fontWeight: 'bold',
-                boxShadow: '0 15px 50px rgba(0,0,0,0.4)',
-                zIndex: 1001,
-                border: '5px solid white',
-                textAlign: 'center'
-              }}
-            >
-              <div style={{ fontSize: '64px', marginBottom: '10px' }}>🎉</div>
-              <div>Correct!</div>
-            </motion.div>
-            
-            {/* Confetti pieces */}
-            {confettiPieces.map((piece) => (
-              <motion.div
-                key={piece.id}
-                initial={{ 
-                  y: -100, 
-                  opacity: 0, 
-                  scale: 0,
-                  x: `${piece.left}vw`
-                }}
-                animate={{
-                  y: ['-100px', `${window.innerHeight + 100}px`],
-                  opacity: [0, 1, 1, 0],
-                  scale: [0, 1.5, 1, 0.5],
-                  rotate: [0, 360, 720],
-                  x: `${piece.left + (Math.random() - 0.5) * 20}vw`
-                }}
-                transition={{
-                  duration: piece.duration,
-                  delay: piece.delay,
-                  ease: 'easeOut'
-                }}
-                style={{
-                  position: 'fixed',
-                  fontSize: '56px',
-                  zIndex: 1000,
-                  pointerEvents: 'none',
-                  filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.3))'
-                }}
-              >
-                {piece.emoji}
-              </motion.div>
-            ))}
-          </>
-        )}
-      </AnimatePresence>
-        <CrosswordQuickTip />
-        {/* Guide Modal Overlay */}
-{showGuide && (
-  <CrosswordGuideModal
-    isVisible={showGuide}
-    onStart={handleStartFromGuide}
-    onSkip={handleSkipGuide}
-  />
-)}
     </div>
   );
 };

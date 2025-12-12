@@ -375,118 +375,123 @@ const sessionData = {
   const adventure = gameStories[gameConfig.adventureId];
   
   if (!adventure || !adventure.episodes) {
+    console.log('No adventure found, returning to story selection');
     setGameState('generate-story');
     return;
   }
   
-  const nextEpisodeIndex = currentEpisode; 
+  const nextEpisodeNumber = currentEpisode + 1; // Next episode number (1-indexed)
+  const nextEpisodeIndex = currentEpisode; // Array index (0-indexed)
   
- 
+  console.log(`📚 Moving to episode ${nextEpisodeNumber}/${adventure.totalEpisodes}`);
+  console.log(`   Current episodes generated: ${adventure.generatedEpisodes || adventure.episodes.length}`);
+  console.log(`   Episodes in array: ${adventure.episodes.length}`);
+  
+  // Check if episode already exists
   if (nextEpisodeIndex < adventure.episodes.length) {
+    console.log(`✅ Episode ${nextEpisodeNumber} already exists, loading it`);
     
     const nextEpisode = adventure.episodes[nextEpisodeIndex];
     setCurrentStorySegment(nextEpisode);
-    setCurrentEpisode(currentEpisode + 1);
+    setCurrentEpisode(nextEpisodeNumber);
     
     const puzzleData = gamePuzzles[nextEpisode.crosswordPuzzleId];
     if (puzzleData) {
       setCurrentPuzzle(puzzleData);
     }
     
+    // Reset game state
     setSolvedWords([]);
     setTimeSpent(0);
     setTotalHints(0);
     setTimerActive(false);
     
     setGameState('story');
-  } 
-  
-  else if (adventure.generatedEpisodes < adventure.totalEpisodes) {
-   
-    await generateNextEpisodeOnDemand();
-  } 
-  else {
-   
-    setGameState('generate-story');
+    return;
   }
+  
+  // Check if we need to generate next episode
+  const generatedCount = adventure.generatedEpisodes || adventure.episodes.length;
+  
+  if (nextEpisodeNumber <= adventure.totalEpisodes && generatedCount < adventure.totalEpisodes) {
+    console.log(`🔄 Need to generate episode ${nextEpisodeNumber}`);
+    await generateNextEpisodeOnDemand();
+    return;
+  }
+  
+  // All episodes completed
+  console.log('🎉 All episodes completed!');
+  setGameState('generate-story');
 };
 
 
 const generateNextEpisodeOnDemand = async () => {
   const adventure = gameStories[gameConfig.adventureId];
-  const nextEpisodeNumber = adventure.generatedEpisodes + 1;
+  const nextEpisodeNumber = (adventure.generatedEpisodes || adventure.episodes.length) + 1;
+  
+  console.log(`🎬 Generating episode ${nextEpisodeNumber}...`);
   
   setIsGeneratingNextEpisode(true);
   setGenerationError(null);
   
   try {
-   
+    // Gather previous episodes for context
     const previousEpisodes = adventure.episodes.map(ep => ({
-      title: ep.title,
+      episodeNumber: ep.episodeNumber,
       text: ep.text,
-      vocabularyWords: gamePuzzles[ep.crosswordPuzzleId]?.words?.map(w => ({
-        word: w.answer.toLowerCase(),
-        definition: w.definition
-      })) || []
+      recap: ep.recap,
+      vocabularyWords: ep.vocabularyWords,
+      vocabularyFocus: ep.vocabularyFocus
     }));
     
-    const requestBody = {
-      storyId: adventure.id,
-      episodeNumber: nextEpisodeNumber,
-      theme: adventure.theme,
-      focusSkills: adventure.focusSkills,
-      characterNames: adventure.characterNames || '',
-      gradeLevel: 3,
-      previousEpisodes: previousEpisodes
-    };
-    
-    const response = await fetch(
-      `${API_ENDPOINTS.SENTENCE_FORMATION}/generate-next-episode/`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody),
-        signal: AbortSignal.timeout(28000) 
-      }
-    );
+    const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/generate-next-episode/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        storyId: adventure.id,
+        episodeNumber: nextEpisodeNumber,
+        theme: adventure.theme,
+        focusSkills: adventure.focusSkills,
+        characterNames: adventure.characterNames,
+        gradeLevel: typeof adventure.gradeLevel === 'string' 
+        ? parseInt(adventure.gradeLevel.replace('Grade ', '')) 
+        : (adventure.gradeLevel || 3),
+        previousEpisodes: previousEpisodes
+      })
+    });
     
     if (!response.ok) {
-      throw new Error(`Failed to generate episode ${nextEpisodeNumber}`);
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to generate episode');
     }
     
     const data = await response.json();
+    console.log(`✅ Episode ${nextEpisodeNumber} generated successfully`);
     
-    if (!data.success || !data.episode || !data.puzzle) {
-      throw new Error('Invalid response from server');
-    }
-    
-    const updatedStory = {
-      ...adventure,
-      episodes: [...adventure.episodes, data.episode],
-      generatedEpisodes: nextEpisodeNumber
-    };
-    
-
-    const updatedPuzzles = {
-      ...gamePuzzles,
-      ...data.puzzle
-    };
-    
-    
-    setGameStories({
-      ...gameStories,
-      [gameConfig.adventureId]: updatedStory
+    // Update game stories
+    setGameStories(prev => {
+      const updated = { ...prev };
+      const updatedAdventure = { ...updated[gameConfig.adventureId] };
+      
+      updatedAdventure.episodes.push(data.episode);
+      updatedAdventure.generatedEpisodes = updatedAdventure.episodes.length;
+      
+      updated[gameConfig.adventureId] = updatedAdventure;
+      return updated;
     });
-    setGamePuzzles(updatedPuzzles);
     
+    // Update puzzles
+    setGamePuzzles(prev => ({
+      ...prev,
+      [data.episode.crosswordPuzzleId]: data.puzzle
+    }));
     
+    // Set up the new episode
     setCurrentStorySegment(data.episode);
-    setCurrentEpisode(currentEpisode + 1);
-    setCurrentPuzzle(data.puzzle[data.episode.crosswordPuzzleId]);
+    setCurrentEpisode(nextEpisodeNumber);
+    setCurrentPuzzle(data.puzzle);
     
-   
+    // Reset game state
     setSolvedWords([]);
     setTimeSpent(0);
     setTotalHints(0);
@@ -496,8 +501,8 @@ const generateNextEpisodeOnDemand = async () => {
     setGameState('story');
     
   } catch (error) {
-    console.error('Error generating next episode:', error);
-    setGenerationError(error.message || 'Failed to generate next episode');
+    console.error('❌ Error generating episode:', error);
+    setGenerationError(error.message);
     setIsGeneratingNextEpisode(false);
   }
 };

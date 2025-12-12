@@ -150,7 +150,7 @@ def call_openai_for_story(prompt, max_tokens):
 def generate_next_episode(request):
     """
     Generate the next episode on-demand when user clicks 'Continue'
-    ✅ UPDATED: Ensures simple grade 3 vocabulary + 80% new words
+    ✅ UPDATED: Strict vocabulary validation - ONLY skill-focused words
     """
     try:
         data = request.data
@@ -178,11 +178,9 @@ def generate_next_episode(request):
             return Response({'error': 'API key not configured'}, 
                           status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        # ⭐ Track previously used words
+        # Track previously used words
         previously_used_words = set()
-        
         for prev_ep in previous_episodes:
-            # From vocabularyWords array
             prev_words = prev_ep.get('vocabularyWords', [])
             if isinstance(prev_words, list):
                 for word_item in prev_words:
@@ -195,7 +193,6 @@ def generate_next_episode(request):
                         if word:
                             previously_used_words.add(word)
             
-            # From vocabularyFocus array
             vocab_focus = prev_ep.get('vocabularyFocus', [])
             if isinstance(vocab_focus, list):
                 for word in vocab_focus:
@@ -205,8 +202,6 @@ def generate_next_episode(request):
                             previously_used_words.add(word)
         
         logger.info(f"🔍 Previously used words: {len(previously_used_words)} unique words")
-        if previously_used_words:
-            logger.info(f"   Used words: {', '.join(sorted(list(previously_used_words)[:15]))}{'...' if len(previously_used_words) > 15 else ''}")
         
         # Build story context
         if previous_episodes:
@@ -217,238 +212,227 @@ def generate_next_episode(request):
         else:
             recent_context = "This is the first episode."
         
-        skills_text = ', '.join(focus_skills)
-        
-        # ⭐ SIMPLE GRADE 3 VOCABULARY EXAMPLES
-        simple_word_examples = {
-            'action-verbs': 'run, jump, walk, swim, hop, skip, climb, play, look, help, eat, sleep, talk, sing, dance, sit, stand',
-            'phonics-ch': 'chip, chat, chop, much, such, rich, beach, lunch, bench, chin, chest, check',
-            'phonics-sh': 'shop, ship, fish, dish, wish, rush, cash, wash, brush, shell, shed, shin',
-            'phonics-th': 'this, that, with, bath, math, path, cloth, moth, both, tooth, thin',
-            'default': 'run, big, red, cat, dog, sun, fun, box, hat, pen, cup, bed, yes, not, get'
-        }
-        
-        # Get examples for the focus skills
-        example_words = []
+        # Get ALL vocabulary examples for selected skills
+        vocab_examples = []
         for skill in focus_skills:
-            if skill in simple_word_examples:
-                example_words.append(f"{skill}: {simple_word_examples[skill]}")
-            else:
-                example_words.append(f"{skill}: {simple_word_examples['default']}")
+            if skill in FOCUS_SKILL_VOCABULARY:
+                vocab_examples.extend(FOCUS_SKILL_VOCABULARY[skill]['examples'])
         
-        examples_text = '\n   '.join(example_words)
+        # Remove duplicates and previously used words
+        vocab_examples = [w for w in vocab_examples if w.lower() not in previously_used_words]
         
-        # ⭐ ENHANCED PROMPT - Simple vocabulary + No repetition
-        prompt = f"""You are creating Episode {episode_number} for Grade {grade_level} students (8-9 year olds).
+        logger.info(f"📝 Available vocabulary pool: {len(vocab_examples)} words")
+        
+        # Build STRICT vocabulary instruction
+        vocab_list_text = ', '.join(vocab_examples[:30])  # Show first 30 as examples
+        
+        vocab_instruction = f"""
+🚨 CRITICAL VOCABULARY RULE - YOU MUST FOLLOW THIS EXACTLY:
+================================
+Selected Skills: {', '.join(focus_skills)}
 
-Theme: {theme}
-Previous story: {recent_context}
+YOU MUST ONLY USE WORDS FROM THE SKILL VOCABULARY LISTS!
 
-CRITICAL REQUIREMENTS:
+Available words for {focus_skills[0]}: {', '.join(FOCUS_SKILL_VOCABULARY.get(focus_skills[0], {}).get('examples', [])[:15])}
+{f"Available words for {focus_skills[1]}: {', '.join(FOCUS_SKILL_VOCABULARY.get(focus_skills[1], {}).get('examples', [])[:15])}" if len(focus_skills) > 1 else ''}
 
-1. VOCABULARY MUST BE SIMPLE FOR GRADE 3:
-   - Use COMMON, EVERYDAY words that 8-9 year olds know
-   - Words should be 3-7 letters (mostly 4-5 letters)
-   - Words kids use in daily conversation
-   - NO advanced/fancy words
-   
-   ✅ GOOD simple words for grade 3:
-   {examples_text}
-   
-   ❌ BAD (too hard): explore, discover, treasure, ancient, journey, merchant, purchase, orchard, champion
+❌ DO NOT USE these types of words:
+- Random theme words (gold, coin, silver, money, treasure, bottle, cup, plate, etc.)
+- Generic words that don't match the phonics patterns
+- Any word not in the skill vocabulary lists
 
-2. WORDS MUST BE COMPLETELY NEW:
-   - Do NOT use ANY of these previously used words:
-     {', '.join(sorted(list(previously_used_words))) if previously_used_words else 'None yet'}
-   
-   - Do NOT use similar forms (e.g., if "run" used, don't use "runs", "running")
-   - Each word must be DIFFERENT from all previous words
+✅ EVERY vocabulary word MUST:
+- Match the sound pattern from the selected skills
+- Come from the skill vocabulary list above
+- Be appropriate for grade {grade_level}
+- Appear naturally in the story
 
-3. SKILL REQUIREMENTS:
-   - Match focus skills: {skills_text}
-   - Use the SIMPLEST words for these skills
-   - Pick words kids already know
+VALIDATION: Your response will be REJECTED if you use ANY words that don't match {', '.join(focus_skills)}!
+"""
+        
+        # Build previous words warning
+        previous_words_warning = ""
+        if previously_used_words:
+            prev_words_list = ', '.join(sorted(list(previously_used_words))[:20])
+            previous_words_warning = f"""
+⚠️ AVOID REPETITION:
+These words were already used in previous episodes - DO NOT use them again:
+{prev_words_list}
 
-4. EXACTLY 5 WORDS:
-   - Create exactly 5 vocabulary words
-   - All SIMPLE for grade 3
-   - All COMPLETELY NEW
-   - All match the skills
+Use DIFFERENT words from the skill vocabulary lists!
+"""
+        
+        # Create the main prompt
+        prompt = f"""Create Episode {episode_number} for an ongoing story about {theme}.
+{"Character names: " + character_names if character_names else ""}
 
-CHARACTER NAMES: {character_names if character_names else 'Use simple names like Max, Emma, Sam, Lily'}
+{vocab_instruction}
 
-STORY FORMAT:
-- 2-3 short paragraphs (80-120 words total)
-- Simple sentences grade 3 kids can read
-- Use all 5 vocabulary words naturally
-- Make it fun and engaging
-- Continue from Episode {episode_number - 1}
+{previous_words_warning}
 
-CLUES:
-- Write simple clues grade 3 kids understand
-- Use easy words in the clues
-- Make clues helpful, not tricky
+STORY CONTINUATION:
+{recent_context}
 
-Return ONLY valid JSON (no markdown, no code blocks):
+REQUIREMENTS FOR THIS EPISODE:
+1. Continue the story naturally from previous episode
+2. Use EXACTLY 5 vocabulary words from the skill lists above
+3. Episode must be 150-200 words total
+4. Each vocabulary word must appear naturally in the story text
+5. Make it engaging for grade {grade_level} students
+6. {"Mix words from BOTH skills" if len(focus_skills) > 1 else f"Focus on {focus_skills[0]} words"}
+
+VALIDATION CHECKS - Your response will be REJECTED if:
+❌ You use ANY word that's not from the skill vocabulary lists
+❌ You use random theme words (gold, coin, treasure, bottle, etc.)
+❌ You repeat words from previous episodes
+❌ You don't use at least 5 skill-focused words
+
+Return ONLY valid JSON (NO markdown, NO code blocks):
 {{
   "episode": {{
-    "title": "Episode {episode_number}: [Simple Title]",
-    "text": "Story with 2-3 short paragraphs using the 5 simple words...",
-    "recap": "One simple sentence summary",
+    "episodeNumber": {episode_number},
+    "title": "Episode {episode_number} Title",
+    "text": "Story text with skill-focused vocabulary naturally integrated...",
+    "recap": "One sentence summary of this episode",
     "discussionQuestions": [
-      "What did [character] do?",
-      "How did [character] feel?",
-      "What happens next?"
+      "What happened in this episode?",
+      "How did the characters feel?",
+      "What do you think will happen next?"
     ],
     "vocabularyWords": [
-      {{"word": "simple_word1", "clue": "Easy kid-friendly clue", "definition": "Simple definition"}},
-      {{"word": "simple_word2", "clue": "Easy kid-friendly clue", "definition": "Simple definition"}},
-      {{"word": "simple_word3", "clue": "Easy kid-friendly clue", "definition": "Simple definition"}},
-      {{"word": "simple_word4", "clue": "Easy kid-friendly clue", "definition": "Simple definition"}},
-      {{"word": "simple_word5", "clue": "Easy kid-friendly clue", "definition": "Simple definition"}}
-    ],
-    "vocabularyFocus": ["simple_word1", "simple_word2", "simple_word3", "simple_word4", "simple_word5"]
+      {{
+        "word": "word from skill vocabulary list",
+        "clue": "Simple clue for crossword (5-8 words)",
+        "definition": "Grade {grade_level} appropriate definition",
+        "example": "Example sentence using the word"
+      }},
+      {{
+        "word": "another word from skill list",
+        "clue": "Simple clue",
+        "definition": "Definition",
+        "example": "Example sentence"
+      }},
+      (... 5 words total ...)
+    ]
   }}
 }}
-
-REMEMBER: Words MUST be simple for 8-9 year olds AND completely new!"""
-
-        # ⭐ List of words that are too hard for grade 3
-        TOO_HARD_FOR_GRADE3 = {
-            'explore', 'discover', 'treasure', 'ancient', 'journey', 'merchant', 'purchase', 
-            'orchard', 'champion', 'fortress', 'expedition', 'navigate', 'territory', 'abundant',
-            'massive', 'adventure', 'quest', 'mystery', 'legend', 'kingdom', 'palace', 'temple',
-            'expedition', 'investigate', 'research', 'observe', 'examine', 'construct', 'design'
-        }
+"""
         
-        # ⭐ Retry logic with validation
+        # TRY UP TO 3 TIMES with validation
         max_retries = 3
-        MAX_REPETITION_RATE = 0.20  # Max 20% repetition
+        episode = None
         
         for attempt in range(max_retries):
+            logger.info(f"🔄 Generation attempt {attempt + 1}/{max_retries}")
+            
+            # Call OpenAI
+            response_text = call_openai_for_story(prompt, max_tokens=2500)
+            
+            if not response_text:
+                logger.error("❌ OpenAI returned empty response")
+                continue
+            
+            # Parse JSON
             try:
-                logger.info(f"🤖 Attempt {attempt + 1}/{max_retries} - Generating Episode {episode_number}")
+                episode_data = json.loads(response_text)
+                episode = episode_data.get('episode', episode_data)
                 
-                max_tokens = 3000
-                cleaned_content = call_openai_for_story(prompt, max_tokens)
-                
-                if not cleaned_content:
-                    logger.error(f"❌ Empty response from OpenAI")
-                    if attempt < max_retries - 1:
-                        continue
-                    return Response({'error': 'Failed to generate episode'}, 
-                                  status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                
-                # Parse response
-                episode_data = json.loads(cleaned_content)
-                episode = episode_data.get('episode', {})
-                vocab_focus = episode.get('vocabularyFocus', [])
-                
-                if not vocab_focus or len(vocab_focus) < 5:
-                    logger.warning(f"⚠️ Insufficient vocabulary ({len(vocab_focus)} words)")
-                    if attempt < max_retries - 1:
-                        continue
-                
-                # ⭐ VALIDATE: Check repetition
-                repeated_words = [w for w in vocab_focus if w.lower() in previously_used_words]
-                new_words = [w for w in vocab_focus if w.lower() not in previously_used_words]
-                repetition_rate = len(repeated_words) / len(vocab_focus) if vocab_focus else 1.0
-                
-                # ⭐ VALIDATE: Check difficulty
-                too_hard_words = [w for w in vocab_focus if w.lower() in TOO_HARD_FOR_GRADE3 or len(w) > 8]
-                
-                logger.info(f"📊 Word Analysis for Episode {episode_number}:")
-                logger.info(f"   Total: {len(vocab_focus)}")
-                logger.info(f"   New: {len(new_words)} - {new_words}")
-                logger.info(f"   Repeated: {len(repeated_words)} - {repeated_words}")
-                logger.info(f"   Too hard: {len(too_hard_words)} - {too_hard_words}")
-                logger.info(f"   Repetition rate: {repetition_rate * 100:.1f}%")
-                
-                # Check if acceptable
-                has_issues = repetition_rate > MAX_REPETITION_RATE or len(too_hard_words) > 0
-                
-                if has_issues and attempt < max_retries - 1:
-                    logger.warning(f"⚠️ Issues found, retrying...")
-                    feedback_parts = []
-                    
-                    if repeated_words:
-                        feedback_parts.append(f"REPEATED words (DON'T use): {', '.join(repeated_words)}")
-                    
-                    if too_hard_words:
-                        feedback_parts.append(f"TOO HARD for grade 3 (use SIMPLER): {', '.join(too_hard_words)}")
-                    
-                    prompt += f"\n\n⚠️ IMPORTANT: {' AND '.join(feedback_parts)}. Use SIMPLE, NEW words only!"
+                if not episode:
+                    logger.error("❌ No episode in response")
                     continue
                 
-                if has_issues:
-                    logger.warning(f"⚠️ Accepting after {max_retries} attempts with issues")
-                else:
-                    logger.info(f"✅ Perfect! Simple words + No repetition")
+                # STRICT VALIDATION: Check vocabulary
+                vocab_words = episode.get('vocabularyWords', [])
                 
-                # Validate skill matching (existing code)
-                is_valid, message, skill_matches = validate_vocabulary_matches_skills(vocab_focus, focus_skills)
-                if not is_valid:
-                    logger.warning(f"⚠️ Skill validation: {message}")
+                if len(vocab_words) < 5:
+                    logger.warning(f"⚠️ Only {len(vocab_words)} vocabulary words, need 5")
+                    if attempt < max_retries - 1:
+                        prompt += "\n\n⚠️ YOU MUST PROVIDE EXACTLY 5 VOCABULARY WORDS!"
+                        continue
                 
-                # Create episode and puzzle IDs
-                episode_id = f"{story_id}_ep{episode_number}"
-                puzzle_id = f"{episode_id}_puzzle"
+                # Extract word list
+                word_list = [v['word'].lower() for v in vocab_words if isinstance(v, dict) and 'word' in v]
                 
-                # Create crossword puzzle
-                puzzle = create_crossword_from_vocabulary(
-                    episode['vocabularyWords'],
-                    f"Episode {episode_number} Vocabulary"
-                )
+                # Check if words are from skill vocabulary
+                vocab_examples_lower = [w.lower() for w in vocab_examples]
+                invalid_words = [w for w in word_list if w not in vocab_examples_lower and w not in [e.lower() for e in vocab_examples]]
                 
-                logger.info(f"✅ Episode {episode_number} generated successfully!")
-                logger.info(f"   Title: {episode.get('title', 'Unknown')}")
-                logger.info(f"   Final vocabulary: {', '.join(vocab_focus)}")
+                # Check for repeated words
+                repeated_words = [w for w in word_list if w in previously_used_words]
                 
-                # Format response
-                response_data = {
-                    'success': True,
-                    'episode': {
-                        'id': episode_id,
-                        'episodeNumber': episode_number,
-                        'title': episode['title'],
-                        'text': episode['text'],
-                        'recap': episode.get('recap', ''),
-                        'discussionQuestions': episode.get('discussionQuestions', []),
-                        'crosswordPuzzleId': puzzle_id,
-                        'vocabularyFocus': vocab_focus,
-                        'vocabularyWords': episode.get('vocabularyWords', [])
-                    },
-                    'puzzle': {puzzle_id: puzzle},
-                    'wordStats': {
-                        'newWords': len(new_words),
-                        'repeatedWords': len(repeated_words),
-                        'tooHardWords': len(too_hard_words),
-                        'repetitionRate': round(repetition_rate * 100, 1)
-                    }
-                }
+                if invalid_words:
+                    logger.error(f"❌ Invalid words (not from skill vocab): {invalid_words}")
+                    logger.error(f"   Skills: {focus_skills}")
+                    
+                    if attempt < max_retries - 1:
+                        invalid_list = ', '.join(invalid_words)
+                        prompt += f"\n\n⚠️⚠️ REJECTED WORDS: {invalid_list} - These are NOT from the skill vocabulary lists! Use ONLY words from the lists I provided!"
+                        continue
+                    else:
+                        logger.error(f"❌ Failed after {max_retries} attempts - invalid words persist")
+                        return Response({
+                            'error': f'Failed to generate skill-focused vocabulary. Invalid words: {", ".join(invalid_words)}'
+                        }, status=500)
                 
-                return Response(response_data, status=status.HTTP_200_OK)
+                if repeated_words and len(repeated_words) > 1:
+                    logger.warning(f"⚠️ Repeated words: {repeated_words}")
+                    if attempt < max_retries - 1:
+                        repeated_list = ', '.join(repeated_words)
+                        prompt += f"\n\n⚠️ REPEATED WORDS: {repeated_list} - Use DIFFERENT words!"
+                        continue
+                
+                # SUCCESS!
+                logger.info(f"✅ Episode {episode_number} validated successfully!")
+                logger.info(f"   Vocabulary: {', '.join(word_list)}")
+                break
                 
             except json.JSONDecodeError as e:
-                logger.error(f"❌ JSON parsing error (attempt {attempt + 1}): {str(e)}")
+                logger.error(f"❌ JSON parse error: {e}")
                 if attempt < max_retries - 1:
                     continue
-                return Response({'error': 'Invalid response format'}, 
-                              status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            except Exception as e:
-                logger.error(f"❌ Error in attempt {attempt + 1}: {str(e)}")
-                if attempt < max_retries - 1:
-                    continue
-                raise
+                else:
+                    return Response({'error': 'Failed to parse AI response'}, status=500)
         
-        return Response({'error': 'Failed after multiple attempts'}, 
-                      status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        if not episode:
+            return Response({'error': 'Failed to generate episode after retries'}, status=500)
+        
+        # Create episode and puzzle IDs
+        episode_id = f"{story_id}_ep{episode_number}"
+        puzzle_id = f"{episode_id}_puzzle"
+        
+        # Create crossword puzzle
+        puzzle = create_crossword_from_vocabulary(
+            episode['vocabularyWords'],
+            f"Episode {episode_number} Vocabulary"
+        )
+        
+        # Format response
+        formatted_episode = {
+            'id': episode_id,
+            'episodeNumber': episode_number,
+            'title': episode['title'],
+            'text': episode['text'],
+            'recap': episode.get('recap', ''),
+            'discussionQuestions': episode.get('discussionQuestions', []),
+            'crosswordPuzzleId': puzzle_id,
+            'vocabularyFocus': [v['word'] for v in episode['vocabularyWords']],
+            'vocabularyWords': episode['vocabularyWords']
+        }
+        
+        logger.info(f"✅ Episode {episode_number} generated successfully!")
+        
+        return Response({
+            'episode': formatted_episode,
+            'puzzle': puzzle
+        }, status=status.HTTP_200_OK)
         
     except Exception as e:
-        logger.error(f"❌ Error generating Episode {episode_number}: {str(e)}")
-        logger.error(f"   Traceback: {traceback.format_exc()}")
-        return Response({'error': str(e)}, 
-                      status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"❌ Error generating episode: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ⭐ HELPER FUNCTION - Add this if it doesn't exist
