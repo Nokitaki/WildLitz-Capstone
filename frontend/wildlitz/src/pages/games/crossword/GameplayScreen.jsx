@@ -636,7 +636,8 @@ finalPlacements.forEach((p, idx) => {
     }
   };
 
- const updateGridWithWord = (word) => {
+ // DELETE this second updateGridWithWord function completely (it's the one causing the error):
+const updateGridWithWord = (word) => {
   const wordIdx = currentWordIndex;
   
   // Update gridCells
