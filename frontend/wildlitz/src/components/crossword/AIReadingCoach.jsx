@@ -239,7 +239,7 @@ const AIReadingCoach = ({
   const [activeTab, setActiveTab] = useState('vocabulary');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentSubtitle, setCurrentSubtitle] = useState('');
-  
+  const wordPanelRef = useRef(null);
  
   const coachRef = useRef(null);
   
@@ -654,12 +654,34 @@ const AIReadingCoach = ({
       setWordData(data);
       setIsLoading(false);
       speak(`${word}. ${data.partOfSpeech}. ${data.definition}`);
+
+       setTimeout(() => {
+      if (wordPanelRef.current) {
+        wordPanelRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'nearest'
+        });
+      }
+    }, 300);
+
     } catch (error) {
       console.error('Error loading word data:', error);
       const fallbackData = generateDefinition(word);
       setWordData(fallbackData);
       setIsLoading(false);
       speak(`${word}. ${fallbackData.definition}`);
+
+
+       setTimeout(() => {
+      if (wordPanelRef.current) {
+        wordPanelRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'nearest'
+        });
+      }
+    }, 300);
     }
   };
   
@@ -723,21 +745,7 @@ const AIReadingCoach = ({
         </div>
         
       
-        <AnimatePresence>
-          {currentSubtitle && (
-            <motion.div 
-              className={styles.subtitleBar}
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-            >
-              <div className={styles.subtitleContent}>
-                <span className={styles.speakerIcon}>🔊</span>
-                <p className={styles.subtitleText}>{currentSubtitle}</p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        
         
       
         <div className={styles.coachContent}>
@@ -782,23 +790,7 @@ const AIReadingCoach = ({
                 </div>
                 
                
-                <div className={styles.speedControl}>
-                  <label>
-                    <span className={styles.speedLabel}>🎙️ Speaking Speed:</span>
-                    <input 
-                      type="range" 
-                      min="0.5" 
-                      max="1.0" 
-                      step="0.05" 
-                      value={readingSpeed}
-                      onChange={(e) => setReadingSpeed(parseFloat(e.target.value))}
-                      className={styles.speedSlider}
-                    />
-                    <span className={styles.speedValue}>
-                      {readingSpeed === 0.5 ? 'Slow' : readingSpeed === 1.0 ? 'Normal' : `${readingSpeed.toFixed(2)}x`}
-                    </span>
-                  </label>
-                </div>
+              
                 
               
                 <div className={styles.vocabularyGrid}>
@@ -812,7 +804,7 @@ const AIReadingCoach = ({
                         whileHover={{ scale: 1.05, y: -5 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        <span className={styles.vocabEmoji}>{wordInfo.emoji || '📝'}</span>
+                        
                         <span className={styles.vocabWord}>{word}</span>
                         <span className={styles.vocabHint}>Click to learn!</span>
                       </motion.button>
@@ -836,6 +828,7 @@ const AIReadingCoach = ({
                 <AnimatePresence>
                   {selectedWord && wordData && !isLoading && (
                     <motion.div 
+                      ref={wordPanelRef}
                       className={styles.wordPanel}
                       initial={{ y: 20, opacity: 0, scale: 0.95 }}
                       animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -844,7 +837,7 @@ const AIReadingCoach = ({
                     >
                       <div className={styles.wordHeader}>
                         <div className={styles.wordTitleSection}>
-                          <span className={styles.wordEmoji}>{wordData.emoji}</span>
+                          
                           <div>
                             <h3 className={styles.wordTitle}>{selectedWord}</h3>
                             <div className={styles.wordMeta}>
