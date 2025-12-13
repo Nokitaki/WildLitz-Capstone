@@ -1,3 +1,4 @@
+// src/pages/games/syllable/DraggableRhythmTimer.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import styles from '../../../styles/games/syllable/DraggableRhythmTimer.module.css';
 
@@ -12,7 +13,9 @@ const DraggableRhythmTimer = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isMinimized, setIsMinimized] = useState(false);
-  const [countdown, setCountdown] = useState(3);
+  
+  // ✅ CHANGED: Initialize countdown at 5 instead of 3
+  const [countdown, setCountdown] = useState(5);
   
   const timerRef = useRef(null);
   const lastPhaseRef = useRef('waiting');
@@ -22,13 +25,16 @@ const DraggableRhythmTimer = ({
     if (!isGameActive || !wordPlayTimestamp) {
       setPhase('waiting');
       setProgress(0);
-      setCountdown(3);
+      setCountdown(5); // ✅ CHANGED: Reset to 5
       lastPhaseRef.current = 'waiting';
       return;
     }
 
     let animationFrame;
-    const DELAY = 3000; // 3 seconds delay
+    
+    // ✅ CHANGED: Increased delay from 3000 to 5000 (5 seconds)
+    const DELAY = 5000; 
+    
     const RED_DURATION = 1000;
     const YELLOW_DURATION = 2000;
     const GREEN_DURATION = 2000;
@@ -202,7 +208,7 @@ const DraggableRhythmTimer = ({
       {!isMinimized && (
         <div className={styles.timerContent}>
           {phase === 'waiting' ? (
-            // Show countdown during 3-second wait
+            // Show countdown during 5-second wait
             <div className={styles.countdownDisplay}>
               <div className={styles.countdownNumber}>{countdown}</div>
               <div className={styles.countdownText}>
