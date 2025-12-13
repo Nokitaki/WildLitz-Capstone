@@ -74,34 +74,19 @@ const SummaryScreen = ({
   }, [sessionId, solvedWords.length, totalHints, timeSpent, currentEpisode, totalEpisodes, questionStats, calculatedAccuracy]);
 
   const getWordEmoji = (word) => {
-    if (!word) return '⭐';
-    
-    const lowerWord = word.toLowerCase();
-    const emojiMap = {
-      'brave': '🦸', 'forest': '🌳', 'treasure': '💎', 'adventure': '🗺️',
-      'explore': '🔍', 'discover': '💡', 'magic': '✨', 'hero': '🦸‍♂️',
-      'dragon': '🐉', 'castle': '🏰', 'sword': '⚔️', 'shield': '🛡️',
-      'crown': '👑', 'star': '⭐', 'moon': '🌙', 'sun': '☀️',
-      'rainbow': '🌈', 'fire': '🔥', 'water': '💧', 'earth': '🌍',
-      'wind': '💨', 'lightning': '⚡', 'ice': '❄️', 'mountain': '⛰️',
-      'ocean': '🌊', 'desert': '🏜️', 'jungle': '🌴', 'cave': '🕳️',
-      'map': '🗺️', 'compass': '🧭', 'telescope': '🔭', 'book': '📚',
-      'key': '🔑', 'door': '🚪', 'bridge': '🌉', 'path': '🛤️',
-      'mystery': '🔮', 'wisdom': '🦉', 'courage': '💪', 'friendship': '🤝',
-      'hope': '🌟', 'dream': '💭', 'imagination': '🎨'
-    };
-    
-    return emojiMap[lowerWord] || '⭐';
-  };
+  return '⭐';
+};
 
   const getWordColor = (word) => {
-    if (!word) return '#9c27b0';
-    const length = word.length;
-    if (length <= 4) return '#e91e63';
-    if (length <= 6) return '#9c27b0';
-    if (length <= 8) return '#673ab7';
-    return '#3f51b5';
-  };
+  if (!word) return '#9c27b0';
+  
+ 
+  const length = word.length;
+  if (length <= 3) return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'; // Purple
+  if (length <= 5) return 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'; // Pink
+  if (length <= 7) return 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'; // Blue
+  return 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'; // Green
+};
 
   const achievements = useMemo(() => {
     return [
@@ -121,7 +106,7 @@ const SummaryScreen = ({
       },
       {
         icon: '💡',
-        value: totalHints,
+        value: totalHints || 0,
         title: 'Hints Used',
         color: '#ff9800',
         gradient: 'linear-gradient(135deg, #ff9800, #ffc107)'
@@ -137,6 +122,20 @@ const SummaryScreen = ({
       }
     ];
   }, [performanceMetrics, timeSpent, totalHints]);
+  
+  <div className={styles.achievementsGrid}>
+  {achievements.map((achievement, index) => (
+    <motion.div
+      key={index}
+      className={styles.achievementCard}
+      style={{ borderLeft: `5px solid ${achievement.color}` }}
+    >
+      <div className={styles.achievementIcon}>{achievement.icon}</div>
+      <div className={styles.achievementValue}>{achievement.value}</div>
+      <div className={styles.achievementTitle}>{achievement.title}</div>
+    </motion.div>
+  ))}
+</div>
 
   return (
     <div className={styles.summaryContainer}>
@@ -291,113 +290,166 @@ const SummaryScreen = ({
           <h2 className={styles.sectionTitle}>
             ✨ Your New Super Words!
           </h2>
-          <motion.button 
+                  <motion.button 
             className={styles.toggleDetailsBtn}
             onClick={() => setShowDetails(!showDetails)}
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.05, boxShadow: "0 8px 20px rgba(147, 51, 234, 0.4)" }}
             whileTap={{ scale: 0.95 }}
+            style={{
+              background: showDetails 
+                ? 'linear-gradient(135deg, #10b981 0%, #34d399 100%)'
+                : 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)',
+              transition: 'all 0.3s ease'
+            }}
           >
-            {showDetails ? '📝 Hide Details' : '📖 Show Definitions'}
+            {showDetails ? '⭐ Hide Details' : '⭐ Show Definitions'}
           </motion.button>
         </div>
 
-        <div className={styles.wordsGrid}>
-          {solvedWords.map((wordData, index) => {
-            const word = typeof wordData === 'string' ? wordData : wordData.word;
-            const definition = wordData.definition || "A valuable word you've learned!";
-            const isSelected = selectedWord === word;
-            
-            return (
-              <motion.div
-                key={index}
-                className={`${styles.wordCard} ${isSelected ? styles.selectedCard : ''}`}
-                initial={{ scale: 0, y: 50, opacity: 0 }}
-                animate={{ scale: 1, y: 0, opacity: 1 }}
-                transition={{ 
-                  delay: 0.9 + (index * 0.1),
-                  type: "spring"
-                }}
-                whileHover={{ 
-                  scale: 1.05,
-                  boxShadow: "0 15px 30px rgba(0,0,0,0.2)",
-                  transition: { duration: 0.2 }  
-                }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedWord(isSelected ? null : word)}
-                style={{
-                  background: isSelected 
-                    ? `linear-gradient(135deg, ${getWordColor(word)}, ${getWordColor(word)}dd)`
-                    : 'linear-gradient(135deg, #ffffff, #f8f9fa)',
-                  border: isSelected ? 'none' : '2px solid #e0e0e0',
-                  cursor: 'pointer'
-                }}
-              >
-                <motion.div 
-                  className={styles.wordEmoji}
-                  animate={{ 
-                    scale: isSelected ? 1.2 : 1
-                  }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {getWordEmoji(word)}
-                </motion.div>
-                
-                <motion.div 
-                  className={styles.wordText}
-                  style={{ 
-                    color: isSelected ? 'white' : getWordColor(word),
-                    fontWeight: 700,
-                    fontSize: '1.3rem',
-                    textTransform: 'capitalize',
-                    letterSpacing: '0.5px'
-                  }}
-                  animate={{ 
-                    scale: isSelected ? 1.1 : 1
-                  }}
-                >
-                  {word || '???'}
-                </motion.div>
-                
-                <AnimatePresence>
-                  {(showDetails || isSelected) && (
-                    <motion.div 
-                      className={styles.wordDefinition}
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      style={{
-                        color: isSelected ? 'rgba(255,255,255,0.95)' : '#666',
-                        marginTop: '10px',
-                        fontSize: '0.9rem',
-                        lineHeight: '1.4',
-                        textAlign: 'center'
-                      }}
-                    >
-                      {definition}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                
-                <motion.div 
-                  className={styles.wordLength}
-                  style={{
-                    position: 'absolute',
-                    top: '10px',
-                    right: '10px',
-                    background: isSelected ? 'rgba(255,255,255,0.3)' : getWordColor(word),
-                    color: 'white',
-                    padding: '4px 8px',
-                    borderRadius: '12px',
-                    fontSize: '0.75rem',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  {word?.length || 0} letters
-                </motion.div>
-              </motion.div>
-            );
-          })}
-        </div>
+      <div className={styles.wordsGrid}>
+  {solvedWords.map((wordData, index) => {
+    const word = typeof wordData === 'string' ? wordData : wordData.word;
+    const definition = (wordData && typeof wordData === 'object' && wordData.definition) 
+      ? wordData.definition 
+      : "A valuable word you've learned!";
+    const isSelected = selectedWord === word;
+    
+    return (
+      <motion.div
+        key={index}
+        className={`${styles.wordCard} ${isSelected ? styles.selectedCard : ''}`}
+        initial={{ scale: 0, y: 50, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        transition={{ 
+          delay: 0.9 + (index * 0.1),
+          type: "spring",
+          stiffness: 100
+        }}
+        whileHover={{ 
+          scale: 1.08,
+          boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
+          transition: { duration: 0.2 }
+        }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setSelectedWord(isSelected ? null : word)}
+        style={{
+          background: isSelected 
+            ? getWordColor(word)
+            : 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+          border: isSelected ? 'none' : '3px solid rgba(102, 126, 234, 0.2)',
+          cursor: 'pointer',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
+        {/* ✅ Animated background shine effect */}
+        <motion.div
+          style={{
+            position: 'absolute',
+            top: '-50%',
+            left: '-50%',
+            width: '200%',
+            height: '200%',
+            background: 'linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent)',
+            pointerEvents: 'none'
+          }}
+          animate={{
+            rotate: isSelected ? 360 : 0,
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
+        
+        {/* Star emoji */}
+        <motion.div 
+          className={styles.wordEmoji}
+          animate={{ 
+            scale: isSelected ? [1, 1.3, 1] : 1,
+            rotate: isSelected ? [0, 360] : 0
+          }}
+          transition={{ 
+            duration: 0.6,
+            repeat: isSelected ? Infinity : 0,
+            repeatDelay: 1
+          }}
+          style={{
+            fontSize: '4rem',
+            filter: 'drop-shadow(0 4px 12px rgba(255, 215, 0, 0.5))',
+            marginBottom: '15px'
+          }}
+        >
+          ⭐
+        </motion.div>
+        
+        {/* Word text */}
+        <motion.div 
+          className={styles.wordText}
+          style={{ 
+            color: isSelected ? 'white' : '#2d3748',
+            fontWeight: 800,
+            fontSize: '1.6rem',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            textShadow: isSelected ? '0 2px 8px rgba(0,0,0,0.2)' : 'none',
+            marginBottom: '8px'
+          }}
+          animate={{ 
+            scale: isSelected ? 1.1 : 1
+          }}
+        >
+          {word || '???'}
+        </motion.div>
+        
+        {/* Letter count badge */}
+        <motion.div 
+          style={{
+            position: 'absolute',
+            top: '12px',
+            right: '12px',
+            background: isSelected ? 'rgba(255,255,255,0.25)' : 'rgba(102, 126, 234, 0.15)',
+            backdropFilter: 'blur(10px)',
+            color: isSelected ? 'white' : '#667eea',
+            padding: '6px 12px',
+            borderRadius: '20px',
+            fontSize: '0.75rem',
+            fontWeight: 'bold',
+            border: isSelected ? '2px solid rgba(255,255,255,0.3)' : '2px solid rgba(102, 126, 234, 0.3)'
+          }}
+        >
+          {word?.length || 0} letters
+        </motion.div>
+        
+        {/* Definition */}
+        <AnimatePresence>
+          {(showDetails || isSelected) && definition && (
+            <motion.div 
+              className={styles.wordDefinition}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{
+                color: isSelected ? 'rgba(255,255,255,0.95)' : '#64748b',
+                marginTop: '15px',
+                paddingTop: '15px',
+                borderTop: isSelected ? '2px solid rgba(255,255,255,0.2)' : '2px solid rgba(0,0,0,0.1)',
+                fontSize: '0.95rem',
+                lineHeight: '1.6',
+                textAlign: 'center',
+                fontWeight: isSelected ? 500 : 400
+              }}
+            >
+              {definition}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    );
+  })}
+</div>
 
         {solvedWords.length === 0 && (
           <motion.div 

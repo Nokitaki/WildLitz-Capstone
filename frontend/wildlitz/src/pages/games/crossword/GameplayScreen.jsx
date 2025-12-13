@@ -523,60 +523,104 @@ const generateCrosswordLayout = useCallback(() => {
     });
   };
 
-  const handleSubmit = async () => {
-    const allFilled = answerSlots.every(slot => slot.letter !== null);
-    if (!allFilled) {
-      alert('Please fill all letters!');
-      return;
+  // In GameplayScreen.jsx - Update handleSubmit
+
+const handleSubmit = async () => {
+  const allFilled = answerSlots.every(slot => slot.letter !== null);
+  if (!allFilled) {
+    alert('Please fill all letters!');
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  const userAnswer = answerSlots.map(slot => slot.letter).join('');
+  const correctAnswer = currentWord.answer.toUpperCase();
+  const isCorrect = userAnswer === correctAnswer;
+
+  // ✅ ADD: Track attempt number
+  const currentAttempts = (attemptCounts[currentWord.answer] || 0) + 1;
+  setAttemptCounts(prev => ({
+    ...prev,
+    [currentWord.answer]: currentAttempts
+  }));
+
+  // ✅ ADD: Call onAnswerAttempt to track accuracy
+  if (onAnswerAttempt) {
+    onAnswerAttempt(currentWord.answer, isCorrect, currentAttempts);
+  }
+
+  if (isCorrect) {
+    setFeedback('correct');
+    
+    updateGridWithWord(currentWord);
+    
+    setSolvedClues(prev => ({
+      ...prev,
+      [currentWordIndex]: true
+    }));
+
+    // ✅ FIX: Pass individual parameters, not object
+   if (onWordSolved) {
+  const wordTimeSpent = Math.floor((Date.now() - wordStartTime.current) / 1000);
+  
+  // ✅ Log to analytics BEFORE calling onWordSolved
+  if (sessionId) {
+    try {
+      await crosswordAnalyticsService.logWordSolved(
+        sessionId,
+        {
+          word: currentWord.answer,
+          clue: currentWord.clue,
+          definition: currentWord.definition || '',
+          episodeNumber: (currentPuzzleIndex || 0) + 1
+        },
+        wordTimeSpent,
+        hintsUsedForCurrentWordRef.current
+      );
+      console.log(`✅ Word logged: "${currentWord.answer}" - Time: ${wordTimeSpent}s, Hints: ${hintsUsedForCurrentWordRef.current}`);
+    } catch (error) {
+      console.error('❌ Failed to log word:', error);
     }
+  }
+  
+  // Then call the parent handler
+  onWordSolved(
+    currentWord.answer,
+    currentWord.definition || '',
+    currentWord.example || '',
+    hintsUsedForCurrentWordRef.current
+  );
+}
 
-    setIsSubmitting(true);
+    triggerCelebration();
 
-    const userAnswer = answerSlots.map(slot => slot.letter).join('');
-    const correctAnswer = currentWord.answer.toUpperCase();
-
-    if (userAnswer === correctAnswer) {
-      setFeedback('correct');
+    setTimeout(() => {
+      setFeedback(null);
+      setIsSubmitting(false);
       
-      updateGridWithWord(currentWord);
-      
-      setSolvedClues(prev => ({
-        ...prev,
-        [currentWordIndex]: true
-      }));
-
-      if (onWordSolved) {
-        onWordSolved(currentWord.answer, {
-          timeSpent: Date.now() - wordStartTime.current,
-          hintsUsed: hintsUsedForCurrentWordRef.current
-        });
-      }
-
-      triggerCelebration();
-
-      setTimeout(() => {
-        setFeedback(null);
-        setIsSubmitting(false);
-        
-        if (solvedCount + 1 >= totalWords) {
-          if (onPuzzleComplete) {
-            onPuzzleComplete();
-          }
-        } else {
-          moveToNextWord();
+      if (solvedCount + 1 >= totalWords) {
+        if (onPuzzleComplete) {
+          onPuzzleComplete();
         }
-      }, 2000);
+      } else {
+        moveToNextWord();
+      }
+    }, 2000);
 
-    } else {
-      setFeedback('wrong');
-      
-      setTimeout(() => {
-        handleClear();
-        setFeedback(null);
-        setIsSubmitting(false);
-      }, 1500);
-    }
-  };
+  } else {
+    setFeedback('wrong');
+    
+    setTimeout(() => {
+      handleClear();
+      setFeedback(null);
+      setIsSubmitting(false);
+    }, 1500);
+  }
+};
+
+// ✅ ADD: State for tracking attempts per word (add near other useState)
+const [attemptCounts, setAttemptCounts] = useState({});
 
   const handleUseHint = () => {
     if (hintsRemaining <= 0) {

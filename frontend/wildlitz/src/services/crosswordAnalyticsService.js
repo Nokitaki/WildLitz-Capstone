@@ -85,28 +85,36 @@ class CrosswordAnalyticsService {
     }
   }
 
-  /**
-   * Log a game activity
-   */
-  async logActivity(activityData) {
+ // In crosswordAnalyticsService.js - Fix logActivity method
+async logActivity(activityData) {
   try {
-    const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/log-crossword-activity/`, {
+    // Add timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    
+    const response = await fetch(`${API_ENDPOINTS.SENTENCE_FORMATION}/story/activity/log/`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(activityData),
-      signal: AbortSignal.timeout(5000) // 5 second timeout
+      signal: controller.signal
     });
-
+    
+    clearTimeout(timeoutId);
+    
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      const errorText = await response.text();
+      console.error('Server error:', response.status, errorText);
+      return { success: false, error: `HTTP ${response.status}` };
     }
-
-    return await response.json();
+    
+    const data = await response.json();
+    return data;
   } catch (error) {
-    // Silently fail on socket/network errors - don't block user
-    if (error.name === 'AbortError' || error.message.includes('socket') || error.message.includes('10035')) {
-      console.warn('⚠️ Analytics logging skipped (network issue)');
-      return { success: false, skipped: true };
+    if (error.name === 'AbortError') {
+      console.warn('⚠️ Request timeout - analytics may not be saved');
+      return { success: false, timeout: true };
     }
     console.error('❌ Error logging activity:', error);
     return { success: false, error: error.message };
