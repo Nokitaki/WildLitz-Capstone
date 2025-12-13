@@ -1,4 +1,4 @@
-// src/pages/games/crossword/GameplayScreen.jsx - FIXED CROSSWORD WITH PROPER INTERSECTIONS
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BackToHomeButton from '../crossword/BackToHomeButton';
@@ -21,7 +21,11 @@ const GameplayScreen = ({
   onAnswerAttempt,
   onPuzzleComplete  
 }) => {
-  
+  // Add to existing state declarations
+  const [isPlayingClueAudio, setIsPlayingClueAudio] = useState(false);
+
+
+
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [selectedClue, setSelectedClue] = useState(null);
   const [hintsRemaining, setHintsRemaining] = useState(3);
@@ -62,8 +66,19 @@ const GameplayScreen = ({
   const totalWords = puzzle.words.length;
   const solvedCount = Object.keys(solvedClues).filter(key => solvedClues[key]).length;
 
-  // Generate proper crossword with letter intersections
-// In GameplayScreen.jsx - REPLACE the entire generateCrosswordLayout function
+ const handlePlayClue = () => {
+   playButtonClick();
+  if (currentWord?.clue) {
+    setIsPlayingClueAudio(true);
+    const utterance = new SpeechSynthesisUtterance(currentWord.clue);
+    const voices = speechSynthesis.getVoices();
+    const ukVoice = voices.find(v => v.lang === 'en-GB') || voices[0];
+    if (ukVoice) utterance.voice = ukVoice;
+    utterance.lang = 'en-GB';
+    utterance.onend = () => setIsPlayingClueAudio(false);
+    speechSynthesis.speak(utterance);
+  }
+};
 
 const generateCrosswordLayout = useCallback(() => {
   console.log('🎯 Starting improved crossword generation...');
@@ -106,13 +121,8 @@ const generateCrosswordLayout = useCallback(() => {
     }
   }
 
-  // ============================================
-  // HELPER: Check if placement is valid
-  // ============================================
   function canPlaceWord(grid, word, row, col, direction, requireIntersection) {
     const len = word.length;
-    
-    // Check bounds with buffer
     if (direction === 'down') {
       if (row < 2 || row + len >= gridSize - 2 || col < 2 || col >= gridSize - 2) {
         return { valid: false, reason: 'out of bounds' };
@@ -125,8 +135,6 @@ const generateCrosswordLayout = useCallback(() => {
 
     let intersections = 0;
     const intersectionPoints = [];
-
-    // Check each letter position
     for (let i = 0; i < len; i++) {
       const r = direction === 'down' ? row + i : row;
       const c = direction === 'across' ? col + i : col;
@@ -134,29 +142,23 @@ const generateCrosswordLayout = useCallback(() => {
       const cell = grid[r][c];
       
       if (cell) {
-        // Cell is occupied - must be same letter for intersection
         if (cell.letter !== word[i]) {
           return { valid: false, reason: 'letter mismatch' };
         }
         intersections++;
         intersectionPoints.push({ r, c, letter: word[i] });
       } else {
-        // Empty cell - check perpendicular neighbors
         if (direction === 'down') {
-          // Check left and right
           if (grid[r][c - 1] || grid[r][c + 1]) {
             return { valid: false, reason: 'perpendicular collision' };
           }
         } else {
-          // Check above and below
           if (grid[r - 1]?.[c] || grid[r + 1]?.[c]) {
             return { valid: false, reason: 'perpendicular collision' };
           }
         }
       }
     }
-
-    // Check word boundaries (must have empty space before/after)
     if (direction === 'down') {
       if (grid[row - 1]?.[col] || grid[row + len]?.[col]) {
         return { valid: false, reason: 'no space at boundaries' };
@@ -166,8 +168,6 @@ const generateCrosswordLayout = useCallback(() => {
         return { valid: false, reason: 'no space at boundaries' };
       }
     }
-
-    // Intersection requirements
     if (requireIntersection && intersections === 0) {
       return { valid: false, reason: 'no intersection' };
     }
@@ -182,14 +182,8 @@ const generateCrosswordLayout = useCallback(() => {
       intersectionPoints 
     };
   }
-
-  // ============================================
-  // HELPER: Find all valid placements for a word
-  // ============================================
   function findAllValidPlacements(grid, word, requireIntersection) {
     const validPlacements = [];
-
-    // If this is the first word, place it horizontally in center
     if (!requireIntersection) {
       const row = centerRow;
       const col = centerCol - Math.floor(word.answer.length / 2);
@@ -200,20 +194,16 @@ const generateCrosswordLayout = useCallback(() => {
           row,
           col,
           direction: 'across',
-          score: 100, // High score for first word
+          score: 100, 
           intersections: 0
         }];
       }
     }
-
-    // Search for intersection points with existing words
     for (let r = 2; r < gridSize - 2; r++) {
       for (let c = 2; c < gridSize - 2; c++) {
         const cell = grid[r][c];
         
-        if (!cell) continue; // Only check cells with letters
-        
-        // Try placing word vertically through this cell
+        if (!cell) continue; 
         for (let i = 0; i < word.answer.length; i++) {
           if (word.answer[i] === cell.letter) {
             const newRow = r - i;
@@ -221,7 +211,6 @@ const generateCrosswordLayout = useCallback(() => {
             const result = canPlaceWord(grid, word.answer, newRow, newCol, 'down', requireIntersection);
             
             if (result.valid) {
-              // Calculate score based on distance from center and intersections
               const distanceFromCenter = Math.abs(newRow - centerRow) + Math.abs(newCol - centerCol);
               const score = (result.intersections * 50) - (distanceFromCenter * 0.5);
               
@@ -236,7 +225,6 @@ const generateCrosswordLayout = useCallback(() => {
           }
         }
         
-        // Try placing word horizontally through this cell
         for (let i = 0; i < word.answer.length; i++) {
           if (word.answer[i] === cell.letter) {
             const newRow = r;
@@ -262,12 +250,6 @@ const generateCrosswordLayout = useCallback(() => {
 
     return validPlacements;
   }
-
-  // ============================================
-  // MAIN PLACEMENT ALGORITHM
-  // ============================================
-  
-  // Place first word
   const firstWord = sortedWords[0];
   const firstPlacements = findAllValidPlacements(grid, firstWord, false);
   
@@ -289,8 +271,6 @@ const generateCrosswordLayout = useCallback(() => {
   firstWord.placed = true;
   
   console.log(`✅ Placed first word: ${firstWord.answer} at [${firstPlacement.row},${firstPlacement.col}] ${firstPlacement.direction}`);
-
-  // Place remaining words - ALL MUST CONNECT
   let attempts = 0;
   const maxAttemptsPerWord = 50;
   
@@ -299,7 +279,7 @@ const generateCrosswordLayout = useCallback(() => {
     let placed = false;
     
     for (let attempt = 0; attempt < maxAttemptsPerWord && !placed; attempt++) {
-      const validPlacements = findAllValidPlacements(grid, word, true); // MUST have intersection
+      const validPlacements = findAllValidPlacements(grid, word, true); 
       
       if (validPlacements.length === 0) {
         // No valid placements found - try next attempt
@@ -365,9 +345,7 @@ const generateCrosswordLayout = useCallback(() => {
 
   console.log(`📐 Final grid: ${finalWidth}x${finalHeight}`);
 
-  // ============================================
-  // BUILD FINAL CELL ARRAY
-  // ============================================
+ 
   const cells = [];
   for (let r = minRow; r <= maxRow; r++) {
     for (let c = minCol; c <= maxCol; c++) {
@@ -386,9 +364,7 @@ const generateCrosswordLayout = useCallback(() => {
     }
   }
 
-  // ============================================
-  // ASSIGN WORD NUMBERS
-  // ============================================
+
   const adjustedPlacements = placements
     .map(p => ({
       ...p,
@@ -481,6 +457,7 @@ const generateCrosswordLayout = useCallback(() => {
   };
 
   const handleShuffle = () => {
+    playButtonClick();
     const availableLetters = scrambledLetters.filter(l => !l.isPlaced);
     const shuffled = [...availableLetters].sort(() => Math.random() - 0.5);
     
@@ -497,6 +474,7 @@ const generateCrosswordLayout = useCallback(() => {
   };
 
   const handleClear = () => {
+    playButtonClick();
     setScrambledLetters(prev => prev.map(l => ({ ...l, isPlaced: false })));
     setAnswerSlots(prev => prev.map(slot => ({ ...slot, letter: null, letterIndex: null })));
     setFeedback(null);
@@ -547,9 +525,77 @@ const generateCrosswordLayout = useCallback(() => {
     setDraggedLetter(null);
   };
 
+
+const playCorrectSound = () => {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  
+  // Happy ascending melody
+  const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+  notes.forEach((freq, i) => {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = freq;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime + i * 0.1);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + i * 0.1 + 0.3);
+    
+    oscillator.start(audioContext.currentTime + i * 0.1);
+    oscillator.stop(audioContext.currentTime + i * 0.1 + 0.3);
+  });
+};
+
+const playWrongSound = () => {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  
+  // Sad descending tone
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+  oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.3);
+  oscillator.type = 'triangle';
+  
+  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+  
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime + 0.3);
+};
+
+const playButtonClick = () => {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator.frequency.value = 800;
+  oscillator.type = 'sine';
+  
+  gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+  
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime + 0.1);
+};
+
+
+
   const handleLetterClick = (letterIndex) => {
+    playButtonClick();
     const letter = scrambledLetters[letterIndex];
     if (letter.isPlaced) return;
+
+    speakTextUK(letter.letter);
 
     const emptySlotIndex = answerSlots.findIndex(slot => slot.letter === null);
     if (emptySlotIndex !== -1) {
@@ -617,6 +663,11 @@ const handleSubmit = async () => {
 
   if (isCorrect) {
     setFeedback('correct');
+    playCorrectSound(); 
+
+     setTimeout(() => {
+    speakTextUK(currentWord.answer);
+  }, 500);
     
     updateGridWithWord(currentWord);
     
@@ -676,7 +727,8 @@ const handleSubmit = async () => {
 
   } else {
     setFeedback('wrong');
-    
+    playWrongSound();
+
     setTimeout(() => {
       handleClear();
       setFeedback(null);
@@ -685,10 +737,32 @@ const handleSubmit = async () => {
   }
 };
 
+
+
+
+// Audio utility function with UK accent
+const speakTextUK = (text) => {
+  const utterance = new SpeechSynthesisUtterance(text);
+  const voices = speechSynthesis.getVoices();
+  
+  // Find British English voice
+  const ukVoice = voices.find(voice => 
+    voice.lang === 'en-GB' || voice.name.includes('UK') || voice.name.includes('British')
+  ) || voices.find(voice => voice.lang.startsWith('en'));
+  
+  if (ukVoice) utterance.voice = ukVoice;
+  utterance.lang = 'en-GB';
+  utterance.rate = 0.9;
+  utterance.pitch = 1;
+  
+  speechSynthesis.speak(utterance);
+};
+
 // ✅ ADD: State for tracking attempts per word (add near other useState)
 const [attemptCounts, setAttemptCounts] = useState({});
 
   const handleUseHint = () => {
+    playButtonClick();
     if (hintsRemaining <= 0) {
       alert('No hints remaining!');
       return;
@@ -920,6 +994,13 @@ const updateGridWithWord = (word) => {
               <span className={styles.clueDirection}>
                 {wordPositions[currentWordIndex]?.direction || 'Across'}
               </span>
+               <button 
+      onClick={handlePlayClue}
+      className={styles.clueAudioBtn}
+      disabled={isPlayingClueAudio}
+    >
+      {isPlayingClueAudio ? '🔊' : '🎵'}
+    </button>
             </div>
             <div className={styles.clueContent}>
               <div className={styles.clueIcon}>🎯</div>

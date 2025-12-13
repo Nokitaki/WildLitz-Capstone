@@ -855,3 +855,24 @@
     font-size: 20px;
   }
 }
+
+.clueAudioBtn {
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #42a5f5, #1e88e5);
+  border: none;
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: auto;
+}
+
+.clueAudioBtn:hover:not(:disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(30, 136, 229, 0.4);
+}
+
+.clueAudioBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
