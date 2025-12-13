@@ -735,6 +735,7 @@ const generateNextEpisodeOnDemand = async () => {
             onAnswerAttempt={handleAnswerAttempt}
             calculatedAccuracy={calculateAccuracy()}
             onPuzzleComplete={handlePuzzleComplete}
+            
           />
         </motion.div>
       );

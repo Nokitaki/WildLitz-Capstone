@@ -110,7 +110,7 @@ const WordPerformanceFilters = ({ onFilterChange, onSortChange, activeFilter, so
           cursor: 'pointer',
           fontSize: '13px'
         }}>
-          ⏱️ Slow (&gt;10s)
+          ⏱️ Slow (&gt;15s)
         </button>
         <button onClick={() => onFilterChange('fast')} style={{
           padding: '8px 16px',
@@ -572,12 +572,12 @@ const GameSessionsList = ({ gameSessions }) => {
                     <div className={styles.cardPerformanceBadge} style={{
                       background: wordData.hints_used === 0 && wordData.time_spent < 5 
                         ? 'linear-gradient(135deg, #10b981, #34d399)'
-                        : wordData.hints_used > 2 || wordData.time_spent > 10
+                        : wordData.hints_used > 2 || wordData.time_spent > 15
                         ? 'linear-gradient(135deg, #ef4444, #f87171)'
                         : 'linear-gradient(135deg, #f59e0b, #fbbf24)'
                     }}>
                       {wordData.hints_used === 0 && wordData.time_spent < 5 ? '🌟 Excellent' : 
-                       wordData.hints_used > 2 || wordData.time_spent > 10 ? '📖 Practice More' : 
+                       wordData.hints_used > 2 || wordData.time_spent > 15 ? '📖 Practice More' : 
                        '👍 Good Job'}
                     </div>
                   </motion.div>

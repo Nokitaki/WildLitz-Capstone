@@ -567,13 +567,14 @@ const handleSubmit = async () => {
   // ✅ Log to analytics BEFORE calling onWordSolved
   if (sessionId) {
     try {
+      const wordTimeSpent = Math.floor((Date.now() - wordStartTime.current) / 1000);
       await crosswordAnalyticsService.logWordSolved(
         sessionId,
         {
           word: currentWord.answer,
           clue: currentWord.clue,
           definition: currentWord.definition || '',
-          episodeNumber: (currentPuzzleIndex || 0) + 1
+          episodeNumber: currentEpisode
         },
         wordTimeSpent,
         hintsUsedForCurrentWordRef.current
