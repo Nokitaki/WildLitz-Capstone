@@ -19,7 +19,7 @@ import {
 import styles from "../../../styles/games/safari/SoundSafariAnalytics.module.css";
 import soundSafariAnalyticsService from "../../../services/soundSafariAnalyticsService";
 
-const SoundSafariAnalytics = () => {
+const SoundSafariAnalytics = ({ onClose }) => {
   const navigate = useNavigate();
   const [sessions, setSessions] = useState([]);
   const [soundPerformance, setSoundPerformance] = useState([]);
@@ -200,9 +200,21 @@ const SoundSafariAnalytics = () => {
     });
   };
 
+  // Logic to handle "Play Now" click based on whether we are in a modal or not
+  const handleMainAction = () => {
+    if (onClose) {
+      onClose(); // Just close the modal if we are already in the config screen
+    } else {
+      navigate("/games/sound-safari"); // Navigate if we are in profile
+    }
+  };
+
+  // Ensure scrolling works inside the modal
+  const containerStyle = onClose ? { minHeight: '100%', height: '100%', overflowY: 'auto' } : {};
+
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
+      <div className={styles.loadingContainer} style={containerStyle}>
         <div className={styles.spinner}>🦁</div>
         <p>Loading your Sound Safari progress...</p>
       </div>
@@ -211,18 +223,24 @@ const SoundSafariAnalytics = () => {
 
   if (!sessions || sessions.length === 0) {
     return (
-      <div className={styles.emptyState}>
+      <div className={styles.emptyState} style={containerStyle}>
         <div className={styles.emptyIcon}>🦁</div>
         <h3>No Sound Safari Data Yet</h3>
         <p>
           Play some Sound Safari games to see your phonemic awareness progress!
         </p>
+        {/* If in modal mode, provide a button to close it and start playing */}
+        {onClose && (
+           <button onClick={onClose} className={styles.playButton} style={{marginTop: '20px'}}>
+             Start Playing Now
+           </button>
+        )}
       </div>
     );
   }
 
   return (
-    <div className={styles.analyticsContainer}>
+    <div className={styles.analyticsContainer} style={containerStyle}>
       <motion.div
         className={styles.header}
         initial={{ opacity: 0, y: -20 }}
@@ -232,10 +250,10 @@ const SoundSafariAnalytics = () => {
 
         <div className={styles.headerButtons}>
           <button
-            onClick={() => navigate("/games/sound-safari")}
+            onClick={handleMainAction}
             className={styles.playButton}
           >
-            🎮 Play Now
+            {onClose ? "🔙 Back to Game" : "🎮 Play Now"}
           </button>
           <button onClick={loadAnalytics} className={styles.refreshButton}>
             🔄 Refresh

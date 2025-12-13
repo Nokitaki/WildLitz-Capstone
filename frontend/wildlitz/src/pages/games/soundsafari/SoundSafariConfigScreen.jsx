@@ -1,17 +1,18 @@
-import React, { useState } from 'react'; // Removed useEffect and useRef since we don't handle audio here anymore
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../../styles/games/safari/SoundSafariConfig.module.css';
 import { getRandomValidSound } from '../../../utils/excludedCombinations';
+// 1. Import the Analytics component
+import SoundSafariAnalytics from './SoundSafariAnalytics';
 
 const SoundSafariConfigScreen = ({ 
   onStartGame, 
-  onViewAnalytics, 
+  // onViewAnalytics, // We don't use this anymore as we handle it internally
   currentEnvironment = 'jungle', 
   onEnvironmentChange,
   initialDifficulty = 'easy',
   initialSoundPosition = 'beginning',
-  // Receive Audio Props from Parent
   volume,
   isMuted,
   showVolumeControl,
@@ -21,9 +22,11 @@ const SoundSafariConfigScreen = ({
 }) => {
   const navigate = useNavigate();
 
-  // Local state for game settings only
   const [soundPosition, setSoundPosition] = useState(initialSoundPosition);
   const [difficulty, setDifficulty] = useState(initialDifficulty);
+  
+  // 2. Add state to control the modal visibility
+  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
 
   const handleStartGame = () => {
     const randomSound = getRandomValidSound(soundPosition, []);
@@ -38,7 +41,6 @@ const SoundSafariConfigScreen = ({
   
   return (
     <div className={styles.configContainer}>
-      {/* NO <audio> TAG HERE - The Parent handles it! */}
       
       <motion.div 
         className={styles.soundControlWrapper}
@@ -48,7 +50,7 @@ const SoundSafariConfigScreen = ({
       >
         <motion.button
           className={styles.soundButton}
-          onClick={onToggleVolumeControl} // Use parent handler
+          onClick={onToggleVolumeControl}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -76,8 +78,8 @@ const SoundSafariConfigScreen = ({
                     min="0"
                     max="1"
                     step="0.01"
-                    value={volume} // Use parent volume
-                    onChange={onVolumeChange} // Use parent handler
+                    value={volume}
+                    onChange={onVolumeChange}
                     className={styles.volumeSlider}
                   />
                   <span className={styles.volumeIcon}>🔊</span>
@@ -89,7 +91,7 @@ const SoundSafariConfigScreen = ({
                 
                 <motion.button
                   className={`${styles.muteButton} ${isMuted ? styles.muted : ''}`}
-                  onClick={onToggleMute} // Use parent handler
+                  onClick={onToggleMute}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -100,6 +102,37 @@ const SoundSafariConfigScreen = ({
           )}
         </AnimatePresence>
       </motion.div>
+
+      {/* 3. Add the Analytics Modal Overlay */}
+      <AnimatePresence>
+        {showAnalyticsModal && (
+          <motion.div 
+            className={styles.analyticsModalOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowAnalyticsModal(false)}
+          >
+            <motion.div 
+              className={styles.analyticsModalContent}
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button 
+                className={styles.closeAnalyticsButton}
+                onClick={() => setShowAnalyticsModal(false)}
+              >
+                ✕
+              </button>
+              
+              {/* Pass onClose to tell the analytics component it's in a modal */}
+              <SoundSafariAnalytics onClose={() => setShowAnalyticsModal(false)} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <div className={styles.configCardWrapper}>
         <motion.button
@@ -112,9 +145,10 @@ const SoundSafariConfigScreen = ({
           <span className={styles.backText}>Back</span>
         </motion.button>
         
+        {/* 4. Update Analytics button to open modal instead of navigating */}
         <motion.button
           className={styles.analyticsButton}
-          onClick={onViewAnalytics}
+          onClick={() => setShowAnalyticsModal(true)}
           whileHover={{ scale: 1.05, x: 3 }}
           whileTap={{ scale: 0.95 }}
         >

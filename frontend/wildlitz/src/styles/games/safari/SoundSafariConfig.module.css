@@ -168,7 +168,7 @@
 }
 
 .configTitle::before {
-  content: "🦁";
+  content: "🐵";
   position: absolute;
   left: -10px;
   top: 50%;
@@ -178,7 +178,7 @@
 }
 
 .configTitle::after {
-  content: "🐘";
+  content: "🦁";
   position: absolute;
   right: -10px;
   top: 50%;
@@ -435,7 +435,7 @@
 }
 
 .difficultyButton::after {
-  content: "🌟";
+  content: "⭐";
   position: absolute;
   top: 5px;
   right: 8px;
@@ -1146,4 +1146,59 @@
     width: 220px;
     padding: 10px;
   }
+}
+
+/* ANALYTICS MODAL STYLES */
+.analyticsModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 2000; /* High z-index to sit on top of everything */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.analyticsModalContent {
+  width: 100%;
+  max-width: 1200px;
+  height: 90vh;
+  border-radius: 24px;
+  overflow: hidden; /* Hide overflow so internal scroll works */
+  background: transparent; /* Background handled by the analytics component itself */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.closeAnalyticsButton {
+  position: absolute;
+  top: 20px;
+  right: 25px;
+  z-index: 2002; /* Must be higher than analytics header */
+  background: rgba(255, 255, 255, 0.9);
+  border: 3px solid #795548;
+  color: #795548;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: all 0.2s ease;
+}
+
+.closeAnalyticsButton:hover {
+  transform: scale(1.1) rotate(90deg);
+  background: #fff;
+  color: #d84315;
+  border-color: #d84315;
 }

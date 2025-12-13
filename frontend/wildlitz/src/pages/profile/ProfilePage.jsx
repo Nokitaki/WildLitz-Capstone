@@ -1,10 +1,10 @@
-// src/pages/profile/ProfilePage.jsx - COMPLETE FILE WITH SOUND SAFARI ANALYTICS
+// src/pages/profile/ProfilePage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/components/profile.module.css';
-import SoundSafariAnalytics from '../games/soundsafari/SoundSafariAnalytics';
+// Removed SoundSafariAnalytics import
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -13,10 +13,12 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState([]);
   const [analytics, setAnalytics] = useState(null);
-  // ✅ Read tab from URL on mount
+  
   const [activeTab, setActiveTab] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab');
+    // If url requests 'soundsafari', default to 'overview' since it's gone
+    if (tabParam === 'soundsafari') return 'overview';
     return tabParam || 'overview';
   });
   const [error, setError] = useState(null);
@@ -198,13 +200,7 @@ const ProfilePage = () => {
         >
           📈 Progress
         </button>
-        {/* NEW: Sound Safari Tab */}
-        <button
-          className={`${styles.tabButton} ${activeTab === 'soundsafari' ? styles.active : ''}`}
-          onClick={() => setActiveTab('soundsafari')}
-        >
-          🦁 Sound Safari
-        </button>
+        {/* Removed Sound Safari Tab */}
         <button
           className={`${styles.tabButton} ${activeTab === 'achievements' ? styles.active : ''}`}
           onClick={() => setActiveTab('achievements')}
@@ -345,13 +341,6 @@ const ProfilePage = () => {
                   </motion.button>
                 </div>
               )}
-            </div>
-          )}
-
-          {/* NEW: Sound Safari Analytics Tab */}
-          {activeTab === 'soundsafari' && (
-            <div className={styles.soundSafariContent}>
-              <SoundSafariAnalytics />
             </div>
           )}
 
