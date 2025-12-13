@@ -1,8 +1,9 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/crossword/SummaryScreen.module.css';
 import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
+import summaryMusic from '../../../assets/music/crossword_gameplay.mp3'; 
 
 const SummaryScreen = ({ 
   solvedWords = [], 
@@ -25,7 +26,7 @@ const SummaryScreen = ({
   const [selectedWord, setSelectedWord] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showConfetti, setShowConfetti] = useState(true);
-
+  const audioRef = useRef(null);
   const performanceMetrics = useMemo(() => {
     const wordsCount = solvedWords.length;
     const episodeProgress = Math.round((currentEpisode / totalEpisodes) * 100);
@@ -87,6 +88,30 @@ const SummaryScreen = ({
   if (length <= 7) return 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'; // Blue
   return 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'; // Green
 };
+
+useEffect(() => {
+  audioRef.current = new Audio(summaryMusic);
+  audioRef.current.loop = true;
+  audioRef.current.volume = 0.4; // 40% volume
+  
+  const playMusic = async () => {
+    try {
+      await audioRef.current.play();
+    } catch (error) {
+      console.log('Music autoplay blocked:', error);
+    }
+  };
+  
+  playMusic();
+  
+  // Cleanup on unmount
+  return () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+  };
+}, []);
 
   const achievements = useMemo(() => {
     return [

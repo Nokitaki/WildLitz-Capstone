@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import BackToHomeButton from '../crossword/BackToHomeButton';
 import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
 import styles from '../../../styles/games/crossword/GameplayScreenDragDrop.module.css';
-
+import gameplayMusic from '../../../assets/music/crossword_gameplay.mp3'; // Adjust path
 const GameplayScreen = ({ 
   puzzle, 
   theme, 
@@ -25,7 +25,8 @@ const GameplayScreen = ({
   const [isPlayingClueAudio, setIsPlayingClueAudio] = useState(false);
 
 
-
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const audioRef = useRef(null);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [selectedClue, setSelectedClue] = useState(null);
   const [hintsRemaining, setHintsRemaining] = useState(3);
@@ -80,6 +81,45 @@ const GameplayScreen = ({
     utterance.lang = 'en-GB';
     utterance.onend = () => setIsPlayingClueAudio(false);
     speechSynthesis.speak(utterance);
+  }
+};
+
+useEffect(() => {
+  audioRef.current = new Audio(gameplayMusic);
+  audioRef.current.loop = true;
+  audioRef.current.volume = 0.3; // 30% volume
+  
+  // Auto-play when component loads
+  const playMusic = async () => {
+    try {
+      await audioRef.current.play();
+      setIsMusicPlaying(true);
+    } catch (error) {
+      console.log('Music autoplay blocked:', error);
+    }
+  };
+  
+  playMusic();
+  
+  // Cleanup on unmount
+  return () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+  };
+}, []);
+
+// Toggle music function
+const toggleMusic = () => {
+  if (audioRef.current) {
+    if (isMusicPlaying) {
+      audioRef.current.pause();
+      setIsMusicPlaying(false);
+    } else {
+      audioRef.current.play();
+      setIsMusicPlaying(true);
+    }
   }
 };
 
@@ -1105,6 +1145,14 @@ const updateGridWithWord = (word) => {
 
         </div>
       </div>
+      {/* Music Control Button - Add anywhere in your JSX */}
+<button 
+  onClick={toggleMusic}
+  className={styles.musicToggleBtn}
+  title={isMusicPlaying ? 'Mute Music' : 'Play Music'}
+>
+  {isMusicPlaying ? '🔊' : '🔇'}
+</button>
     </div>
   );
 };
