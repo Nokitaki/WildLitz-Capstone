@@ -23,12 +23,11 @@ import {
   isCombinationExcluded,
 } from "../../../utils/excludedCombinations";
 
-// --- CORRECTED IMPORTS HERE ---
 import {
   fetchSafariAnimals,
   fetchRandomSound,
-  // fetchSoundExamples, // Add if needed
-  // submitGameResults, // Add if needed
+  // fetchSoundExamples, 
+  // submitGameResults, 
 } from "../../../services/soundSafariApi";
 
 import soundSafariAnalyticsService from "../../../services/soundSafariAnalyticsService";
@@ -98,13 +97,13 @@ const SoundSafariGame = () => {
       playMusic();
     } else if (
       audioRef.current &&
-      gameState !== "config" && // Don't pause in config
+      gameState !== "config" && 
       gameState !== "loading" &&
       gameState !== "intro"
     ) {
       audioRef.current.pause();
     }
-  }, [gameState, gameConfig.environment]); // Re-run when environment changes to switch tracks
+  }, [gameState, gameConfig.environment]); 
 
   useEffect(() => {
     if (audioRef.current) {
@@ -156,7 +155,6 @@ const SoundSafariGame = () => {
   const [fromIntroScreen, setFromIntroScreen] = useState(false);
 
   const handleStartGame = async (config) => {
-    // Preserve the current environment selection
     const finalConfig = { ...config, environment: gameConfig.environment };
     setGameConfig(finalConfig);
 
@@ -433,6 +431,37 @@ const SoundSafariGame = () => {
     setGameState("results");
   };
 
+  // --- RESTORED HELPER FUNCTION ---
+  const getGameResults = () => {
+    const correctAnimals = roundAnimals.filter((animal) => {
+      if (gameConfig.soundPosition === "anywhere") {
+        return animal.target_sound === gameConfig.targetSound;
+      }
+      return (
+        animal.target_sound === gameConfig.targetSound &&
+        animal.sound_position === gameConfig.soundPosition
+      );
+    });
+
+    const incorrectAnimals = roundAnimals.filter((animal) => {
+      if (gameConfig.soundPosition === "anywhere") {
+        return animal.target_sound !== gameConfig.targetSound;
+      }
+      return (
+        animal.target_sound !== gameConfig.targetSound ||
+        animal.sound_position !== gameConfig.soundPosition
+      );
+    });
+
+    return {
+      correctAnimals,
+      incorrectAnimals,
+      selectedAnimals,
+      targetSound: gameConfig.targetSound,
+      soundPosition: gameConfig.soundPosition,
+    };
+  };
+
   const handleNextRound = async () => {
     let updatedRoundsData = allRoundsData;
 
@@ -574,9 +603,6 @@ const SoundSafariGame = () => {
         overflow: "hidden",
       }}
     >
-      {/* The Audio player is now present in CONFIG, LOADING, and INTRO.
-         The 'src' updates dynamically based on the environment.
-      */}
       {(gameState === "config" || gameState === "loading" || gameState === "intro") && (
         <audio
           ref={audioRef}
@@ -632,7 +658,6 @@ const SoundSafariGame = () => {
                 onEnvironmentChange={handleEnvironmentChange}
                 initialDifficulty={gameConfig.difficulty}
                 initialSoundPosition={gameConfig.soundPosition}
-                // Passing audio controls down to child
                 volume={volume}
                 isMuted={isMuted}
                 showVolumeControl={showVolumeControl}
