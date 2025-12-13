@@ -70,6 +70,9 @@ const GameplayScreen = ({
    playButtonClick();
   if (currentWord?.clue) {
     setIsPlayingClueAudio(true);
+
+    speechSynthesis.cancel();
+    
     const utterance = new SpeechSynthesisUtterance(currentWord.clue);
     const voices = speechSynthesis.getVoices();
     const ukVoice = voices.find(v => v.lang === 'en-GB') || voices[0];
@@ -742,6 +745,7 @@ const handleSubmit = async () => {
 
 // Audio utility function with UK accent
 const speakTextUK = (text) => {
+  speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   const voices = speechSynthesis.getVoices();
   
