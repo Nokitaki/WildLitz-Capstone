@@ -1,124 +1,44 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react'; // Removed useEffect and useRef since we don't handle audio here anymore
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../../styles/games/safari/SoundSafariConfig.module.css';
-import backgroundMusic from '../../../assets/music/sound-safari-background-music.mp3';
 import { getRandomValidSound } from '../../../utils/excludedCombinations';
 
-const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
+const SoundSafariConfigScreen = ({ 
+  onStartGame, 
+  onViewAnalytics, 
+  currentEnvironment = 'jungle', 
+  onEnvironmentChange,
+  initialDifficulty = 'easy',
+  initialSoundPosition = 'beginning',
+  // Receive Audio Props from Parent
+  volume,
+  isMuted,
+  showVolumeControl,
+  onVolumeChange,
+  onToggleMute,
+  onToggleVolumeControl
+}) => {
   const navigate = useNavigate();
-  
 
-  const [soundPosition, setSoundPosition] = useState('beginning');
-  const [environment, setEnvironment] = useState('jungle');
-  const [difficulty, setDifficulty] = useState('easy');
-  
-
-  const audioRef = useRef(null);
-  const [volume, setVolume] = useState(0.5);
-  const [isMuted, setIsMuted] = useState(false);
-  const [showVolumeControl, setShowVolumeControl] = useState(false);
-  
-
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-      audioRef.current.loop = true;
-      
-      const playMusic = async () => {
-        try {
-          await audioRef.current.play();
-        } catch (error) {
-          console.log('Auto-play blocked:', error);
-        }
-      };
-      
-      playMusic();
-    }
-    
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-    };
-  }, []);
-  
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume;
-    }
-  }, [volume, isMuted]);
-  
-  const handleVolumeChange = (e) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    if (newVolume > 0) {
-      setIsMuted(false);
-    }
-  };
-  
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-  };
-  
-  const toggleVolumeControl = () => {
-    setShowVolumeControl(!showVolumeControl);
-  };
-  
-
-  const handleBackClick = () => {
-    navigate('/home');
-  };
-
-
-  const handleAnalyticsClick = () => {
-    if (onViewAnalytics) {
-      onViewAnalytics();
-    }
-  };
-  
-
-  const handleQuickStart = () => {
-    const quickStartPosition = 'beginning';
-    const randomSound = getRandomValidSound(quickStartPosition, []);
-    
-    const config = {
-      soundPosition: quickStartPosition,
-      targetSound: randomSound,
-      environment: 'jungle',
-      difficulty: 'easy'
-    };
-    
-    if (onStartGame) {
-      onStartGame(config);
-    }
-  };
-  
+  // Local state for game settings only
+  const [soundPosition, setSoundPosition] = useState(initialSoundPosition);
+  const [difficulty, setDifficulty] = useState(initialDifficulty);
 
   const handleStartGame = () => {
     const randomSound = getRandomValidSound(soundPosition, []);
-    
     const config = {
       soundPosition,
       targetSound: randomSound,
-      environment,
+      environment: currentEnvironment,
       difficulty
     };
-    
-    if (onStartGame) {
-      onStartGame(config);
-    }
+    if (onStartGame) onStartGame(config);
   };
   
   return (
     <div className={styles.configContainer}>
-      <audio 
-        ref={audioRef} 
-        src={backgroundMusic}
-        onLoadedData={() => console.log('✅ Audio loaded successfully!')}
-        onError={(e) => console.log('❌ Audio error:', e)}
-      />
+      {/* NO <audio> TAG HERE - The Parent handles it! */}
       
       <motion.div 
         className={styles.soundControlWrapper}
@@ -128,7 +48,7 @@ const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
       >
         <motion.button
           className={styles.soundButton}
-          onClick={toggleVolumeControl}
+          onClick={onToggleVolumeControl} // Use parent handler
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -156,8 +76,8 @@ const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
                     min="0"
                     max="1"
                     step="0.01"
-                    value={volume}
-                    onChange={handleVolumeChange}
+                    value={volume} // Use parent volume
+                    onChange={onVolumeChange} // Use parent handler
                     className={styles.volumeSlider}
                   />
                   <span className={styles.volumeIcon}>🔊</span>
@@ -169,7 +89,7 @@ const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
                 
                 <motion.button
                   className={`${styles.muteButton} ${isMuted ? styles.muted : ''}`}
-                  onClick={toggleMute}
+                  onClick={onToggleMute} // Use parent handler
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -182,19 +102,19 @@ const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
       </motion.div>
       
       <div className={styles.configCardWrapper}>
-
-                <motion.button
+        <motion.button
           className={styles.backButton}
-          onClick={handleBackClick}
+          onClick={() => navigate('/home')}
           whileHover={{ scale: 1.05, x: -3 }}
           whileTap={{ scale: 0.95 }}
         >
           <span className={styles.backArrow}>←</span>
           <span className={styles.backText}>Back</span>
         </motion.button>
-                <motion.button
+        
+        <motion.button
           className={styles.analyticsButton}
-          onClick={handleAnalyticsClick}
+          onClick={onViewAnalytics}
           whileHover={{ scale: 1.05, x: 3 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -212,7 +132,7 @@ const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
         </div>
         
         <div className={styles.configContent}>
-                    <div className={styles.configColumn}>
+          <div className={styles.configColumn}>
             <div className={styles.gameInfoSection}>
               <div className={styles.infoBox}>
                 <h3>
@@ -240,48 +160,48 @@ const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
             </div>
           </div>
           
-                    <div className={styles.configColumn}>
+          <div className={styles.configColumn}>
             <div className={styles.configSection}>
               <h2>
                 <span className={styles.sectionEmoji}>🌍</span>
-                Environment
+                Select Theme
               </h2>
               <div className={styles.environmentGrid}>
                 <motion.button
-                  className={`${styles.environmentButton} ${styles.jungleEnv} ${environment === 'jungle' ? styles.selected : ''}`}
+                  className={`${styles.environmentButton} ${styles.jungleEnv} ${currentEnvironment === 'jungle' ? styles.selected : ''}`}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => setEnvironment('jungle')}
+                  onClick={() => onEnvironmentChange('jungle')}
                 >
                   <span className={styles.envEmoji}>🌴</span>
                   <span>Jungle</span>
                 </motion.button>
                 
                 <motion.button
-                  className={`${styles.environmentButton} ${styles.savannaEnv} ${environment === 'savanna' ? styles.selected : ''}`}
+                  className={`${styles.environmentButton} ${styles.savannaEnv} ${currentEnvironment === 'savanna' ? styles.selected : ''}`}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => setEnvironment('savanna')}
+                  onClick={() => onEnvironmentChange('savanna')}
                 >
                   <span className={styles.envEmoji}>🦒</span>
                   <span>Savanna</span>
                 </motion.button>
                 
                 <motion.button
-                  className={`${styles.environmentButton} ${styles.oceanEnv} ${environment === 'ocean' ? styles.selected : ''}`}
+                  className={`${styles.environmentButton} ${styles.oceanEnv} ${currentEnvironment === 'ocean' ? styles.selected : ''}`}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => setEnvironment('ocean')}
+                  onClick={() => onEnvironmentChange('ocean')}
                 >
                   <span className={styles.envEmoji}>🌊</span>
                   <span>Ocean</span>
                 </motion.button>
                 
                 <motion.button
-                  className={`${styles.environmentButton} ${styles.arcticEnv} ${environment === 'arctic' ? styles.selected : ''}`}
+                  className={`${styles.environmentButton} ${styles.arcticEnv} ${currentEnvironment === 'arctic' ? styles.selected : ''}`}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => setEnvironment('arctic')}
+                  onClick={() => onEnvironmentChange('arctic')}
                 >
                   <span className={styles.envEmoji}>❄️</span>
                   <span>Arctic</span>
@@ -302,48 +222,24 @@ const SoundSafariConfigScreen = ({ onStartGame, onViewAnalytics }) => {
             </div>
           </div>
           
-                    <div className={styles.configColumn}>
+          <div className={styles.configColumn}>
             <div className={styles.configSection}>
               <h2>
                 <span className={styles.sectionEmoji}>🔍</span>
                 Sound Position
               </h2>
               <div className={styles.buttonGrid}>
-                <motion.button
-                  className={`${styles.optionButton} ${soundPosition === 'beginning' ? styles.selected : ''}`}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setSoundPosition('beginning')}
-                >
-                  Beginning
-                </motion.button>
-                
-                <motion.button
-                  className={`${styles.optionButton} ${soundPosition === 'middle' ? styles.selected : ''}`}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setSoundPosition('middle')}
-                >
-                  Middle
-                </motion.button>
-                
-                <motion.button
-                  className={`${styles.optionButton} ${soundPosition === 'ending' ? styles.selected : ''}`}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setSoundPosition('ending')}
-                >
-                  Ending
-                </motion.button>
-                
-                <motion.button
-                  className={`${styles.optionButton} ${soundPosition === 'anywhere' ? styles.selected : ''}`}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setSoundPosition('anywhere')}
-                >
-                  Anywhere
-                </motion.button>
+                {['beginning', 'middle', 'ending', 'anywhere'].map((pos) => (
+                  <motion.button
+                    key={pos}
+                    className={`${styles.optionButton} ${soundPosition === pos ? styles.selected : ''}`}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setSoundPosition(pos)}
+                  >
+                    {pos.charAt(0).toUpperCase() + pos.slice(1)}
+                  </motion.button>
+                ))}
               </div>
             </div>
             

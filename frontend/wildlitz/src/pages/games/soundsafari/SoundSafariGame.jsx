@@ -2,7 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import styles from "../../../styles/games/safari/SoundSafariGame.module.css";
-import backgroundMusic2 from "../../../assets/music/sound-safari-background-music-2.mp3";
+
+// --- Import Music Files ---
+import jungleMusic from "../../../assets/music/sound-safari-background-music-2.mp3";
+import oceanMusic from "../../../assets/music/Ocean.mp3";
+import savannaMusic from "../../../assets/music/Savanna.mp3";
+import arcticMusic from "../../../assets/music/Snow.mp3";
 
 import WildLitzFox from "../../../assets/img/wildlitz-idle.png";
 
@@ -18,20 +23,26 @@ import {
   isCombinationExcluded,
 } from "../../../utils/excludedCombinations";
 
+// --- CORRECTED IMPORTS HERE ---
 import {
   fetchSafariAnimals,
   fetchRandomSound,
-  fetchSoundExamples,
-  submitGameResults,
+  // fetchSoundExamples, // Add if needed
+  // submitGameResults, // Add if needed
 } from "../../../services/soundSafariApi";
+
 import soundSafariAnalyticsService from "../../../services/soundSafariAnalyticsService";
 
 import {
   SOUND_DESCRIPTIONS,
   SOUND_POSITIONS,
   DIFFICULTY_LEVELS,
-  ENVIRONMENTS,
 } from "../../../mock/soundSafariData";
+
+import jungleBg from "../../../assets/img/backgrounds/Jungle.png";
+import savannaBg from "../../../assets/img/backgrounds/Savannah.png";
+import oceanBg from "../../../assets/img/backgrounds/Ocean.png";
+import arcticBg from "../../../assets/img/backgrounds/Artic.png";
 
 const SoundSafariGame = () => {
   const navigate = useNavigate();
@@ -43,9 +54,34 @@ const SoundSafariGame = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [showVolumeControl, setShowVolumeControl] = useState(false);
 
+  // Background Images Mapping
+  const backgrounds = {
+    jungle: jungleBg,
+    savanna: savannaBg,
+    ocean: oceanBg,
+    arctic: arcticBg,
+  };
+
+  // Music Tracks Mapping
+  const musicTracks = {
+    jungle: jungleMusic,
+    savanna: savannaMusic,
+    ocean: oceanMusic,
+    arctic: arcticMusic,
+  };
+
+  const [gameConfig, setGameConfig] = useState({
+    difficulty: "easy",
+    targetSound: "s",
+    soundPosition: SOUND_POSITIONS.beginning,
+    environment: "jungle",
+  });
+
+  // --- Audio Effect Handler ---
   useEffect(() => {
+    // Play music in CONFIG, LOADING, or INTRO
     if (
-      (gameState === "loading" || gameState === "intro") &&
+      (gameState === "config" || gameState === "loading" || gameState === "intro") &&
       audioRef.current
     ) {
       audioRef.current.volume = volume;
@@ -62,12 +98,13 @@ const SoundSafariGame = () => {
       playMusic();
     } else if (
       audioRef.current &&
+      gameState !== "config" && // Don't pause in config
       gameState !== "loading" &&
       gameState !== "intro"
     ) {
       audioRef.current.pause();
     }
-  }, [gameState]);
+  }, [gameState, gameConfig.environment]); // Re-run when environment changes to switch tracks
 
   useEffect(() => {
     if (audioRef.current) {
@@ -91,12 +128,9 @@ const SoundSafariGame = () => {
     setShowVolumeControl(!showVolumeControl);
   };
 
-  const [gameConfig, setGameConfig] = useState({
-    difficulty: "easy",
-    targetSound: "s",
-    soundPosition: SOUND_POSITIONS.beginning,
-    environment: "jungle",
-  });
+  const handleEnvironmentChange = (newEnv) => {
+    setGameConfig((prev) => ({ ...prev, environment: newEnv }));
+  };
 
   const [currentRound, setCurrentRound] = useState(1);
   const [totalRounds] = useState(5);
@@ -122,7 +156,9 @@ const SoundSafariGame = () => {
   const [fromIntroScreen, setFromIntroScreen] = useState(false);
 
   const handleStartGame = async (config) => {
-    setGameConfig(config);
+    // Preserve the current environment selection
+    const finalConfig = { ...config, environment: gameConfig.environment };
+    setGameConfig(finalConfig);
 
     setSessionStartTime(Date.now());
     setAllRoundsData([]);
@@ -131,22 +167,22 @@ const SoundSafariGame = () => {
 
     setCurrentRound(1);
     setScore(0);
-    setSoundsUsed([config.targetSound]);
+    setSoundsUsed([finalConfig.targetSound]);
     setGameState("loading");
     setFromIntroScreen(false);
     setError(null);
 
     await prepareNewRound(
-      config.targetSound,
-      config.difficulty,
+      finalConfig.targetSound,
+      finalConfig.difficulty,
       0,
       [],
-      config.environment
+      finalConfig.environment
     );
 
     setTimeout(() => {
       setGameState("intro");
-      const introMessage = `Today we're learning about the "${config.targetSound}" sound. Listen and find it in animal names!`;
+      const introMessage = `Today we're learning about the "${finalConfig.targetSound}" sound. Listen and find it in animal names!`;
       setBubbleMessage(introMessage);
       setShowBubble(true);
 
@@ -178,13 +214,7 @@ const SoundSafariGame = () => {
       }
     );
 
-    console.log(
-      `📊 Round ${currentRound} data (stored temporarily):`,
-      roundData
-    );
-
     setCurrentRoundData(roundData);
-
     setRoundStartTime(Date.now());
   };
 
@@ -198,29 +228,11 @@ const SoundSafariGame = () => {
         totalTimeSpent
       );
 
-      console.log("📊 Saving complete session:", sessionData);
-      console.log(`   - ${allRoundsData.length} rounds`);
-      console.log(`   - Total time: ${Math.floor(totalTimeSpent / 1000)}s`);
-
-      const result = await soundSafariAnalyticsService.saveGameSession(
+      await soundSafariAnalyticsService.saveGameSession(
         sessionData
       );
-
-      if (result.success) {
-        if (result.anonymous) {
-          console.log("✅ Session saved anonymously (user not logged in)");
-        } else {
-          console.log("✅ Session saved successfully!");
-          console.log("   Session ID:", result.session_id);
-        }
-      } else {
-        console.error("❌ Failed to save session:", result.error);
-      }
-
-      return result;
     } catch (error) {
       console.error("❌ Error saving session:", error);
-      return { success: false, error: error.message };
     }
   };
 
@@ -250,9 +262,6 @@ const SoundSafariGame = () => {
           gameConfig.environment
         )
       ) {
-        console.warn(
-          `⚠️ Excluded combination detected: ${targetSound}-${soundPosition}-${gameConfig.environment}, selecting new sound`
-        );
         const validSound = getRandomValidSound(
           soundPosition,
           currentTriedSounds,
@@ -268,10 +277,6 @@ const SoundSafariGame = () => {
         );
       }
 
-      console.log(
-        `🎯 Fetching animals for sound "${targetSound}" at position "${soundPosition}"`
-      );
-
       const response = await fetchSafariAnimals({
         sound: targetSound,
         difficulty: difficulty,
@@ -281,11 +286,8 @@ const SoundSafariGame = () => {
 
       if (response.animals && response.animals.length > 0) {
         setRoundAnimals(response.animals);
-        console.log(`✅ Loaded ${response.animals.length} animals`);
         return;
       }
-
-      console.warn(`⚠️ No animals found, retrying...`);
 
       if (retryCount < 15) {
         const allSounds = Object.keys(SOUND_DESCRIPTIONS);
@@ -306,10 +308,8 @@ const SoundSafariGame = () => {
         }
       }
 
-      console.error("❌ Unable to find animals");
       setError("Unable to load animals for this round");
     } catch (error) {
-      console.error("❌ Error preparing round:", error);
       setError(`Failed to load animals: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -346,13 +346,12 @@ const SoundSafariGame = () => {
 
       return "s";
     } catch (error) {
-      console.error("Error selecting sound:", error);
       return "s";
     }
   };
 
   const handleContinueFromIntro = () => {
-    setFromIntroScreen(true); 
+    setFromIntroScreen(true);
     setGameState("gameplay");
 
     const positionText = getPositionText();
@@ -399,12 +398,9 @@ const SoundSafariGame = () => {
     setSelectedAnimals(selected);
 
     const correctAnimals = roundAnimals.filter((animal) => {
-      // In "anywhere" mode, only check if target_sound matches
       if (gameConfig.soundPosition === "anywhere") {
         return animal.target_sound === gameConfig.targetSound;
       }
-
-      // In specific position modes, check both target_sound AND sound_position
       return (
         animal.target_sound === gameConfig.targetSound &&
         animal.sound_position === gameConfig.soundPosition
@@ -412,12 +408,9 @@ const SoundSafariGame = () => {
     });
 
     const correctSelections = selected.filter((animal) => {
-      // In "anywhere" mode, only check if target_sound matches
       if (gameConfig.soundPosition === "anywhere") {
         return animal.target_sound === gameConfig.targetSound;
       }
-
-      // In specific position modes, check both target_sound AND sound_position
       return (
         animal.target_sound === gameConfig.targetSound &&
         animal.sound_position === gameConfig.soundPosition
@@ -444,36 +437,19 @@ const SoundSafariGame = () => {
     let updatedRoundsData = allRoundsData;
 
     if (currentRoundData) {
-      console.log(`✅ Saving Round ${currentRound} data`);
       updatedRoundsData = [...allRoundsData, currentRoundData];
       setAllRoundsData(updatedRoundsData);
       setCurrentRoundData(null);
     }
 
     if (currentRound >= totalRounds) {
-      console.log("🎮 Game complete! Saving session with all rounds...");
-      console.log(`   - Total rounds to save: ${updatedRoundsData.length}`);
-
       const totalTimeSpent = Date.now() - sessionStartTime;
-
       const sessionData = soundSafariAnalyticsService.formatSessionData(
         gameConfig,
         updatedRoundsData,
         totalTimeSpent
       );
-
-      console.log("📊 Saving complete session:", sessionData);
-      console.log(`   - ${updatedRoundsData.length} rounds included`);
-
-      const result = await soundSafariAnalyticsService.saveGameSession(
-        sessionData
-      );
-
-      if (result.success) {
-        console.log("✅ Session saved successfully with all rounds!");
-      } else {
-        console.error("❌ Failed to save session:", result.error);
-      }
+      await soundSafariAnalyticsService.saveGameSession(sessionData);
 
       setGameState("complete");
       return;
@@ -482,9 +458,7 @@ const SoundSafariGame = () => {
     setGameState("loading");
     setCurrentRound((prev) => prev + 1);
     const newSound = await selectNewTargetSound();
-
     setRoundStartTime(Date.now());
-
     await prepareNewRound(
       newSound,
       gameConfig.difficulty,
@@ -499,10 +473,6 @@ const SoundSafariGame = () => {
   };
 
   const handleTryAgain = async () => {
-    console.log(
-      `🔄 Trying Round ${currentRound} again (will overwrite previous attempt)`
-    );
-
     await prepareNewRound(
       gameConfig.targetSound,
       gameConfig.difficulty,
@@ -510,9 +480,7 @@ const SoundSafariGame = () => {
       [],
       gameConfig.environment
     );
-
     setRoundStartTime(Date.now());
-
     setGameState("intro");
     setFromIntroScreen(false);
 
@@ -530,7 +498,6 @@ const SoundSafariGame = () => {
     setAllRoundsData([]);
     setCurrentRoundData(null);
     setRoundStartTime(Date.now());
-
     setCurrentRound(1);
     setScore(0);
     setFromIntroScreen(false);
@@ -563,64 +530,21 @@ const SoundSafariGame = () => {
     setFromIntroScreen(false);
   };
 
-  const getEnvironmentClass = () => {
-    switch (gameConfig.environment) {
-      case "jungle":
-        return styles.jungleBackground;
-      case "savanna":
-        return styles.savannaBackground;
-      case "ocean":
-        return styles.oceanBackground;
-      case "arctic":
-        return styles.arcticBackground;
-      default:
-        return styles.jungleBackground;
-    }
-  };
-
-  const getGameResults = () => {
-    const correctAnimals = roundAnimals.filter((animal) => {
-      // In "anywhere" mode, only check if target_sound matches
-      if (gameConfig.soundPosition === "anywhere") {
-        return animal.target_sound === gameConfig.targetSound;
-      }
-
-      // In specific position modes, check both target_sound AND sound_position
-      return (
-        animal.target_sound === gameConfig.targetSound &&
-        animal.sound_position === gameConfig.soundPosition
-      );
-    });
-
-    const incorrectAnimals = roundAnimals.filter((animal) => {
-      // In "anywhere" mode, incorrect = does NOT have matching target_sound
-      if (gameConfig.soundPosition === "anywhere") {
-        return animal.target_sound !== gameConfig.targetSound;
-      }
-
-      // In specific position modes, incorrect = wrong target_sound OR wrong position
-      return (
-        animal.target_sound !== gameConfig.targetSound ||
-        animal.sound_position !== gameConfig.soundPosition
-      );
-    });
-
-    return {
-      correctAnimals,
-      incorrectAnimals,
-      selectedAnimals,
-      targetSound: gameConfig.targetSound,
-      soundPosition: gameConfig.soundPosition,
-    };
-  };
-
   const shouldShowMascot = () => {
     return gameState === "intro" || gameState === "gameplay";
   };
 
   if (isLoading && gameState === "config") {
     return (
-      <div className={`${styles.gameContainer} ${getEnvironmentClass()}`}>
+      <div
+        className={styles.gameContainer}
+        style={{
+          backgroundImage: `url(${backgrounds[gameConfig.environment]})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
         <div className={styles.gameContent}>
           <div
             style={{
@@ -637,9 +561,27 @@ const SoundSafariGame = () => {
   }
 
   return (
-    <div className={`${styles.gameContainer} ${getEnvironmentClass()}`}>
-      {(gameState === "loading" || gameState === "intro") && (
-        <audio ref={audioRef} src={backgroundMusic2} />
+    <div
+      className={styles.gameContainer}
+      style={{
+        backgroundImage: `url(${backgrounds[gameConfig.environment]})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        transition: "background-image 0.5s ease-in-out",
+        width: "100%",
+        height: "100vh",
+        overflow: "hidden",
+      }}
+    >
+      {/* The Audio player is now present in CONFIG, LOADING, and INTRO.
+         The 'src' updates dynamically based on the environment.
+      */}
+      {(gameState === "config" || gameState === "loading" || gameState === "intro") && (
+        <audio
+          ref={audioRef}
+          src={musicTracks[gameConfig.environment] || musicTracks.jungle}
+        />
       )}
 
       <div className={styles.gameContent}>
@@ -686,6 +628,17 @@ const SoundSafariGame = () => {
               <SoundSafariConfigScreen
                 onStartGame={handleStartGame}
                 onViewAnalytics={handleViewAnalytics}
+                currentEnvironment={gameConfig.environment}
+                onEnvironmentChange={handleEnvironmentChange}
+                initialDifficulty={gameConfig.difficulty}
+                initialSoundPosition={gameConfig.soundPosition}
+                // Passing audio controls down to child
+                volume={volume}
+                isMuted={isMuted}
+                showVolumeControl={showVolumeControl}
+                onVolumeChange={handleVolumeChange}
+                onToggleMute={toggleMute}
+                onToggleVolumeControl={toggleVolumeControl}
               />
             </motion.div>
           )}
