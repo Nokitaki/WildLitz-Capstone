@@ -163,7 +163,7 @@ useEffect(() => {
       setTimeout(() => {
         startVanishing();
       }, 100);
-    }, 1000);
+    }, 2000); // Increased from 1000ms to 2000ms
     return () => clearTimeout(timer);
   }
 }, [preVanishPhase, word, config]);
@@ -198,7 +198,7 @@ useEffect(() => {
   
   const vanishDuration = speedMultipliers[config.vanishSpeed] || 1500;
   
-  setVanishState('vanishing');
+  setVanishState('vanishingInProgress');
   
   if (vanishingStyle === 'letterDrop') {
     const letters = word.split('').map((_, index) => index);
@@ -228,11 +228,11 @@ const handleTimeUp = () => {
   if (revealedIndices.length > 0 || revealedWordIndices.length > 0) {
     setVanishState('revealing');
   } else {
-    setVanishState('visible');
-    setPreVanishPhase('preview');
+    setVanishState('fullyVisible');
+    setPreVanishPhase('feedbackDisplay'); // New: Transition to a feedback display phase
+    // REMOVED: setPreVanishPhase('preview'); // This was causing the "Look at this word!" message to reappear
   }
-  
-  setEncouragementText('⏰ Time\'s up! Don\'t worry, you\'ll get the next one!');
+  setEncouragementText('⏰ Time\'s up! Don\'t worry, you\'ll get the next one!'); // ADDED THIS LINE
   setShowEncouragement(true);
 
   if (config.enableAudio) {
@@ -253,8 +253,9 @@ const handleTimeUp = () => {
   if (revealedIndices.length > 0 || revealedWordIndices.length > 0) {
     setVanishState('revealing');
   } else {
-    setVanishState('visible');
-    setPreVanishPhase('preview');
+    setVanishState('fullyVisible');
+    setPreVanishPhase('feedbackDisplay'); // New: Transition to a feedback display phase
+    // REMOVED: setPreVanishPhase('preview');
   }
   
   setShowStars(true);
@@ -321,8 +322,9 @@ const handleTimeUp = () => {
   if (revealedIndices.length > 0 || revealedWordIndices.length > 0) {
     setVanishState('revealing');
   } else {
-    setVanishState('visible');
-    setPreVanishPhase('preview');
+    setVanishState('fullyVisible');
+    setPreVanishPhase('feedbackDisplay'); // New: Transition to a feedback display phase
+    // REMOVED: setPreVanishPhase('preview');
   }
   
   setEncouragementText('💪 Don\'t worry! You\'ll get the next one!');
@@ -350,6 +352,35 @@ const renderWord = () => {
   const words = text.split(' ').filter(Boolean);
   const actualPattern = targetLetter || extractPatternLetters(pattern);
 
+  // NEW: Feedback Display Phase - Always show the word fully visible
+  if (preVanishPhase === 'feedbackDisplay') {
+    let globalCharIndex = 0;
+    return (
+      <motion.div className={styles.wordDisplay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+        {words.map((singleWord, wordIndex) => (
+          <React.Fragment key={wordIndex}>
+            <span className={styles.wordWrapper}>
+              {singleWord.split('').map((letter, letterIndex) => {
+                const currentGlobalIndex = globalCharIndex;
+                globalCharIndex++;
+                const isPattern = config.highlightTarget && isCharPartOfPattern(currentGlobalIndex, text, actualPattern);
+                return (
+                  <span key={letterIndex} className={`${styles.letter} ${isPattern ? styles.patternLetter : ''}`}>
+                    {letter}
+                  </span>
+                );
+              })}
+            </span>
+            {wordIndex < words.length - 1 && (() => {
+              globalCharIndex++; // Account for space
+              return ' ';
+            })()}
+          </React.Fragment>
+        ))}
+      </motion.div>
+    );
+  }
+  
   // ===== PREVIEW & READY PHASE =====
   if (preVanishPhase === 'preview' || preVanishPhase === 'ready') {
     let globalCharIndex = 0;
@@ -484,7 +515,7 @@ const renderWord = () => {
     let globalCharIndex = 0;
     const getOpacityStyle = () => {
       // This is now only for the fade-out animation in progress
-      if (vanishState === 'vanishing') {
+      if (vanishState === 'vanishingInProgress') {
         const durations = { 'slow': '3s', 'normal': '1.5s', 'fast': '0.8s', 'instant': '0.3s' };
         return { opacity: 0, transition: `opacity ${durations[config.vanishSpeed] || '1.5s'} ease-out` };
       }
@@ -667,6 +698,7 @@ const renderWord = () => {
           <AnimatePresence mode="wait">
             {preVanishPhase === 'preview' && (
               <motion.div
+                key="preview-message"
                 className={styles.phaseMessage}
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
@@ -680,6 +712,7 @@ const renderWord = () => {
             
             {preVanishPhase === 'ready' && (
               <motion.div
+                key="ready-message"
                 className={`${styles.phaseMessage} ${styles.readyMessage}`}
                 initial={{ scale: 0, rotate: 180 }}
                 animate={{ scale: 1, rotate: 0 }}
@@ -693,6 +726,7 @@ const renderWord = () => {
             
             {preVanishPhase === 'vanishing' && vanishState === 'vanished' && !hasAnswered && !revealedIndices.length > 0 && (
               <motion.div
+                key="think-message"
                 className={`${styles.phaseMessage} ${styles.thinkMessage}`}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -705,6 +739,7 @@ const renderWord = () => {
             
             {showEncouragement && (
               <motion.div
+                key="encouragement-bubble"
                 className={styles.encouragementBubble}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}

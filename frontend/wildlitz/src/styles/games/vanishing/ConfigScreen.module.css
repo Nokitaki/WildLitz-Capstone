@@ -37,9 +37,8 @@
   overflow-y: auto;
   padding: 20px;
   box-sizing: border-box;
-  background: linear-gradient(270deg, #5e35b1, #311b92, #1a083f, #311b92, #5e35b1);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
+  background: #6A1B9A; /* Plain purple background */
+  /* Removed background-size, background-repeat, and animation properties */
   display: flex;
   justify-content: center;
   align-items: flex-start;

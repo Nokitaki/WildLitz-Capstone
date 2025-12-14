@@ -238,6 +238,17 @@
   gap: 20px; /* Added gap for consistent spacing */
 }
 
+.phaseMessageContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center the message vertically within the container */
+  min-height: 150px; /* Ensure consistent height for messages */
+  width: 100%; /* Take full width of parent to center messages */
+  position: relative; /* Needed for absolutely positioned children */
+  z-index: 5; /* Ensure it's above the word area */
+}
+
 .phaseMessage {
   background: linear-gradient(135deg, #4CAF50, #81C784);
   padding: 15px 30px;
@@ -253,21 +264,20 @@
 }
 
 .encouragementBubble {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
   background: linear-gradient(135deg, #FFD700, #FFA500); /* A gold/yellow gradient */
   color: white;
   padding: 15px 30px;
   border-radius: 25px;
   font-family: 'Fredoka One', 'Comic Sans MS', cursive;
-  font-size: 1.5rem;
+  font-size: 2rem; /* Consistent with messageText for better fit */
   font-weight: 700;
   text-align: center;
   box-shadow: 0 10px 30px rgba(255, 165, 0, 0.4);
   border: 4px solid #fff;
-  z-index: 10;
+  display: flex; /* Ensure content is centered */
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box; /* Ensure padding is included in dimensions */
 }
 
 .readyMessage {

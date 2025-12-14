@@ -151,7 +151,6 @@ const ConfigScreen = ({
 
   return (
     <div className={styles.configContainer}>
-      <VanishingStars />
       <motion.div 
         className={styles.configCard}
         variants={containerVariants}
@@ -710,22 +709,6 @@ const ConfigScreen = ({
           )}
         </AnimatePresence>
       </motion.div>
-    </div>
-  );
-};
-
-const VanishingStars = ({ count = 50 }) => {
-  return (
-    <div className={styles.starsContainer}>
-      {Array.from({ length: count }).map((_, i) => {
-        const style = {
-          top: `${Math.random() * 100}%`,
-          left: `${Math.random() * 100}%`,
-          animationDuration: `${2 + Math.random() * 3}s`,
-          animationDelay: `${Math.random() * 5}s`,
-        };
-        return <div key={i} className={styles.star} style={style} />;
-      })}
     </div>
   );
 };
