@@ -239,18 +239,22 @@ const toggleMute = () => setIsMuted(!isMuted);
   }, []);
 
   const handleCancel = useCallback(() => {
-    if (progressIntervalRef.current) {
-      clearInterval(progressIntervalRef.current);
-    }
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    setIsGenerating(false);
-    setError(null);
-    if (onCancel) {
-      onCancel();
-    }
-  }, [onCancel]);
+  if (progressIntervalRef.current) {
+    clearInterval(progressIntervalRef.current);
+  }
+  if (timeoutRef.current) {
+    clearTimeout(timeoutRef.current);
+  }
+  setIsGenerating(false);
+  setError(null);
+  
+  
+  navigate('/home');
+  
+  if (onCancel) {
+    onCancel();
+  }
+}, [onCancel, navigate]);
 
   const handleThemeSelect = useCallback((themeId) => {
     setTheme(themeId);
