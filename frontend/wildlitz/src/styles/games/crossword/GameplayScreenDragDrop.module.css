@@ -364,7 +364,7 @@
   font-size: 24px; /* Larger text */
   text-transform: uppercase;
   font-weight: 800;
-  background: linear-gradient(135deg, #ec6f08 0%, #43a047 100%);
+  background: linear-gradient(135deg, #ec6f08 0%, #7f6ba4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -391,7 +391,7 @@
 }
 
 .currentCell .cellNumber {
-  background: #f57c00; /* Match current cell theme */
+  background: #dfc1a3; /* Match current cell theme */
 }
 
 @keyframes cellPulse {
@@ -417,7 +417,7 @@
 }
 
 .solvedCell .cellNumber {
-  background: #10f304; /* Dark green for solved */
+  background: #e36619; /* Dark green for solved */
 }
 
 .clickableCell {
