@@ -350,9 +350,117 @@ const generateCrosswordLayout = useCallback(() => {
       console.log(`✅ Placed ${word.answer} at [${bestPlacement.row},${bestPlacement.col}] ${bestPlacement.direction} (intersections: ${bestPlacement.intersections})`);
     }
     
-    if (!placed) {
-      console.warn(`⚠️ Could not place word: ${word.answer} - Skipping`);
+ if (!placed) {
+  console.warn(`⚠️ Could not place word: ${word.answer} - Trying harder...`);
+  
+  // Calculate actual bounds of already-placed words
+  let minPlacedRow = gridSize, maxPlacedRow = 0;
+  let minPlacedCol = gridSize, maxPlacedCol = 0;
+  
+  placements.forEach(p => {
+    const len = p.word.answer.length;
+    if (p.direction === 'across') {
+      minPlacedRow = Math.min(minPlacedRow, p.row);
+      maxPlacedRow = Math.max(maxPlacedRow, p.row);
+      minPlacedCol = Math.min(minPlacedCol, p.col);
+      maxPlacedCol = Math.max(maxPlacedCol, p.col + len - 1);
+    } else {
+      minPlacedRow = Math.min(minPlacedRow, p.row);
+      maxPlacedRow = Math.max(maxPlacedRow, p.row + len - 1);
+      minPlacedCol = Math.min(minPlacedCol, p.col);
+      maxPlacedCol = Math.max(maxPlacedCol, p.col);
     }
+  });
+  
+  // Try multiple search margins, starting tight and expanding
+  const margins = [2, 3, 4]; // Try closer placements first
+  
+  for (let marginIndex = 0; marginIndex < margins.length && !placed; marginIndex++) {
+    const searchMargin = margins[marginIndex];
+    const searchMinRow = Math.max(2, minPlacedRow - searchMargin);
+    const searchMaxRow = Math.min(gridSize - 2, maxPlacedRow + searchMargin);
+    const searchMinCol = Math.max(2, minPlacedCol - searchMargin);
+    const searchMaxCol = Math.min(gridSize - 2, maxPlacedCol + searchMargin);
+    
+    // First pass: Try to find positions WITH intersections
+    for (let row = searchMinRow; row <= searchMaxRow && !placed; row++) {
+      for (let col = searchMinCol; col <= searchMaxCol && !placed; col++) {
+        // Try across
+        const acrossResult = canPlaceWord(grid, word.answer, row, col, 'across', false);
+        if (acrossResult.valid && acrossResult.intersections > 0) {
+          placements.push({
+            word: word,
+            row: row,
+            col: col,
+            direction: 'across',
+            wordIndex: word.index
+          });
+          placeWordInGrid(grid, word, row, col, 'across');
+          word.placed = true;
+          placed = true;
+          console.log(`✅ Placed ${word.answer} with ${acrossResult.intersections} intersection(s) at margin ${searchMargin}`);
+        }
+        
+        // Try down
+        if (!placed) {
+          const downResult = canPlaceWord(grid, word.answer, row, col, 'down', false);
+          if (downResult.valid && downResult.intersections > 0) {
+            placements.push({
+              word: word,
+              row: row,
+              col: col,
+              direction: 'down',
+              wordIndex: word.index
+            });
+            placeWordInGrid(grid, word, row, col, 'down');
+            word.placed = true;
+            placed = true;
+            console.log(`✅ Placed ${word.answer} with ${downResult.intersections} intersection(s) at margin ${searchMargin}`);
+          }
+        }
+      }
+    }
+    
+    // Second pass: Try WITHOUT intersection but within this margin
+    if (!placed) {
+      for (let row = searchMinRow; row <= searchMaxRow && !placed; row++) {
+        for (let col = searchMinCol; col <= searchMaxCol && !placed; col++) {
+          const acrossResult = canPlaceWord(grid, word.answer, row, col, 'across', false);
+          if (acrossResult.valid) {
+            placements.push({
+              word: word,
+              row: row,
+              col: col,
+              direction: 'across',
+              wordIndex: word.index
+            });
+            placeWordInGrid(grid, word, row, col, 'across');
+            word.placed = true;
+            placed = true;
+            console.log(`⚠️ Isolated placement at margin ${searchMargin}: ${word.answer} at [${row},${col}]`);
+          }
+          
+          if (!placed) {
+            const downResult = canPlaceWord(grid, word.answer, row, col, 'down', false);
+            if (downResult.valid) {
+              placements.push({
+                word: word,
+                row: row,
+                col: col,
+                direction: 'down',
+                wordIndex: word.index
+              });
+              placeWordInGrid(grid, word, row, col, 'down');
+              word.placed = true;
+              placed = true;
+              console.log(`⚠️ Isolated placement at margin ${searchMargin}: ${word.answer} at [${row},${col}]`);
+            }
+          }
+        }
+      }
+    }
+  }
+}
     
     attempts++;
   }
@@ -431,17 +539,17 @@ console.log(`📊 Total cells: ${finalWidth * finalHeight}, Placements: ${placem
     const cell = cells[cellIdx];
     
     if (cell && !cell.isEmpty) {
-      // Handle multiple numbers in same cell
+      // Use actual word number from original puzzle data
+      const originalWord = puzzle.words.find(w => w.answer === p.word.answer);
+      const actualNumber = originalWord ? originalWord.number : (p.wordIndex + 1);
+      
       if (cell.isWordStart) {
-        // Cell already has a number, combine them
         const existingNumber = cell.number;
-        cell.number = `${existingNumber}/${p.wordIndex + 1}`;
+        cell.number = `${existingNumber}/${actualNumber}`;
       } else {
-        // First number for this cell
-        cell.number = p.wordIndex + 1;
+        cell.number = actualNumber;
         cell.isWordStart = true;
       }
-      
       cell.wordIndex = p.wordIndex;
     }
   });
