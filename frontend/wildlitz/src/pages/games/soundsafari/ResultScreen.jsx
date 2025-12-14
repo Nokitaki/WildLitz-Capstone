@@ -18,6 +18,7 @@ const ResultsScreen = ({
   const [isPlaying, setIsPlaying] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [feedbackPlayed, setFeedbackPlayed] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const isMountedRef = useRef(true);
   const speechTimeoutRef = useRef(null);
@@ -163,11 +164,15 @@ const ResultsScreen = ({
   }, []);
 
   const handleNextRoundClick = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
     stopAllSpeech();
     onNextRound();
   };
 
   const handleTryAgainClick = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
     stopAllSpeech();
     onTryAgain();
   };
@@ -381,6 +386,7 @@ const ResultsScreen = ({
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             onClick={handleTryAgainClick}
+            disabled={isTransitioning}
           >
             <span className={styles.buttonIcon}>🔄</span>
             Try Again
@@ -398,6 +404,7 @@ const ResultsScreen = ({
             }}
             whileTap={{ scale: 0.97 }}
             onClick={handleNextRoundClick}
+            disabled={isTransitioning}
           >
             <span className={styles.buttonIcon}>
               {isLastRound ? "🏆" : "▶️"}

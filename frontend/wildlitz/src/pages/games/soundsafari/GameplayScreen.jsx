@@ -2,6 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "../../../styles/games/safari/GameplayScreen.module.css";
 import { playSpeech, stopAllSpeech } from "../../../utils/soundUtils";
+import {
+  SOUND_DESCRIPTIONS,
+  SOUND_EXAMPLES,
+} from "../../../mock/soundSafariData";
 
 const GameplayScreen = ({
   animals,
@@ -17,6 +21,7 @@ const GameplayScreen = ({
   const [selectedAnimals, setSelectedAnimals] = useState([]);
   const [timeRemaining, setTimeRemaining] = useState(timeLimit);
   const [showHint, setShowHint] = useState(false);
+  const [hintIndex, setHintIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(null);
   const [currentIntroAnimal, setCurrentIntroAnimal] = useState(null);
   const [showCenterStage, setShowCenterStage] = useState(false);
@@ -25,6 +30,7 @@ const GameplayScreen = ({
   const [introductionsComplete, setIntroductionsComplete] = useState(false);
 
   const timerRef = useRef(null);
+  const hintTimerRef = useRef(null);
   const isIntroducingRef = useRef(false);
   const hasIntroducedRef = useRef(false);
   const readCountRef = useRef(0);
@@ -55,6 +61,16 @@ const GameplayScreen = ({
     }
   };
 
+  const hints = [
+    `Look for animals with the "${targetSound}" sound ${getPositionText()} of their name!`,
+    `The "${targetSound}" sound is a ${
+      SOUND_DESCRIPTIONS[targetSound] || "special sound"
+    }.`,
+    `Some words with the "${targetSound}" sound are: ${
+      SOUND_EXAMPLES[targetSound]?.slice(0, 3).join(", ") || "many words"
+    }.`,
+  ];
+
   const generateIntroSpeech = () => {
     const positionText = getPositionText();
     return `Let's find the animals with the "${targetSound}" sound ${positionText} of their names! Listen carefully and select all the matching animals.`;
@@ -62,7 +78,7 @@ const GameplayScreen = ({
 
   const playIntroSpeech = () => {
     if (
-      shouldStopAllRef.current || 
+      shouldStopAllRef.current ||
       introPlayedRef.current ||
       introSpeechInProgressRef.current ||
       skipIntro
@@ -76,13 +92,13 @@ const GameplayScreen = ({
     const speechText = generateIntroSpeech();
 
     return new Promise((resolve) => {
-      if (shouldStopAllRef.current) { 
+      if (shouldStopAllRef.current) {
         resolve();
         return;
       }
-      
+
       playSpeech(speechText, 0.9, () => {
-        if (shouldStopAllRef.current) { 
+        if (shouldStopAllRef.current) {
           resolve();
           return;
         }
@@ -96,17 +112,17 @@ const GameplayScreen = ({
 
   const readAnimalTwice = (animalName) => {
     return new Promise((resolve) => {
-      if (shouldStopAllRef.current) {  
+      if (shouldStopAllRef.current) {
         resolve();
         return;
       }
-      
+
       readCountRef.current = 0;
       skipAnimalRef.current = false;
       currentSpeechResolveRef.current = resolve;
 
       const readOnce = () => {
-        if (shouldStopAllRef.current || skipAnimalRef.current) { 
+        if (shouldStopAllRef.current || skipAnimalRef.current) {
           console.log(`⏭️ Skipped "${animalName}"`);
           stopAllSpeech();
           resolve();
@@ -117,7 +133,7 @@ const GameplayScreen = ({
         console.log(`🔊 Reading "${animalName}" (${readCountRef.current}/2)`);
 
         playSpeech(animalName, 0.9, () => {
-          if (shouldStopAllRef.current || skipAnimalRef.current) {  
+          if (shouldStopAllRef.current || skipAnimalRef.current) {
             console.log(`⏭️ Skipped "${animalName}"`);
             stopAllSpeech();
             resolve();
@@ -126,7 +142,7 @@ const GameplayScreen = ({
 
           if (readCountRef.current === 1) {
             setTimeout(() => {
-              if (shouldStopAllRef.current) {  
+              if (shouldStopAllRef.current) {
                 resolve();
                 return;
               }
@@ -179,12 +195,12 @@ const GameplayScreen = ({
 
   const introduceAllAnimals = () => {
     return new Promise(async (resolve) => {
-      if (shouldStopAllRef.current) {  
+      if (shouldStopAllRef.current) {
         console.log("⚠️ Animal introductions stopped before starting");
         resolve();
         return;
       }
-      
+
       if (isIntroducingRef.current || hasIntroducedRef.current) {
         console.log("⏭️ Animals already introduced, skipping");
         resolve();
@@ -198,7 +214,7 @@ const GameplayScreen = ({
 
       try {
         for (let i = 0; i < animals.length; i++) {
-          if (shouldStopAllRef.current) {  
+          if (shouldStopAllRef.current) {
             console.log("⚠️ Animal introductions stopped");
             setShowCenterStage(false);
             isIntroducingRef.current = false;
@@ -206,10 +222,10 @@ const GameplayScreen = ({
             resolve();
             return;
           }
-          
+
           await introduceSingleAnimal(animals[i]);
 
-          if (shouldStopAllRef.current) {  
+          if (shouldStopAllRef.current) {
             console.log("⚠️ Animal introductions stopped");
             setShowCenterStage(false);
             isIntroducingRef.current = false;
@@ -249,16 +265,16 @@ const GameplayScreen = ({
     console.log("🎮 Starting game sequence, skipIntro:", skipIntro);
 
     try {
-      if (shouldStopAllRef.current) {  
+      if (shouldStopAllRef.current) {
         console.log("⚠️ Game sequence stopped before starting");
         return;
       }
-      
+
       if (!skipIntro) {
         console.log("📢 Step 1: Playing intro speech...");
         await playIntroSpeech();
 
-        if (shouldStopAllRef.current) {  
+        if (shouldStopAllRef.current) {
           console.log("⚠️ Game sequence stopped after intro");
           return;
         }
@@ -266,7 +282,7 @@ const GameplayScreen = ({
         console.log("⏸️ Step 2: Pause after intro...");
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-        if (shouldStopAllRef.current) {  
+        if (shouldStopAllRef.current) {
           console.log("⚠️ Game sequence stopped after pause");
           return;
         }
@@ -299,18 +315,20 @@ const GameplayScreen = ({
     console.log("🚀 GameplayScreen mounted");
     selectedAnimalsRef.current = [];
     hasSubmittedRef.current = false;
-    shouldStopAllRef.current = false;  
+    shouldStopAllRef.current = false;
 
     return () => {
       console.log("🛑 GameplayScreen unmounting - stopping all speech");
-      shouldStopAllRef.current = true;  
+      shouldStopAllRef.current = true;
       stopAllSpeech();
 
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
-
+      if (hintTimerRef.current) {
+        clearTimeout(hintTimerRef.current);
+      }
       isIntroducingRef.current = false;
       hasIntroducedRef.current = false;
     };
@@ -321,15 +339,17 @@ const GameplayScreen = ({
       console.log("⚠️ FORCE STOP ACTIVATED - halting all activity");
       shouldStopAllRef.current = true;
       stopAllSpeech();
-      
+
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
-      
+      if (hintTimerRef.current) {
+        clearTimeout(hintTimerRef.current);
+      }
       isIntroducingRef.current = false;
       skipAnimalRef.current = true;
-      
+
       if (currentSpeechResolveRef.current) {
         currentSpeechResolveRef.current();
         currentSpeechResolveRef.current = null;
@@ -393,10 +413,14 @@ const GameplayScreen = ({
   };
 
   const handleShowHint = () => {
+    if (hintTimerRef.current) {
+      clearTimeout(hintTimerRef.current);
+    }
     setShowHint(true);
-    setTimeout(() => {
+    setHintIndex((prevIndex) => (prevIndex + 1) % hints.length);
+    hintTimerRef.current = setTimeout(() => {
       setShowHint(false);
-    }, 3000);
+    }, 5000);
   };
 
   const handleSubmit = () => {
@@ -527,8 +551,7 @@ const GameplayScreen = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            Look for animals with the "{targetSound}" sound {getPositionText()}{" "}
-            of their name!
+            {hints[hintIndex]}
           </motion.div>
         )}
 
