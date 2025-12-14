@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import styles from "../../../styles/games/safari/SoundSafariGame.module.css";
 
-// --- Import Music Files ---
 import jungleMusic from "../../../assets/music/sound-safari-background-music-2.mp3";
 import oceanMusic from "../../../assets/music/Ocean.mp3";
 import savannaMusic from "../../../assets/music/Savanna.mp3";
@@ -22,7 +21,6 @@ import {
   getRandomValidSound,
   isCombinationExcluded,
 } from "../../../utils/excludedCombinations";
-
 import {
   fetchSafariAnimals,
   fetchRandomSound,
@@ -47,6 +45,7 @@ const SoundSafariGame = () => {
   const navigate = useNavigate();
 
   const [gameState, setGameState] = useState("config");
+  const [showExitConfirmation, setShowExitConfirmation] = useState(false);
 
   const audioRef = useRef(null);
   const [volume, setVolume] = useState(0.5);
@@ -560,6 +559,11 @@ const SoundSafariGame = () => {
   };
 
   const handleExitGame = () => {
+    setShowExitConfirmation(true);
+  };
+
+  const confirmExit = () => {
+    setShowExitConfirmation(false);
     console.log("🚪 Exit button clicked - forcing complete shutdown");
     
     // CRITICAL: Stop all speech IMMEDIATELY and repeatedly
@@ -621,6 +625,10 @@ const SoundSafariGame = () => {
     }, 300);
   };
 
+  const cancelExit = () => {
+    setShowExitConfirmation(false);
+  };
+
   const shouldShowMascot = () => {
     return gameState === "intro" || gameState === "gameplay";
   };
@@ -665,7 +673,59 @@ const SoundSafariGame = () => {
         overflow: "hidden",
       }}
     >
-      {gameState !== "config" && (
+      <AnimatePresence>
+        {showExitConfirmation && (
+          <motion.div
+            className={styles.exitConfirmationOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className={styles.exitConfirmationPanel}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+            >
+              <h2 className={styles.exitConfirmationTitle}>
+                <span role="img" aria-label="door">
+                  🚪
+                </span>{" "}
+                Exit Game?
+              </h2>
+              <p className={styles.exitConfirmationMessage}>
+                Are you sure you want to leave the safari? All your progress in
+                this round will be lost.
+              </p>
+              <div className={styles.exitConfirmationButtons}>
+                <motion.button
+                  className={`${styles.exitConfirmButton} ${styles.noButton}`}
+                  onClick={cancelExit}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <span role="img" aria-label="cross mark">
+                    ❌
+                  </span>{" "}
+                  No, Stay
+                </motion.button>
+                <motion.button
+                  className={`${styles.exitConfirmButton} ${styles.yesButton}`}
+                  onClick={confirmExit}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <span role="img" aria-label="check mark">
+                    ✅
+                  </span>{" "}
+                  Yes, Exit
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {gameState !== "config" && gameState !== "loading" && gameState !== "intro" && (
         <motion.button
           className={styles.exitButton}
           onClick={handleExitGame}
