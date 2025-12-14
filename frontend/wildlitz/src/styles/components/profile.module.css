@@ -10,7 +10,6 @@
   padding: 20px;
   font-family: 'Nunito', sans-serif;
   position: relative;
-  overflow-x: hidden;
 }
 
 /* Floating background elements - matching homepage */
@@ -28,6 +27,28 @@
   background-size: 60px 60px, 100px 100px, 140px 140px;
   animation: float 20s ease-in-out infinite;
   pointer-events: none;
+}
+
+.chartsGrid {
+  display: grid;
+  /* Ensure this uses minmax to prevent collapse */
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+  gap: 24px;
+  width: 100%;
+}
+
+/* On smaller laptops/tablets, keep 2 columns but shrink gap */
+@media (max-width: 1024px) {
+  .chartsGrid {
+    gap: 16px;
+  }
+}
+
+/* On Mobile, stack them (1 column) */
+@media (max-width: 768px) {
+  .chartsGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @keyframes float {
@@ -66,6 +87,49 @@
   position: relative;
   z-index: 2;
 }
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.startLearningBtn {
+  background: #2196f3;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+}
+
+
+.errorBanner {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffebee;
+  color: #c62828;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
 
 .headerNavigation {
   display: flex;

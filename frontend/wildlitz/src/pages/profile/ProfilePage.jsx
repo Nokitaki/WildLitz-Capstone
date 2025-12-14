@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/components/profile.module.css';
-// Removed SoundSafariAnalytics import
+import ModulePerformanceChart from '../profile/ModulePerformanceChart';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -17,37 +17,39 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab');
-    // If url requests 'soundsafari', default to 'overview' since it's gone
-    if (tabParam === 'soundsafari') return 'overview';
+    if (tabParam === 'soundsafari' || tabParam === 'achievements') return 'overview';
     return tabParam || 'overview';
   });
   const [error, setError] = useState(null);
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/home');
     }
   }, [isAuthenticated, navigate]);
 
-  // Load user data
   useEffect(() => {
     const loadUserData = async () => {
       try {
         setLoading(true);
         
-        // Load progress and analytics
+        // Load real data from backend
         const [progressData, analyticsData] = await Promise.all([
-          getUserProgress().catch(() => ({ user_progress: [] })),
-          getUserAnalytics().catch(() => ({ 
-            overall_stats: { total_activities: 0, total_correct: 0, overall_accuracy: 0 },
-            module_stats: {}
-          }))
+          getUserProgress().catch((err) => {
+            console.error("Progress fetch error:", err);
+            return { user_progress: [] };
+          }),
+          getUserAnalytics().catch((err) => {
+            console.error("Analytics fetch error:", err);
+            return { 
+              overall_stats: { total_activities: 0, total_correct: 0, overall_accuracy: 0 },
+              module_stats: {}
+            };
+          })
         ]);
         
         setProgress(progressData.user_progress || []);
         setAnalytics(analyticsData);
-        setError(null);
       } catch (err) {
         console.error('Failed to load user data:', err);
         setError('Failed to load profile data');
@@ -67,6 +69,7 @@ const ProfilePage = () => {
   };
 
   const formatJoinDate = (dateString) => {
+    if (!dateString) return 'Today';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -74,14 +77,73 @@ const ProfilePage = () => {
     });
   };
 
-  const getModuleDisplayName = (module) => {
-    const moduleNames = {
+  // Helper to get nice names for games
+  const getModuleDisplayName = (moduleKey) => {
+    const moduleMap = {
+      'syllabification': 'Syllable Clapping',
+      'phonemics': 'Sound Safari',
+      'phonics': 'Vanishing Game',
+      'sentence_formation': 'Crossword Quest',
       'syllable_clapping': 'Syllable Clapping',
       'sound_safari': 'Sound Safari',
       'vanishing_game': 'Vanishing Game',
-      'crossword': 'Crossword Puzzle'
+      'crossword': 'Crossword Quest'
     };
-    return moduleNames[module] || module;
+    return moduleMap[moduleKey] || moduleKey.replace('_', ' ');
+  };
+
+  // ✅ HELPER: Customized Chart Labels per Game
+  const getChartConfig = (moduleKey) => {
+    switch (moduleKey) {
+      case 'sentence_formation': // Crossword
+      case 'crossword':
+        return {
+          xAxisLabel: "Story Episodes", 
+          yAxisLabel: "Puzzle Accuracy (%)"
+        };
+      case 'phonics': // Vanishing
+      case 'vanishing_game':
+        return {
+          xAxisLabel: "Speed / Difficulty",
+          yAxisLabel: "Recognition Rate (%)"
+        };
+      case 'syllabification':
+      case 'syllable_clapping':
+        return {
+          xAxisLabel: "Word Difficulty",
+          yAxisLabel: "Clap Accuracy (%)"
+        };
+      default:
+        return {
+          xAxisLabel: "Difficulty Level",
+          yAxisLabel: "Accuracy (%)"
+        };
+    }
+  };
+
+  // ✅ Helper: Group AND Clean data
+  const groupDataByModule = (data) => {
+    return data.reduce((acc, item) => {
+      const key = item.module;
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+
+      // 🔥 DATA CLEANER: Fix old "Medium" labels for Crossword
+      if (key === 'sentence_formation' || key === 'crossword') {
+        const diff = (item.difficulty || '').toLowerCase();
+        // Force old "medium/easy/hard" to "1 Episode"
+        if (diff === 'medium' || diff === 'easy' || diff === 'hard') {
+          const cleanedItem = { ...item, difficulty: '1 Episode' }; // <--- Change to "1 Episode"
+          acc[key].push(cleanedItem);
+          return acc;
+        }
+      }
+
+      // Default behavior
+      acc[key].push(item);
+      return acc;
+    }, {});
   };
 
   const containerVariants = {
@@ -89,10 +151,7 @@ const ProfilePage = () => {
     visible: { 
       opacity: 1, 
       y: 0,
-      transition: { 
-        duration: 0.6,
-        staggerChildren: 0.1
-      }
+      transition: { duration: 0.6, staggerChildren: 0.1 }
     }
   };
 
@@ -118,9 +177,23 @@ const ProfilePage = () => {
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
+
+  // Prepare grouped data with cleaning
+  const groupedProgress = groupDataByModule(progress);
+  
+  // Define strict display order
+  const orderedModules = [
+    'syllabification',     
+    'phonemics',           
+    'phonics',             
+    'sentence_formation'   
+  ];
+
+  const otherKeys = Object.keys(groupedProgress).filter(
+    key => !orderedModules.includes(key)
+  );
+  const displayKeys = [...orderedModules.filter(key => groupedProgress[key]), ...otherKeys];
 
   return (
     <motion.div 
@@ -159,7 +232,7 @@ const ProfilePage = () => {
           
           <div className={styles.profileInfo}>
             <h1 className={styles.profileName}>
-              Welcome back, {user.first_name}! 👋
+              Welcome back, {user.first_name || user.username || 'Student'}! 👋
             </h1>
             <p className={styles.profileEmail}>{user.email}</p>
             <p className={styles.profileJoinDate}>
@@ -198,14 +271,7 @@ const ProfilePage = () => {
           className={`${styles.tabButton} ${activeTab === 'progress' ? styles.active : ''}`}
           onClick={() => setActiveTab('progress')}
         >
-          📈 Progress
-        </button>
-        {/* Removed Sound Safari Tab */}
-        <button
-          className={`${styles.tabButton} ${activeTab === 'achievements' ? styles.active : ''}`}
-          onClick={() => setActiveTab('achievements')}
-        >
-          🏆 Achievements
+          📈 Progress Charts
         </button>
       </motion.div>
 
@@ -254,7 +320,7 @@ const ProfilePage = () => {
                   )}
                 </div>
 
-                {/* Recent Activity */}
+                {/* Recent Activity List */}
                 <div className={styles.activityCard}>
                   <h3>📅 Recent Activity</h3>
                   {progress.length > 0 ? (
@@ -264,7 +330,13 @@ const ProfilePage = () => {
                           <span className={styles.activityModule}>
                             {getModuleDisplayName(item.module)}
                           </span>
-                          <span className={styles.activityAccuracy}>
+                          <div className={styles.activityInfo}>
+                             {item.difficulty && <span className={styles.difficultyTag}>{item.difficulty}</span>}
+                          </div>
+                          <span className={styles.activityAccuracy} style={{ 
+                            color: item.accuracy_percentage >= 80 ? '#4CAF50' : 
+                                   item.accuracy_percentage >= 50 ? '#FFC107' : '#F44336' 
+                          }}>
                             {Math.round(item.accuracy_percentage)}%
                           </span>
                         </div>
@@ -280,57 +352,26 @@ const ProfilePage = () => {
 
           {activeTab === 'progress' && (
             <div className={styles.progressContent}>
-              <h3>📊 Your Learning Progress</h3>
-              {progress.length > 0 ? (
-                <div className={styles.progressGrid}>
-                  {progress.map((item, index) => (
-                    <motion.div
-                      key={index}
-                      className={styles.progressCard}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <h4>{getModuleDisplayName(item.module)}</h4>
-                      <div className={styles.progressStats}>
-                        <div className={styles.progressStat}>
-                          <span className={styles.statLabel}>Difficulty</span>
-                          <span className={styles.statValue}>{item.difficulty}</span>
-                        </div>
-                        <div className={styles.progressStat}>
-                          <span className={styles.statLabel}>Accuracy</span>
-                          <span className={styles.statValue}>{Math.round(item.accuracy_percentage)}%</span>
-                        </div>
-                        <div className={styles.progressStat}>
-                          <span className={styles.statLabel}>Attempts</span>
-                          <span className={styles.statValue}>{item.total_attempts}</span>
-                        </div>
-                        <div className={styles.progressStat}>
-                          <span className={styles.statLabel}>Correct</span>
-                          <span className={styles.statValue}>{item.correct_answers}</span>
-                        </div>
-                      </div>
-                      
-                      <div className={styles.progressBar}>
-                        <motion.div 
-                          className={styles.progressFill}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${item.accuracy_percentage}%` }}
-                          transition={{ duration: 1, delay: index * 0.1 }}
-                          style={{
-                            backgroundColor: item.accuracy_percentage >= 80 ? '#4CAF50' : 
-                                           item.accuracy_percentage >= 60 ? '#FFC107' : '#F44336'
-                          }}
-                        />
-                      </div>
-                    </motion.div>
-                  ))}
+              {displayKeys.length > 0 ? (
+                <div className={styles.chartsGrid}>
+                  {displayKeys.map((moduleKey) => {
+                    const config = getChartConfig(moduleKey);
+                    return (
+                      <ModulePerformanceChart
+                        key={moduleKey}
+                        moduleName={getModuleDisplayName(moduleKey)}
+                        data={groupedProgress[moduleKey]}
+                        xAxisLabel={config.xAxisLabel}
+                        yAxisLabel={config.yAxisLabel}
+                      />
+                    );
+                  })}
                 </div>
               ) : (
                 <div className={styles.emptyState}>
                   <span className={styles.emptyIcon}>📚</span>
                   <h4>No progress data yet</h4>
-                  <p>Start playing games to track your learning progress!</p>
+                  <p>Start playing games to generate your performance charts!</p>
                   <motion.button
                     className={styles.startLearningBtn}
                     whileHover={{ scale: 1.05 }}
@@ -341,78 +382,6 @@ const ProfilePage = () => {
                   </motion.button>
                 </div>
               )}
-            </div>
-          )}
-
-          {activeTab === 'achievements' && (
-            <div className={styles.achievementsContent}>
-              <div className={styles.achievementsHeader}>
-                <h3>🏆 Achievements</h3>
-                <p>Celebrate your learning milestones!</p>
-              </div>
-              
-              <div className={styles.achievementsGrid}>
-                {/* Sample achievements */}
-                <div className={`${styles.achievementCard} ${analytics?.overall_stats.total_activities > 0 ? styles.unlocked : styles.locked}`}>
-                  <div className={styles.achievementIcon}>🎮</div>
-                  <div className={styles.achievementInfo}>
-                    <h4>First Steps</h4>
-                    <p>Complete your first game activity</p>
-                  </div>
-                  <div className={styles.achievementStatus}>
-                    {analytics?.overall_stats.total_activities > 0 ? '✅' : '🔒'}
-                  </div>
-                </div>
-
-                <div className={`${styles.achievementCard} ${analytics?.overall_stats.total_activities >= 10 ? styles.unlocked : styles.locked}`}>
-                  <div className={styles.achievementIcon}>🔥</div>
-                  <div className={styles.achievementInfo}>
-                    <h4>Getting Warmed Up</h4>
-                    <p>Complete 10 activities</p>
-                  </div>
-                  <div className={styles.achievementStatus}>
-                    {analytics?.overall_stats.total_activities >= 10 ? '✅' : `${analytics?.overall_stats.total_activities || 0}/10`}
-                  </div>
-                </div>
-
-                <div className={`${styles.achievementCard} ${analytics?.overall_stats.overall_accuracy >= 80 ? styles.unlocked : styles.locked}`}>
-                  <div className={styles.achievementIcon}>🎯</div>
-                  <div className={styles.achievementInfo}>
-                    <h4>Sharp Shooter</h4>
-                    <p>Achieve 80% overall accuracy</p>
-                  </div>
-                  <div className={styles.achievementStatus}>
-                    {analytics?.overall_stats.overall_accuracy >= 80 ? '✅' : `${Math.round(analytics?.overall_stats.overall_accuracy || 0)}%`}
-                  </div>
-                </div>
-
-                <div className={`${styles.achievementCard} ${styles.locked}`}>
-                  <div className={styles.achievementIcon}>🌟</div>
-                  <div className={styles.achievementInfo}>
-                    <h4>Perfect Score</h4>
-                    <p>Get 100% accuracy in any game</p>
-                  </div>
-                  <div className={styles.achievementStatus}>🔒</div>
-                </div>
-
-                <div className={`${styles.achievementCard} ${styles.locked}`}>
-                  <div className={styles.achievementIcon}>🚀</div>
-                  <div className={styles.achievementInfo}>
-                    <h4>Speed Learner</h4>
-                    <p>Complete 50 activities</p>
-                  </div>
-                  <div className={styles.achievementStatus}>🔒</div>
-                </div>
-
-                <div className={`${styles.achievementCard} ${styles.locked}`}>
-                  <div className={styles.achievementIcon}>👑</div>
-                  <div className={styles.achievementInfo}>
-                    <h4>Reading Master</h4>
-                    <p>Complete all game types</p>
-                  </div>
-                  <div className={styles.achievementStatus}>🔒</div>
-                </div>
-              </div>
             </div>
           )}
         </motion.div>

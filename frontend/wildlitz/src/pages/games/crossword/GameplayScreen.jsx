@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BackToHomeButton from '../crossword/BackToHomeButton';
 import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
 import styles from '../../../styles/games/crossword/GameplayScreenDragDrop.module.css';
-import gameplayMusic from '../../../assets/music/crossword_gameplay.mp3'; // Adjust path
+import gameplayMusic from '../../../assets/music/crossword_gameplay.mp3';
+
 const GameplayScreen = ({ 
   puzzle, 
   theme, 
@@ -21,10 +21,7 @@ const GameplayScreen = ({
   onAnswerAttempt,
   onPuzzleComplete  
 }) => {
-  // Add to existing state declarations
   const [isPlayingClueAudio, setIsPlayingClueAudio] = useState(false);
-
-
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const audioRef = useRef(null);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -34,6 +31,9 @@ const GameplayScreen = ({
   const [solvedClues, setSolvedClues] = useState({});
   const [showCelebration, setShowCelebration] = useState(false);
   const [confettiPieces, setConfettiPieces] = useState([]);
+  
+  // ✅ ADDED: State for tracking attempts per word
+  const [attemptCounts, setAttemptCounts] = useState({});
   
   const [scrambledLetters, setScrambledLetters] = useState([]);
   const [answerSlots, setAnswerSlots] = useState([]);
@@ -123,6 +123,9 @@ const toggleMusic = () => {
   }
 };
 
+// ==========================================
+// YOUR ENHANCED GRID GENERATION LOGIC (RESTORED)
+// ==========================================
 const generateCrosswordLayout = useCallback(() => {
   console.log('🎯 Starting improved crossword generation...');
   
@@ -142,9 +145,6 @@ const generateCrosswordLayout = useCallback(() => {
   const centerRow = Math.floor(gridSize / 2);
   const centerCol = Math.floor(gridSize / 2);
 
-  // ============================================
-  // HELPER: Place word in grid
-  // ============================================
   function placeWordInGrid(grid, word, row, col, direction) {
     for (let k = 0; k < word.answer.length; k++) {
       const r = direction === 'down' ? row + k : row;
@@ -157,7 +157,6 @@ const generateCrosswordLayout = useCallback(() => {
           positions: [k]
         };
       } else {
-        // This is an intersection
         grid[r][c].wordIndices.push(word.index);
         grid[r][c].positions.push(k);
       }
@@ -202,6 +201,8 @@ const generateCrosswordLayout = useCallback(() => {
         }
       }
     }
+    
+    // Boundary checks
     if (direction === 'down') {
       if (grid[row - 1]?.[col] || grid[row + len]?.[col]) {
         return { valid: false, reason: 'no space at boundaries' };
@@ -211,6 +212,7 @@ const generateCrosswordLayout = useCallback(() => {
         return { valid: false, reason: 'no space at boundaries' };
       }
     }
+    
     if (requireIntersection && intersections === 0) {
       return { valid: false, reason: 'no intersection' };
     }
@@ -225,6 +227,7 @@ const generateCrosswordLayout = useCallback(() => {
       intersectionPoints 
     };
   }
+
   function findAllValidPlacements(grid, word, requireIntersection) {
     const validPlacements = [];
     if (!requireIntersection) {
@@ -293,6 +296,7 @@ const generateCrosswordLayout = useCallback(() => {
 
     return validPlacements;
   }
+
   const firstWord = sortedWords[0];
   const firstPlacements = findAllValidPlacements(grid, firstWord, false);
   
@@ -314,6 +318,7 @@ const generateCrosswordLayout = useCallback(() => {
   firstWord.placed = true;
   
   console.log(`✅ Placed first word: ${firstWord.answer} at [${firstPlacement.row},${firstPlacement.col}] ${firstPlacement.direction}`);
+  
   let attempts = 0;
   const maxAttemptsPerWord = 50;
   
@@ -325,14 +330,10 @@ const generateCrosswordLayout = useCallback(() => {
       const validPlacements = findAllValidPlacements(grid, word, true); 
       
       if (validPlacements.length === 0) {
-        // No valid placements found - try next attempt
         continue;
       }
       
-      // Sort by score (best placements first)
       validPlacements.sort((a, b) => b.score - a.score);
-      
-      // Use best placement
       const bestPlacement = validPlacements[0];
       
       placements.push({
@@ -347,162 +348,142 @@ const generateCrosswordLayout = useCallback(() => {
       word.placed = true;
       placed = true;
       
-      console.log(`✅ Placed ${word.answer} at [${bestPlacement.row},${bestPlacement.col}] ${bestPlacement.direction} (intersections: ${bestPlacement.intersections})`);
+      console.log(`✅ Placed ${word.answer} at [${bestPlacement.row},${bestPlacement.col}] ${bestPlacement.direction}`);
     }
     
- if (!placed) {
-  console.warn(`⚠️ Could not place word: ${word.answer} - Trying harder...`);
-  
-  // Calculate actual bounds of already-placed words
-  let minPlacedRow = gridSize, maxPlacedRow = 0;
-  let minPlacedCol = gridSize, maxPlacedCol = 0;
-  
-  placements.forEach(p => {
-    const len = p.word.answer.length;
-    if (p.direction === 'across') {
-      minPlacedRow = Math.min(minPlacedRow, p.row);
-      maxPlacedRow = Math.max(maxPlacedRow, p.row);
-      minPlacedCol = Math.min(minPlacedCol, p.col);
-      maxPlacedCol = Math.max(maxPlacedCol, p.col + len - 1);
-    } else {
-      minPlacedRow = Math.min(minPlacedRow, p.row);
-      maxPlacedRow = Math.max(maxPlacedRow, p.row + len - 1);
-      minPlacedCol = Math.min(minPlacedCol, p.col);
-      maxPlacedCol = Math.max(maxPlacedCol, p.col);
-    }
-  });
-  
-  // Try multiple search margins, starting tight and expanding
-  const margins = [2, 3, 4]; // Try closer placements first
-  
-  for (let marginIndex = 0; marginIndex < margins.length && !placed; marginIndex++) {
-    const searchMargin = margins[marginIndex];
-    const searchMinRow = Math.max(2, minPlacedRow - searchMargin);
-    const searchMaxRow = Math.min(gridSize - 2, maxPlacedRow + searchMargin);
-    const searchMinCol = Math.max(2, minPlacedCol - searchMargin);
-    const searchMaxCol = Math.min(gridSize - 2, maxPlacedCol + searchMargin);
-    
-    // First pass: Try to find positions WITH intersections
-    for (let row = searchMinRow; row <= searchMaxRow && !placed; row++) {
-      for (let col = searchMinCol; col <= searchMaxCol && !placed; col++) {
-        // Try across
-        const acrossResult = canPlaceWord(grid, word.answer, row, col, 'across', false);
-        if (acrossResult.valid && acrossResult.intersections > 0) {
-          placements.push({
-            word: word,
-            row: row,
-            col: col,
-            direction: 'across',
-            wordIndex: word.index
-          });
-          placeWordInGrid(grid, word, row, col, 'across');
-          word.placed = true;
-          placed = true;
-          console.log(`✅ Placed ${word.answer} with ${acrossResult.intersections} intersection(s) at margin ${searchMargin}`);
-        }
-        
-        // Try down
-        if (!placed) {
-          const downResult = canPlaceWord(grid, word.answer, row, col, 'down', false);
-          if (downResult.valid && downResult.intersections > 0) {
-            placements.push({
-              word: word,
-              row: row,
-              col: col,
-              direction: 'down',
-              wordIndex: word.index
-            });
-            placeWordInGrid(grid, word, row, col, 'down');
-            word.placed = true;
-            placed = true;
-            console.log(`✅ Placed ${word.answer} with ${downResult.intersections} intersection(s) at margin ${searchMargin}`);
-          }
-        }
-      }
-    }
-    
-    // Second pass: Try WITHOUT intersection but within this margin
+    // Enhanced retry logic (from your file)
     if (!placed) {
-      for (let row = searchMinRow; row <= searchMaxRow && !placed; row++) {
-        for (let col = searchMinCol; col <= searchMaxCol && !placed; col++) {
-          const acrossResult = canPlaceWord(grid, word.answer, row, col, 'across', false);
-          if (acrossResult.valid) {
-            placements.push({
-              word: word,
-              row: row,
-              col: col,
-              direction: 'across',
-              wordIndex: word.index
-            });
-            placeWordInGrid(grid, word, row, col, 'across');
-            word.placed = true;
-            placed = true;
-            console.log(`⚠️ Isolated placement at margin ${searchMargin}: ${word.answer} at [${row},${col}]`);
-          }
-          
-          if (!placed) {
-            const downResult = canPlaceWord(grid, word.answer, row, col, 'down', false);
-            if (downResult.valid) {
+      console.warn(`⚠️ Could not place word: ${word.answer} - Trying harder...`);
+      
+      let minPlacedRow = gridSize, maxPlacedRow = 0;
+      let minPlacedCol = gridSize, maxPlacedCol = 0;
+      
+      placements.forEach(p => {
+        const len = p.word.answer.length;
+        if (p.direction === 'across') {
+          minPlacedRow = Math.min(minPlacedRow, p.row);
+          maxPlacedRow = Math.max(maxPlacedRow, p.row);
+          minPlacedCol = Math.min(minPlacedCol, p.col);
+          maxPlacedCol = Math.max(maxPlacedCol, p.col + len - 1);
+        } else {
+          minPlacedRow = Math.min(minPlacedRow, p.row);
+          maxPlacedRow = Math.max(maxPlacedRow, p.row + len - 1);
+          minPlacedCol = Math.min(minPlacedCol, p.col);
+          maxPlacedCol = Math.max(maxPlacedCol, p.col);
+        }
+      });
+      
+      const margins = [2, 3, 4];
+      
+      for (let marginIndex = 0; marginIndex < margins.length && !placed; marginIndex++) {
+        const searchMargin = margins[marginIndex];
+        const searchMinRow = Math.max(2, minPlacedRow - searchMargin);
+        const searchMaxRow = Math.min(gridSize - 2, maxPlacedRow + searchMargin);
+        const searchMinCol = Math.max(2, minPlacedCol - searchMargin);
+        const searchMaxCol = Math.min(gridSize - 2, maxPlacedCol + searchMargin);
+        
+        // Strategy 1: Find valid intersections within margin
+        for (let row = searchMinRow; row <= searchMaxRow && !placed; row++) {
+          for (let col = searchMinCol; col <= searchMaxCol && !placed; col++) {
+            const acrossResult = canPlaceWord(grid, word.answer, row, col, 'across', false);
+            if (acrossResult.valid && acrossResult.intersections > 0) {
               placements.push({
                 word: word,
                 row: row,
                 col: col,
-                direction: 'down',
+                direction: 'across',
                 wordIndex: word.index
               });
-              placeWordInGrid(grid, word, row, col, 'down');
+              placeWordInGrid(grid, word, row, col, 'across');
               word.placed = true;
               placed = true;
-              console.log(`⚠️ Isolated placement at margin ${searchMargin}: ${word.answer} at [${row},${col}]`);
+            } else if (!placed) {
+              const downResult = canPlaceWord(grid, word.answer, row, col, 'down', false);
+              if (downResult.valid && downResult.intersections > 0) {
+                placements.push({
+                  word: word,
+                  row: row,
+                  col: col,
+                  direction: 'down',
+                  wordIndex: word.index
+                });
+                placeWordInGrid(grid, word, row, col, 'down');
+                word.placed = true;
+                placed = true;
+              }
+            }
+          }
+        }
+        
+        // Strategy 2: Place disjoint if necessary
+        if (!placed) {
+          for (let row = searchMinRow; row <= searchMaxRow && !placed; row++) {
+            for (let col = searchMinCol; col <= searchMaxCol && !placed; col++) {
+              const acrossResult = canPlaceWord(grid, word.answer, row, col, 'across', false);
+              if (acrossResult.valid) {
+                placements.push({
+                  word: word,
+                  row: row,
+                  col: col,
+                  direction: 'across',
+                  wordIndex: word.index
+                });
+                placeWordInGrid(grid, word, row, col, 'across');
+                word.placed = true;
+                placed = true;
+              } else if (!placed) {
+                const downResult = canPlaceWord(grid, word.answer, row, col, 'down', false);
+                if (downResult.valid) {
+                  placements.push({
+                    word: word,
+                    row: row,
+                    col: col,
+                    direction: 'down',
+                    wordIndex: word.index
+                  });
+                  placeWordInGrid(grid, word, row, col, 'down');
+                  word.placed = true;
+                  placed = true;
+                }
+              }
             }
           }
         }
       }
     }
-  }
-}
     
     attempts++;
   }
 
- // ============================================
-// CALCULATE GRID BOUNDS - FIXED FOR 2 SKILLS
-// ============================================
-// ============================================
-// CALCULATE GRID BOUNDS - FIXED FOR 2 SKILLS
-// ============================================
-let minRow = gridSize, maxRow = 0, minCol = gridSize, maxCol = 0;
+  // Calculate Bounds
+  let minRow = gridSize, maxRow = 0, minCol = gridSize, maxCol = 0;
 
-placements.forEach(p => {
-  const len = p.word.answer.length;
-  if (p.direction === 'across') {
-    minRow = Math.min(minRow, p.row);
-    maxRow = Math.max(maxRow, p.row);
-    minCol = Math.min(minCol, p.col);
-    maxCol = Math.max(maxCol, p.col + len - 1);
-  } else {
-    minRow = Math.min(minRow, p.row);
-    maxRow = Math.max(maxRow, p.row + len - 1);
-    minCol = Math.min(minCol, p.col);
-    maxCol = Math.max(maxCol, p.col);
-  }
-});
+  placements.forEach(p => {
+    const len = p.word.answer.length;
+    if (p.direction === 'across') {
+      minRow = Math.min(minRow, p.row);
+      maxRow = Math.max(maxRow, p.row);
+      minCol = Math.min(minCol, p.col);
+      maxCol = Math.max(maxCol, p.col + len - 1);
+    } else {
+      minRow = Math.min(minRow, p.row);
+      maxRow = Math.max(maxRow, p.row + len - 1);
+      minCol = Math.min(minCol, p.col);
+      maxCol = Math.max(maxCol, p.col);
+    }
+  });
 
-// INCREASED PADDING - fixes cell overlap issue
-const padding = 2; // Changed from 1 to 2
-minRow = Math.max(0, minRow - padding);
-maxRow = Math.min(gridSize - 1, maxRow + padding);
-minCol = Math.max(0, minCol - padding);
-maxCol = Math.min(gridSize - 1, maxCol + padding);
+  const padding = 2;
+  minRow = Math.max(0, minRow - padding);
+  maxRow = Math.min(gridSize - 1, maxRow + padding);
+  minCol = Math.max(0, minCol - padding);
+  maxCol = Math.min(gridSize - 1, maxCol + padding);
 
-const finalWidth = maxCol - minCol + 1;
-const finalHeight = maxRow - minRow + 1;
+  const finalWidth = maxCol - minCol + 1;
+  const finalHeight = maxRow - minRow + 1;
 
-console.log(`📐 Final grid: ${finalWidth}x${finalHeight}`);
-console.log(`📍 Bounds: rows(${minRow}-${maxRow}), cols(${minCol}-${maxCol})`);
-console.log(`📊 Total cells: ${finalWidth * finalHeight}, Placements: ${placements.length}`);
+  console.log(`📐 Final grid: ${finalWidth}x${finalHeight}`);
 
- 
   const cells = [];
   for (let r = minRow; r <= maxRow; r++) {
     for (let c = minCol; c <= maxCol; c++) {
@@ -521,7 +502,6 @@ console.log(`📊 Total cells: ${finalWidth * finalHeight}, Placements: ${placem
     }
   }
 
-
   const adjustedPlacements = placements
     .map(p => ({
       ...p,
@@ -529,23 +509,20 @@ console.log(`📊 Total cells: ${finalWidth * finalHeight}, Placements: ${placem
       col: p.col - minCol
     }))
     .sort((a, b) => {
-      // Sort by row first, then by column
       if (a.row !== b.row) return a.row - b.row;
       return a.col - b.col;
     });
 
- adjustedPlacements.forEach((p, idx) => {
+  adjustedPlacements.forEach((p, idx) => {
     const cellIdx = p.row * finalWidth + p.col;
     const cell = cells[cellIdx];
     
     if (cell && !cell.isEmpty) {
-      // Use actual word number from original puzzle data
       const originalWord = puzzle.words.find(w => w.answer === p.word.answer);
       const actualNumber = originalWord ? originalWord.number : (p.wordIndex + 1);
       
       if (cell.isWordStart) {
-        const existingNumber = cell.number;
-        cell.number = `${existingNumber}/${actualNumber}`;
+        cell.number = `${cell.number}/${actualNumber}`;
       } else {
         cell.number = actualNumber;
         cell.isWordStart = true;
@@ -553,8 +530,6 @@ console.log(`📊 Total cells: ${finalWidth * finalHeight}, Placements: ${placem
       cell.wordIndex = p.wordIndex;
     }
   });
-
-  console.log(`✅ Successfully placed ${placements.length}/${words.length} words`);
 
   setGridLayout({ width: finalWidth, height: finalHeight, cells });
   setWordPositions(adjustedPlacements);
@@ -800,133 +775,133 @@ const playButtonClick = () => {
     });
   };
 
-  // In GameplayScreen.jsx - Update handleSubmit
+  // ✅ UPDATED HANDLESUBMIT TO TRACK BOTH CORRECT AND INCORRECT ANSWERS
+  const handleSubmit = async () => {
+    const allFilled = answerSlots.every(slot => slot.letter !== null);
+    if (!allFilled) {
+      alert('Please fill all letters!');
+      return;
+    }
 
-const handleSubmit = async () => {
-  const allFilled = answerSlots.every(slot => slot.letter !== null);
-  if (!allFilled) {
-    alert('Please fill all letters!');
-    return;
-  }
+    setIsSubmitting(true);
 
-  setIsSubmitting(true);
+    const userAnswer = answerSlots.map(slot => slot.letter).join('');
+    const correctAnswer = currentWord.answer.toUpperCase();
+    const isCorrect = userAnswer === correctAnswer;
 
-  const userAnswer = answerSlots.map(slot => slot.letter).join('');
-  const correctAnswer = currentWord.answer.toUpperCase();
-  const isCorrect = userAnswer === correctAnswer;
-
-  // ✅ ADD: Track attempt number
-  const currentAttempts = (attemptCounts[currentWord.answer] || 0) + 1;
-  setAttemptCounts(prev => ({
-    ...prev,
-    [currentWord.answer]: currentAttempts
-  }));
-
-  // ✅ ADD: Call onAnswerAttempt to track accuracy
-  if (onAnswerAttempt) {
-    onAnswerAttempt(currentWord.answer, isCorrect, currentAttempts);
-  }
-
-  if (isCorrect) {
-    setFeedback('correct');
-    playCorrectSound(); 
-
-     setTimeout(() => {
-    speakTextUK(currentWord.answer);
-  }, 500);
-    
-    updateGridWithWord(currentWord);
-    
-    setSolvedClues(prev => ({
+    // Track attempt number
+    const currentAttempts = (attemptCounts[currentWord.answer] || 0) + 1;
+    setAttemptCounts(prev => ({
       ...prev,
-      [currentWordIndex]: true
+      [currentWord.answer]: currentAttempts
     }));
 
-    // ✅ FIX: Pass individual parameters, not object
-   if (onWordSolved) {
-  const wordTimeSpent = Math.floor((Date.now() - wordStartTime.current) / 1000);
-  
-  // ✅ Log to analytics BEFORE calling onWordSolved
-  if (sessionId) {
-    try {
-      const wordTimeSpent = Math.floor((Date.now() - wordStartTime.current) / 1000);
-      await crosswordAnalyticsService.logWordSolved(
-        sessionId,
-        {
-          word: currentWord.answer,
-          clue: currentWord.clue,
-          definition: currentWord.definition || '',
-          episodeNumber: currentEpisode
-        },
-        wordTimeSpent,
-        hintsUsedForCurrentWordRef.current
-      );
-      console.log(`✅ Word logged: "${currentWord.answer}" - Time: ${wordTimeSpent}s, Hints: ${hintsUsedForCurrentWordRef.current}`);
-    } catch (error) {
-      console.error('❌ Failed to log word:', error);
+    if (onAnswerAttempt) {
+      onAnswerAttempt(currentWord.answer, isCorrect, currentAttempts);
     }
-  }
-  
-  // Then call the parent handler
-  onWordSolved(
-    currentWord.answer,
-    currentWord.definition || '',
-    currentWord.example || '',
-    hintsUsedForCurrentWordRef.current
-  );
-}
 
-    triggerCelebration();
+    // Calculate time spent before logic
+    const timeForWord = Math.floor((Date.now() - wordStartTime.current) / 1000);
 
-    setTimeout(() => {
-      setFeedback(null);
-      setIsSubmitting(false);
+    if (isCorrect) {
+      setFeedback('correct');
+      playCorrectSound(); 
+
+      setTimeout(() => {
+        speakTextUK(currentWord.answer);
+      }, 500);
       
-      if (solvedCount + 1 >= totalWords) {
-        if (onPuzzleComplete) {
-          onPuzzleComplete();
+      updateGridWithWord(currentWord);
+      
+      setSolvedClues(prev => ({
+        ...prev,
+        [currentWordIndex]: true
+      }));
+
+      // Log CORRECT Answer
+      if (onWordSolved) {
+        if (sessionId) {
+          try {
+            await crosswordAnalyticsService.logWordSolved(
+              sessionId,
+              {
+                word: currentWord.answer,
+                clue: currentWord.clue,
+                definition: currentWord.definition || '',
+                episodeNumber: currentEpisode
+              },
+              timeForWord,
+              hintsUsedForCurrentWordRef.current
+            );
+            console.log(`✅ Word logged: "${currentWord.answer}" - Time: ${timeForWord}s`);
+          } catch (error) {
+            console.error('❌ Failed to log word:', error);
+          }
         }
-      } else {
-        moveToNextWord();
+        
+        onWordSolved(
+          currentWord.answer,
+          currentWord.definition || '',
+          currentWord.example || '',
+          hintsUsedForCurrentWordRef.current
+        );
       }
-    }, 2000);
 
-  } else {
-    setFeedback('wrong');
-    playWrongSound();
+      triggerCelebration();
 
-    setTimeout(() => {
-      handleClear();
-      setFeedback(null);
-      setIsSubmitting(false);
-    }, 1500);
-  }
-};
+      setTimeout(() => {
+        setFeedback(null);
+        setIsSubmitting(false);
+        
+        if (solvedCount + 1 >= totalWords) {
+          if (onPuzzleComplete) {
+            onPuzzleComplete();
+          }
+        } else {
+          moveToNextWord();
+        }
+      }, 2000);
 
+    } else {
+      // ✅ NEW: Log INCORRECT Attempt to Profile
+      console.log(`❌ Incorrect attempt for "${currentWord.answer}"`);
+      if (sessionId) {
+        crosswordAnalyticsService.logAnswerAttempt(sessionId, {
+          word: currentWord.answer,
+          userAnswer: userAnswer,
+          isCorrect: false,
+          timeSpent: timeForWord,
+          hintsUsed: hintsUsedForCurrentWordRef.current,
+          episodeNumber: currentEpisode
+        });
+      }
 
+      setFeedback('wrong');
+      playWrongSound();
 
+      setTimeout(() => {
+        handleClear();
+        setFeedback(null);
+        setIsSubmitting(false);
+      }, 1500);
+    }
+  };
 
-// Audio utility function with UK accent
-const speakTextUK = (text) => {
-  speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  const voices = speechSynthesis.getVoices();
-  
-  // Find British English voice
-  const ukVoice = voices.find(voice => 
-    voice.lang === 'en-GB' || voice.name.includes('UK') || voice.name.includes('British')
-  ) || voices.find(voice => voice.lang.startsWith('en'));
-  
-  if (ukVoice) utterance.voice = ukVoice;
-  utterance.lang = 'en-GB';
-  utterance.rate = 0.9;
-  utterance.pitch = 1;
-  
-  speechSynthesis.speak(utterance);
-};
-
-// ✅ ADD: State for tracking attempts per word (add near other useState)
-const [attemptCounts, setAttemptCounts] = useState({});
+  const speakTextUK = (text) => {
+    speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voices = speechSynthesis.getVoices();
+    const ukVoice = voices.find(voice => 
+      voice.lang === 'en-GB' || voice.name.includes('UK') || voice.name.includes('British')
+    ) || voices.find(voice => voice.lang.startsWith('en'));
+    
+    if (ukVoice) utterance.voice = ukVoice;
+    utterance.lang = 'en-GB';
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    
+    speechSynthesis.speak(utterance);
+  };
 
   const handleUseHint = () => {
     playButtonClick();
@@ -963,37 +938,33 @@ const [attemptCounts, setAttemptCounts] = useState({});
     }
   };
 
- // DELETE this second updateGridWithWord function completely (it's the one causing the error):
-const updateGridWithWord = (word) => {
-  const wordIdx = currentWordIndex;
-  
-  // Update gridCells
-  setGridCells(prevCells => {
-    return prevCells.map(cell => {
-      if (cell.wordIndices.includes(wordIdx)) {
-        return {
-          ...cell,
-          revealed: true
-        };
-      }
-      return cell;
+  const updateGridWithWord = (word) => {
+    const wordIdx = currentWordIndex;
+    setGridCells(prevCells => {
+      return prevCells.map(cell => {
+        if (cell.wordIndices.includes(wordIdx)) {
+          return {
+            ...cell,
+            revealed: true
+          };
+        }
+        return cell;
+      });
     });
-  });
-  
-  // ALSO update gridLayout at the same time
-  setGridLayout(prev => ({
-    ...prev,
-    cells: prev.cells.map(cell => {
-      if (cell.wordIndices.includes(wordIdx)) {
-        return {
-          ...cell,
-          revealed: true
-        };
-      }
-      return cell;
-    })
-  }));
-};
+    
+    setGridLayout(prev => ({
+      ...prev,
+      cells: prev.cells.map(cell => {
+        if (cell.wordIndices.includes(wordIdx)) {
+          return {
+            ...cell,
+            revealed: true
+          };
+        }
+        return cell;
+      })
+    }));
+  };
 
   const moveToNextWord = () => {
     let nextIndex = currentWordIndex + 1;
@@ -1009,7 +980,6 @@ const updateGridWithWord = (word) => {
 
   const triggerCelebration = () => {
     setShowCelebration(true);
-    
     const pieces = Array.from({ length: 50 }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
@@ -1017,9 +987,7 @@ const updateGridWithWord = (word) => {
       duration: 2 + Math.random() * 2,
       emoji: ['🎉', '⭐', '✨', '🎊', '💫'][Math.floor(Math.random() * 5)]
     }));
-    
     setConfettiPieces(pieces);
-    
     celebrationTimeoutRef.current = setTimeout(() => {
       setShowCelebration(false);
       setConfettiPieces([]);
@@ -1033,7 +1001,6 @@ const updateGridWithWord = (word) => {
     }
   };
 
-  // Click on cell number to view that word's clue
   const handleCellClick = (cell) => {
     if (cell.isWordStart && cell.wordIndex !== undefined) {
       if (!solvedClues[cell.wordIndex]) {
@@ -1086,9 +1053,7 @@ const updateGridWithWord = (word) => {
       </header>
 
       <div className={styles.mainContent}>
-        
         <div className={styles.leftPanel}>
-          
           <div className={styles.wordButtons}>
             {puzzle.words.map((word, idx) => {
               const status = getWordStatus(idx);
@@ -1121,11 +1086,8 @@ const updateGridWithWord = (word) => {
                   aspectRatio: `${gridLayout.width} / ${gridLayout.height}`
                 }}
               >
-                
-                  {gridLayout.cells.map((cell, idx) => {
-                  if (cell.isEmpty) {
-                    return <div key={idx} className={styles.emptyCell}></div>;
-                  }
+                {gridLayout.cells.map((cell, idx) => {
+                  if (cell.isEmpty) return <div key={idx} className={styles.emptyCell}></div>;
                   
                   const isCurrent = cell.wordIndices.includes(currentWordIndex);
                   const isSolved = cell.wordIndices.some(wordIdx => solvedClues[wordIdx]);
@@ -1137,14 +1099,10 @@ const updateGridWithWord = (word) => {
                       className={`${styles.cell} ${isCurrent ? styles.currentCell : ''} ${isSolved ? styles.solvedCell : ''} ${isClickable ? styles.clickableCell : ''}`}
                       onClick={() => handleCellClick(cell)}
                     >
-                      {cell.number && (
-                        <span className={styles.cellNumber}>
-                          {cell.number}
-                        </span>
-                      )}
-                     <span className={styles.cellValue}>
-                      {cell.revealed && cell.letter ? cell.letter.toUpperCase() : ''}
-                    </span>
+                      {cell.number && <span className={styles.cellNumber}>{cell.number}</span>}
+                      <span className={styles.cellValue}>
+                        {cell.revealed && cell.letter ? cell.letter.toUpperCase() : ''}
+                      </span>
                     </div>
                   );
                 })}
@@ -1154,20 +1112,17 @@ const updateGridWithWord = (word) => {
         </div>
 
         <div className={styles.rightPanel}>
-          
           <div className={styles.clueCard}>
             <div className={styles.clueHeader}>
               <span className={styles.clueNumber}>#{currentWordIndex + 1}</span>
-              <span className={styles.clueDirection}>
-                {wordPositions[currentWordIndex]?.direction || 'Across'}
-              </span>
-               <button 
-      onClick={handlePlayClue}
-      className={styles.clueAudioBtn}
-      disabled={isPlayingClueAudio}
-    >
-      {isPlayingClueAudio ? '🔊' : '🎵'}
-    </button>
+              <span className={styles.clueDirection}>{wordPositions[currentWordIndex]?.direction || 'Across'}</span>
+              <button 
+                onClick={handlePlayClue}
+                className={styles.clueAudioBtn}
+                disabled={isPlayingClueAudio}
+              >
+                {isPlayingClueAudio ? '🔊' : '🎵'}
+              </button>
             </div>
             <div className={styles.clueContent}>
               <div className={styles.clueIcon}>🎯</div>
@@ -1177,30 +1132,20 @@ const updateGridWithWord = (word) => {
 
           <div className={styles.answerArea}>
             <h3 className={styles.answerTitle}>📝 Drop Letters Here:</h3>
-            <div
-  className={styles.answerSlots}
-  style={{ '--slot-count': answerSlots.length }}
->
-  {answerSlots.map((slot, idx) => (
-    <div
-      key={slot.id}
-      className={`${styles.answerSlot} ${
-        slot.letter ? styles.filled : ''
-      } ${feedback === 'correct' ? styles.correct : ''} ${
-        feedback === 'wrong' ? styles.wrong : ''
-      }`}
-      onDragOver={handleDragOver}
-      onDrop={(e) => handleDropOnSlot(e, idx)}
-      onClick={() => handleSlotClick(idx)}
-    >
-      {slot.letter || ''}
-    </div>
-  ))}
-</div>
-
-            <div className={styles.answerInfo}>
-              {currentWord?.answer.length} letters • {wordPositions[currentWordIndex]?.direction}
+            <div className={styles.answerSlots} style={{ '--slot-count': answerSlots.length }}>
+              {answerSlots.map((slot, idx) => (
+                <div
+                  key={slot.id}
+                  className={`${styles.answerSlot} ${slot.letter ? styles.filled : ''} ${feedback === 'correct' ? styles.correct : ''} ${feedback === 'wrong' ? styles.wrong : ''}`}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDropOnSlot(e, idx)}
+                  onClick={() => handleSlotClick(idx)}
+                >
+                  {slot.letter || ''}
+                </div>
+              ))}
             </div>
+            <div className={styles.answerInfo}>{currentWord?.answer.length} letters • {wordPositions[currentWordIndex]?.direction}</div>
           </div>
 
           <div className={styles.scrambleArea}>
@@ -1220,31 +1165,15 @@ const updateGridWithWord = (word) => {
                 )
               ))}
             </div>
-            <button 
-              className={styles.shuffleBtn}
-              onClick={handleShuffle}
-            >
-              🔄 Shuffle
-            </button>
+            <button className={styles.shuffleBtn} onClick={handleShuffle}>🔄 Shuffle</button>
           </div>
 
           <div className={styles.actionButtons}>
+            <button className={styles.hintBtn} onClick={handleUseHint} disabled={hintsRemaining <= 0}>💡 Hint ({hintsRemaining})</button>
+            <button className={styles.clearBtn} onClick={handleClear}>🗑️ Clear</button>
             <button 
-              className={styles.hintBtn}
-              onClick={handleUseHint}
-              disabled={hintsRemaining <= 0}
-            >
-              💡 Hint ({hintsRemaining})
-            </button>
-            <button 
-              className={styles.clearBtn}
-              onClick={handleClear}
-            >
-              🗑️ Clear
-            </button>
-            <button 
-              className={styles.submitBtn}
-              onClick={handleSubmit}
+              className={styles.submitBtn} 
+              onClick={handleSubmit} 
               disabled={isSubmitting || answerSlots.some(slot => slot.letter === null)}
             >
               ✨ Submit
@@ -1258,24 +1187,14 @@ const updateGridWithWord = (word) => {
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
             >
-              {feedback === 'correct' ? (
-                <>🎉 Correct! Amazing!</>
-              ) : (
-                <>😊 Try again! You've got this!</>
-              )}
+              {feedback === 'correct' ? <>🎉 Correct! Amazing!</> : <>😊 Try again! You've got this!</>}
             </motion.div>
           )}
-
         </div>
       </div>
-      {/* Music Control Button - Add anywhere in your JSX */}
-<button 
-  onClick={toggleMusic}
-  className={styles.musicToggleBtn}
-  title={isMusicPlaying ? 'Mute Music' : 'Play Music'}
->
-  {isMusicPlaying ? '🔊' : '🔇'}
-</button>
+      <button onClick={toggleMusic} className={styles.musicToggleBtn} title={isMusicPlaying ? 'Mute Music' : 'Play Music'}>
+        {isMusicPlaying ? '🔊' : '🔇'}
+      </button>
     </div>
   );
 };

@@ -1,5 +1,8 @@
+//src/services/soundSafariAnalyticsService.js
 import axios from "axios";
 import { API_ENDPOINTS } from "../config/api";
+// ✅ IMPORT AUTH SERVICE TO LINK TO PROFILE
+import { authService } from "./authService";
 
 const API_URL = API_ENDPOINTS.PHONEMICS;
 
@@ -76,71 +79,120 @@ export const soundSafariAnalyticsService = {
         return { success: false, error: "Missing rounds data" };
       }
 
+      // Validate rounds
       for (const round of sessionData.rounds) {
-        if (
-          !round.round_number ||
-          !round.target_sound ||
-          !round.sound_position
-        ) {
+        if (!round.round_number || !round.target_sound || !round.sound_position) {
           console.error("❌ Invalid round data:", round);
           return { success: false, error: "Invalid round data structure" };
         }
       }
 
-      console.log("📊 Saving Sound Safari session to backend...");
-      console.log("   - Difficulty:", sessionData.difficulty);
-      console.log("   - Total rounds:", sessionData.rounds.length);
-      console.log("   - Auth token present:", !!token);
-      console.log("   - Endpoint:", `${API_URL}/save-safari-session/`);
+      console.log("📊 Saving Sound Safari session...");
+      let responseData;
 
+      // 1. ORIGINAL LOGIC: Save to Sound Safari Database
       if (token && token.trim() !== "") {
         try {
           const response = await api.post("/save-safari-session/", sessionData);
-
           console.log("✅ Session saved successfully (authenticated)");
-          return {
-            success: true,
-            ...response.data,
-          };
+          responseData = { success: true, ...response.data };
         } catch (authError) {
-          console.warn(
-            "⚠️ Authenticated save failed, trying anonymous save..."
+          console.warn("⚠️ Authenticated save failed, trying anonymous save...");
+          const response = await axios.post(
+            `${API_URL}/save-safari-session/`,
+            sessionData,
+            { headers: { "Content-Type": "application/json" } }
           );
-          console.error(
-            "   Error:",
-            authError.response?.data || authError.message
-          );
+          responseData = { success: true, anonymous: true, ...response.data };
         }
+      } else {
+        const response = await axios.post(
+          `${API_URL}/save-safari-session/`,
+          sessionData,
+          { headers: { "Content-Type": "application/json" } }
+        );
+        responseData = { success: true, anonymous: true, ...response.data };
       }
 
-      console.log("📊 Attempting anonymous save...");
-      const response = await axios.post(
-        `${API_URL}/save-safari-session/`,
-        sessionData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      // ✅ 2. NEW LOGIC: Sync to Main Profile
+      // Only runs if the user is logged in
+      if (token && token.trim() !== "") {
+        this.syncToCentralProfile(sessionData);
+      }
 
-      console.log("✅ Session saved successfully (anonymous)");
-      return {
-        success: true,
-        anonymous: true,
-        ...response.data,
-      };
+      return responseData;
+
     } catch (error) {
       console.error("❌ Error saving Sound Safari session:", error);
-      console.error("   Status:", error.response?.status);
-      console.error("   Response:", error.response?.data);
-      console.error("   Message:", error.message);
-
       return {
         success: false,
         error: error.response?.data?.error || error.message,
         details: error.response?.data,
       };
+    }
+  },
+
+  // ✅ HELPER FUNCTION: Sends data to the main User Profile
+  async syncToCentralProfile(sessionData) {
+    try {
+      console.log("🔄 Syncing Sound Safari data to Profile...");
+      
+      // Calculate totals
+      let totalCorrect = 0;
+      let totalIncorrect = 0;
+      let totalTime = sessionData.time_spent || 0;
+
+      sessionData.rounds.forEach(round => {
+        totalCorrect += (round.correct || 0);
+        totalIncorrect += (round.incorrect || 0);
+      });
+
+      const totalAttempts = totalCorrect + totalIncorrect;
+      if (totalAttempts === 0) return;
+
+      const logPromises = [];
+
+      // 🔥 FIX: Added 'question_data', 'user_answer', 'correct_answer' 
+      // These are REQUIRED by your Django UserActivity model
+      
+      const basePayload = {
+        module: 'phonemics', // Matches backend/models.py
+        difficulty: sessionData.difficulty,
+        time_spent: Math.max(1, Math.floor(totalTime / totalAttempts)),
+        // Dummy data to satisfy backend requirements
+        question_data: { type: 'safari_sync', sound: 'various' },
+        user_answer: { selection: 'sync_entry' },
+        correct_answer: { target: 'sync_entry' }
+      };
+
+      // Log Correct Answers (Limit to 10 to prevent network spam)
+      const correctToLog = Math.min(totalCorrect, 10);
+      for (let i = 0; i < correctToLog; i++) {
+        logPromises.push(authService.logActivity({
+          ...basePayload,
+          activity_type: 'sound_safari_correct',
+          is_correct: true,
+        }));
+      }
+
+      // Log Incorrect Answers
+      const incorrectToLog = Math.min(totalIncorrect, 10);
+      for (let i = 0; i < incorrectToLog; i++) {
+        logPromises.push(authService.logActivity({
+          ...basePayload,
+          activity_type: 'sound_safari_incorrect',
+          is_correct: false,
+        }));
+      }
+
+      if (logPromises.length > 0) {
+        await Promise.all(logPromises);
+        console.log("✅ Sound Safari successfully synced to Profile!");
+      }
+
+    } catch (err) {
+      // We log this as a warning so it doesn't crash the game
+      console.warn("⚠️ Failed to sync to profile (Local save was successful):", err.message);
     }
   },
 
@@ -153,52 +205,23 @@ export const soundSafariAnalyticsService = {
         return { success: false, error: "Not authenticated" };
       }
 
-      console.log("📊 Fetching ALL user analytics...");
-
       const response = await api.get(`/get-safari-analytics/`);
-
-      console.log(
-        "✅ Analytics fetched successfully:",
-        response.data.sessions?.length || 0,
-        "sessions"
-      );
-      return {
-        success: true,
-        ...response.data,
-      };
+      return { success: true, ...response.data };
     } catch (error) {
       console.error("❌ Error fetching Sound Safari analytics:", error);
-      return {
-        success: false,
-        error: error.response?.data?.error || error.message,
-      };
+      return { success: false, error: error.message };
     }
   },
 
   async getSessionRounds(sessionId) {
     try {
       const token = localStorage.getItem("access_token");
-
-      if (!token || token.trim() === "") {
-        console.warn("⚠️ No auth token found");
-        return { success: false, error: "Not authenticated" };
-      }
-
-      console.log("🔍 Fetching rounds for session:", sessionId);
+      if (!token) return { success: false, error: "Not authenticated" };
 
       const response = await api.get(`/get-session-rounds/${sessionId}/`);
-
-      console.log("✅ Rounds fetched:", response.data.rounds?.length || 0);
-      return {
-        success: true,
-        ...response.data,
-      };
+      return { success: true, ...response.data };
     } catch (error) {
-      console.error("❌ Error fetching session rounds:", error);
-      return {
-        success: false,
-        error: error.response?.data?.error || error.message,
-      };
+      return { success: false, error: error.message };
     }
   },
 
@@ -206,7 +229,6 @@ export const soundSafariAnalyticsService = {
     const correctCount = roundResults.correctSelections || 0;
     const actualIncorrect = roundResults.incorrectSelections || 0;
     const missedCount = roundResults.missedCorrect || 0;
-
     const totalIncorrect = actualIncorrect + missedCount;
     const totalCount = correctCount + totalIncorrect;
 
@@ -218,7 +240,6 @@ export const soundSafariAnalyticsService = {
       correct: correctCount,
       incorrect: totalIncorrect,
       total: totalCount,
-
       correctCount: correctCount,
       totalCorrectAnimals: totalCount,
       time_spent: roundResults.timeSpent || 0,

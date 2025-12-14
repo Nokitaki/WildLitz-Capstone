@@ -1,5 +1,7 @@
 import axios from "axios";
 import { API_ENDPOINTS } from "../config/api";
+// ✅ IMPORT AUTH SERVICE
+import { authService } from './authService';
 
 const API_URL = API_ENDPOINTS.PHONICS;
 
@@ -25,6 +27,13 @@ export const phonicsAnalyticsService = {
       );
 
       console.log("Session saved successfully:", response.data);
+
+      // ✅ CRITICAL FIX: Sync to Profile
+      // Only run if user is logged in
+      if (token) {
+        await this.syncToCentralProfile(sessionData);
+      }
+
       return response.data;
     } catch (error) {
       console.error("Error saving session:", error);
@@ -32,6 +41,60 @@ export const phonicsAnalyticsService = {
         success: false,
         error: error.message,
       };
+    }
+  },
+
+  // ✅ NEW HELPER: Syncs stats to the main Profile
+  async syncToCentralProfile(sessionData) {
+    try {
+      console.log("🔄 Syncing Vanishing Game to Profile...");
+
+      const correct = Number(sessionData.wordsRecognized) || 0;
+      const attempted = Number(sessionData.wordsAttempted) || 0;
+      const incorrect = attempted - correct;
+      
+      // Calculate time (default 2s if missing)
+      const avgTimeMs = Number(sessionData.averageResponseTime) || 2000;
+      const avgTimeSec = Math.max(1, Math.floor(avgTimeMs / 1000));
+
+      const basePayload = {
+        module: 'phonics', // Matches backend 'phonics' module
+        difficulty: sessionData.difficulty || 'medium',
+        time_spent: avgTimeSec,
+        // Dummy data for backend validation
+        question_data: { word: 'sync_entry', type: 'vanishing_sync' },
+        user_answer: { input: 'sync' },
+        correct_answer: { target: 'sync' }
+      };
+
+      // Log Correct Answers (Limit to 5 to avoid spamming)
+      if (correct > 0) {
+        const limit = Math.min(correct, 5);
+        for (let i = 0; i < limit; i++) {
+          await authService.logActivity({
+            ...basePayload,
+            activity_type: 'vanishing_correct',
+            is_correct: true
+          });
+        }
+      }
+
+      // Log Incorrect Answers
+      if (incorrect > 0) {
+        const limit = Math.min(incorrect, 5);
+        for (let i = 0; i < limit; i++) {
+          await authService.logActivity({
+            ...basePayload,
+            activity_type: 'vanishing_incorrect',
+            is_correct: false
+          });
+        }
+      }
+
+      console.log("✅ Vanishing Game successfully synced to Profile!");
+
+    } catch (error) {
+      console.error("⚠️ Profile sync failed:", error);
     }
   },
 
