@@ -213,3 +213,81 @@
     height: 95%;
   }
 }
+.exitButton {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  color: white;
+  border: 3px solid white;
+  border-radius: 25px;
+  padding: 12px 20px;
+  font-family: 'Comic Sans MS', 'Fredoka One', cursive;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.exitButton:hover {
+  background: linear-gradient(135deg, #ff5252 0%, #d84355 100%);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+.exitButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.exitIcon {
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.exitText {
+  font-size: 16px;
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .exitButton {
+    top: 15px;
+    left: 15px;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .exitIcon {
+    font-size: 18px;
+  }
+
+  .exitText {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .exitButton {
+    top: 10px;
+    left: 10px;
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  .exitIcon {
+    font-size: 16px;
+  }
+
+  .exitText {
+    display: none;
+  }
+}

@@ -559,6 +559,68 @@ const SoundSafariGame = () => {
     setFromIntroScreen(false);
   };
 
+  const handleExitGame = () => {
+    console.log("🚪 Exit button clicked - forcing complete shutdown");
+    
+    // CRITICAL: Stop all speech IMMEDIATELY and repeatedly
+    const forceStopAllSpeech = () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+    
+    // Stop speech multiple times to ensure it's cancelled
+    forceStopAllSpeech();
+    setTimeout(forceStopAllSpeech, 50);
+    setTimeout(forceStopAllSpeech, 100);
+    setTimeout(forceStopAllSpeech, 200);
+    
+    // Stop all audio playback
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    
+    // Clear any ongoing intervals/timers in child components
+    // by changing state that triggers cleanup
+    setIsLoading(false);
+    setShowBubble(false);
+    setBubbleMessage("");
+    
+    // Reset ALL game states to initial values
+    setCurrentRound(1);
+    setScore(0);
+    setRoundAnimals([]);
+    setSelectedAnimals([]);
+    setSoundsUsed([]);
+    setAllRoundsData([]);
+    setCurrentRoundData(null);
+    setFromIntroScreen(false);
+    setError(null);
+    
+    // Force unmount all game screens by setting to a temporary state
+    setGameState("exiting");
+    
+    // After a brief delay, go to config (ensures components unmount)
+    setTimeout(() => {
+      // One more speech cancellation for safety
+      forceStopAllSpeech();
+      
+      // Reset game config to defaults
+      setGameConfig({
+        difficulty: "easy",
+        targetSound: "s",
+        soundPosition: SOUND_POSITIONS.beginning,
+        environment: "jungle",
+      });
+      
+      // Now go to config screen
+      setGameState("config");
+      
+      console.log("✅ Game fully exited - back to config");
+    }, 300);
+  };
+
   const shouldShowMascot = () => {
     return gameState === "intro" || gameState === "gameplay";
   };
@@ -603,6 +665,21 @@ const SoundSafariGame = () => {
         overflow: "hidden",
       }}
     >
+      {gameState !== "config" && (
+        <motion.button
+          className={styles.exitButton}
+          onClick={handleExitGame}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          aria-label="Exit game and return to configuration"
+        >
+          <span className={styles.exitIcon}>←</span>
+          <span className={styles.exitText}>Exit</span>
+        </motion.button>
+      )}
       {(gameState === "config" || gameState === "loading" || gameState === "intro") && (
         <audio
           ref={audioRef}
@@ -643,6 +720,31 @@ const SoundSafariGame = () => {
         )}
 
         <AnimatePresence mode="wait">
+          {gameState === "exiting" && (
+            <motion.div
+              key="exiting"
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className={styles.screenContainer}
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                minHeight: '100vh'
+              }}
+            >
+              <div style={{ 
+                color: 'white', 
+                fontSize: '1.5rem', 
+                textAlign: 'center',
+                fontFamily: 'Comic Sans MS, cursive'
+              }}>
+                Exiting game...
+              </div>
+            </motion.div>
+          )}
+
           {gameState === "config" && (
             <motion.div
               key="config"
@@ -775,6 +877,7 @@ const SoundSafariGame = () => {
                 timeLimit={DIFFICULTY_LEVELS[gameConfig.difficulty].timeLimit}
                 skipIntro={!fromIntroScreen}
                 environment={gameConfig.environment}
+                forceStop={gameState === "exiting"}
               />
             </motion.div>
           )}
