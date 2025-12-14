@@ -225,8 +225,12 @@ const handleTimeUp = () => {
   if (hasAnswered) return;
   setHasAnswered(true);
   
-  setVanishState('visible');
-  setPreVanishPhase('preview');
+  if (revealedIndices.length > 0 || revealedWordIndices.length > 0) {
+    setVanishState('revealing');
+  } else {
+    setVanishState('visible');
+    setPreVanishPhase('preview');
+  }
   
   setEncouragementText('⏰ Time\'s up! Don\'t worry, you\'ll get the next one!');
   setShowEncouragement(true);
@@ -246,8 +250,12 @@ const handleTimeUp = () => {
   if (hasAnswered) return;
   setHasAnswered(true);
   
-  setVanishState('visible');
-  setPreVanishPhase('preview');
+  if (revealedIndices.length > 0 || revealedWordIndices.length > 0) {
+    setVanishState('revealing');
+  } else {
+    setVanishState('visible');
+    setPreVanishPhase('preview');
+  }
   
   setShowStars(true);
   setEncouragementText('🌟 Amazing! You got it! 🌟');
@@ -310,8 +318,12 @@ const handleTimeUp = () => {
   if (hasAnswered) return;
   setHasAnswered(true);
   
-  setVanishState('visible');
-  setPreVanishPhase('preview');
+  if (revealedIndices.length > 0 || revealedWordIndices.length > 0) {
+    setVanishState('revealing');
+  } else {
+    setVanishState('visible');
+    setPreVanishPhase('preview');
+  }
   
   setEncouragementText('💪 Don\'t worry! You\'ll get the next one!');
   setShowEncouragement(true);
@@ -335,7 +347,7 @@ const handleTimeUp = () => {
 
 const renderWord = () => {
   const text = word.trim();
-  const words = text.split(' ');
+  const words = text.split(' ').filter(Boolean);
   const actualPattern = targetLetter || extractPatternLetters(pattern);
 
   // ===== PREVIEW & READY PHASE =====
@@ -369,8 +381,8 @@ const renderWord = () => {
   
   // ===== VANISHING PHASE =====
   if (preVanishPhase === 'vanishing') {
-    // --- HINT DISPLAY LOGIC ---
-    if (vanishState === 'vanished' && (revealedIndices.length > 0 || revealedWordIndices.length > 0)) {
+    // --- REVEALING ANIMATION on "I KNOW IT" ---
+    if (vanishState === 'revealing') {
       let globalCharIndex = 0;
       return (
         <div className={styles.wordDisplay}>
@@ -380,20 +392,82 @@ const renderWord = () => {
                 {singleWord.split('').map((letter, letterIndex) => {
                   const currentGlobalIndex = globalCharIndex;
                   globalCharIndex++;
-                  let isRevealed = challengeLevel === 'simple_sentences' ? revealedWordIndices.includes(wordIndex) : revealedIndices.includes(currentGlobalIndex);
-                  const isPattern = isRevealed && config.highlightTarget && isCharPartOfPattern(currentGlobalIndex, text, actualPattern);
                   
-                  return (
-                    <motion.span
-                      key={letterIndex}
-                      className={`${styles.letter} ${isPattern ? styles.patternLetter : ''}`}
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: isRevealed ? 1 : 0, scale: isRevealed ? 1 : 0.5 }}
-                      transition={{ duration: 0.4, ease: 'easeOut' }}
-                    >
-                      {letter}
-                    </motion.span>
-                  );
+                  const isHint = challengeLevel === 'simple_sentences' 
+                    ? revealedWordIndices.includes(wordIndex) 
+                    : revealedIndices.includes(currentGlobalIndex);
+
+                  const isPattern = config.highlightTarget && isCharPartOfPattern(currentGlobalIndex, text, actualPattern);
+
+                  if (isHint) {
+                    // Render hint letters statically
+                    return (
+                      <span key={letterIndex} className={`${styles.letter} ${isPattern ? styles.patternLetter : ''}`}>
+                        {letter}
+                      </span>
+                    );
+                  } else {
+                    // Animate in the remaining letters
+                    return (
+                      <motion.span
+                        key={letterIndex}
+                        className={`${styles.letter} ${isPattern ? styles.patternLetter : ''}`}
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: letterIndex * 0.05 }} // Stagger animation
+                      >
+                        {letter}
+                      </motion.span>
+                    );
+                  }
+                })}
+              </span>
+              {wordIndex < words.length - 1 && (() => {
+                globalCharIndex++; // Account for space
+                return ' ';
+              })()}
+            </React.Fragment>
+          ))}
+        </div>
+      );
+    }
+    
+    // --- UNIFIED VANISHED & HINT DISPLAY ---
+    if (vanishState === 'vanished') {
+      let globalCharIndex = 0;
+      return (
+        <div className={styles.wordDisplay}>
+          {words.map((singleWord, wordIndex) => (
+            <React.Fragment key={wordIndex}>
+              <span className={styles.wordWrapper}>
+                {singleWord.split('').map((letter, letterIndex) => {
+                  const currentGlobalIndex = globalCharIndex;
+                  globalCharIndex++;
+                  
+                  const isRevealedByHint = challengeLevel === 'simple_sentences' 
+                    ? revealedWordIndices.includes(wordIndex) 
+                    : revealedIndices.includes(currentGlobalIndex);
+
+                  if (isRevealedByHint) {
+                    const isPattern = config.highlightTarget && isCharPartOfPattern(currentGlobalIndex, text, actualPattern);
+                    return (
+                      <motion.span
+                        key={letterIndex}
+                        className={`${styles.letter} ${isPattern ? styles.patternLetter : ''}`}
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.4, ease: 'easeOut' }}
+                      >
+                        {letter}
+                      </motion.span>
+                    );
+                  } else {
+                    return (
+                      <span key={letterIndex} className={`${styles.letter} ${styles.underlineLetter}`}>
+                        {letter}
+                      </span>
+                    );
+                  }
                 })}
               </span>
               {wordIndex < words.length - 1 && (() => {
@@ -409,7 +483,7 @@ const renderWord = () => {
     // --- VANISHING ANIMATION LOGIC ---
     let globalCharIndex = 0;
     const getOpacityStyle = () => {
-      if (vanishState === 'vanished') return { opacity: 0 };
+      // This is now only for the fade-out animation in progress
       if (vanishState === 'vanishing') {
         const durations = { 'slow': '3s', 'normal': '1.5s', 'fast': '0.8s', 'instant': '0.3s' };
         return { opacity: 0, transition: `opacity ${durations[config.vanishSpeed] || '1.5s'} ease-out` };
@@ -533,16 +607,6 @@ const renderWord = () => {
           <span className={styles.teamName}>{teamNames.teamA}</span>
         </div>
         <div className={styles.teamPoints}>{teamScores.teamA}</div>
-        {currentTeam === 'teamA' && (
-          <motion.div 
-            className={styles.turnIndicator}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ repeat: Infinity, duration: 1, repeatType: "reverse" }}
-          >
-            👉 YOUR TURN!
-          </motion.div>
-        )}
       </motion.div>
       
       <div className={styles.vsText}>VS</div>
@@ -557,16 +621,6 @@ const renderWord = () => {
           <span className={styles.teamName}>{teamNames.teamB}</span>
         </div>
         <div className={styles.teamPoints}>{teamScores.teamB}</div>
-        {currentTeam === 'teamB' && (
-          <motion.div 
-            className={styles.turnIndicator}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ repeat: Infinity, duration: 1, repeatType: "reverse" }}
-          >
-            👉 YOUR TURN!
-          </motion.div>
-        )}
       </motion.div>
     </div>
   )}
@@ -609,45 +663,59 @@ const renderWord = () => {
       {/* 🎮 Main Game Area */}
       <div className={styles.mainGameArea}>
         {/* Phase Indicators */}
-        <AnimatePresence mode="wait">
-          {preVanishPhase === 'preview' && (
-            <motion.div
-              className={styles.phaseMessage}
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              exit={{ scale: 0, rotate: 180 }}
-              transition={{ type: 'spring', bounce: 0.5 }}
-            >
-              <span className={styles.messageEmoji}>👀</span>
-              <span className={styles.messageText}>Look at this word!</span>
-            </motion.div>
-          )}
-          
-          {preVanishPhase === 'ready' && (
-            <motion.div
-              className={`${styles.phaseMessage} ${styles.readyMessage}`}
-              initial={{ scale: 0, rotate: 180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              exit={{ scale: 0, rotate: -180 }}
-              transition={{ type: 'spring', bounce: 0.5 }}
-            >
-              <span className={styles.messageEmoji}>🚀</span>
-              <span className={styles.messageText}>Get Ready!</span>
-            </motion.div>
-          )}
-          
-          {preVanishPhase === 'vanishing' && vanishState === 'vanished' && !hasAnswered && !revealedIndices.length > 0 && (
-            <motion.div
-              className={`${styles.phaseMessage} ${styles.thinkMessage}`}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', bounce: 0.5 }}
-            >
-              <span className={styles.messageEmoji}>🤔</span>
-              <span className={styles.messageText}>Can you remember?</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div className={styles.phaseMessageContainer}>
+          <AnimatePresence mode="wait">
+            {preVanishPhase === 'preview' && (
+              <motion.div
+                className={styles.phaseMessage}
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: 180 }}
+                transition={{ type: 'spring', bounce: 0.5 }}
+              >
+                <span className={styles.messageEmoji}>👀</span>
+                <span className={styles.messageText}>Look at this word!</span>
+              </motion.div>
+            )}
+            
+            {preVanishPhase === 'ready' && (
+              <motion.div
+                className={`${styles.phaseMessage} ${styles.readyMessage}`}
+                initial={{ scale: 0, rotate: 180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: -180 }}
+                transition={{ type: 'spring', bounce: 0.5 }}
+              >
+                <span className={styles.messageEmoji}>🚀</span>
+                <span className={styles.messageText}>Get Ready!</span>
+              </motion.div>
+            )}
+            
+            {preVanishPhase === 'vanishing' && vanishState === 'vanished' && !hasAnswered && !revealedIndices.length > 0 && (
+              <motion.div
+                className={`${styles.phaseMessage} ${styles.thinkMessage}`}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', bounce: 0.5 }}
+              >
+                <span className={styles.messageEmoji}>🤔</span>
+                <span className={styles.messageText}>Can you remember?</span>
+              </motion.div>
+            )}
+            
+            {showEncouragement && (
+              <motion.div
+                className={styles.encouragementBubble}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                transition={{ type: 'spring', bounce: 0.6 }}
+              >
+                {encouragementText}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Word Display Area */}
         <div className={styles.wordArea}>
@@ -690,21 +758,6 @@ const renderWord = () => {
                 </motion.div>
               ))}
             </>
-          )}
-        </AnimatePresence>
-
-        {/* Encouragement Message */}
-        <AnimatePresence>
-          {showEncouragement && (
-            <motion.div
-              className={styles.encouragementBubble}
-              initial={{ scale: 0, y: 50 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0, y: -50 }}
-              transition={{ type: 'spring', bounce: 0.6 }}
-            >
-              {encouragementText}
-            </motion.div>
           )}
         </AnimatePresence>
       </div>

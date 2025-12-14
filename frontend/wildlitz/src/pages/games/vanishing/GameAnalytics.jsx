@@ -56,7 +56,7 @@ const GameAnalytics = ({ onBack }) => {
   const filteredSessions = useMemo(() => {
     if (!sessions) return [];
     
-    if (filterMode === 'solo') {
+    if (filterMode === 'individual') {
       return sessions.filter(s => !s.team_play);
     } else if (filterMode === 'team') {
       return sessions.filter(s => s.team_play);
@@ -160,13 +160,13 @@ const GameAnalytics = ({ onBack }) => {
         totalWordsAttempted: 0,
         totalWordsRecognized: 0,
         averageResponseTime: 0,
-        soloGames: 0,
+        individualGames: 0,
         teamGames: 0
       };
     }
 
     const total = filteredSessions.length;
-    const soloGames = sessions.filter(s => !s.team_play).length;
+    const individualGames = sessions.filter(s => !s.team_play).length;
     const teamGames = sessions.filter(s => s.team_play).length;
     const totalWordsAttempted = filteredSessions.reduce((sum, s) => sum + (s.words_attempted || 0), 0);
     const totalWordsRecognized = filteredSessions.reduce((sum, s) => sum + (s.words_recognized || 0), 0);
@@ -179,7 +179,7 @@ const GameAnalytics = ({ onBack }) => {
       totalWordsAttempted,
       totalWordsRecognized,
       averageResponseTime: Math.round(avgResponseTime),
-      soloGames,
+      individualGames,
       teamGames
     };
   }, [filteredSessions, sessions]);
@@ -226,12 +226,12 @@ const GameAnalytics = ({ onBack }) => {
           All ({sessions.length})
         </motion.button>
         <motion.button
-          className={`${styles.filterTab} ${filterMode === 'solo' ? styles.active : ''}`}
-          onClick={() => setFilterMode('solo')}
+          className={`${styles.filterTab} ${filterMode === 'individual' ? styles.active : ''}`}
+          onClick={() => setFilterMode('individual')}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          Solo ({aggregateStats.soloGames})
+          Individual ({aggregateStats.individualGames})
         </motion.button>
         <motion.button
           className={`${styles.filterTab} ${filterMode === 'team' ? styles.active : ''}`}
@@ -366,13 +366,13 @@ const GameAnalytics = ({ onBack }) => {
           {filteredSessions.slice(0, 10).map((session, index) => (
             <motion.div
               key={index}
-              className={`${styles.sessionCard} ${session.team_play ? styles.teamSession : styles.soloSession}`}
+              className={`${styles.sessionCard} ${session.team_play ? styles.teamSession : styles.individualSession}`}
               whileHover={{ scale: 1.01 }}
               onClick={() => setSelectedSession(selectedSession === session ? null : session)}
             >
               <div className={styles.sessionHeader}>
                 <span className={styles.sessionType}>
-                  {session.team_play ? '👥 Team' : '👤 Solo'}
+                  {session.team_play ? '👥 Team' : '👤 Individual'}
                 </span>
                 <span className={styles.sessionDate}>
                   {new Date(session.timestamp).toLocaleDateString()}

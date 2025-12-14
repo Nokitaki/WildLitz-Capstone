@@ -232,9 +232,10 @@
   max-width: 900px;
   margin: 20px auto;
   width: 100%;
-  min-height: 300px;
+  min-height: 400px; /* Increased to prevent content compression */
   /* 🚀 PERFORMANCE: GPU acceleration */
   transform: translateZ(0);
+  gap: 20px; /* Added gap for consistent spacing */
 }
 
 .phaseMessage {
@@ -246,9 +247,27 @@
   gap: 12px;
   box-shadow: 0 10px 30px rgba(76, 175, 80, 0.4);
   border: 4px solid #fff;
-  margin-bottom: 15px;
+  /* margin-bottom is removed */
   /* 🚀 PERFORMANCE: GPU acceleration */
   transform: translateZ(0);
+}
+
+.encouragementBubble {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #FFD700, #FFA500); /* A gold/yellow gradient */
+  color: white;
+  padding: 15px 30px;
+  border-radius: 25px;
+  font-family: 'Fredoka One', 'Comic Sans MS', cursive;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(255, 165, 0, 0.4);
+  border: 4px solid #fff;
+  z-index: 10;
 }
 
 .readyMessage {
@@ -287,20 +306,21 @@
 }
 
 .wordArea {
-  background: rgba(255, 255, 255, 0.95);
-  padding: 25px 35px; /* ← Less padding = more room */
-  border-radius: 35px;
-  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.3);
-  border: 6px solid #fff;
-  margin-bottom: 25px;
-  min-height: 180px; /* ← Much taller */
-  max-width: 95%; /* ← Don't get too wide */
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.92));
+  padding: 40px 50px;
+  border-radius: 50px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), inset 0 2px 5px rgba(255, 255, 255, 0.5);
+  border: 8px solid #fff;
+  margin-bottom: 30px;
+  min-height: 240px;
+  max-width: 95%;
   width: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   transform: translateZ(0);
-  overflow: visible; /* ← Allow content to be visible */
+  overflow: visible;
+  transition: all 0.3s ease;
 }
 
 .wordDisplay {
@@ -314,15 +334,24 @@
 
 .letter {
   font-family: 'Fredoka One', 'Comic Sans MS', cursive;
-  font-size: 2.8rem; /* ← Much smaller from 4rem */
+  font-size: 3.5rem;
   color: #333;
   font-weight: 700;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-  display: inline-block; /* ← Changed to inline-block */
-  margin: 0 3px; /* ← Small space between letters */
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Slightly adjusted for new size */
+  display: inline-block;
+  margin: 0 5px;
   transition: all 0.3s ease;
   transform: translateZ(0);
 }
+
+.underlineLetter {
+  color: transparent;
+  border-bottom: 4px solid #555;
+  line-height: 0.9; /* Adjust to prevent underline from adding too much height */
+  text-shadow: none;
+}
+
+
 /* Word wrapper - keeps letters of same word together */
 .wordWrapper {
   display: inline-block;
@@ -607,6 +636,23 @@
   border-top: 15px solid #fff;
 }
 
+
+
+
+.encouragementBubble {
+  background: linear-gradient(135deg, #FFD700, #FFA500); /* A gold/yellow gradient */
+  color: white;
+  padding: 15px 30px;
+  border-radius: 25px;
+  font-family: 'Fredoka One', 'Comic Sans MS', cursive;
+  font-size: 2rem; /* Consistent with messageText */
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(255, 165, 0, 0.4);
+  border: 4px solid #fff;
+  /* Removed display: flex, align-items: center, gap: 12px because parent handles centering */
+}
+
 .speechText {
   font-family: 'Fredoka One', 'Comic Sans MS', cursive;
   font-size: 1rem;
@@ -721,6 +767,7 @@
   border: 3px solid rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
   min-width: 150px;
+  position: relative; /* Added for absolute positioning of turnIndicator */
 }
 
 .teamScore.activeTeam {
@@ -784,7 +831,12 @@
   padding: 5px 10px;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 10px;
-  margin-top: 5px;
+  /* position: absolute properties */
+  position: absolute;
+  bottom: 5px; /* Adjust as needed */
+  left: 50%;
+  transform: translateX(-50%);
+  /* margin-top is removed */
   animation: pulse 1s ease-in-out infinite;
 }
 
