@@ -11,6 +11,7 @@ const GameplayScreen = ({
   timeLimit,
   skipIntro = false,
   environment = "jungle",
+  forceStop = false,
 }) => {
   const [gameStarted, setGameStarted] = useState(false);
   const [selectedAnimals, setSelectedAnimals] = useState([]);
@@ -33,6 +34,7 @@ const GameplayScreen = ({
   const currentSpeechResolveRef = useRef(null);
   const selectedAnimalsRef = useRef([]);
   const hasSubmittedRef = useRef(false);
+  const shouldStopAllRef = useRef(false);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -60,6 +62,7 @@ const GameplayScreen = ({
 
   const playIntroSpeech = () => {
     if (
+      shouldStopAllRef.current || 
       introPlayedRef.current ||
       introSpeechInProgressRef.current ||
       skipIntro
@@ -73,7 +76,16 @@ const GameplayScreen = ({
     const speechText = generateIntroSpeech();
 
     return new Promise((resolve) => {
+      if (shouldStopAllRef.current) { 
+        resolve();
+        return;
+      }
+      
       playSpeech(speechText, 0.9, () => {
+        if (shouldStopAllRef.current) { 
+          resolve();
+          return;
+        }
         console.log("✅ Intro speech completed");
         introPlayedRef.current = true;
         introSpeechInProgressRef.current = false;
@@ -84,12 +96,17 @@ const GameplayScreen = ({
 
   const readAnimalTwice = (animalName) => {
     return new Promise((resolve) => {
+      if (shouldStopAllRef.current) {  
+        resolve();
+        return;
+      }
+      
       readCountRef.current = 0;
       skipAnimalRef.current = false;
       currentSpeechResolveRef.current = resolve;
 
       const readOnce = () => {
-        if (skipAnimalRef.current) {
+        if (shouldStopAllRef.current || skipAnimalRef.current) { 
           console.log(`⏭️ Skipped "${animalName}"`);
           stopAllSpeech();
           resolve();
@@ -100,7 +117,7 @@ const GameplayScreen = ({
         console.log(`🔊 Reading "${animalName}" (${readCountRef.current}/2)`);
 
         playSpeech(animalName, 0.9, () => {
-          if (skipAnimalRef.current) {
+          if (shouldStopAllRef.current || skipAnimalRef.current) {  
             console.log(`⏭️ Skipped "${animalName}"`);
             stopAllSpeech();
             resolve();
@@ -109,6 +126,10 @@ const GameplayScreen = ({
 
           if (readCountRef.current === 1) {
             setTimeout(() => {
+              if (shouldStopAllRef.current) {  
+                resolve();
+                return;
+              }
               readOnce();
             }, 500);
           } else if (readCountRef.current === 2) {
@@ -158,6 +179,12 @@ const GameplayScreen = ({
 
   const introduceAllAnimals = () => {
     return new Promise(async (resolve) => {
+      if (shouldStopAllRef.current) {  
+        console.log("⚠️ Animal introductions stopped before starting");
+        resolve();
+        return;
+      }
+      
       if (isIntroducingRef.current || hasIntroducedRef.current) {
         console.log("⏭️ Animals already introduced, skipping");
         resolve();
@@ -171,7 +198,25 @@ const GameplayScreen = ({
 
       try {
         for (let i = 0; i < animals.length; i++) {
+          if (shouldStopAllRef.current) {  
+            console.log("⚠️ Animal introductions stopped");
+            setShowCenterStage(false);
+            isIntroducingRef.current = false;
+            setIsIntroducing(false);
+            resolve();
+            return;
+          }
+          
           await introduceSingleAnimal(animals[i]);
+
+          if (shouldStopAllRef.current) {  
+            console.log("⚠️ Animal introductions stopped");
+            setShowCenterStage(false);
+            isIntroducingRef.current = false;
+            setIsIntroducing(false);
+            resolve();
+            return;
+          }
 
           if (i < animals.length - 1) {
             await new Promise((resolve) => setTimeout(resolve, 200));
@@ -204,12 +249,27 @@ const GameplayScreen = ({
     console.log("🎮 Starting game sequence, skipIntro:", skipIntro);
 
     try {
+      if (shouldStopAllRef.current) {  
+        console.log("⚠️ Game sequence stopped before starting");
+        return;
+      }
+      
       if (!skipIntro) {
         console.log("📢 Step 1: Playing intro speech...");
         await playIntroSpeech();
 
+        if (shouldStopAllRef.current) {  
+          console.log("⚠️ Game sequence stopped after intro");
+          return;
+        }
+
         console.log("⏸️ Step 2: Pause after intro...");
         await new Promise((resolve) => setTimeout(resolve, 500));
+
+        if (shouldStopAllRef.current) {  
+          console.log("⚠️ Game sequence stopped after pause");
+          return;
+        }
 
         console.log("🐾 Step 3: Introducing animals...");
         await introduceAllAnimals();
@@ -239,9 +299,11 @@ const GameplayScreen = ({
     console.log("🚀 GameplayScreen mounted");
     selectedAnimalsRef.current = [];
     hasSubmittedRef.current = false;
+    shouldStopAllRef.current = false;  
 
     return () => {
       console.log("🛑 GameplayScreen unmounting - stopping all speech");
+      shouldStopAllRef.current = true;  
       stopAllSpeech();
 
       if (timerRef.current) {
@@ -253,6 +315,27 @@ const GameplayScreen = ({
       hasIntroducedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (forceStop) {
+      console.log("⚠️ FORCE STOP ACTIVATED - halting all activity");
+      shouldStopAllRef.current = true;
+      stopAllSpeech();
+      
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      
+      isIntroducingRef.current = false;
+      skipAnimalRef.current = true;
+      
+      if (currentSpeechResolveRef.current) {
+        currentSpeechResolveRef.current();
+        currentSpeechResolveRef.current = null;
+      }
+    }
+  }, [forceStop]);
 
   const startTimer = () => {
     console.log("⏱️ Starting timer with timeLimit:", timeLimit);

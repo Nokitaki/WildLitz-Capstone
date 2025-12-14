@@ -278,5 +278,19 @@
     "sound_position": "middle",
     "environment": "arctic",
     "difficulty_level": "medium"
+  },
+  {
+    "name": "Pelican",
+    "target_sound": "l",
+    "sound_position": "middle",
+    "environment": "ocean",
+    "difficulty_level": "easy"
+  },
+  {
+    "name": "Pelican",
+    "target_sound": "c",
+    "sound_position": "ending",
+    "environment": "ocean",
+    "difficulty_level": "medium"
   }
 ]
