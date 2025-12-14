@@ -772,6 +772,7 @@ const handlePlayAgain = () => {
             <GameplayScreen
   wordData={wordData[currentWordIndex]}
   config={gameConfig}
+  challengeLevel={gameConfig.challengeLevel}
   onResult={handleWordResult}
   round={currentRound}
   totalRounds={totalRounds}

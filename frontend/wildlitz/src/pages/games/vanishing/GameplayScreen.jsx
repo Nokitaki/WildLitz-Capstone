@@ -10,7 +10,8 @@ import vanishingAudioService from '../../../services/vanishingAudioService';
  */
 const GameplayScreen = ({ 
   wordData, 
-  config, 
+  config,
+  challengeLevel,
   onResult, 
   round, 
   totalRounds,
@@ -36,11 +37,10 @@ const initialTime = TIMER_VALUES[config.difficulty] || 30;
   
   // Game states
   const [timeRemaining, setTimeRemaining] = useState(initialTime);
-const [roundStartTime, setRoundStartTime] = useState(Date.now());
+  const [roundStartTime, setRoundStartTime] = useState(Date.now());
   const [vanishState, setVanishState] = useState('visible');
   const [hasAnswered, setHasAnswered] = useState(false);
   const [preVanishPhase, setPreVanishPhase] = useState('initial');
-  const [showPhonicsHint, setShowPhonicsHint] = useState(false);
   
   // Enhanced vanishing effects
   const [vanishingStyle, setVanishingStyle] = useState('fade');
@@ -50,9 +50,13 @@ const [roundStartTime, setRoundStartTime] = useState(Date.now());
   const [showStars, setShowStars] = useState(false);
   const [showEncouragement, setShowEncouragement] = useState(false);
   const [encouragementText, setEncouragementText] = useState('');
-  // Add this new state for "Show Me" peek functionality
-const [isPeeking, setIsPeeking] = useState(false);
-const peekTimeoutRef = useRef(null);
+  
+  // New state for hint system
+  const [revealedIndices, setRevealedIndices] = useState([]); // For single words/phrases
+  const [revealedWordIndices, setRevealedWordIndices] = useState([]); // For sentences
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [showHintConfirm, setShowHintConfirm] = useState(false);
+
   // Audio refs
   const wordAudioRef = useRef(null);
   const successSoundRef = useRef(null);
@@ -82,12 +86,10 @@ const isCharPartOfPattern = (charIndex, text, pattern) => {
     const [vowel, e] = cleanPattern.split('_');
     
     // Look for: vowel + any consonant + 'e'
-    // Example: "cake" has 'a' at index 1, 'k' at index 2, 'e' at index 3
     for (let i = 0; i < lowerText.length - 2; i++) {
       if (lowerText[i] === vowel && 
           lowerText[i + 2] === e && 
-          lowerText[i + 1] !== ' ') {  // Make sure middle character isn't a space
-        // Underline both the vowel AND the silent e
+          lowerText[i + 1] !== ' ') {
         if (charIndex === i || charIndex === i + 2) {
           return true;
         }
@@ -115,39 +117,30 @@ const isCharPartOfPattern = (charIndex, text, pattern) => {
 const extractPatternLetters = (pattern) => {
   if (!pattern) return '';
   
-  // Handle specific patterns
   if (pattern.includes('short_')) return pattern.replace('short_', '');
   if (pattern.includes('long_')) return pattern.replace('long_', '');
   if (pattern.includes('digraph_')) return pattern.replace('digraph_', '');
   if (pattern.includes('blend_')) return pattern.replace('blend_', '');
   
-  // ✅ NEW: Handle generic category names by returning empty
-  // This prevents trying to find literal "blends" or "digraphs" in the word
   if (pattern === 'blends' || pattern === 'digraphs' || pattern === 'short_vowels' || pattern === 'long_vowels') {
     console.warn(`⚠️ Generic pattern "${pattern}" detected - AI should return specific pattern like "blend_bl"`);
-    return ''; // Don't highlight anything if pattern is too generic
+    return '';
   }
   
-  // If no prefix, return as-is
   return pattern;
 };
   
-  // Initialize vanishing style based on difficulty
   useEffect(() => {
     const styles = ['fade', 'blur', 'letterDrop', 'syllable'];
     const randomStyle = styles[Math.floor(Math.random() * styles.length)];
     setVanishingStyle(config.difficulty === 'hard' ? 'letterDrop' : randomStyle);
   }, [config.difficulty]);
 
-  // Preview phase sequence
-  // Preview phase sequence
-// Preview phase sequence with AUDIO
 useEffect(() => {
   if (preVanishPhase === 'initial') {
     const timer = setTimeout(() => {
       setPreVanishPhase('preview');
       
-      // 🔊 PLAY WORD AUDIO HERE
       if (config.enableAudio && word) {
         vanishingAudioService.speakWord(word, {
           voiceType: config.voiceType || 'happy'
@@ -179,55 +172,35 @@ useEffect(() => {
   setTimeRemaining(initialTime);
   setHasAnswered(false);
   setRoundStartTime(Date.now());
+  setRevealedIndices([]);
+  setRevealedWordIndices([]);
+  setHintsUsed(0);
 }, [wordData, initialTime]);
 
-  // Timer countdown
-// Timer countdown - Auto give up when time runs out
 useEffect(() => {
-  if (preVanishPhase === 'vanishing' && vanishState === 'vanished' && !hasAnswered) {
+  if (!showHintConfirm && preVanishPhase === 'vanishing' && vanishState === 'vanished' && !hasAnswered) {
     if (timeRemaining > 0) {
       const timer = setTimeout(() => setTimeRemaining(timeRemaining - 1), 1000);
       return () => clearTimeout(timer);
     } else {
-      // TIME'S UP! Auto give up
       handleTimeUp();
     }
   }
-}, [timeRemaining, preVanishPhase, vanishState, hasAnswered]);
-
-  // Cleanup peek timeout on unmount
-useEffect(() => {
-  return () => {
-    if (peekTimeoutRef.current) {
-      clearTimeout(peekTimeoutRef.current);
-    }
-  };
-}, []);
-
-  const playWordAudio = () => {
-    if (wordAudioRef.current) {
-      wordAudioRef.current.play().catch(() => {
-        // Audio not available, silent fail
-      });
-    }
-  };
+}, [timeRemaining, preVanishPhase, vanishState, hasAnswered, showHintConfirm]);
 
   const startVanishing = () => {
-  // Get vanish speed from config
   const speedMultipliers = {
-    'slow': 3000,      // 3 seconds to vanish
-    'normal': 1500,    // 1.5 seconds to vanish
-    'fast': 800,       // 0.8 seconds to vanish
-    'instant': 300     // 0.3 seconds to vanish
+    'slow': 3000,
+    'normal': 1500,
+    'fast': 800,
+    'instant': 300
   };
   
   const vanishDuration = speedMultipliers[config.vanishSpeed] || 1500;
   
-  // Start vanishing immediately
   setVanishState('vanishing');
   
   if (vanishingStyle === 'letterDrop') {
-    // Vanish letters one by one
     const letters = word.split('').map((_, index) => index);
     const shuffled = [...letters].sort(() => Math.random() - 0.5);
     const letterDelay = vanishDuration / letters.length;
@@ -238,25 +211,20 @@ useEffect(() => {
       }, i * letterDelay);
     });
     
-    // Mark as fully vanished
     setTimeout(() => {
       setVanishState('vanished');
     }, vanishDuration + 200);
   } else {
-    // For other styles (fade, blur, etc), just fade out gradually
     setTimeout(() => {
       setVanishState('vanished');
     }, vanishDuration);
   }
 };
 
-// Handle time up (auto give up)
-// Handle time up (auto give up)
 const handleTimeUp = () => {
   if (hasAnswered) return;
   setHasAnswered(true);
   
-  // Show the word again
   setVanishState('visible');
   setPreVanishPhase('preview');
   
@@ -267,11 +235,10 @@ const handleTimeUp = () => {
     vanishingAudioService.playGiveUpSound();
   }
   
-  // Calculate elapsed time
   const elapsedTime = Math.floor((Date.now() - roundStartTime) / 1000);
   
   setTimeout(() => {
-    onResult('timeout', word, elapsedTime);  // ✅ CORRECT - says 'timeout'
+    onResult('timeout', word, elapsedTime);
   }, 1500);
 };
 
@@ -279,11 +246,9 @@ const handleTimeUp = () => {
   if (hasAnswered) return;
   setHasAnswered(true);
   
-  // Show the word again!
   setVanishState('visible');
   setPreVanishPhase('preview');
   
-  // Fun success feedback
   setShowStars(true);
   setEncouragementText('🌟 Amazing! You got it! 🌟');
   setShowEncouragement(true);
@@ -292,45 +257,59 @@ const handleTimeUp = () => {
     vanishingAudioService.playSuccessSound();
   }
   
-// Calculate elapsed time
-const elapsedTime = Math.floor((Date.now() - roundStartTime) / 1000);
+  const elapsedTime = Math.floor((Date.now() - roundStartTime) / 1000);
 
-setTimeout(() => {
-  onResult(true, word, elapsedTime);
-}, 1500);
+  setTimeout(() => {
+    onResult(true, word, elapsedTime);
+  }, 1500);
 };
 
-  const handleShowWord = () => {
-  if (hasAnswered || isPeeking) return;
-  
-  // Show word temporarily for 5 seconds
-  setIsPeeking(true);
-  setVanishState('visible');
-  setPreVanishPhase('preview');
-  
-  setEncouragementText('👀 Take a good look! 5 seconds...');
-  setShowEncouragement(true);
-  
-  // Clear any existing timeout
-  if (peekTimeoutRef.current) {
-    clearTimeout(peekTimeoutRef.current);
-  }
-  
-  // Hide word again after 5 seconds
-  peekTimeoutRef.current = setTimeout(() => {
-    setVanishState('vanished');
-    setPreVanishPhase('vanishing');
-    setIsPeeking(false);
-    setShowEncouragement(false);
-    setEncouragementText('');
-  }, 5000);
-};
+  const requestHint = () => {
+    if (hasAnswered || hintsUsed >= 2) return;
+    setShowHintConfirm(true);
+  };
+
+  const confirmUseHint = () => {
+    setShowHintConfirm(false);
+    setTimeRemaining(prev => Math.max(0, prev - 3));
+
+    if (challengeLevel === 'simple_sentences') {
+        const words = word.split(' ');
+        const allWordIndices = words.map((_, i) => i);
+        const unrevealedWordIndices = allWordIndices.filter(i => !revealedWordIndices.includes(i));
+        
+        if (unrevealedWordIndices.length > 0) {
+            const shuffled = [...unrevealedWordIndices].sort(() => 0.5 - Math.random());
+            const indexToReveal = shuffled[0];
+            setRevealedWordIndices(prev => [...prev, indexToReveal]);
+        }
+    } else {
+        const allIndices = word.split('').map((_, i) => i);
+        const unrevealedIndices = allIndices.filter(i => !revealedIndices.includes(i));
+        let indicesToReveal = [];
+        const shuffled = [...unrevealedIndices].sort(() => 0.5 - Math.random());
+
+        if (hintsUsed === 0) {
+          const revealCount = Math.max(1, Math.min(3, Math.floor(word.length / 3)));
+          indicesToReveal = shuffled.slice(0, revealCount);
+        } else if (hintsUsed === 1) {
+          const additionalRevealCount = word.length < 8 ? 1 : 2;
+          indicesToReveal = shuffled.slice(0, Math.min(additionalRevealCount, shuffled.length));
+        }
+        setRevealedIndices(prev => [...prev, ...indicesToReveal]);
+    }
+
+    setHintsUsed(prev => prev + 1);
+  };
+
+  const cancelUseHint = () => {
+    setShowHintConfirm(false);
+  };
 
   const handleGiveUp = () => {
   if (hasAnswered) return;
   setHasAnswered(true);
   
-  // Show the word again!
   setVanishState('visible');
   setPreVanishPhase('preview');
   
@@ -341,12 +320,11 @@ setTimeout(() => {
     vanishingAudioService.playGiveUpSound();
   }
   
-// Calculate elapsed time
-const elapsedTime = Math.floor((Date.now() - roundStartTime) / 1000);
+  const elapsedTime = Math.floor((Date.now() - roundStartTime) / 1000);
 
-setTimeout(() => {
-  onResult('giveup', word, elapsedTime);
-}, 1500);
+  setTimeout(() => {
+    onResult('giveup', word, elapsedTime);
+  }, 1500);
 };
 
   const handleSkip = () => {
@@ -355,51 +333,35 @@ setTimeout(() => {
     onResult('skip', word, 0);
   };
 
-  // Render word with vanishing effect
-  // Render word with vanishing effect
 const renderWord = () => {
   const text = word.trim();
   const words = text.split(' ');
-  
-  // Extract the actual pattern to search for
   const actualPattern = targetLetter || extractPatternLetters(pattern);
-  
+
   // ===== PREVIEW & READY PHASE =====
   if (preVanishPhase === 'preview' || preVanishPhase === 'ready') {
     let globalCharIndex = 0;
-    
     return (
-      <motion.div
-        className={styles.wordDisplay}
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', bounce: 0.5 }}
-      >
+      <motion.div className={styles.wordDisplay} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', bounce: 0.5 }}>
         {words.map((singleWord, wordIndex) => (
-          <span key={wordIndex} className={styles.wordWrapper}>
-            {singleWord.split('').map((letter, letterIndex) => {
-              const currentGlobalIndex = globalCharIndex;
-              globalCharIndex++;
-              
-              const isPattern = config.highlightTarget && isCharPartOfPattern(currentGlobalIndex, text, actualPattern);
-              
-              return (
-                <motion.span
-                  key={`${wordIndex}-${letterIndex}`}
-                  className={`${styles.letter} ${isPattern ? styles.patternLetter : ''}`}
-                  initial={{ y: -50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: currentGlobalIndex * 0.05, type: 'spring', bounce: 0.6 }}
-                >
-                  {letter}
-                </motion.span>
-              );
-            })}
+          <React.Fragment key={wordIndex}>
+            <span className={styles.wordWrapper}>
+              {singleWord.split('').map((letter, letterIndex) => {
+                const currentGlobalIndex = globalCharIndex;
+                globalCharIndex++;
+                const isPattern = config.highlightTarget && isCharPartOfPattern(currentGlobalIndex, text, actualPattern);
+                return (
+                  <motion.span key={letterIndex} className={`${styles.letter} ${isPattern ? styles.patternLetter : ''}`} initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: currentGlobalIndex * 0.05, type: 'spring', bounce: 0.6 }}>
+                    {letter}
+                  </motion.span>
+                );
+              })}
+            </span>
             {wordIndex < words.length - 1 && (() => {
-              globalCharIndex++;
-              return <span className={styles.letter}> </span>;
+              globalCharIndex++; // Account for space
+              return ' ';
             })()}
-          </span>
+          </React.Fragment>
         ))}
       </motion.div>
     );
@@ -407,8 +369,45 @@ const renderWord = () => {
   
   // ===== VANISHING PHASE =====
   if (preVanishPhase === 'vanishing') {
-    let globalCharIndex = 0;
+    // --- HINT DISPLAY LOGIC ---
+    if (vanishState === 'vanished' && (revealedIndices.length > 0 || revealedWordIndices.length > 0)) {
+      let globalCharIndex = 0;
+      return (
+        <div className={styles.wordDisplay}>
+          {words.map((singleWord, wordIndex) => (
+            <React.Fragment key={wordIndex}>
+              <span className={styles.wordWrapper}>
+                {singleWord.split('').map((letter, letterIndex) => {
+                  const currentGlobalIndex = globalCharIndex;
+                  globalCharIndex++;
+                  let isRevealed = challengeLevel === 'simple_sentences' ? revealedWordIndices.includes(wordIndex) : revealedIndices.includes(currentGlobalIndex);
+                  const isPattern = isRevealed && config.highlightTarget && isCharPartOfPattern(currentGlobalIndex, text, actualPattern);
+                  
+                  return (
+                    <motion.span
+                      key={letterIndex}
+                      className={`${styles.letter} ${isPattern ? styles.patternLetter : ''}`}
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: isRevealed ? 1 : 0, scale: isRevealed ? 1 : 0.5 }}
+                      transition={{ duration: 0.4, ease: 'easeOut' }}
+                    >
+                      {letter}
+                    </motion.span>
+                  );
+                })}
+              </span>
+              {wordIndex < words.length - 1 && (() => {
+                globalCharIndex++; // Account for space
+                return ' ';
+              })()}
+            </React.Fragment>
+          ))}
+        </div>
+      );
+    }
     
+    // --- VANISHING ANIMATION LOGIC ---
+    let globalCharIndex = 0;
     const getOpacityStyle = () => {
       if (vanishState === 'vanished') return { opacity: 0 };
       if (vanishState === 'vanishing') {
@@ -422,56 +421,46 @@ const renderWord = () => {
       <div className={styles.wordDisplay}>
         {vanishingStyle === 'letterDrop' ? (
           words.map((singleWord, wordIndex) => (
-            <span key={wordIndex} className={styles.wordWrapper}>
-              {singleWord.split('').map((letter, letterIndex) => {
-                const currentGlobalIndex = globalCharIndex;
-                const isVanished = vanishingLetters.includes(currentGlobalIndex);
-                globalCharIndex++;
-                
-                return (
-                  <motion.span
-                    key={letterIndex}
-                    className={styles.letter}
-                    animate={{
-                      opacity: isVanished ? 0 : 1,
-                      y: isVanished ? 50 : 0,
-                      rotate: isVanished ? 180 : 0,
-                    }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    {letter}
-                  </motion.span>
-                );
-              })}
+             <React.Fragment key={wordIndex}>
+              <span className={styles.wordWrapper}>
+                {singleWord.split('').map((letter, letterIndex) => {
+                  const currentGlobalIndex = globalCharIndex;
+                  const isVanished = vanishingLetters.includes(currentGlobalIndex);
+                  globalCharIndex++;
+                  return (
+                    <motion.span key={letterIndex} className={styles.letter} animate={{ opacity: isVanished ? 0 : 1, y: isVanished ? 50 : 0, rotate: isVanished ? 180 : 0, }} transition={{ duration: 0.5 }}>
+                      {letter}
+                    </motion.span>
+                  );
+                })}
+              </span>
               {wordIndex < words.length - 1 && (() => {
-                globalCharIndex++;
-                return <span className={styles.letter}> </span>;
+                  globalCharIndex++;
+                  return ' ';
               })()}
-            </span>
+            </React.Fragment>
           ))
         ) : (
           <div style={getOpacityStyle()}>
             {words.map((singleWord, wordIndex) => (
-              <span key={wordIndex} className={styles.wordWrapper}>
-                {singleWord.split('').map((letter, letterIndex) => {
-                  const currentGlobalIndex = globalCharIndex;
-                  const isPattern = config.highlightTarget && isCharPartOfPattern(currentGlobalIndex, text, actualPattern);
-                  globalCharIndex++;
-                  
-                  return (
-                    <span 
-                      key={letterIndex} 
-                      className={`${styles.letter} ${isPattern ? styles.patternLetter : ''}`}
-                    >
-                      {letter}
-                    </span>
-                  );
-                })}
+              <React.Fragment key={wordIndex}>
+                <span className={styles.wordWrapper}>
+                  {singleWord.split('').map((letter, letterIndex) => {
+                    const currentGlobalIndex = globalCharIndex;
+                    globalCharIndex++;
+                    const isPattern = config.highlightTarget && isCharPartOfPattern(currentGlobalIndex, text, actualPattern);
+                    return (
+                      <span key={letterIndex} className={`${styles.letter} ${isPattern ? styles.patternLetter : ''}`}>
+                        {letter}
+                      </span>
+                    );
+                  })}
+                </span>
                 {wordIndex < words.length - 1 && (() => {
-                  globalCharIndex++;
-                  return <span className={styles.letter}> </span>;
+                    globalCharIndex++;
+                    return ' ';
                 })()}
-              </span>
+              </React.Fragment>
             ))}
           </div>
         )}
@@ -483,13 +472,16 @@ const renderWord = () => {
   return (
     <div className={styles.wordDisplay}>
       {words.map((singleWord, wordIndex) => (
-        <span key={wordIndex} className={styles.wordWrapper}>
-          {singleWord.split('').map((letter, letterIndex) => (
-            <span key={letterIndex} className={styles.letter}>
-              {letter}
-            </span>
-          ))}
-        </span>
+        <React.Fragment key={wordIndex}>
+          <span className={styles.wordWrapper}>
+            {singleWord.split('').map((letter, letterIndex) => (
+              <span key={letterIndex} className={styles.letter}>
+                {letter}
+              </span>
+            ))}
+          </span>
+          {wordIndex < words.length - 1 && ' '}
+        </React.Fragment>
       ))}
     </div>
   );
@@ -497,6 +489,19 @@ const renderWord = () => {
 
   return (
     <div className={styles.gameplayContainer}>
+      
+      {showHintConfirm && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h2>Use a Hint?</h2>
+            <p>This will cost 3 seconds of your time. Are you sure?</p>
+            <div className={styles.modalActions}>
+              <button onClick={confirmUseHint} className={`${styles.actionButton} ${styles.iKnowItButton}`}>Yes, use hint</button>
+              <button onClick={cancelUseHint} className={`${styles.actionButton} ${styles.giveUpButton}`}>No, cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
 {/* 📊 Top Game Info Bar */}
 <div className={styles.gameInfoBar}>
@@ -631,7 +636,7 @@ const renderWord = () => {
             </motion.div>
           )}
           
-          {preVanishPhase === 'vanishing' && vanishState === 'vanished' && !hasAnswered && (
+          {preVanishPhase === 'vanishing' && vanishState === 'vanished' && !hasAnswered && !revealedIndices.length > 0 && (
             <motion.div
               className={`${styles.phaseMessage} ${styles.thinkMessage}`}
               initial={{ scale: 0 }}
@@ -709,7 +714,7 @@ const renderWord = () => {
         <motion.button
           className={`${styles.actionButton} ${styles.iKnowItButton}`}
           onClick={handleIKnowIt}
-          disabled={hasAnswered || isPeeking || preVanishPhase !== 'vanishing' || vanishState !== 'vanished'}
+          disabled={hasAnswered || preVanishPhase !== 'vanishing' || vanishState !== 'vanished'}
           whileHover={{ scale: 1.05, rotate: 2 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -718,14 +723,14 @@ const renderWord = () => {
         </motion.button>
 
         <motion.button
-          className={`${styles.actionButton} ${styles.showMeButton}`}
-          onClick={handleShowWord}
-          disabled={hasAnswered || preVanishPhase !== 'vanishing' || vanishState !== 'vanished'}
+          className={`${styles.actionButton} ${styles.hintButton}`}
+          onClick={requestHint}
+          disabled={hasAnswered || preVanishPhase !== 'vanishing' || vanishState !== 'vanished' || hintsUsed >= 2}
           whileHover={{ scale: 1.05, rotate: -2 }}
           whileTap={{ scale: 0.95 }}
         >
-          <span className={styles.buttonEmoji}>👀</span>
-          <span className={styles.buttonText}>Show Me</span>
+          <span className={styles.buttonEmoji}>💡</span>
+          <span className={styles.buttonText}>Hint ({2 - hintsUsed} left)</span>
         </motion.button>
 
         <motion.button
