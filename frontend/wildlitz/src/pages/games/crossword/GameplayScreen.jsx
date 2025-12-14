@@ -357,36 +357,42 @@ const generateCrosswordLayout = useCallback(() => {
     attempts++;
   }
 
-  // ============================================
-  // CALCULATE GRID BOUNDS
-  // ============================================
-  let minRow = gridSize, maxRow = 0, minCol = gridSize, maxCol = 0;
-  
-  placements.forEach(p => {
-    const len = p.word.answer.length;
-    if (p.direction === 'across') {
-      minRow = Math.min(minRow, p.row);
-      maxRow = Math.max(maxRow, p.row);
-      minCol = Math.min(minCol, p.col);
-      maxCol = Math.max(maxCol, p.col + len - 1);
-    } else {
-      minRow = Math.min(minRow, p.row);
-      maxRow = Math.max(maxRow, p.row + len - 1);
-      minCol = Math.min(minCol, p.col);
-      maxCol = Math.max(maxCol, p.col);
-    }
-  });
+ // ============================================
+// CALCULATE GRID BOUNDS - FIXED FOR 2 SKILLS
+// ============================================
+// ============================================
+// CALCULATE GRID BOUNDS - FIXED FOR 2 SKILLS
+// ============================================
+let minRow = gridSize, maxRow = 0, minCol = gridSize, maxCol = 0;
 
-  // Add padding
-  minRow = Math.max(0, minRow - 1);
-  maxRow = Math.min(gridSize - 1, maxRow + 1);
-  minCol = Math.max(0, minCol - 1);
-  maxCol = Math.min(gridSize - 1, maxCol + 1);
+placements.forEach(p => {
+  const len = p.word.answer.length;
+  if (p.direction === 'across') {
+    minRow = Math.min(minRow, p.row);
+    maxRow = Math.max(maxRow, p.row);
+    minCol = Math.min(minCol, p.col);
+    maxCol = Math.max(maxCol, p.col + len - 1);
+  } else {
+    minRow = Math.min(minRow, p.row);
+    maxRow = Math.max(maxRow, p.row + len - 1);
+    minCol = Math.min(minCol, p.col);
+    maxCol = Math.max(maxCol, p.col);
+  }
+});
 
-  const finalWidth = maxCol - minCol + 1;
-  const finalHeight = maxRow - minRow + 1;
+// INCREASED PADDING - fixes cell overlap issue
+const padding = 2; // Changed from 1 to 2
+minRow = Math.max(0, minRow - padding);
+maxRow = Math.min(gridSize - 1, maxRow + padding);
+minCol = Math.max(0, minCol - padding);
+maxCol = Math.min(gridSize - 1, maxCol + padding);
 
-  console.log(`📐 Final grid: ${finalWidth}x${finalHeight}`);
+const finalWidth = maxCol - minCol + 1;
+const finalHeight = maxRow - minRow + 1;
+
+console.log(`📐 Final grid: ${finalWidth}x${finalHeight}`);
+console.log(`📍 Bounds: rows(${minRow}-${maxRow}), cols(${minCol}-${maxCol})`);
+console.log(`📊 Total cells: ${finalWidth * finalHeight}, Placements: ${placements.length}`);
 
  
   const cells = [];
@@ -420,13 +426,22 @@ const generateCrosswordLayout = useCallback(() => {
       return a.col - b.col;
     });
 
-  adjustedPlacements.forEach((p, idx) => {
+ adjustedPlacements.forEach((p, idx) => {
     const cellIdx = p.row * finalWidth + p.col;
     const cell = cells[cellIdx];
     
     if (cell && !cell.isEmpty) {
-      cell.number = idx + 1;
-      cell.isWordStart = true;
+      // Handle multiple numbers in same cell
+      if (cell.isWordStart) {
+        // Cell already has a number, combine them
+        const existingNumber = cell.number;
+        cell.number = `${existingNumber}/${p.wordIndex + 1}`;
+      } else {
+        // First number for this cell
+        cell.number = p.wordIndex + 1;
+        cell.isWordStart = true;
+      }
+      
       cell.wordIndex = p.wordIndex;
     }
   });

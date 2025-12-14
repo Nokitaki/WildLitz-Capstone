@@ -251,89 +251,173 @@
   min-height: 0;
 }
 
+/* ========================================
+   CROSSWORD GRID CONTAINER - MAXIMIZED
+   ======================================== */
 .gridContainer {
-  width: 100%;
-  height: 100%;
+  background: transparent;
+  border-radius: 25px;
+  box-shadow: 
+    0 8px 30px rgba(156, 39, 176, 0.3),
+    inset 0 2px 10px rgba(255, 255, 255, 0.5);
+  padding: 20px; /* Increased padding */
+  isolation: isolate;
+  border: 64px solid #fffbf0;
+  position: relative;
+  overflow: visible;
+  width: 100%; /* Maximize width */
+  max-width: 100%; /* Use full available width */
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #fff9e6, #fff3cc);
-  border-radius: 15px;
-  box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.08);
-  padding: 15px;
 }
 
+.gridContainer::before {
+  content: '🧩';
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  font-size: 35px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  animation: float 3s ease-in-out infinite;
+  z-index: 10;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* GRID LAYOUT - LARGER CELLS */
 .grid {
-  background: transparent;
+  background: #fffbf0;
+  border-radius: 15px;
+  padding: 20px; /* More internal padding */
+  box-shadow: inset 0 4px 15px rgba(0, 0, 0, 0.08);
+  display: grid;
+  gap: 4px; /* Small gap between cells */
+  position: relative;
+  transform: scale(1.1); /* Make grid 10% larger */
+  transform-origin: center;
 }
 
+/* ========================================
+   GRID CELLS - LARGER & VISIBLE NUMBERS
+   ======================================== */
 .cell {
   width: 100%;
   height: 100%;
-  min-width: 45px;
-  min-height: 45px;
+  min-width: 51px; /* Increased from 45px */
+  min-height: 35px; /* Increased from 45px */
   background: white;
-  border: 2px solid #ddd;
-  border-radius: 6px;
+  border: 3px solid #bfd89c; /* Thicker border */
+  border-radius: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-  font-size: 20px;
+  font-size: 24px; /* Larger font */
   font-weight: 700;
-  color: #333;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
 
 .cell:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px);
 }
 
 .emptyCell {
   width: 100%;
   height: 100%;
-  min-width: 45px;
-  min-height: 45px;
+  min-width: 35px;
+  min-height: 10px;
   background: transparent;
   border: none;
 }
 
+/* FIXED: Cell Number - NOW VISIBLE */
 .cellNumber {
   position: absolute;
-  top: 2px;
-  left: 3px;
-  font-size: 10px;
-  color: #666;
-  font-weight: 600;
+  top: 1px;
+  left: 2px;
+  font-size: 8px; /* Larger number */
+  color: #ffffff; /* White color for contrast */
+  font-weight: 900;
+  background: #d3a20d; /* Purple background */
+  border-radius: 80%;
+  width: auto;
+  min-width: 16px;
+  padding: 2px 4px;
+  height: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  z-index: 10; /* CRITICAL: Must be above cellValue */
+  text-shadow: none;
+  -webkit-text-fill-color: white; /* Override gradient */
 }
 
+/* Cell Value - Colorful Text */
 .cellValue {
-  font-size: 20px;
+  font-size: 24px; /* Larger text */
   text-transform: uppercase;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ec6f08 0%, #43a047 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  z-index: 1; /* Below cellNumber */
 }
 
+/* ========================================
+   SPECIAL CELL STATES
+   ======================================== */
 .currentCell {
-  background: linear-gradient(135deg, #bbdefb, #90caf9);
-  border: 2px solid #2196f3;
-  box-shadow: 0 0 15px rgba(33, 150, 243, 0.6);
-  animation: cellGlow 2s ease-in-out infinite;
+  background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+  border: 3px solid #fbc02d;
+  box-shadow: 
+    0 0 20px rgba(251, 192, 45, 0.6),
+    0 4px 15px rgba(0, 0, 0, 0.2);
+  animation: cellPulse 2s ease-in-out infinite;
 }
 
-@keyframes cellGlow {
+.currentCell .cellValue {
+  background: linear-gradient(135deg, #f57c00 0%, #ff9800 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.currentCell .cellNumber {
+  background: #f57c00; /* Match current cell theme */
+}
+
+@keyframes cellPulse {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(33, 150, 243, 0.6);
+    box-shadow: 0 0 20px rgba(251, 192, 45, 0.6);
   }
   50% {
-    box-shadow: 0 0 25px rgba(33, 150, 243, 0.9);
+    box-shadow: 0 0 30px rgba(251, 192, 45, 0.9);
   }
 }
 
 .solvedCell {
-  background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
-  border: 2px solid #4caf50;
-  box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+  background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+  border: 3px solid #4caf50;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+}
+
+.solvedCell .cellValue {
+  background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.solvedCell .cellNumber {
+  background: #10f304; /* Dark green for solved */
 }
 
 .clickableCell {
@@ -341,8 +425,8 @@
 }
 
 .clickableCell:hover {
-  transform: scale(1.08);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 /* Clue Card - BIGGER WITH ANIMATION */
@@ -879,7 +963,7 @@
 
 .musicToggleBtn {
   position: fixed;
-  bottom: 20px; /* Move higher to avoid overlap */
+  bottom: 20px; 
   right: 20px;
   width: 55px;
   height: 55px;
