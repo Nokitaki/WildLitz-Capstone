@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom"; // 👈 1. Import useNavigate
 import axios from "axios";
 import styles from "../../../styles/games/syllable/SyllableConfigScreen.module.css";
 import EditWordModal from "./EditWordModal";
@@ -8,6 +9,8 @@ import ProgressModal from "./ProgressModal";
 import CustomWordsManager from "./CustomWordsManager";
 
 const SyllableConfigScreen = ({ onStartGame }) => {
+  const navigate = useNavigate(); // 👈 2. Initialize hook
+
   // State managements
   const [difficulty, setDifficulty] = useState("easy");
   const [questionCount, setQuestionCount] = useState(5);
@@ -1039,6 +1042,15 @@ const SyllableConfigScreen = ({ onStartGame }) => {
 
   return (
     <div className={styles.fixedContainer}>
+      {/* 🔴 3. EXIT BUTTON ADDED HERE */}
+      <button
+        className={styles.exitButton}
+        onClick={() => navigate('/home')}
+        title="Exit to Home"
+      >
+        ✕
+      </button>
+
       <div className={styles.gameCard}>
         <div className={styles.header}>
           <h1>WildLitz Syllable Clapping</h1>
@@ -1233,13 +1245,9 @@ const SyllableConfigScreen = ({ onStartGame }) => {
         </div>
       </div>
 
-      {/* 
-  ==========================================
+      {/* ==========================================
   CUSTOM WORD MODAL - FOR CREATING NEW WORDS ONLY
   ==========================================
-  Note: This modal is ONLY for adding NEW custom words to the database.
-  For EDITING existing words, use the EditWordModal which is opened
-  from the "Manage Database" search panel.
 */}
       <AnimatePresence>
         {showCustomWordModal && (
@@ -1851,7 +1859,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                 </motion.button>
               </div>
 
-              {/* 👇 PASTE THE SEARCH PANEL CODE YOU CUT EARLIER RIGHT HERE */}
               {/* DATABASE SEARCH PANEL */}
               <div className={styles.searchPanel}>
                 <div className={styles.searchHeader}>
@@ -1981,8 +1988,6 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                     </button>
                   </div>
                 )}
-
-                {/* We will add Pagination controls here later */}
               </div>
             </motion.div>
           </div>
