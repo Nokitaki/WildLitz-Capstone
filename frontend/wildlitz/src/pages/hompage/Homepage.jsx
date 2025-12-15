@@ -145,6 +145,40 @@ function HomePage() {
             <a href="#" className={styles.navLink}>
               Home
             </a>
+            
+            {/* ✅ NEW: Games Dropdown */}
+            <div className={styles.dropdown}>
+              <span className={`${styles.navLink} ${styles.dropdownTrigger}`}>
+                Games ▾
+              </span>
+              <div className={styles.dropdownContent}>
+                <div 
+                  onClick={() => handleGameClick("syllable-clapping")} 
+                  className={styles.dropdownItem}
+                >
+                  Syllable Clapping
+                </div>
+                <div 
+                  onClick={() => handleGameClick("sound-safari")} 
+                  className={styles.dropdownItem}
+                >
+                  Sound Safari
+                </div>
+                <div 
+                  onClick={() => handleGameClick("vanishing-game")} 
+                  className={styles.dropdownItem}
+                >
+                  Vanishing Game
+                </div>
+                <div 
+                  onClick={() => handleGameClick("crossword-puzzle")} 
+                  className={styles.dropdownItem}
+                >
+                  Crossword Puzzle
+                </div>
+              </div>
+            </div>
+
             <a href="#about" className={styles.navLink}>
               About Us
             </a>
@@ -171,7 +205,7 @@ function HomePage() {
                 className={styles.gameDescription}
                 style={{
                   textAlign: "center",
-                  fontSize: "20px", // <--- Add this line
+                  fontSize: "20px", 
                 }}
               >
                                 Join on an exciting adventure! Master reading
