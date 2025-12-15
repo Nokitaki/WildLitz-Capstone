@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/vanishing/GameplayScreen.module.css';
 import vanishingAudioService from '../../../services/vanishingAudioService';
+import FloatingEmojis from '../../../components/animations/FloatingEmojis';
 
 /**
  * 🎨 COMPLETELY REDESIGNED GameplayScreen for Kids
@@ -594,6 +595,7 @@ const renderWord = () => {
 
   return (
     <div className={styles.gameplayContainer}>
+      <FloatingEmojis />
       
       {showHintConfirm && (
         <div className={styles.modalOverlay}>
