@@ -292,5 +292,19 @@
     "sound_position": "ending",
     "environment": "ocean",
     "difficulty_level": "medium"
+  },
+  {
+    "name": "Orangutan",
+    "target_sound": "g",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "hard"
+  },
+  {
+    "name": "gull",
+    "target_sound": "g",
+    "sound_position": "beginning",
+    "environment": "arctic",
+    "difficulty_level": "hard"
   }
 ]
