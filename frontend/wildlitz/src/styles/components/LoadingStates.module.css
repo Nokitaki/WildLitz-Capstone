@@ -1,7 +1,527 @@
-/* src/styles/components/LoadingStates.module.css - FULL SCREEN IMMERSIVE VERSION */
+/* src/styles/components/LoadingStates.module.css - OPTIMIZED COOL VERSION */
 
 /* ============================================ */
-/* Generic Loading Spinner */
+/* 🔥 FULL SCREEN COOL Loading Experience */
+/* ============================================ */
+.fullscreenLoadingContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+/* Smooth gradient background */
+.gradientBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  z-index: 0;
+}
+
+/* Optimized floating particles */
+.particlesContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  font-size: 2rem;
+  pointer-events: none;
+  opacity: 0.4;
+  animation: particleFloat 8s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes particleFloat {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateY(0) scale(0.8);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translateY(-40px) scale(1.2);
+  }
+}
+
+/* Main content */
+.fullscreenContent {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 900px;
+  width: 90%;
+  padding: 0;
+}
+
+/* Hero Icon - Larger but optimized */
+.heroIcon {
+  font-size: 8rem;
+  margin-bottom: 40px;
+  filter: drop-shadow(0 15px 40px rgba(240, 147, 251, 0.6));
+  animation: heroFloat 4s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes heroFloat {
+  0%, 100% { 
+    transform: translateY(0) scale(1);
+  }
+  50% { 
+    transform: translateY(-20px) scale(1.08);
+  }
+}
+
+/* Title with gradient */
+.heroTitleWrapper {
+  margin-bottom: 60px;
+  position: relative;
+}
+
+.heroTitle {
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin: 0;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  background: linear-gradient(
+    90deg,
+    #667eea 0%,
+    #f093fb 50%,
+    #667eea 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: titleShine 3s linear infinite;
+  filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.5));
+  will-change: background-position;
+}
+
+@keyframes titleShine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* Progress wrapper */
+.heroProgressWrapper {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  justify-content: center;
+  margin-bottom: 50px;
+}
+
+/* Progress bar */
+.heroProgressBarContainer {
+  flex: 1;
+  max-width: 600px;
+  position: relative;
+}
+
+.heroProgressBar {
+  width: 100%;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50px;
+  position: relative;
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.3) inset,
+    0 0 40px rgba(102, 126, 234, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.heroProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background-size: 200% 100%;
+  border-radius: 50px;
+  position: relative;
+  box-shadow: 0 0 30px rgba(240, 147, 251, 0.8);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 30px;
+  animation: progressFlow 3s linear infinite;
+  will-change: width;
+}
+
+@keyframes progressFlow {
+  to {
+    background-position: 200% 50%;
+  }
+}
+
+/* Simple shine effect */
+.heroProgressShine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 100%
+  );
+  animation: shineMove 2s infinite;
+  will-change: left;
+}
+
+@keyframes shineMove {
+  to {
+    left: 200%;
+  }
+}
+
+/* Sparkle at progress end */
+.heroProgressSparkle {
+  position: absolute;
+  right: -15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 2rem;
+  pointer-events: none;
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+  animation: sparkle 1.5s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translateY(-50%) scale(0.9) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.2) rotate(180deg);
+  }
+}
+
+/* Percentage badge */
+.heroProgressBadge {
+  min-width: 140px;
+  padding: 20px 30px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 147, 251, 0.2));
+  border-radius: 50px;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(240, 147, 251, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  backdrop-filter: blur(10px);
+  border: 3px solid rgba(255, 255, 255, 0.4);
+  animation: badgeFloat 2.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes badgeFloat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.heroProgressNumber {
+  font-size: 3rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.heroProgressSymbol {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  opacity: 0.9;
+}
+
+/* Message container */
+.heroMessageContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 80px;
+  margin-bottom: 35px;
+  padding: 18px 35px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(15px);
+  border-radius: 25px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.heroMessageEmoji {
+  font-size: 3rem;
+  display: inline-block;
+  filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.4));
+  animation: emojiDance 2.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes emojiDance {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-15deg) scale(1.1);
+  }
+  75% {
+    transform: rotate(15deg) scale(1.1);
+  }
+}
+
+.heroMessageText {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  text-align: center;
+  line-height: 1.5;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Loading dots */
+.heroLoadingDots {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.heroDot {
+  font-size: 2rem;
+  color: white;
+  display: inline-block;
+  line-height: 1;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+/* Warning message */
+.heroWarningMessage {
+  margin-top: 50px;
+  padding: 25px 35px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 193, 7, 0.15));
+  border: 3px solid #ffc107;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  animation: warningPulse 2s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes warningPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+.heroWarningIcon {
+  font-size: 3rem;
+  flex-shrink: 0;
+  animation: warningShake 0.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes warningShake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
+}
+
+.heroWarningContent {
+  text-align: left;
+  flex: 1;
+}
+
+.heroWarningTitle {
+  color: #856404;
+  font-weight: 800;
+  font-size: 1.4rem;
+  margin: 0 0 8px 0;
+}
+
+.heroWarningText {
+  color: #856404;
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* ============================================ */
+/* Responsive Design */
+/* ============================================ */
+@media (max-width: 1024px) {
+  .heroIcon {
+    font-size: 7rem;
+  }
+  
+  .heroTitle {
+    font-size: 3rem;
+  }
+  
+  .heroProgressNumber {
+    font-size: 2.8rem;
+  }
+  
+  .heroMessageText {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .heroIcon {
+    font-size: 6rem;
+    margin-bottom: 30px;
+  }
+  
+  .heroTitle {
+    font-size: 2.5rem;
+    letter-spacing: 2px;
+  }
+  
+  .heroProgressWrapper {
+    flex-direction: column;
+    gap: 25px;
+  }
+  
+  .heroProgressBar {
+    width: 100%;
+    height: 28px;
+  }
+  
+  .heroProgressBadge {
+    min-width: 120px;
+    padding: 18px 25px;
+  }
+  
+  .heroProgressNumber {
+    font-size: 2.5rem;
+  }
+  
+  .heroProgressSymbol {
+    font-size: 1.8rem;
+  }
+  
+  .heroMessageText {
+    font-size: 1.3rem;
+  }
+  
+  .heroMessageEmoji {
+    font-size: 2.5rem;
+  }
+  
+  .particle {
+    font-size: 1.5rem;
+  }
+  
+  .heroWarningMessage {
+    flex-direction: column;
+    text-align: center;
+    padding: 22px 28px;
+  }
+  
+  .heroWarningContent {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroIcon {
+    font-size: 5rem;
+  }
+  
+  .heroTitle {
+    font-size: 2rem;
+    letter-spacing: 1px;
+  }
+  
+  .heroProgressBar {
+    height: 25px;
+  }
+  
+  .heroProgressBadge {
+    min-width: 110px;
+    padding: 16px 22px;
+  }
+  
+  .heroProgressNumber {
+    font-size: 2.2rem;
+  }
+  
+  .heroProgressSymbol {
+    font-size: 1.6rem;
+  }
+  
+  .heroMessageContainer {
+    padding: 15px 25px;
+    gap: 15px;
+  }
+  
+  .heroMessageText {
+    font-size: 1.2rem;
+  }
+  
+  .heroMessageEmoji {
+    font-size: 2.2rem;
+  }
+  
+  .heroDot {
+    font-size: 1.8rem;
+  }
+  
+  .heroWarningIcon {
+    font-size: 2.5rem;
+  }
+  
+  .heroWarningTitle {
+    font-size: 1.2rem;
+  }
+  
+  .heroWarningText {
+    font-size: 1rem;
+  }
+}
+
+/* ============================================ */
+/* Generic Loading Components */
 /* ============================================ */
 .spinnerContainer {
   display: flex;
@@ -18,17 +538,9 @@
   justify-content: center;
 }
 
-.spinner.small {
-  font-size: 1.5rem;
-}
-
-.spinner.medium {
-  font-size: 3rem;
-}
-
-.spinner.large {
-  font-size: 4rem;
-}
+.spinner.small { font-size: 1.5rem; }
+.spinner.medium { font-size: 3rem; }
+.spinner.large { font-size: 4rem; }
 
 .loadingMessage {
   margin-top: 15px;
@@ -36,468 +548,6 @@
   font-size: 1rem;
 }
 
-/* ============================================ */
-/* ⭐ FULL SCREEN IMMERSIVE Loading Experience */
-/* ============================================ */
-.fullscreenLoadingContainer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  overflow: hidden;
-}
-
-/* Animated gradient background - fills entire screen */
-.gradientBackground {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  z-index: 0;
-}
-
-/* Floating particles - across entire screen */
-.particlesContainer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-  overflow: hidden;
-}
-
-.particle {
-  position: absolute;
-  font-size: 2rem;
-  pointer-events: none;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
-}
-
-/* Main content - centered, no card */
-.fullscreenContent {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  max-width: 800px;
-  width: 90%;
-  padding: 40px;
-}
-
-/* Hero Icon - Large and prominent */
-.heroIcon {
-  font-size: 8rem;
-  margin-bottom: 40px;
-  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.3));
-}
-
-/* Title section */
-.heroTitleWrapper {
-  margin-bottom: 60px;
-  position: relative;
-}
-
-.heroTitle {
-  font-size: 3.5rem;
-  font-weight: 900;
-  color: white;
-  margin: 0;
-  position: relative;
-  display: inline-block;
-  letter-spacing: 1px;
-  text-shadow: 
-    0 2px 10px rgba(0, 0, 0, 0.2),
-    0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.heroTitleText {
-  position: relative;
-  z-index: 1;
-}
-
-.heroTitleShimmer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.6) 50%, 
-    transparent 100%
-  );
-  filter: blur(15px);
-  pointer-events: none;
-}
-
-/* Progress section */
-.heroProgressSection {
-  margin-bottom: 50px;
-}
-
-.heroProgressWrapper {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  justify-content: center;
-}
-
-.heroProgressBar {
-  flex: 1;
-  max-width: 600px;
-  height: 24px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50px;
-  overflow: visible;
-  position: relative;
-  backdrop-filter: blur(10px);
-  box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.2) inset,
-    0 2px 0 rgba(255, 255, 255, 0.3);
-}
-
-.heroProgressFill {
-  height: 100%;
-  background: linear-gradient(135deg, #ffffff 0%, #f093fb 50%, #ffffff 100%);
-  border-radius: 50px;
-  position: relative;
-  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.6);
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  min-width: 24px; /* Ensure it's visible even at 0% */
-}
-
-/* Animated shine on progress bar */
-.heroProgressShine {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 40%;
-  height: 100%;
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.8) 50%,
-    transparent 100%
-  );
-  transform: skewX(-20deg);
-}
-
-/* Progress sparkles */
-.heroProgressSparkle {
-  position: absolute;
-  right: -8px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1rem;
-  pointer-events: none;
-}
-
-/* Progress glow effect */
-.heroProgressGlow {
-  position: absolute;
-  top: -5px;
-  left: 0;
-  height: calc(100% + 10px);
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 50px;
-  filter: blur(15px);
-  opacity: 0.6;
-  z-index: -1;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Percentage badge - Large and beautiful */
-.heroProgressBadge {
-  min-width: 120px;
-  padding: 16px 24px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 50px;
-  box-shadow: 
-    0 8px 25px rgba(0, 0, 0, 0.3),
-    0 0 0 4px rgba(255, 255, 255, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  backdrop-filter: blur(10px);
-}
-
-.heroProgressNumber {
-  font-size: 2.5rem;
-  font-weight: 900;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.heroProgressSymbol {
-  font-size: 1.5rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  opacity: 0.8;
-}
-
-/* Message container */
-.heroMessageContainer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  min-height: 60px;
-  margin-bottom: 30px;
-}
-
-.heroMessageEmoji {
-  font-size: 2.5rem;
-  display: inline-block;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-}
-
-.heroMessageText {
-  color: white;
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0;
-  text-align: center;
-  line-height: 1.5;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-/* Animated loading dots */
-.heroLoadingDots {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.heroDot {
-  font-size: 1.5rem;
-  color: white;
-  display: inline-block;
-  line-height: 1;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
-}
-
-/* Warning message */
-.heroWarningMessage {
-  margin-top: 40px;
-  padding: 20px 30px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 3px solid #ffc107;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.heroWarningIcon {
-  font-size: 2.5rem;
-  flex-shrink: 0;
-}
-
-.heroWarningContent {
-  text-align: left;
-  flex: 1;
-}
-
-.heroWarningTitle {
-  color: #856404;
-  font-weight: 800;
-  font-size: 1.2rem;
-  margin: 0 0 6px 0;
-}
-
-.heroWarningText {
-  color: #856404;
-  font-size: 1rem;
-  margin: 0;
-  opacity: 0.9;
-  font-weight: 500;
-}
-
-/* ============================================ */
-/* Responsive Design - Full Screen Version */
-/* ============================================ */
-@media (max-width: 1024px) {
-  .heroIcon {
-    font-size: 6rem;
-    margin-bottom: 30px;
-  }
-  
-  .heroTitle {
-    font-size: 2.8rem;
-  }
-  
-  .heroProgressBar {
-    height: 20px;
-  }
-  
-  .heroProgressBadge {
-    min-width: 100px;
-    padding: 14px 20px;
-  }
-  
-  .heroProgressNumber {
-    font-size: 2rem;
-  }
-  
-  .heroMessageText {
-    font-size: 1.3rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .fullscreenContent {
-    padding: 30px 20px;
-  }
-  
-  .heroIcon {
-    font-size: 5rem;
-    margin-bottom: 25px;
-  }
-  
-  .heroTitle {
-    font-size: 2.2rem;
-  }
-  
-  .heroProgressWrapper {
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  .heroProgressBar {
-    width: 100%;
-    height: 18px;
-  }
-  
-  .heroProgressBadge {
-    width: auto;
-    min-width: 90px;
-    padding: 12px 20px;
-  }
-  
-  .heroProgressNumber {
-    font-size: 1.8rem;
-  }
-  
-  .heroProgressSymbol {
-    font-size: 1.3rem;
-  }
-  
-  .heroMessageText {
-    font-size: 1.2rem;
-  }
-  
-  .heroMessageEmoji {
-    font-size: 2rem;
-  }
-  
-  .particle {
-    font-size: 1.5rem;
-  }
-  
-  .heroWarningMessage {
-    flex-direction: column;
-    text-align: center;
-    padding: 18px 20px;
-  }
-  
-  .heroWarningContent {
-    text-align: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .fullscreenContent {
-    padding: 25px 15px;
-  }
-  
-  .heroIcon {
-    font-size: 4rem;
-    margin-bottom: 20px;
-  }
-  
-  .heroTitle {
-    font-size: 1.8rem;
-  }
-  
-  .heroProgressBar {
-    height: 16px;
-  }
-  
-  .heroProgressBadge {
-    min-width: 80px;
-    padding: 10px 16px;
-  }
-  
-  .heroProgressNumber {
-    font-size: 1.6rem;
-  }
-  
-  .heroProgressSymbol {
-    font-size: 1.1rem;
-  }
-  
-  .heroMessageText {
-    font-size: 1.1rem;
-  }
-  
-  .heroMessageEmoji {
-    font-size: 1.8rem;
-  }
-  
-  .heroDot {
-    font-size: 1.2rem;
-  }
-  
-  .heroWarningIcon {
-    font-size: 2rem;
-  }
-  
-  .heroWarningTitle {
-    font-size: 1.1rem;
-  }
-  
-  .heroWarningText {
-    font-size: 0.95rem;
-  }
-}
-
-@media (max-width: 360px) {
-  .heroTitle {
-    font-size: 1.5rem;
-  }
-  
-  .heroIcon {
-    font-size: 3.5rem;
-  }
-  
-  .heroMessageText {
-    font-size: 1rem;
-  }
-}
-
-/* ============================================ */
-/* Game Loading Screen */
-/* ============================================ */
 .gameLoadingContainer {
   display: flex;
   align-items: center;
@@ -542,9 +592,6 @@
   margin: 0 auto;
 }
 
-/* ============================================ */
-/* Word Loading Animation */
-/* ============================================ */
 .wordLoadingContainer {
   display: flex;
   justify-content: center;
@@ -558,9 +605,6 @@
   display: inline-block;
 }
 
-/* ============================================ */
-/* Skeleton Loader */
-/* ============================================ */
 .skeletonContainer {
   padding: 10px 0;
 }
@@ -573,77 +617,10 @@
 }
 
 @keyframes skeletonLoading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-/* ============================================ */
-/* Loading Button */
-/* ============================================ */
-.loadingButton {
-  position: relative;
-  transition: all 0.3s ease;
-  min-width: 120px;
-  overflow: hidden;
-}
-
-.loadingButton.loading {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.buttonLoadingContent {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.buttonSpinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid transparent;
-  border-top-color: currentColor;
-  border-radius: 50%;
-}
-
-/* ============================================ */
-/* Crossword Grid Loader */
-/* ============================================ */
-.gridLoaderContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-}
-
-.gridLoader {
-  margin-bottom: 20px;
-  padding: 20px;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-}
-
-.gridCell {
-  width: 30px;
-  height: 30px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-}
-
-.gridLoaderText {
-  color: #666;
-  font-size: 1rem;
-  margin: 0;
-}
-
-/* ============================================ */
-/* Success Animation */
-/* ============================================ */
 .successContainer {
   display: flex;
   flex-direction: column;
@@ -665,36 +642,4 @@
   font-size: 1.2rem;
   font-weight: bold;
   margin: 0;
-}
-
-/* ============================================ */
-/* Mobile Responsiveness */
-/* ============================================ */
-@media (max-width: 768px) {
-  .gameLoadingTitle {
-    font-size: 1.3rem;
-  }
-  
-  .puzzlePiece {
-    font-size: 1.5rem;
-  }
-  
-  .gridCell {
-    width: 25px;
-    height: 25px;
-  }
-}
-
-@media (max-width: 480px) {
-  .gameLoadingContent {
-    padding: 20px 15px;
-  }
-  
-  .gameLoadingTitle {
-    font-size: 1.2rem;
-  }
-  
-  .puzzlePiece {
-    font-size: 1.3rem;
-  }
 }

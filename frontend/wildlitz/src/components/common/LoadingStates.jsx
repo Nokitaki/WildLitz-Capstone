@@ -1,8 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/components/LoadingStates.module.css';
-
 
 export const LoadingSpinner = ({ size = 'medium', message = 'Loading...' }) => {
   const sizeClasses = {
@@ -25,15 +23,17 @@ export const LoadingSpinner = ({ size = 'medium', message = 'Loading...' }) => {
   );
 };
 
-
-export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adventure...', showWarning = false }) => {
-  
+export const StoryLoadingScreen = ({ 
+  progress = 0, 
+  message = 'Creating your adventure...', 
+  showWarning = false 
+}) => {
   const [displayProgress, setDisplayProgress] = useState(0);
   
-  
+  // Smooth progress animation
   useEffect(() => {
-    const animationDuration = 800; 
-    const steps = 60; 
+    const animationDuration = 800;
+    const steps = 40; // Reduced from 60
     const stepDuration = animationDuration / steps;
     const progressDiff = progress - displayProgress;
     const progressStep = progressDiff / steps;
@@ -54,13 +54,14 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
     return () => clearInterval(interval);
   }, [progress]);
   
+  // Progress messages
   const progressMessages = [
-    { emoji: "🌟", text: "Choosing the perfect adventure theme..." },
-    { emoji: "✍️", text: "Writing an engaging story just for you..." },
-    { emoji: "🧩", text: "Creating fun crossword puzzles..." },
-    { emoji: "🎨", text: "Adding colorful details and characters..." },
-    { emoji: "✨", text: "Adding final magical touches..." },
-    { emoji: "🎉", text: "Almost ready for your reading adventure!" }
+    { emoji: "🌟", text: "Selecting your perfect adventure theme..." },
+    { emoji: "✏️", text: "Writing an engaging tale just for you..." },
+    { emoji: "🎨", text: "Adding vibrant colors and characters..." },
+    { emoji: "🧩", text: "Crafting exciting crossword puzzles..." },
+    { emoji: "✨", text: "Adding final touches of magic..." },
+    { emoji: "🎉", text: "Your reading adventure is almost ready!" }
   ];
   
   const currentMessage = progressMessages[Math.min(
@@ -68,110 +69,90 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
     progressMessages.length - 1
   )];
   
- 
-  const particles = ['📚', '✏️', '🎨', '⭐', '🌈', '🦋', '🎭', '🎪'];
+  // Reduced particles - only 6 instead of 12
+  const particles = ['📚', '✏️', '🎨', '⭐', '🌈', '✨'];
   const [particlePositions, setParticlePositions] = useState([]);
   
   useEffect(() => {
     const positions = particles.map(() => ({
       x: Math.random() * 100,
       y: Math.random() * 100,
-      delay: Math.random() * 2,
-      duration: 3 + Math.random() * 4
+      delay: Math.random() * 2
     }));
     setParticlePositions(positions);
   }, []);
   
   return (
     <div className={styles.fullscreenLoadingContainer}>
-     
+      {/* Static gradient background */}
       <div className={styles.gradientBackground} />
       
-     
+      {/* Reduced particles */}
       <div className={styles.particlesContainer}>
         {particles.map((emoji, index) => (
-          <motion.div
+          <div
             key={index}
             className={styles.particle}
             style={{
               left: `${particlePositions[index]?.x || 0}%`,
-              top: `${particlePositions[index]?.y || 0}%`
-            }}
-            animate={{
-              y: [0, -30, 0],
-              x: [0, 15, 0],
-              rotate: [0, 10, -10, 0],
-              opacity: [0.3, 0.8, 0.3]
-            }}
-            transition={{
-              duration: particlePositions[index]?.duration || 5,
-              repeat: Infinity,
-              delay: particlePositions[index]?.delay || 0,
-              ease: "easeInOut"
+              top: `${particlePositions[index]?.y || 0}%`,
+              animationDelay: `${particlePositions[index]?.delay || 0}s`
             }}
           >
             {emoji}
-          </motion.div>
+          </div>
         ))}
       </div>
       
-      {/* Main Content */}
+      {/* Main content */}
       <div className={styles.fullscreenContent}>
-       
-        <motion.div
-          className={styles.heroIcon}
-          animate={{ 
-            scale: [1, 1.1, 1],
-            rotate: [0, 5, -5, 0]
-          }}
-          transition={{ 
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        >
+        {/* Hero icon */}
+        <div className={styles.heroIcon}>
           📖✨
-        </motion.div>
+        </div>
         
         {/* Title */}
         <div className={styles.heroTitleWrapper}>
-          <motion.h1 
-            className={styles.heroTitle}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
+          <h1 className={styles.heroTitle}>
             {message}
-          </motion.h1>
+          </h1>
         </div>
         
-        {/* Progress Bar with Percentage Badge */}
+        {/* Progress bar with badge */}
         <div className={styles.heroProgressWrapper}>
-          {/* Progress Bar */}
+          {/* Progress bar */}
           <div className={styles.heroProgressBarContainer}>
-            <motion.div 
-              className={styles.heroProgressBar}
-              initial={{ width: 0 }}
-              animate={{ width: `${displayProgress}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-            />
+            <div className={styles.heroProgressBar}>
+              <div 
+                className={styles.heroProgressFill}
+                style={{ width: `${displayProgress}%` }}
+              >
+                {/* Shine effect */}
+                <div className={styles.heroProgressShine} />
+              </div>
+              
+              {/* Sparkle at the end */}
+              {displayProgress > 5 && (
+                <div 
+                  className={styles.heroProgressSparkle}
+                  style={{ left: `${displayProgress}%` }}
+                >
+                  ✨
+                </div>
+              )}
+            </div>
           </div>
           
-          {/* Percentage Badge */}
-          <motion.div 
-            className={styles.heroProgressBadge}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20 }}
-          >
+          {/* Percentage badge */}
+          <div className={styles.heroProgressBadge}>
             <span className={styles.heroProgressNumber}>
               {Math.round(displayProgress)}
             </span>
             <span className={styles.heroProgressSymbol}>%</span>
-          </motion.div>
+          </div>
         </div>
         
-        {/* Dynamic Message */}
+        {/* Dynamic message */}
         <AnimatePresence mode="wait">
           <motion.div
             key={currentMessage.text}
@@ -181,12 +162,14 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
           >
-            <span className={styles.heroMessageEmoji}>{currentMessage.emoji}</span>
+            <span className={styles.heroMessageEmoji}>
+              {currentMessage.emoji}
+            </span>
             <p className={styles.heroMessageText}>{currentMessage.text}</p>
           </motion.div>
         </AnimatePresence>
         
-        {/* Animated Dots */}
+        {/* Loading dots */}
         <div className={styles.heroLoadingDots}>
           {[0, 1, 2].map((i) => (
             <motion.span
@@ -194,12 +177,12 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
               className={styles.heroDot}
               animate={{ 
                 opacity: [0.3, 1, 0.3],
-                scale: [1, 1.2, 1]
+                scale: [0.9, 1.2, 0.9]
               }}
               transition={{ 
                 duration: 1.5,
                 repeat: Infinity,
-                delay: i * 0.2
+                delay: i * 0.25
               }}
             >
               •
@@ -207,7 +190,7 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
           ))}
         </div>
         
-        {/* Warning Message (if needed) */}
+        {/* Warning message */}
         {showWarning && (
           <motion.div 
             className={styles.heroWarningMessage}
@@ -215,11 +198,13 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <span className={styles.heroWarningIcon}>⚠️</span>
+            <span className={styles.heroWarningIcon}>
+              ⚠️
+            </span>
             <div className={styles.heroWarningContent}>
               <h4 className={styles.heroWarningTitle}>Taking Longer Than Expected</h4>
               <p className={styles.heroWarningText}>
-                AI story generation can take some time. Please wait...
+                AI story generation can take some time. Please wait while we craft something amazing...
               </p>
             </div>
           </motion.div>
@@ -229,8 +214,10 @@ export const StoryLoadingScreen = ({ progress = 0, message = 'Creating your adve
   );
 };
 
-
-export const GameLoadingScreen = ({ message = 'Loading your game...', subMessage = '' }) => {
+export const GameLoadingScreen = ({ 
+  message = 'Loading your game...', 
+  subMessage = '' 
+}) => {
   return (
     <div className={styles.gameLoadingContainer}>
       <motion.div 
@@ -239,7 +226,7 @@ export const GameLoadingScreen = ({ message = 'Loading your game...', subMessage
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-       
+        {/* Animated puzzle pieces */}
         <div className={styles.puzzleContainer}>
           {[...Array(4)].map((_, i) => (
             <motion.div
@@ -266,7 +253,10 @@ export const GameLoadingScreen = ({ message = 'Loading your game...', subMessage
         {/* Pulsing loader */}
         <motion.div 
           className={styles.pulseLoader}
-          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+          animate={{ 
+            scale: [1, 1.3, 1], 
+            opacity: [0.5, 1, 0.5] 
+          }}
           transition={{ duration: 1.5, repeat: Infinity }}
         />
       </motion.div>
@@ -274,8 +264,9 @@ export const GameLoadingScreen = ({ message = 'Loading your game...', subMessage
   );
 };
 
-
-export const CrosswordGridLoader = ({ message = 'Preparing your crossword...' }) => {
+export const CrosswordGridLoader = ({ 
+  message = 'Preparing your crossword...' 
+}) => {
   return (
     <div className={styles.gameLoadingContainer}>
       <motion.div 
@@ -284,11 +275,11 @@ export const CrosswordGridLoader = ({ message = 'Preparing your crossword...' })
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
       >
-      
+        {/* Animated grid */}
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(5, 40px)', 
-          gap: '4px',
+          gap: '5px',
           marginBottom: '30px'
         }}>
           {[...Array(25)].map((_, i) => (
@@ -298,16 +289,17 @@ export const CrosswordGridLoader = ({ message = 'Preparing your crossword...' })
                 width: '40px',
                 height: '40px',
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                borderRadius: '4px'
+                borderRadius: '6px',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
               }}
               animate={{ 
                 opacity: [0.3, 1, 0.3],
                 scale: [0.8, 1, 0.8]
               }}
               transition={{ 
-                duration: 1.5,
+                duration: 1.8,
                 repeat: Infinity,
-                delay: i * 0.05
+                delay: i * 0.06
               }}
             />
           ))}
@@ -315,17 +307,19 @@ export const CrosswordGridLoader = ({ message = 'Preparing your crossword...' })
 
         <h2 className={styles.gameLoadingTitle}>{message}</h2>
         
-       
+        {/* Pulsing loader */}
         <motion.div 
           className={styles.pulseLoader}
-          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+          animate={{ 
+            scale: [1, 1.3, 1], 
+            opacity: [0.5, 1, 0.5] 
+          }}
           transition={{ duration: 1.5, repeat: Infinity }}
         />
       </motion.div>
     </div>
   );
 };
-
 
 export const WordLoadingAnimation = ({ word = 'LOADING' }) => {
   return (
@@ -339,7 +333,7 @@ export const WordLoadingAnimation = ({ word = 'LOADING' }) => {
             color: ['#333', '#667eea', '#333']
           }}
           transition={{
-            duration: 0.6,
+            duration: 0.8,
             repeat: Infinity,
             delay: index * 0.1
           }}
@@ -351,8 +345,11 @@ export const WordLoadingAnimation = ({ word = 'LOADING' }) => {
   );
 };
 
-
-export const SkeletonLoader = ({ lines = 3, width = '100%', height = '20px' }) => {
+export const SkeletonLoader = ({ 
+  lines = 3, 
+  width = '100%', 
+  height = '20px' 
+}) => {
   return (
     <div className={styles.skeletonContainer}>
       {[...Array(lines)].map((_, i) => (
@@ -364,6 +361,9 @@ export const SkeletonLoader = ({ lines = 3, width = '100%', height = '20px' }) =
             height,
             marginBottom: '10px'
           }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: i * 0.1 }}
         />
       ))}
     </div>
