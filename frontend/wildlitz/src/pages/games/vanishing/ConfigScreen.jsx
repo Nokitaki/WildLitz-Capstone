@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/vanishing/ConfigScreen.module.css';
+import vanishingBg from '../../../assets/game/vanishing_background.mp4';
 
 /**
  * Enhanced Configuration screen for the Vanishing Game
@@ -151,6 +152,16 @@ const ConfigScreen = ({
 
   return (
     <div className={styles.configContainer}>
+      
+      <video 
+      className={styles.backgroundVideo} 
+      autoPlay 
+      loop 
+      muted 
+      playsInline
+    >
+      <source src={vanishingBg} type="video/mp4" />
+    </video>
       <motion.div 
         className={styles.configCard}
         variants={containerVariants}

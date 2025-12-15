@@ -37,12 +37,32 @@
   overflow-y: auto;
   padding: 20px;
   box-sizing: border-box;
-  background: #6A1B9A; /* Plain purple background */
-  /* Removed background-size, background-repeat, and animation properties */
+  
+  /* 1. CHANGE: Remove the purple color and set to transparent */
+  /* background: #6A1B9A;  <-- REMOVE THIS LINE */
+  background: transparent; 
+
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  z-index: 1; /* Ensure content sits above video */
 }
+
+.backgroundVideo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -1;
+  
+  /* ✅ ADJUST ZOOM HERE */
+  /* 1.0 is normal size. Try 1.1 or 1.2 to zoom in. */
+  transform: scale(1.5); 
+}
+
 
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
@@ -64,7 +84,7 @@
   overflow: hidden;
   margin: 20px auto;
   min-height: min-content;
-  z-index: 1;
+  z-index: -1;
 }
 
 .configCard::before {
