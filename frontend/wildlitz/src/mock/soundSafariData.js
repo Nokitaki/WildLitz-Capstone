@@ -24,7 +24,7 @@ export const SOUND_DESCRIPTIONS = {
   'w': 'Round your lips like saying "oo": "w"',
   'd': 'Tap your tongue behind your teeth: "d"',
   'r': 'Make a growling sound: "rrr"',
-  'c': 'Make a "k" sound but softer: "c"',
+  'c': 'C makes a hard /k/ sound (cat) or a soft /s/ sound (city).',
   'h': 'Breathe out with your mouth open: "h"'
 };
 

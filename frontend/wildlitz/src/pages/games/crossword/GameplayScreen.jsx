@@ -21,6 +21,7 @@ const GameplayScreen = ({
   onAnswerAttempt,
   onPuzzleComplete  
 }) => {
+  const [currentAudioType, setCurrentAudioType] = useState(null); // 'question' or 'choice'
   const [isPlayingClueAudio, setIsPlayingClueAudio] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const audioRef = useRef(null);
@@ -31,10 +32,11 @@ const GameplayScreen = ({
   const [solvedClues, setSolvedClues] = useState({});
   const [showCelebration, setShowCelebration] = useState(false);
   const [confettiPieces, setConfettiPieces] = useState([]);
-  
+  const [audioType, setAudioType] = useState(null);
   // ✅ ADDED: State for tracking attempts per word
   const [attemptCounts, setAttemptCounts] = useState({});
-  
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
   const [scrambledLetters, setScrambledLetters] = useState([]);
   const [answerSlots, setAnswerSlots] = useState([]);
   const [draggedLetter, setDraggedLetter] = useState(null);
@@ -49,7 +51,7 @@ const GameplayScreen = ({
   const hintsUsedForCurrentWordRef = useRef(0);
   const celebrationTimeoutRef = useRef(null);
   const feedbackTimeoutRef = useRef(null);
-  
+  const audioInitiatingRef = useRef(false);
   const INITIAL_HINTS = 3;
 
   if (!puzzle || !puzzle.words || !Array.isArray(puzzle.words)) {
@@ -68,19 +70,12 @@ const GameplayScreen = ({
   const solvedCount = Object.keys(solvedClues).filter(key => solvedClues[key]).length;
 
  const handlePlayClue = () => {
-   playButtonClick();
+  if (isPlayingClueAudio || audioInitiatingRef.current) {
+    return; // Don't play if already playing or initiating
+  }
+  
   if (currentWord?.clue) {
-    setIsPlayingClueAudio(true);
-
-    speechSynthesis.cancel();
-    
-    const utterance = new SpeechSynthesisUtterance(currentWord.clue);
-    const voices = speechSynthesis.getVoices();
-    const ukVoice = voices.find(v => v.lang === 'en-GB') || voices[0];
-    if (ukVoice) utterance.voice = ukVoice;
-    utterance.lang = 'en-GB';
-    utterance.onend = () => setIsPlayingClueAudio(false);
-    speechSynthesis.speak(utterance);
+    speakTextUK(currentWord.clue, 'question');
   }
 };
 
@@ -887,8 +882,24 @@ const playButtonClick = () => {
     }
   };
 
-  const speakTextUK = (text) => {
-    speechSynthesis.cancel();
+  const speakTextUK = (text, audioType = 'choice') => {
+  // Prevent multiple simultaneous calls
+  if (audioInitiatingRef.current) {
+    return;
+  }
+  
+  audioInitiatingRef.current = true;
+  
+  // Reset state before canceling
+  if (audioType === 'question') {
+    setIsPlayingClueAudio(false);
+  }
+  
+  // Cancel previous speech
+  speechSynthesis.cancel();
+  
+  // Small delay to ensure cancel completes
+  setTimeout(() => {
     const utterance = new SpeechSynthesisUtterance(text);
     const voices = speechSynthesis.getVoices();
     const ukVoice = voices.find(voice => 
@@ -900,8 +911,62 @@ const playButtonClick = () => {
     utterance.rate = 0.9;
     utterance.pitch = 1;
     
+    // Add event handlers
+    utterance.onstart = () => {
+      if (audioType === 'question') {
+        setIsPlayingClueAudio(true);
+      }
+      audioInitiatingRef.current = false; // Reset flag when audio starts
+    };
+    
+    utterance.onend = () => {
+      if (audioType === 'question') {
+        setIsPlayingClueAudio(false);
+      }
+      audioInitiatingRef.current = false; // Reset flag when audio ends
+    };
+    
+    utterance.onerror = () => {
+      if (audioType === 'question') {
+        setIsPlayingClueAudio(false);
+      }
+      audioInitiatingRef.current = false; // Reset flag on error
+    };
+    
+    // Failsafe timeout
+    if (audioType === 'question') {
+      setTimeout(() => {
+        setIsPlayingClueAudio(false);
+        audioInitiatingRef.current = false;
+      }, 10000);
+    }
+    
     speechSynthesis.speak(utterance);
-  };
+  }, 50);
+};
+
+// Update readQuestion function
+const readQuestion = () => {
+  if (currentWord?.clue) {
+    speakTextUK(currentWord.clue, 'question');
+  }
+};
+
+// Update readChoice function (when choice buttons are clicked)
+const readChoice = (choice) => {
+  speakTextUK(choice, 'choice');
+};
+
+// Update handleSelectAnswer to call readChoice
+const handleSelectAnswer = (choice) => {
+  if (feedback || isCurrentWordSolved) return;
+  if (window.playClickSound) window.playClickSound();
+  
+  // Read the choice aloud
+  readChoice(choice);
+  
+  setSelectedAnswer(choice);
+};
 
   const handleUseHint = () => {
     playButtonClick();
@@ -1116,13 +1181,13 @@ const playButtonClick = () => {
             <div className={styles.clueHeader}>
               <span className={styles.clueNumber}>#{currentWordIndex + 1}</span>
               <span className={styles.clueDirection}>{wordPositions[currentWordIndex]?.direction || 'Across'}</span>
-              <button 
-                onClick={handlePlayClue}
-                className={styles.clueAudioBtn}
-                disabled={isPlayingClueAudio}
-              >
-                {isPlayingClueAudio ? '🔊' : '🎵'}
-              </button>
+             <button 
+            onClick={handlePlayClue}
+            className={styles.clueAudioBtn}
+            disabled={isPlayingClueAudio}
+          >
+            {isPlayingClueAudio ? '⏸️' : '🔊'} 
+          </button>
             </div>
             <div className={styles.clueContent}>
               <div className={styles.clueIcon}>🎯</div>
