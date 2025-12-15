@@ -637,6 +637,9 @@ const handleReturnToMenu = () => {
    */
   const handleViewAnalytics = () => {
     console.log('📊 Viewing analytics');
+    setBubbleMessage("Here's how you're doing! Let's check your progress!");
+    setShowBubble(true);
+    setTimeout(() => setShowBubble(false), 3000);
     setGameState('analytics');
   };
 
