@@ -1961,6 +1961,8 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                 {searchTotalPages > 1 && (
                   <div className={styles.paginationControls}>
                     <button
+                      // Added inline style here
+                      style={{ color: "black" }}
                       onClick={() => handleSearch(searchCurrentPage - 1)}
                       disabled={searchCurrentPage <= 1}
                     >
@@ -1970,6 +1972,8 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                       Page {searchCurrentPage} of {searchTotalPages}
                     </span>
                     <button
+                      // Added inline style here
+                      style={{ color: "black" }}
                       onClick={() => handleSearch(searchCurrentPage + 1)}
                       disabled={searchCurrentPage >= searchTotalPages}
                     >
