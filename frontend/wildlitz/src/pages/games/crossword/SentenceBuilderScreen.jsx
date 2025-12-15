@@ -144,6 +144,11 @@ const SentenceBuilderScreen = ({ words, onReturnToSummary, onReturnToMenu }) => 
   
   return (
     <div className={styles.builderContainer}>
+       <ThemeBackground theme={gameConfig?.adventureId ? gameStories[gameConfig.adventureId]?.theme : 'jungle'} />
+    
+    <AnimatePresence mode="wait">
+      
+    </AnimatePresence>
        <BackToHomeButton 
       position="top-left"
       customMessage="Are you sure you want to leave? Your sentences will not be saved!"

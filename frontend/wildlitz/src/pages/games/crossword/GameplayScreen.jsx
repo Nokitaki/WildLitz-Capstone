@@ -4,7 +4,7 @@ import BackToHomeButton from '../crossword/BackToHomeButton';
 import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
 import styles from '../../../styles/games/crossword/GameplayScreenDragDrop.module.css';
 import gameplayMusic from '../../../assets/music/crossword_gameplay.mp3';
-
+import ThemeBackground from '../../../components/common/ThemeBackground';
 const GameplayScreen = ({ 
   puzzle, 
   theme, 
@@ -1083,6 +1083,9 @@ const handleSelectAnswer = (choice) => {
 
   return (
     <div className={styles.gameContainer}>
+
+      <ThemeBackground theme={theme || 'jungle'} />
+    
       <BackToHomeButton />
 
       <AnimatePresence>
@@ -1215,21 +1218,19 @@ const handleSelectAnswer = (choice) => {
 
           <div className={styles.scrambleArea}>
             <h3 className={styles.scrambleTitle}>🔤 Available Letters:</h3>
-            <div className={styles.scrambleContainer}>
-              {scrambledLetters.map((letter, idx) => (
-                !letter.isPlaced && (
-                  <div
-                    key={letter.id}
-                    className={styles.letterTile}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, idx)}
-                    onClick={() => handleLetterClick(idx)}
-                  >
-                    {letter.letter}
-                  </div>
-                )
-              ))}
-            </div>
+           <div className={styles.scrambleContainer}>
+  {scrambledLetters.map((letter, idx) => (
+    <div
+      key={letter.id}
+      className={`${styles.letterTile} ${letter.isPlaced ? styles.placed : ''}`}
+      draggable={!letter.isPlaced}
+      onDragStart={(e) => !letter.isPlaced && handleDragStart(e, idx)}
+      onClick={() => !letter.isPlaced && handleLetterClick(idx)}
+    >
+      {letter.letter}
+    </div>
+  ))}
+</div>
             <button className={styles.shuffleBtn} onClick={handleShuffle}>🔄 Shuffle</button>
           </div>
 

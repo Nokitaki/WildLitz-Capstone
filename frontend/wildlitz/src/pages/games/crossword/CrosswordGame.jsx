@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../../styles/games/crossword/CrosswordGame.module.css';
 import { GameLoadingScreen, CrosswordGridLoader } from '../../../components/common/LoadingStates';
 import crosswordAnalyticsService from '../../../services/crosswordAnalyticsService';
-
+import ThemeBackground from '../../../components/common/ThemeBackground';
 
 import StoryScreen from './StoryScreen';
 import GameplayScreen from './GameplayScreen';
@@ -52,7 +52,8 @@ const CrosswordGame = () => {
   const [currentStorySegment, setCurrentStorySegment] = useState(null);
   const [currentPuzzle, setCurrentPuzzle] = useState(null);
   
-
+const currentAdventure = gameConfig?.adventureId ? gameStories[gameConfig.adventureId] : null;
+const currentTheme = currentAdventure?.theme || 'jungle';
  
   const [isGeneratingNextEpisode, setIsGeneratingNextEpisode] = useState(false);
   const [generationError, setGenerationError] = useState(null);
@@ -704,6 +705,8 @@ const generateNextEpisodeOnDemand = async () => {
             currentEpisode={currentEpisode}
             totalEpisodes={totalEpisodes}
             onToggleReadingCoach={toggleReadingCoach}
+             
+            theme={currentTheme}
           />
         </motion.div>
       );
@@ -721,7 +724,8 @@ const generateNextEpisodeOnDemand = async () => {
         >
                   <GameplayScreen
             puzzle={currentPuzzle}
-            theme="story"
+            
+            theme={currentTheme}
             onWordSolved={(word, def, example, hints) => handleWordSolved(word, def, example, hints)}
             solvedWords={solvedWords}
             timeSpent={timeSpent}

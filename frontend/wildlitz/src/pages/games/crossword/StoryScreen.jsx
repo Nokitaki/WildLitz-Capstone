@@ -3,16 +3,15 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Volume2 } from 'lucide-react';
 import styles from '../../../styles/games/crossword/StoryScreen.module.css';
-
+import ThemeBackground from '../../../components/common/ThemeBackground';
 
 const StoryScreen = ({ 
   storySegment, 
   onContinue, 
   vocabularyWords = [], 
   currentEpisode,
-  totalEpisodes,
-  
-  onToggleReadingCoach
+  onToggleReadingCoach,
+  theme  // ✅ ADD THIS LINE
 }) => {
   // State for reading
   const [hasReadStory, setHasReadStory] = useState(false);
@@ -446,6 +445,8 @@ const StoryScreen = ({
   
   return (
     <div className={styles.storyScreenContainer}>
+      
+      <ThemeBackground theme={theme || 'jungle'} />
       {/* TOP RIGHT CONTROLS - FIXED POSITION */}
       <div className={styles.controls}>
         {hasSpeech && (

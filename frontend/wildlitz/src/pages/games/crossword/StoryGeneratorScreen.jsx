@@ -9,7 +9,7 @@ import CrosswordAnalyticsDashboard from './analytics/CrosswordAnalyticsDashboard
 import { API_ENDPOINTS } from '../../../config/api';
 import BackToHomeButton from '../../games/crossword/BackToHomeButton';
 import storyMusic from '../../../assets/music/story-generator-music.mp3';
-
+import ThemeBackground from '../../../components/common/ThemeBackground';
 const ThemeOption = memo(({ themeOption, isSelected, onSelect }) => {
   return (
     <div 
@@ -341,7 +341,7 @@ const toggleMute = () => setIsMuted(!isMuted);
         </div>
       )}
     </div>
-
+        <ThemeBackground theme={theme} />
     
       <BackToHomeButton position="top-left" />
       <div className={styles.generatorCard}>
