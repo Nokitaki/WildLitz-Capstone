@@ -1,6 +1,6 @@
 # Environment variables
 backend/wildlitz/.env
-
+frontend/wildlitz/.env
 # Python bytecode - catches ALL .pyc files everywhere
 *.pyc
 *.pyo
