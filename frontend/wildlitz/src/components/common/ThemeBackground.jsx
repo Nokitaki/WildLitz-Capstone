@@ -4,10 +4,10 @@ import React from 'react';
 // Import all background images
 import jungleImg from '../../assets/img/backgrounds/jungle.png';
 import oceanImg from '../../assets/img/backgrounds/ocean.png';
-import farmImg from '../../assets/img/backgrounds/farm.jpg';
-import spaceImg from '../../assets/img/backgrounds/space.jpg';
-import cityImg from '../../assets/img/backgrounds/city.jpg';
-import fairytaleImg from '../../assets/img/backgrounds/fairy.jpg';
+import farmImg from '../../assets/img/backgrounds/farm2.jpg';
+import spaceImg from '../../assets/img/backgrounds/space2.jpg';
+import cityImg from '../../assets/img/backgrounds/city2.jpg';
+import fairytaleImg from '../../assets/img/backgrounds/fairy3.jpg';
 
 const ThemeBackground = ({ theme }) => {
   const backgrounds = {
