@@ -273,7 +273,7 @@
     "difficulty_level": "medium"
   },
   {
-    "name": "Polar bear",
+    "name": "Polar Bear",
     "target_sound": "l",
     "sound_position": "middle",
     "environment": "arctic",
@@ -301,10 +301,24 @@
     "difficulty_level": "hard"
   },
   {
-    "name": "gull",
+    "name": "Gull",
     "target_sound": "g",
     "sound_position": "beginning",
     "environment": "arctic",
     "difficulty_level": "hard"
+  },
+  {
+    "name": "Peacock",
+    "target_sound": "k",
+    "sound_position": "middle",
+    "environment": "arctic",
+    "difficulty_level": "medium"
+  },
+  {
+    "name": "Caterpillar",
+    "target_sound": "r",
+    "sound_position": "ending",
+    "environment": "ocean",
+    "difficulty_level": "medium"
   }
 ]
