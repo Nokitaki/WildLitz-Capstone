@@ -92,6 +92,22 @@ const ProfilePage = () => {
     return moduleMap[moduleKey] || moduleKey.replace('_', ' ');
   };
 
+  // ✅ NEW HELPER: Format Difficulty for Recent Activity List
+  const getDisplayDifficulty = (item) => {
+    if (!item.difficulty) return '';
+
+    // Check if it's Crossword
+    if (item.module === 'sentence_formation' || item.module === 'crossword') {
+      const diff = item.difficulty.toLowerCase();
+      // If it's the old format (easy/medium/hard), show "1 Episode"
+      if (diff === 'medium' || diff === 'easy' || diff === 'hard') {
+        return '1 Episode';
+      }
+    }
+    // Otherwise return the difficulty as is (e.g., "2 Episode", "Level 1")
+    return item.difficulty;
+  };
+
   // ✅ HELPER: Customized Chart Labels per Game
   const getChartConfig = (moduleKey) => {
     switch (moduleKey) {
@@ -331,7 +347,12 @@ const ProfilePage = () => {
                             {getModuleDisplayName(item.module)}
                           </span>
                           <div className={styles.activityInfo}>
-                             {item.difficulty && <span className={styles.difficultyTag}>{item.difficulty}</span>}
+                             {/* 🔥 UPDATED: Use the helper function here */}
+                             {item.difficulty && (
+                               <span className={styles.difficultyTag}>
+                                 {getDisplayDifficulty(item)}
+                               </span>
+                             )}
                           </div>
                           <span className={styles.activityAccuracy} style={{ 
                             color: item.accuracy_percentage >= 80 ? '#4CAF50' : 
