@@ -5,6 +5,7 @@ import crosswordAnalyticsService from '../../../services/crosswordAnalyticsServi
 import styles from '../../../styles/games/crossword/GameplayScreenDragDrop.module.css';
 import gameplayMusic from '../../../assets/music/crossword_gameplay.mp3';
 import ThemeBackground from '../../../components/common/ThemeBackground';
+import PauseMenu from './PauseMenu';
 const GameplayScreen = ({ 
   puzzle, 
   theme, 
@@ -19,7 +20,11 @@ const GameplayScreen = ({
   totalEpisodes = 1,
   sessionId,
   onAnswerAttempt,
-  onPuzzleComplete  
+  onPuzzleComplete,
+  onBackToStory,      
+  onMainMenu,         
+  onStoryGenerator,
+  savedProgress = null   
 }) => {
   const [currentAudioType, setCurrentAudioType] = useState(null); // 'question' or 'choice'
   const [isPlayingClueAudio, setIsPlayingClueAudio] = useState(false);
@@ -53,6 +58,7 @@ const GameplayScreen = ({
   const feedbackTimeoutRef = useRef(null);
   const audioInitiatingRef = useRef(false);
   const INITIAL_HINTS = 3;
+  const [needsRestoration, setNeedsRestoration] = useState(false);
 
   if (!puzzle || !puzzle.words || !Array.isArray(puzzle.words)) {
     return (
@@ -544,6 +550,79 @@ const generateCrosswordLayout = useCallback(() => {
       setSelectedClue(puzzle.words[0]);
     }
   }, [puzzle, selectedClue]);
+
+
+
+
+ useEffect(() => {
+  if (savedProgress?.solvedWordIndices && savedProgress.solvedWordIndices.length > 0) {
+    console.log('📝 Progress restoration queued');
+    setNeedsRestoration(true);
+  }
+}, [savedProgress]);
+
+// GameplayScreen.jsx - Update the restoration useEffect
+
+useEffect(() => {
+  if (!needsRestoration) return;
+  
+  // ✅ Wait for gridLayout to be properly initialized
+  if (!gridLayout?.cells || gridLayout.cells.length === 0) {
+    console.log('⏳ Waiting for grid layout initialization...');
+    return;
+  }
+  
+  console.log('🔄 Grid ready! Restoring progress...');
+  
+  // Mark words as solved
+  const restoredSolvedClues = {};
+  savedProgress.solvedWordIndices.forEach(wordIndex => {
+    restoredSolvedClues[wordIndex] = true;
+  });
+  setSolvedClues(restoredSolvedClues);
+  
+  // ✅ FIND FIRST UNSOLVED WORD and set it as current
+  const firstUnsolvedIndex = puzzle.words.findIndex((word, idx) => 
+    !savedProgress.solvedWordIndices.includes(idx)
+  );
+  
+  if (firstUnsolvedIndex !== -1) {
+    setCurrentWordIndex(firstUnsolvedIndex);
+    setSelectedClue(puzzle.words[firstUnsolvedIndex]);
+    console.log('🎯 Jumping to first unsolved word:', firstUnsolvedIndex + 1);
+  } else {
+    // All words solved - stay on first word
+    setCurrentWordIndex(0);
+    setSelectedClue(puzzle.words[0]);
+    console.log('✅ All words already solved!');
+  }
+  
+  // Update gridLayout to show solved letters
+  setGridLayout(prevLayout => ({
+    ...prevLayout,
+    cells: prevLayout.cells.map(cell => {
+      const belongsToSolvedWord = cell.wordIndices?.some(wordIdx => 
+        savedProgress.solvedWordIndices.includes(wordIdx)
+      );
+      
+      if (belongsToSolvedWord && cell.letter) {
+        return {
+          ...cell,
+          revealed: true,
+          solved: true
+        };
+      }
+      return cell;
+    })
+  }));
+  
+  setNeedsRestoration(false);
+  console.log('✅ Progress restored! Starting at question', firstUnsolvedIndex + 1);
+  
+}, [needsRestoration, gridLayout.cells.length, savedProgress, puzzle.words]);
+
+
+
 
   useEffect(() => {
     if (currentWord && !solvedClues[currentWordIndex]) {
@@ -1086,7 +1165,13 @@ const handleSelectAnswer = (choice) => {
 
       <ThemeBackground theme={theme || 'jungle'} />
     
-      <BackToHomeButton />
+       <PauseMenu
+      onBackToStory={onBackToStory}
+      onMainMenu={onMainMenu}
+      onStoryGenerator={onStoryGenerator}
+      currentEpisode={currentEpisode}  // ✅ ADD THIS LINE
+      customMessage="Where would you like to go?"
+    />
 
       <AnimatePresence>
         {showCelebration && (

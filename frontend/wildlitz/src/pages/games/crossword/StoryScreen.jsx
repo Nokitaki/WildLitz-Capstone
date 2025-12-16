@@ -4,14 +4,16 @@ import { motion } from 'framer-motion';
 import { Volume2 } from 'lucide-react';
 import styles from '../../../styles/games/crossword/StoryScreen.module.css';
 import ThemeBackground from '../../../components/common/ThemeBackground';
-
+import PauseMenu from './PauseMenu';
 const StoryScreen = ({ 
   storySegment, 
   onContinue, 
   vocabularyWords = [], 
   currentEpisode,
   onToggleReadingCoach,
-  theme  // ✅ ADD THIS LINE
+  theme,
+  onMainMenu,        
+  onStoryGenerator   
 }) => {
   // State for reading
   const [hasReadStory, setHasReadStory] = useState(false);
@@ -447,6 +449,14 @@ const StoryScreen = ({
     <div className={styles.storyScreenContainer}>
       
       <ThemeBackground theme={theme || 'jungle'} />
+
+       <PauseMenu
+        onBackToStory={null}  // null = button won't show
+        onMainMenu={onMainMenu}
+        onStoryGenerator={onStoryGenerator}
+        customMessage="What would you like to do?"
+      />
+      
       {/* TOP RIGHT CONTROLS - FIXED POSITION */}
       <div className={styles.controls}>
         {hasSpeech && (

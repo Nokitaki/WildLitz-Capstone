@@ -39,7 +39,7 @@ const CrosswordGame = () => {
     adventureId: 'jungle_quest'
   });
   
-
+  const [episodePuzzleProgress, setEpisodePuzzleProgress] = useState({});
 
   
   const [storyProgress, setStoryProgress] = useState({});
@@ -97,6 +97,55 @@ const currentTheme = currentAdventure?.theme || 'jungle';
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
+
+const handleBackToStory = () => {
+  const progressKey = `ep${currentEpisode}_puzzle${currentPuzzleIndex}`;
+  
+  // Get the indices of solved words
+  const solvedWordIndices = solvedWords
+    .map(wordData => {
+      // Find the index in the current puzzle
+      const wordAnswer = typeof wordData === 'string' ? wordData : wordData.word;
+      return currentPuzzle.words.findIndex(w => 
+        w.answer.toUpperCase() === wordAnswer.toUpperCase()
+      );
+    })
+    .filter(idx => idx !== -1); // Remove any not found
+  
+  setEpisodePuzzleProgress(prev => ({
+    ...prev,
+    [progressKey]: {
+      solvedWords: [...solvedWords],
+      timeSpent: timeSpent,
+      totalHints: totalHints,
+      solvedWordIndices: solvedWordIndices
+    }
+  }));
+  
+  console.log('💾 Saved progress:', {
+    words: solvedWords.length,
+    indices: solvedWordIndices,
+    key: progressKey
+  });
+  
+  setGameState('story');
+};
+
+const handleGoToMainMenu = () => {
+  if (window.confirm('Return to main menu? Your progress will be saved.')) {
+    // Stop any audio/timers
+    setTimerActive(false);
+    navigate('/home');
+  }
+};
+
+const handleGoToStoryGenerator = () => {
+  if (window.confirm('Create a new story? Your current progress will be saved.')) {
+    // Stop any audio/timers
+    setTimerActive(false);
+    setGameState('generate-story');
+  }
+};
 
  
   useEffect(() => {
@@ -323,6 +372,20 @@ const sessionData = {
   };
   
  const handleContinueToPuzzle = () => {
+   const progressKey = `ep${currentEpisode}_puzzle${currentPuzzleIndex}`;
+  const savedProgress = episodePuzzleProgress[progressKey];
+  
+  if (savedProgress) {
+    
+    setSolvedWords(savedProgress.solvedWords);
+    setTimeSpent(savedProgress.timeSpent);
+    setTotalHints(savedProgress.totalHints);
+  } else {
+    
+    setSolvedWords([]);
+    setTimeSpent(0);
+    setTotalHints(0);
+  }
   setGameState('gameplay');
   setTimerActive(true); 
 };
@@ -705,7 +768,8 @@ const generateNextEpisodeOnDemand = async () => {
             currentEpisode={currentEpisode}
             totalEpisodes={totalEpisodes}
             onToggleReadingCoach={toggleReadingCoach}
-             
+            onMainMenu={handleGoToMainMenu}
+            onStoryGenerator={handleGoToStoryGenerator}
             theme={currentTheme}
           />
         </motion.div>
@@ -739,6 +803,11 @@ const generateNextEpisodeOnDemand = async () => {
             onAnswerAttempt={handleAnswerAttempt}
             calculatedAccuracy={calculateAccuracy()}
             onPuzzleComplete={handlePuzzleComplete}
+            onBackToStory={handleBackToStory}
+            onMainMenu={handleGoToMainMenu}
+            onStoryGenerator={handleGoToStoryGenerator}
+            savedProgress={episodePuzzleProgress[`ep${currentEpisode}_puzzle${currentPuzzleIndex}`]}
+            
             
           />
         </motion.div>
