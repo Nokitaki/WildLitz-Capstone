@@ -132,19 +132,15 @@ const handleBackToStory = () => {
 };
 
 const handleGoToMainMenu = () => {
-  if (window.confirm('Return to main menu? Your progress will be saved.')) {
-    // Stop any audio/timers
-    setTimerActive(false);
-    navigate('/home');
-  }
+  // Stop any audio/timers
+  setTimerActive(false);
+  navigate('/home');
 };
 
 const handleGoToStoryGenerator = () => {
-  if (window.confirm('Create a new story? Your current progress will be saved.')) {
-    // Stop any audio/timers
-    setTimerActive(false);
-    setGameState('generate-story');
-  }
+  // Stop any audio/timers
+  setTimerActive(false);
+  setGameState('generate-story');
 };
 
  

@@ -24,7 +24,7 @@ const StoryScreen = ({
   const [visitedSentences, setVisitedSentences] = useState([]);
   const [filteredVocabWords, setFilteredVocabWords] = useState([]);
   const [voicesLoaded, setVoicesLoaded] = useState(false);
-  
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   // References
   const storyTextRef = useRef(null);
   const sentenceRefs = useRef([]);
@@ -451,51 +451,51 @@ const StoryScreen = ({
       <ThemeBackground theme={theme || 'jungle'} />
 
        <PauseMenu
-        onBackToStory={null}  // null = button won't show
-        onMainMenu={onMainMenu}
-        onStoryGenerator={onStoryGenerator}
-        customMessage="What would you like to do?"
-      />
-      
-      {/* TOP RIGHT CONTROLS - FIXED POSITION */}
-      <div className={styles.controls}>
-        {hasSpeech && (
-          <div className={styles.readAloudControls}>
-            {!isReading ? (
-              <button 
-                className={styles.readAloudButton}
-                onClick={readStoryAloud}
-                title="Listen to the story"
-              >
-                🔊 Read Aloud
-              </button>
-            ) : (
-              <button 
-                className={styles.stopReadingButton}
-                onClick={stopReading}
-                title="Stop reading"
-              >
-                ⏹️ Stop Reading
-              </button>
-            )}
-          </div>
-        )}
-        
-        {onToggleReadingCoach && (
-          <button
-            className={styles.readingHelperButton}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-             
-              onToggleReadingCoach();
-            }}
-            title="Get help with reading"
+  onBackToStory={null}
+  onMainMenu={onMainMenu}
+  onStoryGenerator={onStoryGenerator}
+  customMessage="What would you like to do?"
+  onMenuStateChange={setIsMenuOpen} // ✅ Pass the state setter
+/>
+      {!isMenuOpen && ( // ✅ Only show when menu is NOT open
+  <div className={styles.controls}>
+    {hasSpeech && (
+      <div className={styles.readAloudControls}>
+        {!isReading ? (
+          <button 
+            className={styles.readAloudButton}
+            onClick={readStoryAloud}
+            title="Listen to the story"
           >
-            📖 Reading Helper
+            🔊 Read Aloud
+          </button>
+        ) : (
+          <button 
+            className={styles.stopReadingButton}
+            onClick={stopReading}
+            title="Stop reading"
+          >
+            ⏹️ Stop Reading
           </button>
         )}
       </div>
+    )}
+    
+    {onToggleReadingCoach && (
+      <button
+        className={styles.readingHelperButton}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggleReadingCoach();
+        }}
+        title="Get help with reading"
+      >
+        📖 Reading Helper
+      </button>
+    )}
+  </div>
+)}
 
       {/* Header - Episode Info Only */}
       <div className={styles.header}>
