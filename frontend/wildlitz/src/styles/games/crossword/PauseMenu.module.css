@@ -3,7 +3,8 @@
 /* Menu Button Styles */
 .menuButton {
   position: fixed;
-  top: 20px;
+  top: 10px;
+  
   left: 20px;
   display: flex;
   align-items: center;

@@ -65,9 +65,9 @@
   }
 }
 
-/* Header */
 .header {
   padding: 12px 20px;
+  padding-left: 180px;  /* ✅ ADD THIS - makes space for menu button */
   background: rgba(255, 255, 255, 0.98);
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
   position: relative;
@@ -91,6 +91,14 @@
   font-size: 15px;
   box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
   animation: badgePulse 2s ease-in-out infinite;
+  margin-left: 0;  /* ✅ ADD THIS - ensures no negative margin */
+}
+
+/* ✅ ADD responsive styling */
+@media (max-width: 768px) {
+  .header {
+    padding-left: 120px; /* Less padding on smaller screens */
+  }
 }
 
 @keyframes badgePulse {
