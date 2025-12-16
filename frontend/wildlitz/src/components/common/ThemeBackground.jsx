@@ -2,7 +2,7 @@
 import React from 'react';
 
 // Import all background images
-import jungleImg from '../../assets/img/backgrounds/jungle.png';
+import jungleImg from '../../assets/img/backgrounds/Jungle.png';
 import oceanImg from '../../assets/img/backgrounds/ocean.png';
 import farmImg from '../../assets/img/backgrounds/farm2.jpg';
 import spaceImg from '../../assets/img/backgrounds/space2.jpg';
