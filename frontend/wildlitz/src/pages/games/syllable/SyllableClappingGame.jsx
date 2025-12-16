@@ -68,8 +68,8 @@ const SyllableClappingGame = () => {
   const [micEnabled, setMicEnabled] = useState(false); // ← ADD THESE
 
   const { isListening, micPermission, errorMessage } = useClapDetection(
-    micEnabled && gamePhase === "playing", // Only enable during playing phase
-    () => setClapCount((prev) => prev + 1) // ✅ Inline function works!
+  micEnabled && gamePhase === "playing",
+  () => setClapCount((prev) => prev < 6 ? prev + 1 : prev)
   );
 
   useEffect(() => {
@@ -661,8 +661,8 @@ const SyllableClappingGame = () => {
 
   // Handle clap button press
   const handleClap = () => {
-    setClapCount((prev) => prev + 1);
-  };
+  setClapCount((prev) => prev < 6 ? prev + 1 : prev);
+};
 
   // Handle play sound button
   const handlePlaySound = () => {
