@@ -551,7 +551,7 @@ body {
 
 .gameVisual {
   width: 77%;
-  height: 61%;
+  height: 61.3%;
   /* This ensures the video/image fills the container without distortion */
   object-fit: cover; 
   border-radius: 8px;
