@@ -1109,7 +1109,7 @@ const handleSelectAnswer = (choice) => {
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.levelBadge}>
-            📚 Episode {currentPuzzleIndex + 1}
+            📚 Episode {currentEpisode}
           </div>
           <h1 className={styles.title}>🎯 Crossword Puzzle</h1>
           <div className={styles.stats}>
