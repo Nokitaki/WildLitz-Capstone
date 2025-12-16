@@ -1950,12 +1950,13 @@ const SyllableConfigScreen = ({ onStartGame }) => {
                           >
                             ✏️
                           </button>
-                          <button
+                          {/*<button
                             className={styles.searchDeleteBtn}
                             onClick={() => handlePermanentDelete(word.id)}
                           >
                             🗑️
                           </button>
+                          */}
                         </div>
                       </div>
                     ))
