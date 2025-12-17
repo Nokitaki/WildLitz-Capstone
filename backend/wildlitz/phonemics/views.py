@@ -557,29 +557,26 @@ def get_safari_animals_by_sound(request):
 
 
 
+        # Position validation - only filter if we still have minimum required animals
         if sound_position and sound_position != 'anywhere':
-
             position_matched_animals = [
                 animal for animal in animals_found 
                 if animal.get('sound_position') == sound_position
             ]
             
-
             original_count = len(animals_found)
             matched_count = len(position_matched_animals)
             
-            if matched_count < original_count:
-                logger.warning(
-                    f"⚠️ POSITION VALIDATION: Filtered {original_count} animals down to {matched_count} "
-                    f"that match position '{sound_position}'"
-                )
-                logger.warning(
-                    f"   Excluded {original_count - matched_count} animals with sound '{target_sound}' "
-                    f"but different positions"
-                )
+            logger.info(f"🔍 Position filtering: {original_count} → {matched_count} animals match '{sound_position}'")
             
-
-            animals_found = position_matched_animals
+            # ✅ FIX: Only filter if we still have minimum required animals
+            if matched_count >= min_correct:
+                animals_found = position_matched_animals
+                logger.info(f"✅ Using {matched_count} position-matched animals")
+            else:
+                logger.warning(f"⚠️ Position filtering would leave only {matched_count} animals, need {min_correct}")
+                logger.warning(f"   Keeping all {original_count} animals with sound '{target_sound}' regardless of position")
+                # Don't filter - keep animals with correct sound but any position
 
 
 

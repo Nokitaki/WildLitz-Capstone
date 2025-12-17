@@ -320,5 +320,19 @@
     "sound_position": "ending",
     "environment": "ocean",
     "difficulty_level": "medium"
+  },
+  {
+    "name": "Zebra",
+    "target_sound": "b",
+    "sound_position": "middle",
+    "environment": "savanna",
+    "difficulty_level": "easy"
+  },
+  {
+    "name": "Raccoon",
+    "target_sound": "c",
+    "sound_position": "middle",
+    "environment": "jungle",
+    "difficulty_level": "medium"
   }
 ]

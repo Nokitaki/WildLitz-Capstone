@@ -169,12 +169,14 @@ const SoundSafariGame = () => {
     setFromIntroScreen(false);
     setError(null);
 
+    // ✅ FIX: Pass soundPosition explicitly instead of relying on gameConfig state
     await prepareNewRound(
       finalConfig.targetSound,
       finalConfig.difficulty,
       0,
       [],
-      finalConfig.environment
+      finalConfig.environment,
+      finalConfig.soundPosition  // ← ADD THIS
     );
 
     setTimeout(() => {
@@ -238,14 +240,15 @@ const SoundSafariGame = () => {
     difficulty = gameConfig.difficulty,
     retryCount = 0,
     triedSounds = [],
-    environment = gameConfig.environment
+    environment = gameConfig.environment,
+    soundPosition = gameConfig.soundPosition  // ← ADD THIS PARAMETER
   ) => {
     setIsLoading(true);
     setError(null);
 
     try {
       const currentTriedSounds = [...triedSounds, targetSound];
-      const soundPosition = gameConfig.soundPosition;
+      // ✅ FIX: soundPosition now comes from parameter, not state
 
       setGameConfig((prev) => ({
         ...prev,
@@ -270,7 +273,8 @@ const SoundSafariGame = () => {
           difficulty,
           retryCount,
           currentTriedSounds,
-          environment
+          environment,
+          soundPosition  // ← ADD THIS
         );
       }
 
@@ -279,6 +283,18 @@ const SoundSafariGame = () => {
         difficulty: difficulty,
         environment: environment,
         position: soundPosition,
+      });
+
+      console.log('🎯 BACKEND RESPONSE:', {
+        sound: targetSound,
+        position: soundPosition,
+        totalAnimals: response.animals?.length,
+        correctCount: response.correct_count,
+        animals: response.animals?.map(a => ({
+          name: a.name,
+          sound: a.target_sound,
+          position: a.sound_position
+        }))
       });
 
       if (response.animals && response.animals.length > 0) {
@@ -300,7 +316,8 @@ const SoundSafariGame = () => {
             difficulty,
             retryCount + 1,
             currentTriedSounds,
-            environment
+            environment,
+            soundPosition  // ← ADD THIS
           );
         }
       }
@@ -394,24 +411,14 @@ const SoundSafariGame = () => {
   const handleSubmitAnswers = (selected) => {
     setSelectedAnimals(selected);
 
+    // ✅ FIX: For Round 1, accept animals with correct sound regardless of position
+    // Backend may return mixed positions when specific position has too few animals
     const correctAnimals = roundAnimals.filter((animal) => {
-      if (gameConfig.soundPosition === "anywhere") {
-        return animal.target_sound === gameConfig.targetSound;
-      }
-      return (
-        animal.target_sound === gameConfig.targetSound &&
-        animal.sound_position === gameConfig.soundPosition
-      );
+      return animal.target_sound === gameConfig.targetSound;
     });
 
     const correctSelections = selected.filter((animal) => {
-      if (gameConfig.soundPosition === "anywhere") {
-        return animal.target_sound === gameConfig.targetSound;
-      }
-      return (
-        animal.target_sound === gameConfig.targetSound &&
-        animal.sound_position === gameConfig.soundPosition
-      );
+      return animal.target_sound === gameConfig.targetSound;
     }).length;
 
     const incorrectSelections = selected.length - correctSelections;
@@ -492,7 +499,8 @@ const SoundSafariGame = () => {
       gameConfig.difficulty,
       0,
       [],
-      gameConfig.environment
+      gameConfig.environment,
+      gameConfig.soundPosition  // ← ADD THIS
     );
 
     setTimeout(() => {
@@ -506,7 +514,8 @@ const SoundSafariGame = () => {
       gameConfig.difficulty,
       0,
       [],
-      gameConfig.environment
+      gameConfig.environment,
+      gameConfig.soundPosition  // ← ADD THIS
     );
     setRoundStartTime(Date.now());
     setGameState("intro");
@@ -536,7 +545,8 @@ const SoundSafariGame = () => {
       gameConfig.difficulty,
       0,
       [],
-      gameConfig.environment
+      gameConfig.environment,
+      gameConfig.soundPosition  // ← ADD THIS
     );
 
     setGameState("loading");

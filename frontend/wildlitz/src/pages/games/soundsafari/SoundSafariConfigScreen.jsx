@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../../styles/games/safari/SoundSafariConfig.module.css';
 import { getRandomValidSound } from '../../../utils/excludedCombinations';
+import { fetchRandomSound } from '../../../services/soundSafariApi';
 // 1. Import the Analytics component
 import SoundSafariAnalytics from './SoundSafariAnalytics';
 
@@ -28,15 +29,40 @@ const SoundSafariConfigScreen = ({
   // 2. Add state to control the modal visibility
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
 
-  const handleStartGame = () => {
-    const randomSound = getRandomValidSound(soundPosition, []);
-    const config = {
-      soundPosition,
-      targetSound: randomSound,
-      environment: currentEnvironment,
-      difficulty
-    };
-    if (onStartGame) onStartGame(config);
+  const handleStartGame = async () => {
+    try {
+      // Try to get a sound from backend that has animals available
+      const response = await fetchRandomSound(soundPosition);
+      
+      let randomSound;
+      if (response.sound) {
+        randomSound = response.sound;
+        console.log('✅ Backend selected sound:', randomSound);
+      } else {
+        // Fallback to client-side selection
+        randomSound = getRandomValidSound(soundPosition, []);
+        console.log('⚠️ Using fallback sound:', randomSound);
+      }
+      
+      const config = {
+        soundPosition,
+        targetSound: randomSound,
+        environment: currentEnvironment,
+        difficulty
+      };
+      if (onStartGame) onStartGame(config);
+    } catch (error) {
+      console.error('❌ Error selecting sound:', error);
+      // Fallback to client-side selection on error
+      const randomSound = getRandomValidSound(soundPosition, []);
+      const config = {
+        soundPosition,
+        targetSound: randomSound,
+        environment: currentEnvironment,
+        difficulty
+      };
+      if (onStartGame) onStartGame(config);
+    }
   };
   
   return (
